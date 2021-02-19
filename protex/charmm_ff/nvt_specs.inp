@@ -1,0 +1,34 @@
+ensemble         = NVT
+
+nstep            = 200000                            # Number of steps to run
+dt               = 0.0005                            # Time-step (ps)
+
+nstout           = 100                             # Writing output frequency (steps)
+nstdcd           = 50                             # Writing coordinates trajectory frequency (steps)
+
+boxl             = 47.99                            # Boxlength (A) -> to be set according to npt run (10000)
+coulomb          = PME                               # Electrostatic cut-off method
+ewald_Tol        = 0.0001                            # Ewald error tolerance
+vdw              = Switch                            # vdW cut-off method
+r_on             = 10                               # Switch-on distance (A)
+r_off            = 11                               # Switch-off distance (A)
+
+temp             = 300                            # Temperature (K)
+coll_freq        = 10                               #collision frequency for DrudeNoseHoover Integrator
+
+drude_temp       = 1.0                               # Drude Temperature (K)
+drude_coll_freq = 200                                # Drude collision frequency for DrudeNoseHoover Integrator
+drude_hardwall   = 0.2                              # Drude Hardwall(A)
+
+pcouple          = no                               # Turn on/off pressure coupling
+p_ref            = 1.0                               # Pressure (Pref or Pxx, Pyy, Pzz; bar)
+p_type           = isotropic                         # MonteCarloBarostat type
+p_freq           = 100                               # Pressure coupling frequency (steps)
+
+cons             = HBonds                            # Constraints mehtod
+
+
+
+
+fric_coeff       = 10                                 # Friction coefficient for Langevin dynamics
+drude_fric_coeff = 200                                # Drude Friction coefficient for Langevin dynamics
