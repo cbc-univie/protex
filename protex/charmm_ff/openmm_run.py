@@ -96,6 +96,10 @@ integrator = DrudeNoseHooverIntegrator(inputs.temp*kelvin, inputs.coll_freq/pico
 
 #Drude hard wall
 integrator.setMaxDrudeDistance(inputs.drude_hardwall*angstroms)
+if integrator.getMaxDrudeDistance() == 0:
+    print("No Drude Hard Wall Contraint in use")
+else:
+    print("Drude Hard Wall set to {}".format(integrator.getMaxDrudeDistance()))
 
 # Set platform
 platform = Platform.getPlatformByName('CUDA')
@@ -142,6 +146,9 @@ if inputs.gen_vel == 'yes':
     else:
         simulation.context.setVelocitiesToTemperature(inputs.gen_temp)
 
+# save every step for IR spectrum calculation
+if int(args.counter) == 101 and inputs.ensemble == "NVT":
+    inputs.nstdcd = 1
 #Production
 if inputs.nstep > 0:
     print("\nMD run: %s steps" % inputs.nstep)

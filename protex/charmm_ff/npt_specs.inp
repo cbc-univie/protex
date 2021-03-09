@@ -1,6 +1,6 @@
 ensemble         = NPT
 
-mini_nstep       = 50000                              # Number of steps for minimization
+mini_nstep       = 5000                              # Number of steps for minimization
 mini_Tol         = 10.0                             # Minimization energy tolerance
 
 pre_nstep        = 200000                            # Number of steps to run
