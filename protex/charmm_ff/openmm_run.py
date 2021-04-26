@@ -15,6 +15,10 @@ from simtk.unit import *
 from omm_readinputs import *
 from omm_readparams import *
 
+# user specified
+#sys.path.append("/home/florian/pythonfiles")
+from pystat import read_data 
+
 parser = argparse.ArgumentParser()
 parser.add_argument('-cnt', dest='counter', help='Counter variable fpr consecutive runs', required=True)
 parser.add_argument('-i', dest='inpfile', help='Input parameter file', required=True)
@@ -39,7 +43,10 @@ args = parser.parse_args()
 print("Loading parameters")
 inputs = read_inputs(args.inpfile)
 if inputs.ensemble == "NVT" and int(args.counter) == 1:
-    args.irst = "traj/" + args.name + "_npt_11.rst"
+    args.irst = "traj/" + args.name + "_npt_12.rst"
+    if not os.path.isfile(args.irst):
+        args.irst = "traj/" + args.name + "_npt_11.rst"
+    print("Restart file", args.irst)
 
 f_name = args.name + '_' + str(inputs.ensemble).lower()
 if not any([args.orst, args.ochk]):
@@ -95,6 +102,7 @@ if int(args.counter) == 1 and inputs.ensemble == "NPT":
 integrator = DrudeNoseHooverIntegrator(inputs.temp*kelvin, inputs.coll_freq/picosecond, inputs.drude_temp*kelvin, inputs.drude_coll_freq/picosecond, inputs.dt*picoseconds)
 
 #Drude hard wall
+#if int(args.counter) == 1 and inputs.ensemble == "NPT":
 integrator.setMaxDrudeDistance(inputs.drude_hardwall*angstroms)
 if integrator.getMaxDrudeDistance() == 0:
     print("No Drude Hard Wall Contraint in use")
@@ -116,7 +124,15 @@ if args.icrst:
     simulation.context.setPeriodicBoxVectors(charmm_rst.box[0], charmm_rst.box[1], charmm_rst.box[2])
 if args.irst:
     with open(args.irst, 'r') as f:
+        #state = XmlSerializer.deserialize(f.read())
+        #pos = state.getState(getPositions=True).getPositions()
+        #vel = state.getState(getVelocities=True).getVelocities()
+        #print(state)
         simulation.context.setState(XmlSerializer.deserialize(f.read()))
+        #if inputs.ensemble == "NVT":
+        #    simulation.context.setPeriodicBoxVectors(psf.boxVectors[0],psf.boxVectors[1],psf.boxVectors[2])
+        #    simulation.context.setPositions(pos)
+        #    simulation.context.setVelocities(vel)
 if args.ichk:
     with open(args.ichk, 'rb') as f:
         simulation.context.loadCheckpoint(f.read())
@@ -127,16 +143,20 @@ simulation.context.computeVirtualSites()
 state=simulation.context.getState(getPositions=True, getEnergy=True)
 print("\nInitial system energy")
 #print(state.getPotentialEnergy().value_in_unit(kilocalories_per_mole))
-print(state.getPotentialEnergy())
+print("E_kin:", state.getKineticEnergy())
+print("E_pot:", state.getPotentialEnergy())
 
 if int(args.counter) == 1 and not any([args.irst, args.ichk, args.icrst]):
     print("\nEnergy minimization: %s steps" % inputs.mini_nstep)
     simulation.minimizeEnergy(tolerance=inputs.mini_Tol*kilojoule/mole, maxIterations=inputs.mini_nstep)
-    print(simulation.context.getState(getEnergy=True).getPotentialEnergy())
+    print("E_kin:", simulation.context.getState(getEnergy=True).getKineticEnergy())
+    print("E_pot:", simulation.context.getState(getEnergy=True).getPotentialEnergy())
     print("Saving minimized pdb...")
     if not args.minpdb: args.minpdb = args.name + "_min.pdb"
     positions = simulation.context.getState(getPositions=True).getPositions()
     PDBFile.writeFile(simulation.topology, positions, open(args.minpdb,'w'))
+
+quit()
 
 # Generate initial velocities
 if inputs.gen_vel == 'yes':
@@ -149,6 +169,31 @@ if inputs.gen_vel == 'yes':
 # save every step for IR spectrum calculation
 if int(args.counter) == 101 and inputs.ensemble == "NVT":
     inputs.nstdcd = 1
+#check that boxl for nvt is close to mean of npt
+if int(args.counter) == 12 and inputs.ensemble == "NPT":
+    #make file with npt box lengths
+    os.system('python analysis/get_boxl.py')
+    #extract mean from step 18000 to end
+    xtl,_,_,_,_ = read_data("analysis/boxl.dat", ['-x', '18000'])
+    #xtl = inputs.avg_boxl/10
+    xtl_low = (xtl - xtl*0.0005)
+    xtl_high = (xtl + xtl*0.0005)
+    curr_boxl = 0.0
+    print("xtl_high, xtl_low", xtl_high, xtl_low)
+    #while xtl_low <= curr_boxl <= xtl_high:
+    for i in range(500):
+        simulation.reporters.append(StateDataReporter("find_mw.out", 10, step=True, time=True, totalEnergy=True, volume=True))
+        simulation.step(100)
+        curr_boxl = (float(os.popen('tail -n1 find_mw.out | cut -d "," -f4').read())**(1/3))*10
+        print(i)
+        print("curr_boxl",curr_boxl)
+        if xtl_low <= curr_boxl <= xtl_high:
+            print("Final boxl for nvt:", curr_boxl)
+            break
+    state = simulation.context.getState( getPositions=True, getVelocities=True )
+    with open(args.orst, 'w') as f:
+        f.write(XmlSerializer.serialize(state))
+    quit()
 #Production
 if inputs.nstep > 0:
     print("\nMD run: %s steps" % inputs.nstep)

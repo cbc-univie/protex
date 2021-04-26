@@ -6,12 +6,12 @@ source /home/florian/anaconda3/bin/activate openmm
 
 inp_file="openmm_run.py"
 job_name="npt"
-last=11   #first one is only 20ps with dt 0.1fs
-file_name="im1h_oac_200_im1_hoac_300"
+last=1   #first one is only 20ps with dt 0.1fs, last one for mean
+file_name="im1h_oac_150_im1_hoac_350"
 params="npt_specs.inp"
 psf=${file_name}".psf"
 crd=${file_name}".crd"
-toppar="toppar/toppar_lj04.str"
+toppar="toppar_lj02.str"
 
 python $inp_file -cnt $1 -i $params -p $psf -c $crd -t $toppar -n ${file_name}
 

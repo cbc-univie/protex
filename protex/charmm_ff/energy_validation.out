@@ -1,0 +1,15 @@
+Loading parameters
+Loading CHARMM files...
+Creating OpenMM System...
+First run with time step of 0.0001 ps
+Drude Hard Wall set to 0.020000000000000004 nm
+CUDA
+
+Initial system energy
+E_kin: 0.0 kJ/mol
+E_pot: 681942.6099584531 kJ/mol
+
+Energy minimization: 5000 steps
+E_ki: 0.0 kJ/mol
+E_pot: 681942.6112419683 kJ/mol
+Saving minimized pdb...

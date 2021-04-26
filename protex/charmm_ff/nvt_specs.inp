@@ -17,13 +17,13 @@ temp             = 300                            # Temperature (K)
 coll_freq        = 10                               #collision frequency for DrudeNoseHoover Integrator
 
 drude_temp       = 1.0                               # Drude Temperature (K)
-drude_coll_freq = 200                                # Drude collision frequency for DrudeNoseHoover Integrator
+drude_coll_freq  = 200                                # Drude collision frequency for DrudeNoseHoover Integrator
 drude_hardwall   = 0.2                              # Drude Hardwall(A)
 
 pcouple          = no                               # Turn on/off pressure coupling
 p_ref            = 1.0                               # Pressure (Pref or Pxx, Pyy, Pzz; bar)
-p_type           = isotropic                         # MonteCarloBarostat type
-p_freq           = 100                               # Pressure coupling frequency (steps)
+p_type           = isotropic                         # MonteCarloBarostat type, not in use
+p_freq           = 100                               # Pressure coupling frequency (steps), not in use
 
 cons             = HBonds                            # Constraints mehtod
 

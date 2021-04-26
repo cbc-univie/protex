@@ -6,12 +6,12 @@ source /home/florian/anaconda3/bin/activate openmm
 
 inp_file="openmm_run.py"
 job_name="nvt"
-last=101
-file_name="im1h_oac_200_im1_hoac_300"
+last=101 # 101 wird jeder frame gespeichert fuer ir spektrum
+file_name="im1h_oac_150_im1_hoac_350"
 params="nvt_specs.inp"
 psf=${file_name}".psf"
 crd=${file_name}".crd"
-toppar="toppar/toppar_lj04.str"
+toppar="toppar_lj02.str"
 
 python $inp_file -cnt $1 -i $params -p $psf -c $crd -t $toppar -n ${file_name}
 

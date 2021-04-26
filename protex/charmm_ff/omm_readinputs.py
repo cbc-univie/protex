@@ -59,6 +59,7 @@ class _OpenMMReadInputs():
 
         self.rest             = 'no'                                      # Turn on/off restraints
         self.fc_pos           = 0.0                                       # Positional restraint force constant
+        self.avg_boxl         = 48.0
 
     def read(self, inputFile):
         for line in open(inputFile, 'r'):
@@ -146,6 +147,7 @@ class _OpenMMReadInputs():
                         if input_value.upper() == 'YES':                self.rest             = 'yes'
                         if input_value.upper() == 'NO':                 self.rest             = 'no'
                     if input_param == 'FC_POS':                         self.fc_pos           = float(input_value)
+                    if input_param == 'AVG_BOXL':                       self.avg_boxl         = float(input_value)
         return self
 
 def read_inputs(inputFile):
