@@ -1,0 +1,13 @@
+{
+	"directory" : "../../",
+	"trajectory": { "dcd": "traj/im1h_oac_50_im1_hoac_450_nvt_", "first": 101, "last": 101, "skip": 1 },
+    "psf"       : "im1h_oac_50_im1_hoac_450.psf",
+
+	"molecules":
+	[
+		{ "key": "anion", "resname": "OAC" },
+		{ "key": "anion1", "resname": "HOAC" },
+		{ "key": "cation", "resname": "IM1H" },
+		{ "key": "cation1", "resname": "IM1" }
+	]
+}

@@ -1,0 +1,26 @@
+tolerance 2.0
+seed -1
+
+
+filetype pdb
+output im1h_oac_150_im1_hoac_350_init.pdb
+
+structure ./toppar/im1h_min.pdb 
+  number 150 
+  inside box -24. -24. -24. 24. 24. 24.
+end structure
+
+structure ./toppar/oac_min.pdb
+  number 150
+  inside box -24. -24. -24. 24. 24. 24.
+end structure
+
+structure ./toppar/im1_min.pdb 
+  number 350 
+  inside box -24. -24. -24. 24. 24. 24.
+end structure
+
+structure ./toppar/hoac_min.pdb
+  number 350
+  inside box -24. -24. -24. 24. 24. 24.
+end structure

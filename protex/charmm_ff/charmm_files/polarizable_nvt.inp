@@ -1,0 +1,133 @@
+*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*~ Polarizable equilibration of non-polarizable structure
+*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*
+
+if @?INDEX eq 0 set INDEX = 1
+calc PREV = @INDEX - 1
+
+ioformat extended
+!=======================================================================
+! Force field
+!=======================================================================
+set TOPPAR /site/raid1/florian/str/scaled_lj
+stream @TOPPAR/toppar_drude_master_protein_2013f_lj0.4.str
+stream @TOPPAR/im1h_d_fm_lj.str
+stream @TOPPAR/oac_d_lj.str
+stream @TOPPAR/im1_d_fm_lj.str
+stream @TOPPAR/hoac_d.str
+
+read sequence IM1H 200
+generate IM1H setup warn drude dmass 0.4
+
+read sequence OAC 200
+generate OAC setup warn drude dmass 0.4
+
+read sequence IM1 300
+generate IM1 setup warn drude dmass 0.4
+
+read sequence HOAC 300
+generate HOAC setup warn drude dmass 0.4
+
+!=======================================================================
+! Coordinates
+!=======================================================================
+open  unit 10 read form name "./im1h_oac_200_im1_hoac_300_equil.crd"
+read  unit 10 coor card 
+close unit 10
+
+coor sdrude
+coor shake
+
+set XTL = 47.99 
+calc XTL2 = @xtl/2
+set GRID = 48
+
+crystal define cubic @XTL @XTL @XTL 90.0 90.0 90.0
+crystal build  cutoff @XTL2 noperations 0
+image byresidue select ALL end
+
+energy  bycb atom vatom cdiel ewal pmew vswitch -
+        ctonnb           10  -
+        ctofnb           11  -
+        cutnb            14  -
+        cutim            14  -
+        kappa           0.41 -
+        fftx          @GRID  -
+        ffty          @GRID  -
+        fftz          @GRID  -
+        spli order        6  -
+        qcor              0  -
+        wmin            1.5  -
+        inbfrq           -1  -
+        imgfrq           -1
+
+shake bonh param tol 1.0e-9 nofast - 
+      select ( .not. type D* ) end -
+      select ( .not. type D* ) end
+
+!DrudeHardWall L_WALL 0.2
+
+!=======================================================================
+! TPCONTROL
+!=======================================================================
+if @?TEMP  eq 0 set TEMP = 300.0
+tpcontrol nther 2 nstep 20 -
+  ther 1 tau  0.1   tref  @temp  select .not. type D* end -
+  ther 2 tau  0.005 tref  1.00   select type D* end 
+
+!=======================================================================
+! Dynamics
+!=======================================================================
+if @?NSTEP eq 0 set NSTEP = 200000 ! = 100 ps
+if @?DT    eq 0 set DT    = 0.0005  ! in ps
+!if @?INDEX eq 0 set INDEX = 1
+
+set TRAJDIR = "./traj/polarizable_nvt"
+
+if @INDEX eq 1 then
+  ioformat extended
+  open unit 10 write form name "./im1h_oac_200_im1_hoac_300_nvt.psf"
+  write unit 10 psf card 
+
+!  mini sd nstep 10
+
+  set STARTER = START
+  set IUNREA  = -1
+else
+  set STARTER = RESTART
+  set IUNREA  = 10
+  !calc PREV = @INDEX - 1
+  open unit 10 read form name "@TRAJDIR/im1h_oac_200_im1_hoac_300_@PREV.rst"
+endif  
+
+! current trajectory file
+open unit 15 write form name "@TRAJDIR/im1h_oac_200_im1_hoac_300_@INDEX.rst"
+open unit 20 write file name "@TRAJDIR/im1h_oac_200_im1_hoac_300_@INDEX.dcd"
+
+! GPU support
+cuda init
+cuda use
+energy
+
+dyna vv2  @starter  -
+     ISEED        14 09 19 80 -
+     NSTEP        @nstep  -
+     TIMESTEP        @dt  -
+     IPRFRQ         1000  -
+     IMGFRQ           -1  -
+     INBFRQ           -1  -
+     NTRFRQ         5000  -
+     NPRINT          100  -
+     NSAVC            50  -
+     NSAVV            -1  -
+     IUNREA      @iunrea  -
+     IUNWRI           15  -
+     IUNCRD           20  -
+     IUNVEL           -1  
+
+open  unit 10  write form name "./im1h_oac_200_im1_hoac_300_nvt.crd"
+write unit 10 coor card
+close unit 10
+
+stop

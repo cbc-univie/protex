@@ -1,0 +1,30 @@
+{
+	"data":      "msdMJ_1-100_skip10.dat", 
+	"residuals": "msdMJ_fit.dat",
+	"charmmfile": "",
+	"boxl": "",
+	"maxtime":   1000,
+
+	"initialexp":
+	[
+		{ "a": {"value":  193.45238, "vary": true}, "tau": {"value":    0.25895, "vary": true} },
+		{ "a": {"value":  124.50312, "vary": true}, "tau": {"value":  121.57568, "vary": true} }
+	],
+
+	"exp":
+	[
+		{ "a": {"value":  3.45337, "vary": true}, "tau": {"value":    1.25895, "vary": true} },
+		{ "a": {"value":  11.45337, "vary": true}, "tau": {"value":    9.25895, "vary": true} },
+		{ "a": {"value":  54.50349, "vary": true}, "tau": {"value":  22.57955, "vary": true} }
+	],
+
+	"initialline":
+	[
+		{ "slope": {"value": 0.35986053, "vary": true} }
+	],
+
+	"line":
+	[
+		{ "slope": {"value": 0.35985884, "vary": true} }
+	]
+}
