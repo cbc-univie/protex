@@ -51,21 +51,24 @@ def setup_system():
 
 
 def setup_simulation():
-    from simtk.unit import kelvin, picoseconds
+    from simtk.unit import kelvin, picoseconds, angstroms
     from simtk.openmm.app import Simulation
-    from simtk.openmm import DrudeLangevinIntegrator
+    from simtk.openmm import DrudeLangevinIntegrator, DrudeNoseHooverIntegrator
 
     psf, crd, params = load_charmm_files()
     system = setup_system()
-    integrator = DrudeLangevinIntegrator(
+    #integrator = DrudeLangevinIntegrator(
+    integrator = DrudeNoseHooverIntegrator(
         300 * kelvin,
-        1 / picoseconds,
-        300 * kelvin,
-        1 / picoseconds,
-        0.002 * picoseconds,
+        10  / picoseconds,
+        1   * kelvin,
+        200 / picoseconds,
+        0.0005 * picoseconds,
     )
+    integrator.setMaxDrudeDistance(0.2 * angstroms)
     simulation = Simulation(psf.topology, system, integrator)
     simulation.context.setPositions(crd.positions)
+    simulation.context.computeVirtualSites()
     return simulation
 
 
