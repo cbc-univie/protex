@@ -3222,6 +3222,9 @@ BONDS
 !atom type      Kb       b0 
 !============================================ 
 ! 
+!for im1 dummmy (copied from nd2r5c hdp1a)
+ND2R5B   HDP1A    466.00      1.000 ! IMIM, first guess (EH) 
+!
 ND2A1    CD2O1A   420.00      1.350 ! ACEM, acetamide 
 ND2A1    CD2R6B   360.00      1.362 ! CTY, va 
 ND2A1    CD2R6C   360.00      1.369 ! ADE, cmb 
@@ -3517,6 +3520,7 @@ CD33B    LPD        0.00      0.000 ! MEOH
 CD33C    LPD        0.00      0.000 ! MAS 
 CD33E    LPD        0.00      0.000 ! DMP 
 ND2R5B   LPD        0.00      0.000 ! IMID 
+ND2R5C   LPD        0.00      0.000 ! for dummy LP on IM1H
 ND2R5B   LPDNA1     0.00      0.000 ! Purine
 ND2R5E   LPDNA1     0.00      0.000 ! GUA/ADE, cmb 04/10 
 ND2R6A   LPDNA1     0.00      0.000 ! PYR 
