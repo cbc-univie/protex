@@ -13,7 +13,7 @@ def test_setup_simulation():
     system = simulation.system
 
     nr_of_particles = system.getNumParticles()
-    assert nr_of_particles == 17350
+    assert nr_of_particles == 17500
 
 
 def test_run_simulation():
