@@ -57,7 +57,6 @@ class NaiveMCUpdate(Update):
         self.ionic_liquid.nonbonded_force.updateParametersInContext(
             self.ionic_liquid.simulation.context
         )
-        logger.info()
         # get new energy
         state = self.ionic_liquid.simulation.context.getState(getEnergy=True)
         new_e = state.getPotentialEnergy()
