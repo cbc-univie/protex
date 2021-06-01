@@ -64,22 +64,27 @@ def test_create_IonicLiquidTemplate():
         -0.383,
         -0.383,
     ]
-    r = templates.get_residue_name_of_paired_ion("OAC")
+    r = templates.get_residue_name_for_other_charged_state("OAC")
     assert r == "HOAC"
-    r = templates.get_residue_name_of_paired_ion("HOAC")
+    r = templates.get_residue_name_for_other_charged_state("HOAC")
     assert r == "OAC"
-    r = templates.get_residue_name_of_paired_ion("IM1H")
+    r = templates.get_residue_name_for_other_charged_state("IM1H")
     assert r == "IM1"
 
 
 def test_create_IonicLiquid():
     from ..testsystems import generate_im1h_oac_system, OAC_HOAC, IM1H_IM1
+    from collections import defaultdict
 
     simulation = generate_im1h_oac_system()
     templates = IonicLiqudTemplates([OAC_HOAC, IM1H_IM1])
-
+    count = defaultdict()
     ionic_liquid = IonicLiquidSystem(simulation, templates)
     assert len(ionic_liquid.residues) == 1000
+    for idx, residue in enumerate(ionic_liquid.residues):
+        print(f"{idx} : {residue.name}")
+        count[residue.name] += 1
+    print(count)
 
 
 def test_create_IonicLiquid_residue():
@@ -101,4 +106,3 @@ def test_create_IonicLiquid_residue():
     assert len(charges) == len(inactive_charges)
     assert np.isclose(charge, np.sum(charges))
     assert np.isclose(0.0, np.sum(inactive_charges))
-

@@ -20,10 +20,14 @@ def test_outline():
     state_update = StateUpdate(update)
     ionic_liquid.simulation.minimizeEnergy(maxIterations=100)
     # adding reporter
+    from simtk.openmm.app import StateDataReporter, PDBReporter, DCDReporter
+
+    ionic_liquid.simulation.reporters.append(PDBReporter("output.pdb", 10))
+
     ionic_liquid.simulation.reporters.append(
         StateDataReporter(
             stdout,
-            10,
+            1,
             step=True,
             potentialEnergy=True,
             temperature=True,

@@ -40,12 +40,6 @@ class NaiveMCUpdate(Update):
             f"candiadate_2: {candidate2_residue.name}; charge:{candidate2_residue.get_current_charge()}"
         )
 
-        if (
-            candidate1_residue.get_current_charge()
-            == candidate2_residue.get_current_charge()
-        ):
-            logger.info("No update possible; charge states the same.")
-
         # update charge set for residue 1
         new_charge = candidate1_residue.get_inactive_charges()
         candidate1_residue.set_new_charge(new_charge)
@@ -88,7 +82,7 @@ class StateUpdate:
         # TODO: select the relevant residue pairs based on the distance matrix that
         # is given as argument
         # for now we hardcode candidates
-        trial_proposed_candidate_pair = (0, 301)
+        trial_proposed_candidate_pair = (651, 649)
 
         # from the residue_idx we select the residue instances
         # NOTE: the logic that checks for correct pairing should be moved
@@ -99,14 +93,10 @@ class StateUpdate:
             self.ionic_liquid.residues[idx1],
             self.ionic_liquid.residues[idx2],
         )
-        proposed_candidate_pair = ()
-        if (
-            residue1.get_current_charge() != residue2.get_current_charge()
-            and self.ionic_liquid.templates.is_ionic_pair(residue1.name, residue2.name)
-        ):
-            proposed_candidate_pair = (residue1, residue2)
-        else:
-            logger.info("{residue1}-{residue2} pair rejected ...")
+
+        print(f"{residue1.name}-{residue2.name} pair suggested ...")
+        proposed_candidate_pair = (residue1, residue2)
+        logger.info(f"{residue1.name}-{residue2.name} pair suggested ...")
 
         return proposed_candidate_pair
 

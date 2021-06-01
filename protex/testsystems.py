@@ -56,7 +56,6 @@ def generate_im1h_oac_system():
 
         psf, crd, params = load_charmm_files()
         system = setup_system()
-        # integrator = DrudeLangevinIntegrator(
         integrator = DrudeNoseHooverIntegrator(
             300 * kelvin,
             10 / picoseconds,

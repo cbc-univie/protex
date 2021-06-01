@@ -10,8 +10,12 @@ class IonicLiqudTemplates:
     def __init__(self, states: list) -> None:
         self.states = states  #
         self.names = list(itertools.chain(*[list(k.keys()) for k in states]))
+        self.pairs = [
+            (self.names[0], self.names[2]),
+            (self.names[1], self.names[3]),
+        ]  # NOTE: this needs a specific order of the states
 
-    def get_residue_name_of_paired_ion(self, name: str):
+    def get_residue_name_for_other_charged_state(self, name: str):
         """
         get_residue_name_of_paired_ion returns the paired residue name given a reisue name
 
@@ -41,14 +45,14 @@ class IonicLiqudTemplates:
         else:
             raise RuntimeError("something went wrong")
 
-    def is_ionic_pair(self, name1, name2) -> bool:
-        assert name1 in self.names and name2 in self.names
+    # def is_ionic_pair(self, name1, name2) -> bool:
+    #     assert name1 in self.names and name2 in self.names
 
-        for template in self.states:
-            if set([name1, name2]) == set(template.keys()):
-                return True
-        else:
-            return False
+    #     for template in self.states:
+    #         if set([name1, name2]) == set(template.keys()):
+    #             return True
+    #     else:
+    #         return False
 
     def get_charge_template_for(self, name: str):
         """
@@ -187,7 +191,9 @@ class IonicLiquidSystem:
         for r in self.topology.residues():
             name = r.name
             if name in self.templates.names:
-                name_of_paired_ion = self.templates.get_residue_name_of_paired_ion(name)
+                name_of_paired_ion = (
+                    self.templates.get_residue_name_for_other_charged_state(name)
+                )
                 residues.append(
                     Residue(
                         r,
