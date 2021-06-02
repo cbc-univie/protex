@@ -42,11 +42,11 @@ class NaiveMCUpdate(Update):
 
         # update charge set for residue 1
         new_charge = candidate1_residue.get_inactive_charges()
-        candidate1_residue.set_new_charge(new_charge)
+        candidate1_residue.set_new_charges(new_charge)
 
         # update charge set for residue 2
         new_charge = candidate2_residue.get_inactive_charges()
-        candidate2_residue.set_new_charge(new_charge)
+        candidate2_residue.set_new_charges(new_charge)
         # update the context to include the new parameters
         self.ionic_liquid.nonbonded_force.updateParametersInContext(
             self.ionic_liquid.simulation.context
@@ -65,6 +65,18 @@ class StateUpdate:
     def __init__(self, updateMethod: Update) -> None:
         self.updateMethod = updateMethod
         self.ionic_liquid = self.updateMethod.ionic_liquid
+
+    def write_parameters(self, filename: str):
+
+        nonbonded_force = self.ionic_liquid.nonbonded_force
+        atom_list = list(self.ionic_liquid.topology.atoms())
+        with open(filename, "w+") as f:
+            for i in range(nonbonded_force.getNumParticles()):
+                p = nonbonded_force.getParticleParameters(i)
+                a = atom_list[i]
+                f.write(
+                    f"{a.residue.name:>4}:{int(a.id): 4}:{int(a.residue.id): 4}:{a.name:>4}:{p[0]._value}"
+                )
 
     def update(self):
         """
