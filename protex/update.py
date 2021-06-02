@@ -75,7 +75,7 @@ class StateUpdate:
                 p = nonbonded_force.getParticleParameters(i)
                 a = atom_list[i]
                 f.write(
-                    f"{a.residue.name:>4}:{int(a.id): 4}:{int(a.residue.id): 4}:{a.name:>4}:{p[0]._value}"
+                    f"{a.residue.name:>4}:{int(a.id): 4}:{int(a.residue.id): 4}:{a.name:>4}:{p[0]._value}\n"
                 )
 
     def update(self):
