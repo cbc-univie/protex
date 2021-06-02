@@ -16,5 +16,6 @@ def test_perform_charge_muatation():
     update = NaiveMCUpdate(ionic_liquid)
     # initialize state update class
     state_update = StateUpdate(update)
-
+    state_update.write_parameters("output_initial.txt")
     state_update.update()
+    state_update.write_parameters("output_final.txt")
