@@ -150,7 +150,7 @@ class Residue:
         else:
             raise RuntimeError()
 
-    def set_new_charge(self, new_charges: list) -> None:
+    def set_new_charges(self, new_charges: list) -> None:
         from simtk import unit
 
         for new_charge, idx in zip(new_charges, self.atom_idxs):
