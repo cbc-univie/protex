@@ -4,7 +4,7 @@
        Copyright(c) 1984-2014  President and Fellows of Harvard College
                               All Rights Reserved
   Current operating system: Linux-4.9.0-15-amd64(x86_64)@sheet.mdy.univie.ac.   
-                 Created on  6/2/21 at 16:26:31 by user: florian     
+                 Created on  6/4/21 at  9:27:46 by user: florian     
 
             Maximum number of ATOMS:    360720, and RESidues:      120240
  RDTITL> *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1128,13 +1128,13 @@ STPD EWALD>       6062.9962-6009738.2463 5971515.7607       0.0000       0.0000
    Shake time                      0.17 Other:            0.00
       Image Update                    0.01 Other:            0.00
       xdistm setup                    0.00 Other:            0.00
-      xdistm Build list               2.64 Other:            0.00
+      xdistm Build list               2.70 Other:            0.00
       Heuristic check                 0.00 Other:            0.00
-      NBONDS                          1.65 Other:            0.00
-   List time                       4.31 Other:            0.00
-            Direct Ewald time              47.15 Other:            0.00
-         Ewald time                     47.98 Other:            0.83
-      Nonbond force                  49.00 Other:            1.02
+      NBONDS                          1.69 Other:            0.00
+   List time                       4.40 Other:            0.00
+            Direct Ewald time              48.74 Other:            0.00
+         Ewald time                     50.02 Other:            1.28
+      Nonbond force                  51.09 Other:            1.06
          Bond energy                     0.06 Other:            0.00
          Angle energy                    0.18 Other:            0.00
          Dihedral energy                 0.22 Other:            0.00
@@ -1142,26 +1142,26 @@ STPD EWALD>       6062.9962-6009738.2463 5971515.7607       0.0000       0.0000
       INTRNL energy                   0.49 Other:            0.03
       Comm energy                     0.00 Other:            0.00
       Comm force                      0.00 Other:            0.00
-         Fill charge grid                0.44 Other:            0.00
+         Fill charge grid                0.74 Other:            0.00
          Scalar sum                      0.03 Other:            0.00
-         Grad sum                        0.21 Other:            0.00
-            FFTcomm                         0.02 Other:            0.00
-         FFT                             0.08 Other:            0.06
-      Recip Ewald time                0.83 Other:            0.07
-   Energy time                    50.32 Other:            0.00
- Total time                     54.80 Other:            0.00
+         Grad sum                        0.22 Other:            0.00
+            FFTcomm                         0.05 Other:            0.00
+         FFT                             0.13 Other:            0.09
+      Recip Ewald time                1.28 Other:            0.15
+   Energy time                    52.85 Other:            0.00
+ Total time                     57.43 Other:            0.00
          $$$$$$  Average   profile $$$$$
    Shake Setup                     0.01 Other:            0.00
    Shake time                      0.17 Other:            0.00
       Image Update                    0.01 Other:            0.00
       xdistm setup                    0.00 Other:            0.00
-      xdistm Build list               2.64 Other:            0.00
+      xdistm Build list               2.70 Other:            0.00
       Heuristic check                 0.00 Other:            0.00
-      NBONDS                          1.65 Other:            0.00
-   List time                       4.31 Other:            0.00
-            Direct Ewald time              47.15 Other:            0.00
-         Ewald time                     47.98 Other:            0.83
-      Nonbond force                  49.00 Other:            1.02
+      NBONDS                          1.69 Other:            0.00
+   List time                       4.40 Other:            0.00
+            Direct Ewald time              48.74 Other:            0.00
+         Ewald time                     50.02 Other:            1.28
+      Nonbond force                  51.09 Other:            1.06
          Bond energy                     0.06 Other:            0.00
          Angle energy                    0.18 Other:            0.00
          Dihedral energy                 0.22 Other:            0.00
@@ -1169,18 +1169,18 @@ STPD EWALD>       6062.9962-6009738.2463 5971515.7607       0.0000       0.0000
       INTRNL energy                   0.49 Other:            0.03
       Comm energy                     0.00 Other:            0.00
       Comm force                      0.00 Other:            0.00
-         Fill charge grid                0.44 Other:            0.00
+         Fill charge grid                0.74 Other:            0.00
          Scalar sum                      0.03 Other:            0.00
-         Grad sum                        0.21 Other:            0.00
-            FFTcomm                         0.02 Other:            0.00
-         FFT                             0.08 Other:            0.06
-      Recip Ewald time                0.83 Other:            0.07
-   Energy time                    50.32 Other:            0.00
- Total time                     54.80 Other:            0.00
+         Grad sum                        0.22 Other:            0.00
+            FFTcomm                         0.05 Other:            0.00
+         FFT                             0.13 Other:            0.09
+      Recip Ewald time                1.28 Other:            0.15
+   Energy time                    52.85 Other:            0.00
+ Total time                     57.43 Other:            0.00
 
                     NORMAL TERMINATION BY NORMAL STOP
                     MOST SEVERE WARNING WAS AT LEVEL  2
 
                     $$$$$ JOB ACCOUNTING INFORMATION $$$$$
-                     ELAPSED TIME:    53.36  SECONDS 
-                         CPU TIME:     1.24  MINUTES 
+                     ELAPSED TIME:    55.48  SECONDS 
+                         CPU TIME:     1.32  MINUTES 

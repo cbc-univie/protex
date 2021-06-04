@@ -38,6 +38,7 @@ def test_run_simulation():
     )
     print("Running dynmamics...")
     simulation.step(200)
+    # If simulation aborts with Nan error, try smaller timestep (e.g. 0.0001) and then extract new crd from dcd using "protex/charm_ff/crdfromdcd.inp"
 
 
 def test_create_IonicLiquidTemplate():
