@@ -49,8 +49,8 @@ class NaiveMCUpdate(Update):
         new_charge_candidate2 = candidate2_residue.get_inactive_charges()
         old_charge_candidate2 = candidate2_residue.get_current_charges()
 
-        for lamb in np.linspace(0, 1, 11):
-            logger.debug(lamb)
+        logger.info("Start changing states ...")
+        for lamb in np.linspace(0, 1, 101):
             charge_candidate1 = (1.0 - lamb) * np.array(
                 old_charge_candidate1
             ) + lamb * np.array(new_charge_candidate1)
@@ -68,10 +68,13 @@ class NaiveMCUpdate(Update):
             # get new energy
             state = self.ionic_liquid.simulation.context.getState(getEnergy=True)
             new_e = state.getPotentialEnergy()
-            logger.info(f"Energy before/after state change:{initial_e}/{new_e}")
 
             self.ionic_liquid.simulation.step(10)
 
+        # get new energy
+        state = self.ionic_liquid.simulation.context.getState(getEnergy=True)
+        new_e = state.getPotentialEnergy()
+        logger.info(f"Energy before/after state change:{initial_e}/{new_e}")
         self.ionic_liquid.simulation.context.setVelocitiesToTemperature(
             300.0 * unit.kelvin
         )

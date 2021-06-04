@@ -23,12 +23,12 @@ def test_outline(caplog):
     state_update = StateUpdate(update)
     ionic_liquid.simulation.minimizeEnergy(maxIterations=100)
     # adding reporter
-    ionic_liquid.simulation.reporters.append(PDBReporter("output.pdb", 10))
+    ionic_liquid.simulation.reporters.append(PDBReporter("output.pdb", 100))
 
     ionic_liquid.simulation.reporters.append(
         StateDataReporter(
             stdout,
-            1,
+            100,
             step=True,
             potentialEnergy=True,
             temperature=True,
@@ -39,6 +39,6 @@ def test_outline(caplog):
     )
     for _ in range(5):
         print(_)
-        ionic_liquid.simulation.step(1000)
+        ionic_liquid.simulation.step(5000)
         state_update.update()
         ionic_liquid.report_states()

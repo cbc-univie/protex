@@ -7,12 +7,12 @@ def generate_im1h_oac_system():
     """
 
     def load_charmm_files():
-        from simtk.openmm.app import CharmmParameterSet, CharmmPsfFile, CharmmCrdFile
+        from simtk.openmm.app import (CharmmCrdFile, CharmmParameterSet,
+                                      CharmmPsfFile)
 
         # =======================================================================
         # Force field
         # =======================================================================
-
         # Loading CHARMM files
         print("Loading CHARMM files...")
         PARA_FILES = [
@@ -33,8 +33,8 @@ def generate_im1h_oac_system():
         return psf, crd, params
 
     def setup_system():
-        from simtk.unit import angstroms
         from simtk.openmm.app import PME, HBonds
+        from simtk.unit import angstroms
 
         psf, crd, params = load_charmm_files()
         xtl = 48.0 * angstroms
@@ -50,20 +50,21 @@ def generate_im1h_oac_system():
         return system
 
     def setup_simulation():
-        from simtk.unit import kelvin, picoseconds, angstroms
+        from simtk.openmm import (DrudeLangevinIntegrator,
+                                  DrudeNoseHooverIntegrator)
         from simtk.openmm.app import Simulation
-        from simtk.openmm import DrudeLangevinIntegrator, DrudeNoseHooverIntegrator
+        from simtk.unit import angstroms, kelvin, picoseconds
 
         psf, crd, params = load_charmm_files()
         system = setup_system()
         integrator = DrudeNoseHooverIntegrator(
             300 * kelvin,
-            10 / picoseconds,
+            5 / picoseconds,
             1 * kelvin,
-            200 / picoseconds,
+            20 / picoseconds,
             0.0005 * picoseconds,
         )
-        integrator.setMaxDrudeDistance(0.2 * angstroms)
+        integrator.setMaxDrudeDistance(0.25 * angstroms)
         simulation = Simulation(psf.topology, system, integrator)
         simulation.context.setPositions(crd.positions)
         simulation.context.computeVirtualSites()
