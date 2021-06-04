@@ -108,18 +108,7 @@ class Residue:
 
         assert len(set(list(self.charge_sets.keys()))) == 2
         # calculate initial charge
-        intial_charge = int(
-            np.round(
-                sum(
-                    [
-                        self.nonbonded_force.getParticleParameters(idx)[0]._value
-                        for idx in self.atom_idxs
-                    ]
-                ),
-                4,
-            )
-        )
-        assert intial_charge in list(self.charge_sets.keys())
+        intial_charge = self._get_current_charge()
         self.record_charge_state.append(intial_charge)
 
     def get_current_charge(self) -> int:
@@ -150,6 +139,21 @@ class Residue:
         else:
             raise RuntimeError()
 
+    def _get_current_charge(self) -> int:
+        charge = int(
+            np.round(
+                sum(
+                    [
+                        self.nonbonded_force.getParticleParameters(idx)[0]._value
+                        for idx in self.atom_idxs
+                    ]
+                ),
+                4,
+            )
+        )
+        assert charge in list(self.charge_sets.keys())
+        return charge
+
     def set_new_charges(self, new_charges: list) -> None:
         from simtk import unit
 
@@ -162,6 +166,8 @@ class Residue:
             self.nonbonded_force.setParticleParameters(
                 idx, new_charge * unit.elementary_charge, old_sigma, old_epsilon
             )
+
+        self.record_charge_state.append(self._get_current_charge())
 
 
 class IonicLiquidSystem:

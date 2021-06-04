@@ -2,10 +2,13 @@ from ..testsystems import generate_im1h_oac_system, OAC_HOAC, IM1H_IM1
 from ..system import IonicLiquidSystem, IonicLiqudTemplates
 from ..update import NaiveMCUpdate, StateUpdate
 from sys import stdout
-from simtk.openmm.app import StateDataReporter
+import logging
 
 
-def test_outline():
+def test_outline(caplog):
+    from simtk.openmm.app import StateDataReporter, PDBReporter, DCDReporter
+
+    caplog.set_level(logging.DEBUG)
 
     # obtain simulation object
     simulation = generate_im1h_oac_system()
@@ -20,8 +23,6 @@ def test_outline():
     state_update = StateUpdate(update)
     ionic_liquid.simulation.minimizeEnergy(maxIterations=100)
     # adding reporter
-    from simtk.openmm.app import StateDataReporter, PDBReporter, DCDReporter
-
     ionic_liquid.simulation.reporters.append(PDBReporter("output.pdb", 10))
 
     ionic_liquid.simulation.reporters.append(
@@ -38,6 +39,6 @@ def test_outline():
     )
     for _ in range(5):
         print(_)
-        ionic_liquid.simulation.step(100)
+        ionic_liquid.simulation.step(1000)
         state_update.update()
         ionic_liquid.report_states()

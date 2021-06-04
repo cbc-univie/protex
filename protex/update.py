@@ -50,7 +50,7 @@ class NaiveMCUpdate(Update):
         old_charge_candidate2 = candidate2_residue.get_current_charges()
 
         for lamb in np.linspace(0, 1, 11):
-            print(lamb)
+            logger.debug(lamb)
             charge_candidate1 = (1.0 - lamb) * np.array(
                 old_charge_candidate1
             ) + lamb * np.array(new_charge_candidate1)
@@ -68,9 +68,9 @@ class NaiveMCUpdate(Update):
             # get new energy
             state = self.ionic_liquid.simulation.context.getState(getEnergy=True)
             new_e = state.getPotentialEnergy()
-            print(f"Energy before/after state change:{initial_e}/{new_e}")
+            logger.info(f"Energy before/after state change:{initial_e}/{new_e}")
 
-            self.ionic_liquid.simulation.step(1)
+            self.ionic_liquid.simulation.step(10)
 
         self.ionic_liquid.simulation.context.setVelocitiesToTemperature(
             300.0 * unit.kelvin
@@ -90,9 +90,10 @@ class StateUpdate:
 
         par = self.get_parameters()
         with open(filename, "w+") as f:
-            for p, a in par:
+            for p, atom in par:
+                charge = p[0]._value
                 f.write(
-                    f"{a.residue.name:>4}:{int(a.id): 4}:{int(a.residue.id): 4}:{a.name:>4}:{p[0]._value}\n"
+                    f"{atom.residue.name:>4}:{int(atom.id): 4}:{int(atom.residue.id): 4}:{atom.name:>4}:{charge}\n"
                 )
 
     def get_parameters(self) -> list:
@@ -134,7 +135,7 @@ class StateUpdate:
             self.ionic_liquid.residues[idx2],
         )
 
-        print(f"{residue1.name}-{residue2.name} pair suggested ...")
+        logger.info(f"{residue1.name}-{residue2.name} pair suggested ...")
         proposed_candidate_pair = (residue1, residue2)
         logger.info(f"{residue1.name}-{residue2.name} pair suggested ...")
 
