@@ -2,6 +2,7 @@ from protex.system import IonicLiquidSystem
 from typing import List, Tuple
 import logging
 import numpy as np
+from simtk import unit
 
 logger = logging.getLogger(__name__)
 
@@ -40,21 +41,40 @@ class NaiveMCUpdate(Update):
             f"candiadate_2: {candidate2_residue.name}; charge:{candidate2_residue.get_current_charge()}"
         )
 
-        # update charge set for residue 1
-        new_charge = candidate1_residue.get_inactive_charges()
-        candidate1_residue.set_new_charges(new_charge)
+        # get charge set for residue 1
+        new_charge_candidate1 = candidate1_residue.get_inactive_charges()
+        old_charge_candidate1 = candidate1_residue.get_current_charges()
 
-        # update charge set for residue 2
-        new_charge = candidate2_residue.get_inactive_charges()
-        candidate2_residue.set_new_charges(new_charge)
-        # update the context to include the new parameters
-        self.ionic_liquid.nonbonded_force.updateParametersInContext(
-            self.ionic_liquid.simulation.context
+        # get charge set for residue 2
+        new_charge_candidate2 = candidate2_residue.get_inactive_charges()
+        old_charge_candidate2 = candidate2_residue.get_current_charges()
+
+        for lamb in np.linspace(0, 1, 11):
+            print(lamb)
+            charge_candidate1 = (1.0 - lamb) * np.array(
+                old_charge_candidate1
+            ) + lamb * np.array(new_charge_candidate1)
+            charge_candidate2 = (1.0 - lamb) * np.array(
+                old_charge_candidate2
+            ) + lamb * np.array(new_charge_candidate2)
+
+            # set new charges
+            candidate1_residue.set_new_charges(list(charge_candidate1))
+            candidate2_residue.set_new_charges(list(charge_candidate2))
+            # update the context to include the new parameters
+            self.ionic_liquid.nonbonded_force.updateParametersInContext(
+                self.ionic_liquid.simulation.context
+            )
+            # get new energy
+            state = self.ionic_liquid.simulation.context.getState(getEnergy=True)
+            new_e = state.getPotentialEnergy()
+            print(f"Energy before/after state change:{initial_e}/{new_e}")
+
+            self.ionic_liquid.simulation.step(1)
+
+        self.ionic_liquid.simulation.context.setVelocitiesToTemperature(
+            300.0 * unit.kelvin
         )
-        # get new energy
-        state = self.ionic_liquid.simulation.context.getState(getEnergy=True)
-        new_e = state.getPotentialEnergy()
-        print(f"Energy before/after state change:{initial_e}/{new_e}")
 
 
 class StateUpdate:
@@ -68,15 +88,23 @@ class StateUpdate:
 
     def write_parameters(self, filename: str):
 
-        nonbonded_force = self.ionic_liquid.nonbonded_force
-        atom_list = list(self.ionic_liquid.topology.atoms())
+        par = self.get_parameters()
         with open(filename, "w+") as f:
-            for i in range(nonbonded_force.getNumParticles()):
-                p = nonbonded_force.getParticleParameters(i)
-                a = atom_list[i]
+            for p, a in par:
                 f.write(
                     f"{a.residue.name:>4}:{int(a.id): 4}:{int(a.residue.id): 4}:{a.name:>4}:{p[0]._value}\n"
                 )
+
+    def get_parameters(self) -> list:
+
+        nonbonded_force = self.ionic_liquid.nonbonded_force
+        atom_list = list(self.ionic_liquid.topology.atoms())
+        par = []
+        for i in range(nonbonded_force.getNumParticles()):
+            p = nonbonded_force.getParticleParameters(i)
+            a = atom_list[i]
+            par.append((p, a))
+        return par
 
     def update(self):
         """
