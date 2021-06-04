@@ -78,7 +78,7 @@ def test_create_IonicLiquid():
 
     simulation = generate_im1h_oac_system()
     templates = IonicLiqudTemplates([OAC_HOAC, IM1H_IM1])
-    count = defaultdict()
+    count = defaultdict(int)
     ionic_liquid = IonicLiquidSystem(simulation, templates)
     assert len(ionic_liquid.residues) == 1000
     for idx, residue in enumerate(ionic_liquid.residues):
