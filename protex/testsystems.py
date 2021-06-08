@@ -61,7 +61,7 @@ def generate_im1h_oac_system():
             300 * kelvin,
             5 / picoseconds,
             1 * kelvin,
-            20 / picoseconds,
+            100 / picoseconds,
             0.0005 * picoseconds,
         )
         integrator.setMaxDrudeDistance(0.25 * angstroms)
