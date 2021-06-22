@@ -117,22 +117,42 @@ class StateUpdate:
         # calculate the distance betwen updateable residues
         distance_matrix = self._calculate_distance_between_all_residues()
         # propose the update candidates based on distances
-        candidate_pairs = self._propose_candidate_pair()
+        candidate_pairs = self._propose_candidate_pair(distance_matrix)
         assert len(candidate_pairs) == 2
         self.updateMethod._update(candidate_pairs)
 
-    def _propose_candidate_pair(self) -> tuple:
+    def _propose_candidate_pair(self, distance_matrix) -> tuple:
 
         # TODO: select the relevant residue pairs based on the distance matrix that
         # is given as argument
         # for now we hardcode candidates
-        trial_proposed_candidate_pair = (651, 649)
+        #trial_proposed_candidate_pair = (651, 649)
+
+        import random
+
+        random_choice = random.randint(0,1)
+        active_matrix = distance_matrix[random_choice] #select from protonation or deprotonation matrix
+        
+        distance_based = 0.7 # choose distane criterion in 70% of the cases otherwise change randomly
+
+        if random.random() < distance_based:
+            #print(np.min(active_matrix))
+            if np.min(active_matrix) <= 1.0: # add distance criterion in nm (eg. 0.15nm)
+                idx1,idx2 = np.where(active_matrix == np.min(active_matrix)) # muss dann jeweils noch anzahl der vorigen species dauzaddieren...
+                if random_choice == 0: # im1h,oac matrix
+                    idx1, idx2 = int(idx1), int(int(idx2)/2)+150 # +150 IM1h
+                else: # im1,hoac matrix
+                    idx1, idx2 = int(idx1)+300, int(idx2)+650 # +300 (IM1h, OAC), +650 (im1h, oac, im1)
+        else:
+            idx1 = random.randint(0,149) if random.choice == 0 else random.randint(300,649)
+            idx2 = random.randint(150,299) if random.choice == 0 else random.randint(650,999)
+        #print("Residues", idx1, idx2)
 
         # from the residue_idx we select the residue instances
         # NOTE: the logic that checks for correct pairing should be moved
         # to calculate_distance_between_all_residues since we calculate
         # distance matrices for each pair
-        idx1, idx2 = trial_proposed_candidate_pair
+        #idx1, idx2 = trial_proposed_candidate_pair
         residue1, residue2 = (
             self.ionic_liquid.residues[idx1],
             self.ionic_liquid.residues[idx2],
@@ -149,16 +169,59 @@ class StateUpdate:
         calculate_distance_between_all_residues returns distance matrix
         """
         # TODO: distance matrix needs to be calculated for each IonicLiquid species seperatly
+        from scipy.spatial import distance_matrix
         state = self.ionic_liquid.simulation.context.getState(getPositions=True)
-        pos = state.getPositions()
+        pos = state.getPositions(asNumpy=True)
+        im1h_h_pos = []
+        oac_o_pos = []
+        im1_n_pos = []
+        #hoac_o_pos = []
+        hoac_h_pos = []
         for atom in self.ionic_liquid.simulation.topology.atoms():
             assert atom.residue.name in self.ionic_liquid.templates.names
-            # print(atom.id)
-            # print(atom)
-            # print(atom.residue.name)
-            # print(atom.residue.id)
+            atom_id_zero_based = int(atom.id) -1
+            if atom.name == "H7":
+                if  atom_id_zero_based > 19*150:
+                    id = int((atom_id_zero_based - 19*150-16*150)/19)+300
+                else:
+                    id = int(atom_id_zero_based/19)
+                if self.ionic_liquid.residues[id].get_current_charge() == 1: #->IM1H
+                    im1h_h_pos.append(pos[atom_id_zero_based])
+            if (atom.name == "O1" or atom.name == "O2"):
+                if atom_id_zero_based > 19*150+16*150:
+                    id = int((atom_id_zero_based - 19*150-16*150-19*350)/16)+650
+                else:
+                    id = int((atom_id_zero_based -19*150)/16)+150
+                if self.ionic_liquid.residues[id].get_current_charge() == -1: #->OAC
+                    oac_o_pos.append(pos[atom_id_zero_based])
+            if atom.name == "N2":
+                if atom_id_zero_based > 19*150:
+                    id = int((atom_id_zero_based - 19*150-16*150)/19)+300
+                else: 
+                    id = int(atom_id_zero_based/19)
+                if self.ionic_liquid.residues[id].get_current_charge() == 0: #->IM1
+                    im1_n_pos.append(pos[atom_id_zero_based])
+            if atom.name == "H":
+                if atom_id_zero_based > 19*150+16*150:
+                    id = int((atom_id_zero_based - 19*150-16*150-19*350)/16)+650
+                else: 
+                    id = int((atom_id_zero_based - 19*150)/16)+150 
+                if self.ionic_liquid.residues[id].get_current_charge() == 0: #->HOAC
+                    hoac_h_pos.append(pos[atom_id_zero_based-1])
 
+            #print(atom.id)
+            #print(atom)
+            #print(atom.residue.name)
+            #print(atom.residue.id)
+        #print(len(im1h_h_pos))
+        #print(len(oac_o_pos))
+        #print(len(im1_n_pos))
+        #print(len(hoac_h_pos))
+        dm_h7_o = distance_matrix(im1h_h_pos,oac_o_pos) #deprot 
+        dm_h_n = distance_matrix(im1_n_pos,hoac_h_pos) # prot
+       
         for idx, r in enumerate(self.ionic_liquid.simulation.topology.residues()):
             name = r.name
 
-        return np.ndarray([0, 0])
+        #return np.ndarray([0, 0])
+        return [dm_h7_o, dm_h_n]
