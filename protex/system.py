@@ -187,6 +187,11 @@ class IonicLiquidSystem:
 
         self.residues = self._set_initial_states()
 
+        #Should this be here or somewhere else? (needed for report_charge_changes)
+        self.charge_changes = {}
+        self.charge_changes["dcd_save_freq"] = 100 # this number should automatically be fetched from input somehow form dcdreporter
+        self.charge_changes["charges_at_step"] = {}
+
     def _set_initial_states(self) -> list:
         """
         set_initial_states For each ionic liquid residue in the system the protonation state
@@ -219,3 +224,25 @@ class IonicLiquidSystem:
         report_states prints out a summary of the current protonation state of the ionic liquid
         """
         pass
+
+    def report_charge_changes(self, step=0):
+        """
+        report_charge_changes reports the current charges after each update step in a dictionary format:
+        {"step": [residue_charges]}
+        additional header data is the dcd save frequency needed for later reconstruction of the charges at different steps
+        """
+        self.charge_changes["charges_at_step"][str(step)] = [residue.get_current_charge() for residue in self.residues]
+
+    def charge_changes_to_json(self, filename, append=False):
+        """
+        charge_changes_to_json writes the charge_chages dictionary constructed with report_charge_changes to a json file
+        """
+        import json
+        
+        if append:
+            mode = "r+"
+        else:
+            mode = "w"
+
+        with open(filename, mode) as f:
+            json.dump(self.charge_changes, f)
