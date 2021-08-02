@@ -133,11 +133,11 @@ class StateUpdate:
         random_choice = random.randint(0,1)
         active_matrix = distance_matrix[random_choice] #select from protonation or deprotonation matrix
         
-        distance_based = 0.7 # choose distane criterion in 70% of the cases otherwise change randomly
+        distance_based = 1.0 # choose distane criterion in 70% of the cases otherwise change randomly
 
         if random.random() < distance_based:
             #print(np.min(active_matrix))
-            if np.min(active_matrix) <= 1.0: # add distance criterion in nm (eg. 0.15nm)
+            if np.min(active_matrix) <= 0.15: # add distance criterion in nm (eg. 0.15nm)
                 idx1,idx2 = np.where(active_matrix == np.min(active_matrix)) # muss dann jeweils noch anzahl der vorigen species dauzaddieren...
                 if random_choice == 0: # im1h,oac matrix
                     idx1, idx2 = int(idx1), int(int(idx2)/2)+150 # +150 IM1h
@@ -177,35 +177,45 @@ class StateUpdate:
         im1_n_pos = []
         #hoac_o_pos = []
         hoac_h_pos = []
+        #print(f"{self.ionic_liquid.simulation.topology.getPeriodicBoxVectors()=}")
+        #print(f"{self.ionic_liquid.simulation.topology.getNumResidues()=}")
+        #print(f"{self.ionic_liquid.simulation.topology.getNumChains()=}")
+        #for chain in self.ionic_liquid.simulation.topology.chains():
+        #    print(f"{len(chain)}")
+        #print(f"{self.ionic_liquid.simulation.topology.getNumAtoms()=}")
+        #print(f"{self.ionic_liquid.simulation.topology.getNumBonds()=}")
+        atoms_im1_h = 20
         for atom in self.ionic_liquid.simulation.topology.atoms():
+            #print(len(self.ionic_liquid.system.getForces()[6]))
+            #   break
             assert atom.residue.name in self.ionic_liquid.templates.names
             atom_id_zero_based = int(atom.id) -1
             if atom.name == "H7":
-                if  atom_id_zero_based > 19*150:
-                    id = int((atom_id_zero_based - 19*150-16*150)/19)+300
+                if  atom_id_zero_based > atoms_im1_h*150:
+                    id = int((atom_id_zero_based - atoms_im1_h*150-16*150)/atoms_im1_h)+300
                 else:
-                    id = int(atom_id_zero_based/19)
+                    id = int(atom_id_zero_based/atoms_im1_h)
                 if self.ionic_liquid.residues[id].get_current_charge() == 1: #->IM1H
                     im1h_h_pos.append(pos[atom_id_zero_based])
             if (atom.name == "O1" or atom.name == "O2"):
-                if atom_id_zero_based > 19*150+16*150:
-                    id = int((atom_id_zero_based - 19*150-16*150-19*350)/16)+650
+                if atom_id_zero_based > atoms_im1_h*150+16*150:
+                    id = int((atom_id_zero_based - atoms_im1_h*150-16*150-atoms_im1_h*350)/16)+650
                 else:
-                    id = int((atom_id_zero_based -19*150)/16)+150
+                    id = int((atom_id_zero_based -atoms_im1_h*150)/16)+150
                 if self.ionic_liquid.residues[id].get_current_charge() == -1: #->OAC
                     oac_o_pos.append(pos[atom_id_zero_based])
             if atom.name == "N2":
-                if atom_id_zero_based > 19*150:
-                    id = int((atom_id_zero_based - 19*150-16*150)/19)+300
+                if atom_id_zero_based > atoms_im1_h*150:
+                    id = int((atom_id_zero_based - atoms_im1_h*150-16*150)/atoms_im1_h)+300
                 else: 
-                    id = int(atom_id_zero_based/19)
+                    id = int(atom_id_zero_based/atoms_im1_h)
                 if self.ionic_liquid.residues[id].get_current_charge() == 0: #->IM1
                     im1_n_pos.append(pos[atom_id_zero_based])
             if atom.name == "H":
-                if atom_id_zero_based > 19*150+16*150:
-                    id = int((atom_id_zero_based - 19*150-16*150-19*350)/16)+650
+                if atom_id_zero_based > atoms_im1_h*150+16*150:
+                    id = int((atom_id_zero_based - atoms_im1_h*150-16*150-atoms_im1_h*350)/16)+650
                 else: 
-                    id = int((atom_id_zero_based - 19*150)/16)+150 
+                    id = int((atom_id_zero_based - atoms_im1_h*150)/16)+150 
                 if self.ionic_liquid.residues[id].get_current_charge() == 0: #->HOAC
                     hoac_h_pos.append(pos[atom_id_zero_based-1])
 
@@ -219,9 +229,51 @@ class StateUpdate:
         #print(len(hoac_h_pos))
         dm_h7_o = distance_matrix(im1h_h_pos,oac_o_pos) #deprot 
         dm_h_n = distance_matrix(im1_n_pos,hoac_h_pos) # prot
+        boxl=np.round(self.ionic_liquid.system.getDefaultPeriodicBoxVectors()[0]._value[0],4) #Attention: x=y=z required! unit: nm
+        # take PBC into account
+        dm_h7_o[dm_h7_o > boxl] -= boxl
+        dm_h_n[dm_h_n > boxl] -= boxl
+        print(dm_h7_o)
        
-        for idx, r in enumerate(self.ionic_liquid.simulation.topology.residues()):
-            name = r.name
+        # for idx, r in enumerate(self.ionic_liquid.simulation.topology.residues()):
+        #     name = r.name
+        
+        # im1h_h_pos1 = []
+        # oac_o_pos1 = []
+        # im1_n_pos1 = []
+        # #hoac_o_pos = []
+        # hoac_h_pos1 = []
+
+        # for idx, residue in enumerate(self.ionic_liquid.residues):
+        #     if residue.name == "IM1H" or residue.name == "IM1":
+        #         #IM1H
+        #         if residue.get_current_charge() == 1:
+        #             for atom in residue.atoms():
+        #                 if atom.name == "H7":
+        #                     im1h_h_pos1.append(pos[atom.index])
+        #         #IM1
+        #         if residue.get_current_charge() == 0:
+        #             for atom in residue.atoms():
+        #                 if atom.name == "N2":
+        #                     im1_n_pos1.append(pos[atom.index])
+
+        #     if residue.name == "OAC" or residue.name == "HOAC":
+        #         #OAC
+        #         if residue.get_current_charge() == -1:
+        #             for atom in residue.atoms():
+        #                 if atom.name == "O1" or atom.name == "O2":
+        #                     oac_o_pos1.append(pos[atom.index])
+        #         #HOAC
+        #         if residue.get_current_charge() == 0:
+        #             for atom in residue.atoms():
+        #                 if atom.name == "H":
+        #                     hoac_h_pos1.append(pos[atom.index])
+
+        #     #print(r.name)
+        # dm_h7_o1 = distance_matrix(im1h_h_pos1,oac_o_pos1) #deprot 
+        # dm_h_n1 = distance_matrix(im1_n_pos1,hoac_h_pos1) # prot
+
+        #print(dm_h7_o, dm_h7_o1)
 
         #return np.ndarray([0, 0])
         return [dm_h7_o, dm_h_n]
