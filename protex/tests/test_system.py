@@ -12,7 +12,7 @@ def test_setup_simulation():
     system = simulation.system
 
     nr_of_particles = system.getNumParticles()
-    assert nr_of_particles == 17500
+    assert nr_of_particles == 17500 + 500  # +lps for im1 im1h
 
 
 def test_run_simulation():
@@ -38,7 +38,7 @@ def test_run_simulation():
     )
     print("Running dynmamics...")
     simulation.step(200)
-    # If simulation aborts with Nan error, try smaller timestep (e.g. 0.0001) and then extract new crd from dcd using "protex/charm_ff/crdfromdcd.inp"
+    # If simulation aborts with Nan error, try smaller timestep (e.g. 0.0001 ps) and then extract new crd from dcd using "protex/charmm_ff/crdfromdcd.inp"
 
 
 def test_create_IonicLiquidTemplate():
@@ -74,12 +74,13 @@ def test_create_IonicLiquidTemplate():
     r = templates.get_residue_name_for_coupled_state("IM1H")
     assert r == "IM1"
 
+
 def test_create_IonicLiquid():
     from ..testsystems import generate_im1h_oac_system, OAC_HOAC, IM1H_IM1
     from collections import defaultdict
 
     simulation = generate_im1h_oac_system()
-    templates = IonicLiqudTemplates([OAC_HOAC, IM1H_IM1], 'charged')
+    templates = IonicLiqudTemplates([OAC_HOAC, IM1H_IM1], "charged")
     count = defaultdict(int)
     ionic_liquid = IonicLiquidSystem(simulation, templates)
     assert len(ionic_liquid.residues) == 1000
@@ -93,7 +94,9 @@ def test_create_IonicLiquid_residue():
     from ..testsystems import generate_im1h_oac_system, OAC_HOAC, IM1H_IM1
 
     simulation = generate_im1h_oac_system()
-    templates = IonicLiqudTemplates([OAC_HOAC, IM1H_IM1](set(["IM1H", "OAC"]), set(["IM1", "HOAC"]))
+    templates = IonicLiqudTemplates(
+        [OAC_HOAC, IM1H_IM1], (set(["IM1H", "OAC"]), set(["IM1", "HOAC"]))
+    )
 
     ionic_liquid = IonicLiquidSystem(simulation, templates)
     assert len(ionic_liquid.residues) == 1000
@@ -115,3 +118,42 @@ def test_create_IonicLiquid_residue():
     residue = ionic_liquid.residues[1]
 
     assert (residue.get_idx_for_name("H7")) == 37
+
+
+def test_report_charge_changes():
+    import json
+    from ..testsystems import generate_im1h_oac_system, OAC_HOAC, IM1H_IM1
+    from ..update import NaiveMCUpdate, StateUpdate
+
+    # obtain simulation object
+    simulation = generate_im1h_oac_system()
+    # get ionic liquid templates
+    templates = IonicLiqudTemplates(
+        [OAC_HOAC, IM1H_IM1], (set(["IM1H", "OAC"]), set(["IM1", "HOAC"]))
+    )
+    # wrap system in IonicLiquidSystem
+    ionic_liquid = IonicLiquidSystem(simulation, templates)
+    # initialize state report
+    ionic_liquid.report_charge_changes(step=0)
+    # initialize update method
+    update = NaiveMCUpdate(ionic_liquid)
+    # initialize state update class
+    state_update = StateUpdate(update)
+
+    state_update.update()
+    ionic_liquid.report_charge_changes(step=1)
+    ionic_liquid.simulation.step(1000)
+    ionic_liquid.report_charge_changes(step=1000)
+
+    # check correct amount of charge entries per step
+    assert len(ionic_liquid.charge_changes["charges_at_step"]["0"]) == 1000
+    assert len(ionic_liquid.charge_changes["charges_at_step"]["1"]) == 1000
+    assert len(ionic_liquid.charge_changes["charges_at_step"]["1000"]) == 1000
+
+    ionic_liquid.charge_changes_to_json("test.json", append=False)
+
+    with open("test.json", "r") as json_file:
+        data = json.load(json_file)
+
+    # test if dict after writing and reading json stays same
+    assert data == ionic_liquid.charge_changes

@@ -18,8 +18,8 @@ def generate_im1h_oac_system():
         PARA_FILES = [
             "toppar_drude_master_protein_2013f_lj02.str",
             "hoac_d.str",
-            "im1h_d_fm_lj.str",
-            "im1_d_fm_lj.str",
+            "im1h_d_fm_lj_lp.str",
+            "im1_d_fm_lj_dummy_lp.str",
             "oac_d_lj.str",
         ]
         base = f"{protex.__path__[0]}/charmm_ff"  # NOTE: this points now to the installed files!
@@ -27,9 +27,9 @@ def generate_im1h_oac_system():
             *[f"{base}/toppar/{para_files}" for para_files in PARA_FILES]
         )
 
-        psf = CharmmPsfFile(f"{base}/im1h_oac_150_im1_hoac_350.psf")
+        psf = CharmmPsfFile(f"{base}/im1h_oac_150_im1_hoac_350_lp.psf")
         # cooridnates can be provieded by CharmmCrdFile, CharmmRstFile or PDBFile classes
-        crd = CharmmCrdFile(f"{base}/im1h_oac_150_im1_hoac_350.crd")
+        crd = CharmmCrdFile(f"{base}/im1h_oac_150_im1_hoac_350_lp.crd")
         return psf, crd, params
 
     def setup_system():
