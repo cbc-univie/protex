@@ -1,21 +1,26 @@
-import sys
 import itertools
 import numpy as np
 import logging
+from collections import ChainMap
 
 logger = logging.getLogger(__name__)
 
 
 class IonicLiqudTemplates:
-    def __init__(self, states: list) -> None:
-        self.states = states  #
-        self.names = list(itertools.chain(*[list(k.keys()) for k in states]))
-        self.pairs = [
-            (self.names[0], self.names[2]),
-            (self.names[1], self.names[3]),
-        ]  # NOTE: this needs a specific order of the states
+    def __init__(self, states: list, allowed_updates: tuple) -> None:
 
-    def get_residue_name_for_other_charged_state(self, name: str):
+        self.pairs = [list(i.keys()) for i in states]
+        self.states = dict(ChainMap(*states))  #
+        self.names = list(itertools.chain(*self.pairs))
+        self.allowed_updates = allowed_updates
+
+    def get_canonical_name(self, name: str) -> str:
+        assert name in self.names
+        for state in self.states:
+            if name in state:
+                return self.states[name]["canonical_name"]
+
+    def get_residue_name_for_coupled_state(self, name: str):
         """
         get_residue_name_of_paired_ion returns the paired residue name given a reisue name
 
@@ -35,24 +40,15 @@ class IonicLiqudTemplates:
         """
         assert name in self.names
 
-        for template in self.states:
-            if name in template.keys():
-                state_1, state_2 = template.keys()
+        for pair in self.pairs:
+            if name in pair:
+                state_1, state_2 = pair
                 if state_1 == name:
                     return state_2
                 else:
                     return state_1
         else:
             raise RuntimeError("something went wrong")
-
-    # def is_ionic_pair(self, name1, name2) -> bool:
-    #     assert name1 in self.names and name2 in self.names
-
-    #     for template in self.states:
-    #         if set([name1, name2]) == set(template.keys()):
-    #             return True
-    #     else:
-    #         return False
 
     def get_charge_template_for(self, name: str):
         """
@@ -75,12 +71,7 @@ class IonicLiqudTemplates:
         """
         assert name in self.names
 
-        for template in self.states:
-            for state in template:
-                if state == name:
-                    return template[state]
-        else:
-            raise RuntimeError("something went wrong")
+        return self.states[name]["charge"]
 
 
 class Residue:
@@ -88,28 +79,41 @@ class Residue:
         self,
         residue,
         nonbonded_force,
-        initial_charge: list,
-        alternative_charge: list,
+        initial_partial_charges: list,
+        alternative_partial_charges: list,
+        canonical_name: str,
     ) -> None:
 
-        assert len(initial_charge) == len(alternative_charge)
+        assert len(initial_partial_charges) == len(alternative_partial_charges)
 
         self.residue = residue
-        self.name = residue.name
+        self.original_name = residue.name
+        self.current_name = ''
         self.atom_idxs = [atom.index for atom in residue.atoms()]
+        self.atom_names = [atom.name for atom in residue.atoms()]
         self.nonbonded_force = nonbonded_force
         self.record_charge_state = []
+        self.canonical_name = canonical_name
 
         # generate charge set as dict with charge as key {0 : charges, -1: charges}
         self.charge_sets = {
-            int(np.round(np.sum(initial_charge), 2)): initial_charge,
-            int(np.round(np.sum(alternative_charge), 2)): alternative_charge,
+            int(np.round(np.sum(initial_partial_charges), 2)): initial_partial_charges,
+            int(
+                np.round(np.sum(alternative_partial_charges), 2)
+            ): alternative_partial_charges,
         }
 
         assert len(set(list(self.charge_sets.keys()))) == 2
         # calculate initial charge
         intial_charge = self._get_current_charge()
         self.record_charge_state.append(intial_charge)
+
+    def get_idx_for_name(self, name: str):
+        for idx, atom_name in zip(self.atom_idxs, self.atom_names):
+            if name == atom_name:
+                return idx
+        else:
+            raise RuntimeError()
 
     def get_current_charge(self) -> int:
         return self.record_charge_state[-1]
@@ -154,7 +158,7 @@ class Residue:
         assert charge in list(self.charge_sets.keys())
         return charge
 
-    def set_new_charges(self, new_charges: list) -> None:
+    def set_new_state(self, new_charges: list, new_res_name: str) -> None:
         from simtk import unit
 
         for new_charge, idx in zip(new_charges, self.atom_idxs):
@@ -166,7 +170,7 @@ class Residue:
             self.nonbonded_force.setParticleParameters(
                 idx, new_charge * unit.elementary_charge, old_sigma, old_epsilon
             )
-
+        self.current_name = new_res_name
         self.record_charge_state.append(self._get_current_charge())
 
 
@@ -197,8 +201,8 @@ class IonicLiquidSystem:
         for r in self.topology.residues():
             name = r.name
             if name in self.templates.names:
-                name_of_paired_ion = (
-                    self.templates.get_residue_name_for_other_charged_state(name)
+                name_of_paired_ion = self.templates.get_residue_name_for_coupled_state(
+                    name
                 )
                 residues.append(
                     Residue(
@@ -206,12 +210,13 @@ class IonicLiquidSystem:
                         self.nonbonded_force,
                         self.templates.get_charge_template_for(name),
                         self.templates.get_charge_template_for(name_of_paired_ion),
+                        self.templates.get_canonical_name(name),
                     )
                 )
+                residues[-1].current_name = name
 
             else:
                 raise RuntimeError("Found resiude not present in Templates: {r.name}")
-
         return residues
 
     def report_states(self) -> None:

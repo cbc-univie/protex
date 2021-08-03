@@ -1,5 +1,7 @@
+from collections import defaultdict
+
+from scipy.spatial import distance_matrix
 from protex.system import IonicLiquidSystem
-from typing import List, Tuple
 import logging
 import numpy as np
 from simtk import unit
@@ -25,7 +27,7 @@ class NaiveMCUpdate(Update):
     def __init__(self, ionic_liquid: IonicLiquidSystem) -> None:
         super().__init__(ionic_liquid)
 
-    def _update(self, candidate: tuple):
+    def _update(self, candidate: tuple, nr_of_steps: int):
         logger.info("called _update")
         # get current state
         state = self.ionic_liquid.simulation.context.getState(getEnergy=True)
@@ -34,23 +36,33 @@ class NaiveMCUpdate(Update):
         # retrive residue instances
         candidate1_residue, candidate2_residue = candidate
 
-        logger.debug(
-            f"candiadate_1: {candidate1_residue.name}; charge:{candidate1_residue.get_current_charge()}"
+        print(
+            f"candiadate_1: {candidate1_residue.current_name}; charge:{candidate1_residue.get_current_charge()}"
         )
-        logger.debug(
-            f"candiadate_2: {candidate2_residue.name}; charge:{candidate2_residue.get_current_charge()}"
+        print(
+            f"candiadate_2: {candidate2_residue.current_name}; charge:{candidate2_residue.get_current_charge()}"
         )
 
         # get charge set for residue 1
         new_charge_candidate1 = candidate1_residue.get_inactive_charges()
         old_charge_candidate1 = candidate1_residue.get_current_charges()
+        new_res_name_candidate1 = (
+            self.ionic_liquid.templates.get_residue_name_for_coupled_state(
+                candidate1_residue.current_name
+            )
+        )
 
         # get charge set for residue 2
         new_charge_candidate2 = candidate2_residue.get_inactive_charges()
         old_charge_candidate2 = candidate2_residue.get_current_charges()
+        new_res_name_candidate2 = (
+            self.ionic_liquid.templates.get_residue_name_for_coupled_state(
+                candidate2_residue.current_name
+            )
+        )
 
         logger.info("Start changing states ...")
-        for lamb in np.linspace(0, 1, 101):
+        for lamb in np.linspace(0, 1, nr_of_steps):
             charge_candidate1 = (1.0 - lamb) * np.array(
                 old_charge_candidate1
             ) + lamb * np.array(new_charge_candidate1)
@@ -59,8 +71,12 @@ class NaiveMCUpdate(Update):
             ) + lamb * np.array(new_charge_candidate2)
 
             # set new charges
-            candidate1_residue.set_new_charges(list(charge_candidate1))
-            candidate2_residue.set_new_charges(list(charge_candidate2))
+            candidate1_residue.set_new_state(
+                list(charge_candidate1), new_res_name_candidate1
+            )
+            candidate2_residue.set_new_state(
+                list(charge_candidate2), new_res_name_candidate2
+            )
             # update the context to include the new parameters
             self.ionic_liquid.nonbonded_force.updateParametersInContext(
                 self.ionic_liquid.simulation.context
@@ -88,6 +104,7 @@ class StateUpdate:
     def __init__(self, updateMethod: Update) -> None:
         self.updateMethod = updateMethod
         self.ionic_liquid = self.updateMethod.ionic_liquid
+        self.history = []
 
     def write_parameters(self, filename: str):
 
@@ -110,118 +127,115 @@ class StateUpdate:
             par.append((p, a))
         return par
 
-    def update(self):
+    def _print_start(self):
+        print(
+            f"""
+##############################
+##############################
+--- Update trial: {len(self.history)} ---
+##############################
+##############################
+"""
+        )
+
+    def _print_stop(self):
+        print(
+            f"""
+##############################
+##############################
+"""
+        )
+
+    def update(self, nr_of_steps: int = 101) -> tuple:
         """
         updates the current state using the method defined in the UpdateMethod class
         """
         # calculate the distance betwen updateable residues
-        distance_matrix = self._calculate_distance_between_all_residues()
+        distance_dict, res_dict = self._get_positions_for_mutation_sites()
         # propose the update candidates based on distances
-        candidate_pairs = self._propose_candidate_pair(distance_matrix)
+        self._print_start()
+        candidate_pairs = self._propose_candidate_pair(distance_dict, res_dict)
+        # add candidate pairs to history
         assert len(candidate_pairs) == 2
-        self.updateMethod._update(candidate_pairs)
+        self.history.append(candidate_pairs)
+        # print details
+        # update
+        self.updateMethod._update(candidate_pairs, nr_of_steps)
+        self._print_stop()
 
-    def _propose_candidate_pair(self, distance_matrix) -> tuple:
+        return candidate_pairs
 
-        # TODO: select the relevant residue pairs based on the distance matrix that
-        # is given as argument
-        # for now we hardcode candidates
-        #trial_proposed_candidate_pair = (651, 649)
+    def _propose_candidate_pair(self, distance_dict: dict, res_dict: dict) -> tuple:
 
-        import random
-
-        random_choice = random.randint(0,1)
-        active_matrix = distance_matrix[random_choice] #select from protonation or deprotonation matrix
-        
-        distance_based = 0.7 # choose distane criterion in 70% of the cases otherwise change randomly
-
-        if random.random() < distance_based:
-            #print(np.min(active_matrix))
-            if np.min(active_matrix) <= 1.0: # add distance criterion in nm (eg. 0.15nm)
-                idx1,idx2 = np.where(active_matrix == np.min(active_matrix)) # muss dann jeweils noch anzahl der vorigen species dauzaddieren...
-                if random_choice == 0: # im1h,oac matrix
-                    idx1, idx2 = int(idx1), int(int(idx2)/2)+150 # +150 IM1h
-                else: # im1,hoac matrix
-                    idx1, idx2 = int(idx1)+300, int(idx2)+650 # +300 (IM1h, OAC), +650 (im1h, oac, im1)
-        else:
-            idx1 = random.randint(0,149) if random.choice == 0 else random.randint(300,649)
-            idx2 = random.randint(150,299) if random.choice == 0 else random.randint(650,999)
-        #print("Residues", idx1, idx2)
-
-        # from the residue_idx we select the residue instances
-        # NOTE: the logic that checks for correct pairing should be moved
-        # to calculate_distance_between_all_residues since we calculate
-        # distance matrices for each pair
-        #idx1, idx2 = trial_proposed_candidate_pair
-        residue1, residue2 = (
-            self.ionic_liquid.residues[idx1],
-            self.ionic_liquid.residues[idx2],
+        canonical_names = list(
+            set([residue.canonical_name for residue in self.ionic_liquid.residues])
         )
+        logger.debug(canonical_names)
+        # calculate distance matrix between the two molecules
+        distance = distance_matrix(
+            distance_dict[canonical_names[0]], distance_dict[canonical_names[1]]
+        )
+        # get a list of indices for elements in the distance matrix sorted by increasing distance
+        shape = distance.shape
+        idx = np.dstack(np.unravel_index(np.argsort(distance.ravel()), shape))[0]
+        # TODO: PBC need to be enforced
+        # check if charge transfer is possible
+        for candidate_idx1, candidate_idx2 in idx:
+            residue1 = res_dict[canonical_names[0]][candidate_idx1]
+            residue2 = res_dict[canonical_names[1]][candidate_idx2]
+            # is this combination allowed?
+            if (
+                set([residue1.current_name, residue2.current_name])
+                in self.ionic_liquid.templates.allowed_updates
+            ):
+                charge_candidate_idx1 = residue1.get_current_charge()
+                charge_candidate_idx2 = residue2.get_current_charge()
 
-        logger.info(f"{residue1.name}-{residue2.name} pair suggested ...")
-        proposed_candidate_pair = (residue1, residue2)
-        logger.info(f"{residue1.name}-{residue2.name} pair suggested ...")
+                print(
+                    f"{residue1.original_name}:{residue1.current_name}:{residue1.residue.id}:{charge_candidate_idx1}-{residue2.original_name}:{residue2.current_name}:{residue2.residue.id}:{charge_candidate_idx2} pair suggested ..."
+                )
+                print(
+                    f"Distance between pairs: {distance[candidate_idx1,candidate_idx2]}"
+                )
+                proposed_candidate_pair = (residue1, residue2)
+                # reject if already in last 10 updates
+                if proposed_candidate_pair in self.history[-10:]:
+                    print(
+                        f"{residue1.current_name}:{residue1.residue.id}:{charge_candidate_idx1}-{residue2.current_name}:{residue2.residue.id}:{charge_candidate_idx2} pair rejected ..."
+                    )
 
-        return proposed_candidate_pair
+                    continue
+                print(
+                    f"{residue1.current_name}:{residue1.residue.id}:{charge_candidate_idx1}-{residue2.current_name}:{residue2.residue.id}:{charge_candidate_idx2} pair accepted ..."
+                )
+                return proposed_candidate_pair
 
-    def _calculate_distance_between_all_residues(self) -> np.ndarray:
+    def _get_positions_for_mutation_sites(self) -> tuple[dict, dict]:
         """
-        calculate_distance_between_all_residues returns distance matrix
+        _get_positions_for_mutation_sites returns
         """
         # TODO: distance matrix needs to be calculated for each IonicLiquid species seperatly
-        from scipy.spatial import distance_matrix
-        state = self.ionic_liquid.simulation.context.getState(getPositions=True)
-        pos = state.getPositions(asNumpy=True)
-        im1h_h_pos = []
-        oac_o_pos = []
-        im1_n_pos = []
-        #hoac_o_pos = []
-        hoac_h_pos = []
-        for atom in self.ionic_liquid.simulation.topology.atoms():
-            assert atom.residue.name in self.ionic_liquid.templates.names
-            atom_id_zero_based = int(atom.id) -1
-            if atom.name == "H7":
-                if  atom_id_zero_based > 19*150:
-                    id = int((atom_id_zero_based - 19*150-16*150)/19)+300
-                else:
-                    id = int(atom_id_zero_based/19)
-                if self.ionic_liquid.residues[id].get_current_charge() == 1: #->IM1H
-                    im1h_h_pos.append(pos[atom_id_zero_based])
-            if (atom.name == "O1" or atom.name == "O2"):
-                if atom_id_zero_based > 19*150+16*150:
-                    id = int((atom_id_zero_based - 19*150-16*150-19*350)/16)+650
-                else:
-                    id = int((atom_id_zero_based -19*150)/16)+150
-                if self.ionic_liquid.residues[id].get_current_charge() == -1: #->OAC
-                    oac_o_pos.append(pos[atom_id_zero_based])
-            if atom.name == "N2":
-                if atom_id_zero_based > 19*150:
-                    id = int((atom_id_zero_based - 19*150-16*150)/19)+300
-                else: 
-                    id = int(atom_id_zero_based/19)
-                if self.ionic_liquid.residues[id].get_current_charge() == 0: #->IM1
-                    im1_n_pos.append(pos[atom_id_zero_based])
-            if atom.name == "H":
-                if atom_id_zero_based > 19*150+16*150:
-                    id = int((atom_id_zero_based - 19*150-16*150-19*350)/16)+650
-                else: 
-                    id = int((atom_id_zero_based - 19*150)/16)+150 
-                if self.ionic_liquid.residues[id].get_current_charge() == 0: #->HOAC
-                    hoac_h_pos.append(pos[atom_id_zero_based-1])
 
-            #print(atom.id)
-            #print(atom)
-            #print(atom.residue.name)
-            #print(atom.residue.id)
-        #print(len(im1h_h_pos))
-        #print(len(oac_o_pos))
-        #print(len(im1_n_pos))
-        #print(len(hoac_h_pos))
-        dm_h7_o = distance_matrix(im1h_h_pos,oac_o_pos) #deprot 
-        dm_h_n = distance_matrix(im1_n_pos,hoac_h_pos) # prot
-       
-        for idx, r in enumerate(self.ionic_liquid.simulation.topology.residues()):
-            name = r.name
+        pos = self.ionic_liquid.simulation.context.getState(
+            getPositions=True
+        ).getPositions(asNumpy=True)
 
-        #return np.ndarray([0, 0])
-        return [dm_h7_o, dm_h_n]
+        # fill in the positions
+        pos_dict = defaultdict(list)
+        res_dict = defaultdict(list)
+
+        # loop over all residues and add the positions of the atoms that can be updated to the pos_dict
+        for residue in self.ionic_liquid.residues:
+            assert residue.current_name in self.ionic_liquid.templates.names
+            pos_dict[residue.canonical_name].append(
+                pos[
+                    residue.get_idx_for_name(
+                        self.ionic_liquid.templates.states[residue.current_name][
+                            "atom_name"
+                        ]
+                    )  # this needs the atom idx to be the same for both topologies
+                ]
+            )
+            res_dict[residue.canonical_name].append(residue)
+
+        return pos_dict, res_dict

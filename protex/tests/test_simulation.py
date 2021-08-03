@@ -13,7 +13,7 @@ def test_outline(caplog):
     # obtain simulation object
     simulation = generate_im1h_oac_system()
     # get ionic liquid templates
-    templates = IonicLiqudTemplates([OAC_HOAC, IM1H_IM1])
+    templates = IonicLiqudTemplates([OAC_HOAC, IM1H_IM1],(set(["IM1H", "OAC"]), set(["IM1", "HOAC"]))
     # wrap system in IonicLiquidSystem
     ionic_liquid = IonicLiquidSystem(simulation, templates)
     ionic_liquid.report_states()
@@ -39,6 +39,6 @@ def test_outline(caplog):
     )
     for _ in range(10):
         print(_)
-        ionic_liquid.simulation.step(10000)
+        ionic_liquid.simulation.step(1000)
         state_update.update()
         ionic_liquid.report_states()

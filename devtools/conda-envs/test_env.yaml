@@ -9,6 +9,8 @@ dependencies:
   - python
   - pip
   - openmm
+  - scipy
+  - numpy
 
     # Testing
   - pytest

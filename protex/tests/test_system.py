@@ -45,7 +45,9 @@ def test_create_IonicLiquidTemplate():
     from ..testsystems import generate_im1h_oac_system, OAC_HOAC, IM1H_IM1
 
     simulation = generate_im1h_oac_system()
-    templates = IonicLiqudTemplates([OAC_HOAC, IM1H_IM1])
+    templates = IonicLiqudTemplates([OAC_HOAC, IM1H_IM1], "charged")
+
+    print(templates.states)
     r = templates.get_charge_template_for("OAC")
     assert r == [
         3.1817,
@@ -65,20 +67,19 @@ def test_create_IonicLiquidTemplate():
         -0.383,
         -0.383,
     ]
-    r = templates.get_residue_name_for_other_charged_state("OAC")
+    r = templates.get_residue_name_for_coupled_state("OAC")
     assert r == "HOAC"
-    r = templates.get_residue_name_for_other_charged_state("HOAC")
+    r = templates.get_residue_name_for_coupled_state("HOAC")
     assert r == "OAC"
-    r = templates.get_residue_name_for_other_charged_state("IM1H")
+    r = templates.get_residue_name_for_coupled_state("IM1H")
     assert r == "IM1"
-
 
 def test_create_IonicLiquid():
     from ..testsystems import generate_im1h_oac_system, OAC_HOAC, IM1H_IM1
     from collections import defaultdict
 
     simulation = generate_im1h_oac_system()
-    templates = IonicLiqudTemplates([OAC_HOAC, IM1H_IM1])
+    templates = IonicLiqudTemplates([OAC_HOAC, IM1H_IM1], 'charged')
     count = defaultdict(int)
     ionic_liquid = IonicLiquidSystem(simulation, templates)
     assert len(ionic_liquid.residues) == 1000
@@ -92,7 +93,7 @@ def test_create_IonicLiquid_residue():
     from ..testsystems import generate_im1h_oac_system, OAC_HOAC, IM1H_IM1
 
     simulation = generate_im1h_oac_system()
-    templates = IonicLiqudTemplates([OAC_HOAC, IM1H_IM1])
+    templates = IonicLiqudTemplates([OAC_HOAC, IM1H_IM1](set(["IM1H", "OAC"]), set(["IM1", "HOAC"]))
 
     ionic_liquid = IonicLiquidSystem(simulation, templates)
     assert len(ionic_liquid.residues) == 1000
@@ -107,3 +108,10 @@ def test_create_IonicLiquid_residue():
     assert len(charges) == len(inactive_charges)
     assert np.isclose(charge, np.sum(charges))
     assert np.isclose(0.0, np.sum(inactive_charges))
+
+    print(residue.atom_names)
+    assert (residue.get_idx_for_name("H7")) == 18
+
+    residue = ionic_liquid.residues[1]
+
+    assert (residue.get_idx_for_name("H7")) == 37
