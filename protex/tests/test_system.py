@@ -20,20 +20,20 @@ def test_run_simulation():
 
     simulation = generate_im1h_oac_system()
     print("Minimizing...")
-    simulation.minimizeEnergy(maxIterations=100)
+    simulation.minimizeEnergy(maxIterations=50)
     simulation.reporters.append(PDBReporter("output.pdb", 1))
     simulation.reporters.append(DCDReporter("output.dcd", 1))
 
     simulation.reporters.append(
         StateDataReporter(
             stdout,
-            1,
+            5,
             step=True,
             potentialEnergy=True,
             temperature=True,
             time=True,
             volume=True,
-            density=True,
+            density=False,
         )
     )
     print("Running dynmamics...")
@@ -45,7 +45,9 @@ def test_create_IonicLiquidTemplate():
     from ..testsystems import generate_im1h_oac_system, OAC_HOAC, IM1H_IM1
 
     simulation = generate_im1h_oac_system()
-    templates = IonicLiqudTemplates([OAC_HOAC, IM1H_IM1], "charged")
+    templates = IonicLiqudTemplates(
+        [OAC_HOAC, IM1H_IM1], (set(["IM1H", "OAC"]), set(["IM1", "HOAC"]))
+    )
 
     print(templates.states)
     r = templates.get_charge_template_for("OAC")
@@ -80,13 +82,15 @@ def test_create_IonicLiquid():
     from collections import defaultdict
 
     simulation = generate_im1h_oac_system()
-    templates = IonicLiqudTemplates([OAC_HOAC, IM1H_IM1], "charged")
+    templates = IonicLiqudTemplates(
+        [OAC_HOAC, IM1H_IM1], (set(["IM1H", "OAC"]), set(["IM1", "HOAC"]))
+    )
     count = defaultdict(int)
     ionic_liquid = IonicLiquidSystem(simulation, templates)
     assert len(ionic_liquid.residues) == 1000
     for idx, residue in enumerate(ionic_liquid.residues):
-        print(f"{idx} : {residue.name}")
-        count[residue.name] += 1
+        print(f"{idx} : {residue.original_name}")
+        count[residue.original_name] += 1
     print(count)
 
 
@@ -117,7 +121,7 @@ def test_create_IonicLiquid_residue():
 
     residue = ionic_liquid.residues[1]
 
-    assert (residue.get_idx_for_name("H7")) == 37
+    assert (residue.get_idx_for_name("H7")) == 38
 
 
 def test_report_charge_changes():

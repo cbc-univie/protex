@@ -214,8 +214,6 @@ class StateUpdate:
         """
         _get_positions_for_mutation_sites returns
         """
-        # TODO: distance matrix needs to be calculated for each IonicLiquid species seperatly
-
         pos = self.ionic_liquid.simulation.context.getState(
             getPositions=True
         ).getPositions(asNumpy=True)

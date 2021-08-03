@@ -1,5 +1,4 @@
 import protex
-from protex.constants import bxl
 
 
 def generate_im1h_oac_system():
@@ -37,7 +36,7 @@ def generate_im1h_oac_system():
         from simtk.unit import angstroms
 
         psf, crd, params = load_charmm_files()
-        xtl = bxl
+        xtl = 48.0 * angstroms
         psf.setBox(xtl, xtl, xtl)
         system = psf.createSystem(
             params,
@@ -96,6 +95,7 @@ IM1H_IM1 = {
             2.0293,
             -2.5063,
             0.42,
+            0.00,
         ],
         "atom_name": "H7",
         "canonical_name": "IM1",
@@ -118,9 +118,10 @@ IM1H_IM1 = {
             2.9535,
             -2.7635,
             0.101,
-            2.1903,
+            2.6203,
             -2.6203,
-            0,
+            0.0,
+            -0.43,
         ],
         "atom_name": "N2",
         "canonical_name": "IM1",
