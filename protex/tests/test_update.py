@@ -24,10 +24,6 @@ def test_perform_charge_muatation(caplog):
     par_after_first_update = state_update.get_parameters()
     state_update.update()
     par_after_second_update = state_update.get_parameters()
-    state_update.update()
-    par_after_third_update = state_update.get_parameters()
-    state_update.update()
-    par_after_fourth_update = state_update.get_parameters()
 
     print("####################################")
     print("Comparing intial charges with first update")
@@ -84,15 +80,14 @@ def test_transfer_with_distance_matrix():
         len(par_initial)
         == len(par_after_first_update)
         == len(par_after_second_update)
-        == 17500
+        == 18000
     )
     total_charge_init, total_charge_first, total_charge_second = 0.0, 0.0, 0.0
     print(candidate_pairs1)
     r1, r2 = candidate_pairs1
-    print(r1.name)
-    print(r2.name)
+    print(r1.current_name)
+    print(r2.current_name)
 
-    assert False
     for (p1, a1), (p2, a2), (p3, a3) in zip(
         par_initial, par_after_first_update, par_after_second_update
     ):
