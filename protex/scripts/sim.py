@@ -22,7 +22,7 @@ def test_outline():
     state_update = StateUpdate(update)
     ionic_liquid.simulation.minimizeEnergy(maxIterations=1000)
     # adding reporter
-    ionic_liquid.simulation.reporters.append(PDBReporter("output.pdb", 100))
+    ionic_liquid.simulation.reporters.append(PDBReporter("output.pdb", 500))
 
     ionic_liquid.simulation.reporters.append(
         StateDataReporter(
@@ -38,7 +38,7 @@ def test_outline():
     )
     for _ in range(100):
         print(_)
-        ionic_liquid.simulation.step(2000)
+        ionic_liquid.simulation.step(5000)
         state_update.update(1001)
         ionic_liquid.report_states()
 

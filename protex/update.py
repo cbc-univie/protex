@@ -85,7 +85,7 @@ class NaiveMCUpdate(Update):
             state = self.ionic_liquid.simulation.context.getState(getEnergy=True)
             new_e = state.getPotentialEnergy()
 
-            self.ionic_liquid.simulation.step(10)
+            self.ionic_liquid.simulation.step(1)
 
         # get new energy
         state = self.ionic_liquid.simulation.context.getState(getEnergy=True)
