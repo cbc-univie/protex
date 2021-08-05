@@ -176,6 +176,7 @@ class StateUpdate:
             distance_dict[canonical_names[0]], distance_dict[canonical_names[1]]
         )
         # get a list of indices for elements in the distance matrix sorted by increasing distance
+        # NOTE: This always accepts a move! 
         shape = distance.shape
         idx = np.dstack(np.unravel_index(np.argsort(distance.ravel()), shape))[0]
         # TODO: PBC need to be enforced
