@@ -115,6 +115,11 @@ def test_updates(caplog):
     update = NaiveMCUpdate(ionic_liquid)
     # initialize state update class
     state_update = StateUpdate(update)
+    ionic_liquid.simulation.minimizeEnergy(maxIterations=200)
+    ionic_liquid.simulation.step(500)
+
     for _ in range(15):
+        ionic_liquid.simulation.step(200)
         pars.append(state_update.get_parameters())
-        candidate_pairs1 = state_update.update(101)
+        candidate_pairs = state_update.update(1001)
+    assert False

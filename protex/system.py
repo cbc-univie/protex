@@ -6,7 +6,7 @@ from collections import ChainMap
 logger = logging.getLogger(__name__)
 
 
-class IonicLiqudTemplates:
+class IonicLiquidTemplates:
     def __init__(self, states: list, allowed_updates: tuple) -> None:
 
         self.pairs = [list(i.keys()) for i in states]
@@ -88,7 +88,7 @@ class Residue:
 
         self.residue = residue
         self.original_name = residue.name
-        self.current_name = ''
+        self.current_name = ""
         self.atom_idxs = [atom.index for atom in residue.atoms()]
         self.atom_names = [atom.name for atom in residue.atoms()]
         self.nonbonded_force = nonbonded_force
@@ -108,6 +108,7 @@ class Residue:
         intial_charge = self._get_current_charge()
         self.record_charge_state.append(intial_charge)
 
+    # NOTE: this is a bug!
     def get_idx_for_name(self, name: str):
         for idx, atom_name in zip(self.atom_idxs, self.atom_names):
             if name == atom_name:
@@ -180,7 +181,7 @@ class IonicLiquidSystem:
     interface for protonation state updates.
     """
 
-    def __init__(self, simulation, templates: IonicLiqudTemplates) -> None:
+    def __init__(self, simulation, templates: IonicLiquidTemplates) -> None:
         self.system = simulation.system
         self.topology = simulation.topology
         self.simulation = simulation
@@ -191,9 +192,11 @@ class IonicLiquidSystem:
 
         self.residues = self._set_initial_states()
 
-        #Should this be here or somewhere else? (needed for report_charge_changes)
+        # Should this be here or somewhere else? (needed for report_charge_changes)
         self.charge_changes = {}
-        self.charge_changes["dcd_save_freq"] = 100 # this number should automatically be fetched from input somehow form dcdreporter
+        self.charge_changes[
+            "dcd_save_freq"
+        ] = 100  # this number should automatically be fetched from input somehow form dcdreporter
         self.charge_changes["charges_at_step"] = {}
 
     def _set_initial_states(self) -> list:
@@ -236,14 +239,16 @@ class IonicLiquidSystem:
         {"step": [residue_charges]}
         additional header data is the dcd save frequency needed for later reconstruction of the charges at different steps
         """
-        self.charge_changes["charges_at_step"][str(step)] = [residue.get_current_charge() for residue in self.residues]
+        self.charge_changes["charges_at_step"][str(step)] = [
+            residue.get_current_charge() for residue in self.residues
+        ]
 
     def charge_changes_to_json(self, filename, append=False):
         """
         charge_changes_to_json writes the charge_chages dictionary constructed with report_charge_changes to a json file
         """
         import json
-        
+
         if append:
             mode = "r+"
         else:
