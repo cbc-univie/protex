@@ -1,5 +1,5 @@
 from ..testsystems import generate_im1h_oac_system, OAC_HOAC, IM1H_IM1
-from ..system import IonicLiquidSystem, IonicLiqudTemplates
+from ..system import IonicLiquidSystem, IonicLiquidTemplates
 from ..update import NaiveMCUpdate, StateUpdate
 import logging
 
@@ -9,7 +9,7 @@ def test_perform_charge_muatation(caplog):
 
     simulation = generate_im1h_oac_system()
     # get ionic liquid templates
-    templates = IonicLiqudTemplates(
+    templates = IonicLiquidTemplates(
         [OAC_HOAC, IM1H_IM1], (set(["IM1H", "OAC"]), set(["IM1", "HOAC"]))
     )
     # wrap system in IonicLiquidSystem
@@ -59,7 +59,7 @@ def test_transfer_with_distance_matrix():
 
     simulation = generate_im1h_oac_system()
     # get ionic liquid templates
-    templates = IonicLiqudTemplates(
+    templates = IonicLiquidTemplates(
         [OAC_HOAC, IM1H_IM1], (set(["IM1H", "OAC"]), set(["IM1", "HOAC"]))
     )
     # wrap system in IonicLiquidSystem
@@ -106,7 +106,7 @@ def test_updates(caplog):
 
     simulation = generate_im1h_oac_system()
     # get ionic liquid templates
-    templates = IonicLiqudTemplates(
+    templates = IonicLiquidTemplates(
         [OAC_HOAC, IM1H_IM1], (set(["IM1H", "OAC"]), set(["IM1", "HOAC"]))
     )
     # wrap system in IonicLiquidSystem

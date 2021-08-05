@@ -1,7 +1,7 @@
 # Import package, test suite, and other packages as needed
 from sys import stdout
 from ..testsystems import generate_im1h_oac_system
-from ..system import IonicLiquidSystem, IonicLiqudTemplates
+from ..system import IonicLiquidSystem, IonicLiquidTemplates
 import numpy as np
 
 
@@ -45,7 +45,7 @@ def test_create_IonicLiquidTemplate():
     from ..testsystems import generate_im1h_oac_system, OAC_HOAC, IM1H_IM1
 
     simulation = generate_im1h_oac_system()
-    templates = IonicLiqudTemplates(
+    templates = IonicLiquidTemplates(
         [OAC_HOAC, IM1H_IM1], (set(["IM1H", "OAC"]), set(["IM1", "HOAC"]))
     )
 
@@ -82,7 +82,7 @@ def test_create_IonicLiquid():
     from collections import defaultdict
 
     simulation = generate_im1h_oac_system()
-    templates = IonicLiqudTemplates(
+    templates = IonicLiquidTemplates(
         [OAC_HOAC, IM1H_IM1], (set(["IM1H", "OAC"]), set(["IM1", "HOAC"]))
     )
     count = defaultdict(int)
@@ -98,7 +98,7 @@ def test_create_IonicLiquid_residue():
     from ..testsystems import generate_im1h_oac_system, OAC_HOAC, IM1H_IM1
 
     simulation = generate_im1h_oac_system()
-    templates = IonicLiqudTemplates(
+    templates = IonicLiquidTemplates(
         [OAC_HOAC, IM1H_IM1], (set(["IM1H", "OAC"]), set(["IM1", "HOAC"]))
     )
 
@@ -132,7 +132,7 @@ def test_report_charge_changes():
     # obtain simulation object
     simulation = generate_im1h_oac_system()
     # get ionic liquid templates
-    templates = IonicLiqudTemplates(
+    templates = IonicLiquidTemplates(
         [OAC_HOAC, IM1H_IM1], (set(["IM1H", "OAC"]), set(["IM1", "HOAC"]))
     )
     # wrap system in IonicLiquidSystem

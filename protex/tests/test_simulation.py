@@ -1,5 +1,5 @@
 from ..testsystems import generate_im1h_oac_system, OAC_HOAC, IM1H_IM1
-from ..system import IonicLiquidSystem, IonicLiqudTemplates
+from ..system import IonicLiquidSystem, IonicLiquidTemplates
 from ..update import NaiveMCUpdate, StateUpdate
 from sys import stdout
 import logging
@@ -13,7 +13,7 @@ def test_outline(caplog):
     # obtain simulation object
     simulation = generate_im1h_oac_system()
     # get ionic liquid templates
-    templates = IonicLiqudTemplates(
+    templates = IonicLiquidTemplates(
         [OAC_HOAC, IM1H_IM1], (set(["IM1H", "OAC"]), set(["IM1", "HOAC"]))
     )
     # wrap system in IonicLiquidSystem
@@ -23,7 +23,7 @@ def test_outline(caplog):
     update = NaiveMCUpdate(ionic_liquid)
     # initialize state update class
     state_update = StateUpdate(update)
-    ionic_liquid.simulation.minimizeEnergy(maxIterations=200)
+    # ionic_liquid.simulation.minimizeEnergy(maxIterations=200)
     # adding reporter
     ionic_liquid.simulation.reporters.append(PDBReporter("output.pdb", 100))
 
@@ -42,5 +42,5 @@ def test_outline(caplog):
     for _ in range(10):
         print(_)
         ionic_liquid.simulation.step(1000)
-        state_update.update()
+        state_update.update(1001)
         ionic_liquid.report_states()
