@@ -60,7 +60,7 @@ def generate_im1h_oac_system():
             5 / picoseconds,
             1 * kelvin,
             100 / picoseconds,
-            0.0005 * picoseconds,
+            0.00025 * picoseconds,
         )
         integrator.setMaxDrudeDistance(0.25 * angstroms)
         simulation = Simulation(psf.topology, system, integrator)
