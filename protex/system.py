@@ -105,18 +105,20 @@ class Residue:
 
         assert len(set(list(self.charge_sets.keys()))) == 2
         # calculate initial charge
-        intial_charge = self._get_current_charge()
+
+        intial_charge = int(np.round(np.sum(initial_partial_charges), 2))
         self.record_charge_state.append(intial_charge)
 
     # NOTE: this is a bug!
-    def get_idx_for_name(self, name: str):
+    def get_idx_for_atom_name(self, query_atom_name: str):
         for idx, atom_name in zip(self.atom_idxs, self.atom_names):
-            if name == atom_name:
+            if query_atom_name == atom_name:
                 return idx
         else:
             raise RuntimeError()
 
-    def get_current_charge(self) -> int:
+    @property
+    def current_charge(self) -> int:
         return self.record_charge_state[-1]
 
     def get_current_charges(self) -> list:
@@ -136,15 +138,15 @@ class Residue:
         RuntimeError
             if none found
         """
-        current_charge = self.get_current_charge()
         for charge in self.charge_sets:
-            if charge != current_charge:
+            if charge != self.current_charge:
                 return self.charge_sets[charge]
 
         else:
             raise RuntimeError()
 
-    def _get_current_charge(self) -> int:
+    @property
+    def _current_charge(self) -> int:
         charge = int(
             np.round(
                 sum(
@@ -172,7 +174,7 @@ class Residue:
                 idx, new_charge * unit.elementary_charge, old_sigma, old_epsilon
             )
         self.current_name = new_res_name
-        self.record_charge_state.append(self._get_current_charge())
+        self.record_charge_state.append(self._current_charge)
 
 
 class IonicLiquidSystem:
@@ -240,7 +242,7 @@ class IonicLiquidSystem:
         additional header data is the dcd save frequency needed for later reconstruction of the charges at different steps
         """
         self.charge_changes["charges_at_step"][str(step)] = [
-            residue.get_current_charge() for residue in self.residues
+            residue.current_charge for residue in self.residues
         ]
 
     def charge_changes_to_json(self, filename, append=False):
