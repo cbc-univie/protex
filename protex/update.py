@@ -37,10 +37,10 @@ class NaiveMCUpdate(Update):
         candidate1_residue, candidate2_residue = candidate
 
         print(
-            f"candiadate_1: {candidate1_residue.current_name}; charge:{candidate1_residue.get_current_charge()}"
+            f"candiadate_1: {candidate1_residue.current_name}; charge:{candidate1_residue.current_charge}"
         )
         print(
-            f"candiadate_2: {candidate2_residue.current_name}; charge:{candidate2_residue.get_current_charge()}"
+            f"candiadate_2: {candidate2_residue.current_name}; charge:{candidate2_residue.current_charge}"
         )
 
         # get charge set for residue 1
@@ -176,7 +176,7 @@ class StateUpdate:
             distance_dict[canonical_names[0]], distance_dict[canonical_names[1]]
         )
         # get a list of indices for elements in the distance matrix sorted by increasing distance
-        # NOTE: This always accepts a move! 
+        # NOTE: This always accepts a move!
         shape = distance.shape
         idx = np.dstack(np.unravel_index(np.argsort(distance.ravel()), shape))[0]
         # TODO: PBC need to be enforced
@@ -189,8 +189,8 @@ class StateUpdate:
                 set([residue1.current_name, residue2.current_name])
                 in self.ionic_liquid.templates.allowed_updates
             ):
-                charge_candidate_idx1 = residue1.get_current_charge()
-                charge_candidate_idx2 = residue2.get_current_charge()
+                charge_candidate_idx1 = residue1.current_charge
+                charge_candidate_idx2 = residue2.current_charge
 
                 print(
                     f"{residue1.original_name}:{residue1.current_name}:{residue1.residue.id}:{charge_candidate_idx1}-{residue2.original_name}:{residue2.current_name}:{residue2.residue.id}:{charge_candidate_idx2} pair suggested ..."
@@ -199,6 +199,10 @@ class StateUpdate:
                     f"Distance between pairs: {distance[candidate_idx1,candidate_idx2]}"
                 )
                 proposed_candidate_pair = (residue1, residue2)
+                proposed_candidate_pair_names = (
+                    residue1.current_name,
+                    residue2.current_name,
+                )
                 # reject if already in last 10 updates
                 if proposed_candidate_pair in self.history[-10:]:
                     print(
@@ -229,8 +233,8 @@ class StateUpdate:
             assert residue.current_name in self.ionic_liquid.templates.names
             pos_dict[residue.canonical_name].append(
                 pos[
-                    residue.get_idx_for_name(
-                        self.ionic_liquid.templates.states[residue.current_name][
+                    residue.get_idx_for_atom_name(
+                        self.ionic_liquid.templates.states[residue.original_name][
                             "atom_name"
                         ]
                     )  # this needs the atom idx to be the same for both topologies

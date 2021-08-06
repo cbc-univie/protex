@@ -106,7 +106,7 @@ def test_create_IonicLiquid_residue():
     assert len(ionic_liquid.residues) == 1000
 
     residue = ionic_liquid.residues[0]
-    charge = residue.get_current_charge()
+    charge = residue.current_charge
     charges = residue.get_current_charges()
     inactive_charges = residue.get_inactive_charges()
 
@@ -117,11 +117,15 @@ def test_create_IonicLiquid_residue():
     assert np.isclose(0.0, np.sum(inactive_charges))
 
     print(residue.atom_names)
-    assert (residue.get_idx_for_name("H7")) == 18
+    assert (residue.get_idx_for_atom_name("H7")) == 18
 
     residue = ionic_liquid.residues[1]
 
-    assert (residue.get_idx_for_name("H7")) == 38
+    assert (residue.get_idx_for_atom_name("H7")) == 38
+
+    # check name of first residue
+    assert ionic_liquid.residues[0].current_name == "IM1H"
+    assert ionic_liquid.residues[0].original_name == "IM1H"
 
 
 def test_report_charge_changes():
