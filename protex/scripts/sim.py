@@ -22,12 +22,12 @@ def test_outline():
     state_update = StateUpdate(update)
     ionic_liquid.simulation.minimizeEnergy(maxIterations=1000)
     # adding reporter
-    ionic_liquid.simulation.reporters.append(DCDReporter("output.dcd", 500))
+    ionic_liquid.simulation.reporters.append(DCDReporter("output.dcd", 2_000))
 
     ionic_liquid.simulation.reporters.append(
         StateDataReporter(
             stdout,
-            200,
+            2_000,
             step=True,
             potentialEnergy=True,
             temperature=True,
@@ -38,7 +38,7 @@ def test_outline():
     )
     for _ in range(100):
         print(_)
-        ionic_liquid.simulation.step(5000)
+        ionic_liquid.simulation.step(10_000)
         state_update.update(1001)
         ionic_liquid.report_states()
 

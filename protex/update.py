@@ -137,6 +137,8 @@ class StateUpdate:
 ##############################
 """
         )
+        # --- Nr of charged residues: ---
+        # --- Nr of uncharged residues: ---
 
     def _print_stop(self):
         print(
@@ -157,7 +159,7 @@ class StateUpdate:
         candidate_pairs = self._propose_candidate_pair(distance_dict, res_dict)
         # add candidate pairs to history
         assert len(candidate_pairs) == 2
-        self.history.append(candidate_pairs)
+        self.history.append(set(candidate_pairs))
         # print details
         # update
         self.updateMethod._update(candidate_pairs, nr_of_steps)
@@ -204,7 +206,7 @@ class StateUpdate:
                     residue2.current_name,
                 )
                 # reject if already in last 10 updates
-                if proposed_candidate_pair in self.history[-10:]:
+                if set(proposed_candidate_pair) in self.history[-10:]:
                     print(
                         f"{residue1.current_name}:{residue1.residue.id}:{charge_candidate_idx1}-{residue2.current_name}:{residue2.residue.id}:{charge_candidate_idx2} pair rejected ..."
                     )
