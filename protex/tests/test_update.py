@@ -3,6 +3,7 @@ from ..system import IonicLiquidSystem, IonicLiquidTemplates
 from ..update import NaiveMCUpdate, StateUpdate
 from scipy.spatial import distance_matrix
 import numpy as np
+import logging
 
 
 def test_distance_calculation():
@@ -48,7 +49,7 @@ def test_distance_calculation():
             )
             print(f"Distance between pairs: {distance[candidate_idx1,candidate_idx2]}")
             distances.append(distance[candidate_idx1, candidate_idx2])
-    
+
     assert np.min(distances) == distances[0]
     assert np.max(distances) == distances[-1]
 
