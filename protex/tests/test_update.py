@@ -222,7 +222,6 @@ def test_updates(caplog):
         ionic_liquid.simulation.step(200)
         pars.append(state_update.get_parameters())
         candidate_pairs = state_update.update(1001)
-    assert False
 
 
 def test_dry_updates(caplog):
@@ -250,4 +249,3 @@ def test_dry_updates(caplog):
         candidate_pairs = state_update._propose_candidate_pair(distance_dict, res_dict)
         state_update._print_stop()
         pars.append(state_update.get_parameters())
-    assert False
