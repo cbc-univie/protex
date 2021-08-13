@@ -1,7 +1,8 @@
 import itertools
 import numpy as np
 import logging
-from collections import ChainMap
+from collections import ChainMap, defaultdict
+from simtk.openmm.app import Simulation
 
 logger = logging.getLogger(__name__)
 
@@ -78,36 +79,25 @@ class Residue:
     def __init__(
         self,
         residue,
-        nonbonded_force,
-        initial_partial_charges: list,
-        alternative_partial_charges: list,
+        alternativ_name,
+        inital_forces,
+        alternativ_forces,
         canonical_name: str,
     ) -> None:
 
-        assert len(initial_partial_charges) == len(alternative_partial_charges)
-
         self.residue = residue
         self.original_name = residue.name
-        self.current_name = ""
+        self.current_name = self.original_name
         self.atom_idxs = [atom.index for atom in residue.atoms()]
         self.atom_names = [atom.name for atom in residue.atoms()]
-        self.nonbonded_force = nonbonded_force
+        self.forces = {
+            self.original_name: inital_forces,
+            alternativ_name: alternativ_forces,
+        }
         self.record_charge_state = []
         self.canonical_name = canonical_name
 
-        # generate charge set as dict with charge as key {0 : charges, -1: charges}
-        self.charge_sets = {
-            int(np.round(np.sum(initial_partial_charges), 2)): initial_partial_charges,
-            int(
-                np.round(np.sum(alternative_partial_charges), 2)
-            ): alternative_partial_charges,
-        }
-
-        assert len(set(list(self.charge_sets.keys()))) == 2
-        # calculate initial charge
-
-        intial_charge = int(np.round(np.sum(initial_partial_charges), 2))
-        self.record_charge_state.append(intial_charge)
+        self.record_charge_state.append(self.current_charge)
 
     # NOTE: this is a bug!
     def get_idx_for_atom_name(self, query_atom_name: str):
@@ -119,46 +109,18 @@ class Residue:
 
     @property
     def current_charge(self) -> int:
-        return self.record_charge_state[-1]
-
-    def get_current_charges(self) -> list:
-        return self.charge_sets[self.record_charge_state[-1]]
-
-    def get_inactive_charges(self) -> list:
-        """
-        get_inactive_charges retrieves the charges that are not active in the residue
-
-        Returns
-        -------
-        list
-            list of charges
-
-        Raises
-        ------
-        RuntimeError
-            if none found
-        """
-        for charge in self.charge_sets:
-            if charge != self.current_charge:
-                return self.charge_sets[charge]
-
-        else:
-            raise RuntimeError()
-
-    @property
-    def _current_charge(self) -> int:
         charge = int(
             np.round(
                 sum(
                     [
-                        self.nonbonded_force.getParticleParameters(idx)[0]._value
-                        for idx in self.atom_idxs
+                        parm[0]._value
+                        for parm in self.forces[self.current_name]["NonbondedForce"]
                     ]
                 ),
                 4,
             )
         )
-        assert charge in list(self.charge_sets.keys())
+
         return charge
 
     def set_new_state(self, new_charges: list, new_res_name: str) -> None:
@@ -188,9 +150,6 @@ class IonicLiquidSystem:
         self.topology = simulation.topology
         self.simulation = simulation
         self.templates = templates
-        for force in self.system.getForces():
-            if (type(force).__name__) == "NonbondedForce":
-                self.nonbonded_force = force
 
         self.residues = self._set_initial_states()
 
@@ -201,12 +160,99 @@ class IonicLiquidSystem:
         ] = 100  # this number should automatically be fetched from input somehow form dcdreporter
         self.charge_changes["charges_at_step"] = {}
 
+    def _extract_templates(self, query_name: str) -> defaultdict:
+
+        forces_dict = defaultdict(list)
+        # HarmonicBondForce
+        # HarmonicAngleForce
+        # HarmonicBondForce
+        # PeriodicTorsionForce
+        # CustomTorsionForce
+        # CMAPTorsionForce      # this is currently excluded since no force is defined
+        # NonbondedForce
+        # DrudeForce            # TODO
+        # CMMotionRemover       # this can be ignored
+
+        for residue in self.topology.residues():
+            if query_name == residue.name:
+                atom_idxs = [atom.index for atom in residue.atoms()]
+                atom_names = [atom.name for atom in residue.atoms()]
+                print(atom_idxs)
+                print(atom_names)
+
+                for force in self.system.getForces():
+                    # print(type(force).__name__)
+                    if type(force).__name__ == "NonbondedForce":
+                        forces_dict[type(force).__name__] = [
+                            force.getParticleParameters(idx) for idx in atom_idxs
+                        ]
+
+                    if type(force).__name__ == "HarmonicBondForce":
+                        for bond_id in range(force.getNumBonds()):
+                            f = force.getBondParameters(bond_id)
+                            idx1 = f[0]
+                            idx2 = f[1]
+                            if idx1 in atom_idxs and idx2 in atom_idxs:
+                                forces_dict[type(force).__name__].append(f)
+
+                    if type(force).__name__ == "HarmonicAngleForce":
+                        for angle_id in range(force.getNumAngles()):
+                            f = force.getAngleParameters(angle_id)
+                            if (
+                                f[0] in atom_idxs
+                                and f[1] in atom_idxs
+                                and f[2] in atom_idxs
+                            ):
+                                forces_dict[type(force).__name__].append(f)
+
+                    if type(force).__name__ == "PeriodicTorsionForce":
+                        for torsion_id in range(force.getNumTorsions()):
+                            f = force.getTorsionParameters(torsion_id)
+                            if (
+                                f[0] in atom_idxs
+                                and f[1] in atom_idxs
+                                and f[2] in atom_idxs
+                                and f[3] in atom_idxs
+                            ):
+                                forces_dict[type(force).__name__].append(f)
+
+                    if type(force).__name__ == "CustomTorsionForce":
+                        for torsion_id in range(force.getNumTorsions()):
+                            f = force.getTorsionParameters(torsion_id)
+
+                            if (
+                                f[0] in atom_idxs
+                                and f[1] in atom_idxs
+                                and f[2] in atom_idxs
+                                and f[3] in atom_idxs
+                            ):
+                                forces_dict[type(force).__name__].append(f)
+                                # print(force.getNumTorsions())
+                                # print(query_name)
+
+                    if type(force).__name__ == "CMAPTorsionForce":
+                        pass
+                        # print(dir(force))
+                        # print(force.getNumTorsions())
+
+                break
+
+        return forces_dict
+
     def _set_initial_states(self) -> list:
         """
         set_initial_states For each ionic liquid residue in the system the protonation state
         is interfered from the provided openMM system object and the protonation site is defined.
         """
         residues = []
+        templates = dict()
+        for r in self.topology.residues():
+            name = r.name
+            if name in templates:
+                continue
+            name_of_paired_ion = self.templates.get_residue_name_for_coupled_state(name)
+            templates[name] = self._extract_templates(name)
+            templates[name_of_paired_ion] = self._extract_templates(name_of_paired_ion)
 
         for r in self.topology.residues():
             name = r.name
@@ -214,12 +260,40 @@ class IonicLiquidSystem:
                 name_of_paired_ion = self.templates.get_residue_name_for_coupled_state(
                     name
                 )
+                forces_state1 = templates[name]
+                forces_state2 = templates[name_of_paired_ion]
+                assert len(forces_state1) == len(
+                    forces_state2
+                )  # check the number of forces
+                for force_name in forces_state1:
+                    if len(forces_state1[force_name]) != len(
+                        forces_state2[
+                            force_name
+                        ]  # check the number of entries in the forces
+                    ):
+                        print(force_name)
+                        print(name)
+                        print(len(forces_state1[force_name]))
+                        print(len(forces_state2[force_name]))
+
+                        for b1, b2, in zip(
+                            forces_state1[force_name],
+                            forces_state2[force_name],
+                        ):
+                            print(f"{name}:{b1}")
+                            print(f"{name_of_paired_ion}:{b2}")
+
+                        print(f"{name}:{forces_state1[force_name][-1]}")
+                        print(f"{name_of_paired_ion}:{forces_state2[force_name][-1]}")
+
+                        raise AssertionError("ohoh")
+
                 residues.append(
                     Residue(
                         r,
-                        self.nonbonded_force,
-                        self.templates.get_charge_template_for(name),
-                        self.templates.get_charge_template_for(name_of_paired_ion),
+                        name_of_paired_ion,
+                        forces_state1,
+                        forces_state2,
                         self.templates.get_canonical_name(name),
                     )
                 )

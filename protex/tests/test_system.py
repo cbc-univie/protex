@@ -46,7 +46,7 @@ def test_create_IonicLiquidTemplate():
 
     simulation = generate_im1h_oac_system()
     templates = IonicLiquidTemplates(
-        [OAC_HOAC, IM1H_IM1], (set(["IM1H", "OAC"]), set(["IM1", "HOAC"]))
+        simulation, [OAC_HOAC, IM1H_IM1], (set(["IM1H", "OAC"]), set(["IM1", "HOAC"]))
     )
 
     print(templates.states)
@@ -94,6 +94,174 @@ def test_create_IonicLiquid():
     print(count)
 
 
+def test_residues():
+    from ..testsystems import generate_im1h_oac_system, OAC_HOAC, IM1H_IM1
+
+    simulation = generate_im1h_oac_system()
+    templates = IonicLiquidTemplates(
+        [OAC_HOAC, IM1H_IM1], (set(["IM1H", "OAC"]), set(["IM1", "HOAC"]))
+    )
+
+    system = simulation.system
+    topology = simulation.topology
+    for idx, r in enumerate(topology.residues()):
+        if r.name == "IM1H" and idx == 0:
+            atom_idxs = [atom.index for atom in r.atoms()]
+            atom_names = [atom.name for atom in r.atoms()]
+            print(atom_idxs)
+            print(atom_names)
+            for force in system.getForces():
+                # print(type(force).__name__)
+                if type(force).__name__ == "HarmonicBondForce":
+                    for bond_id in range(force.getNumBonds()):
+                        f = force.getBondParameters(bond_id)
+                        idx1 = f[0]
+                        idx2 = f[1]
+                        if idx1 in atom_idxs and idx2 in atom_idxs:
+                            print(f)
+            assert atom_idxs == [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                10,
+                11,
+                12,
+                13,
+                14,
+                15,
+                16,
+                17,
+                18,
+                19,
+            ]
+            assert atom_names == [
+                "C1",
+                "DC1",
+                "H1",
+                "H2",
+                "H3",
+                "N1",
+                "DN1",
+                "C2",
+                "DC2",
+                "H4",
+                "C3",
+                "DC3",
+                "H5",
+                "C4",
+                "DC4",
+                "H6",
+                "N2",
+                "DN2",
+                "H7",
+                "LPN21",
+            ]
+        if r.name == "HOAC" and idx == 650:
+            atom_idxs = [atom.index for atom in r.atoms()]
+            atom_names = [atom.name for atom in r.atoms()]
+            print(atom_idxs)
+            print(atom_names)
+            print(idx)
+            for force in system.getForces():
+                # print(type(force).__name__)
+                if type(force).__name__ == "HarmonicBondForce":
+                    for bond_id in range(force.getNumBonds()):
+                        f = force.getBondParameters(bond_id)
+                        idx1 = f[0]
+                        idx2 = f[1]
+                        if idx1 in atom_idxs and idx2 in atom_idxs:
+                            print(f)
+            assert atom_idxs == [
+                12400,
+                12401,
+                12402,
+                12403,
+                12404,
+                12405,
+                12406,
+                12407,
+                12408,
+                12409,
+                12410,
+                12411,
+                12412,
+                12413,
+                12414,
+                12415,
+            ]
+
+            assert atom_names == [
+                "C1",
+                "DC1",
+                "C2",
+                "DC2",
+                "H1",
+                "H2",
+                "H3",
+                "O1",
+                "DO1",
+                "O2",
+                "DO2",
+                "H",
+                "LPO11",
+                "LPO12",
+                "LPO21",
+                "LPO22",
+            ]
+
+
+def test_forces():
+    from ..testsystems import generate_im1h_oac_system, OAC_HOAC, IM1H_IM1
+
+    simulation = generate_im1h_oac_system()
+    templates = IonicLiquidTemplates(
+        [OAC_HOAC, IM1H_IM1], (set(["IM1H", "OAC"]), set(["IM1", "HOAC"]))
+    )
+
+    system = simulation.system
+    topology = simulation.topology
+    for idx, r in enumerate(topology.residues()):
+        if r.name == "HOAC" and idx == 650:
+            atom_idxs = [atom.index for atom in r.atoms()]
+            atom_names = [atom.name for atom in r.atoms()]
+            print(atom_idxs)
+            print(atom_names)
+            bf = []
+            for force in system.getForces():
+                # print(type(force).__name__)
+                if type(force).__name__ == "HarmonicBondForce":
+                    for bond_id in range(force.getNumBonds()):
+                        f = force.getBondParameters(bond_id)
+                        idx1 = f[0]
+                        idx2 = f[1]
+                        if idx1 in atom_idxs and idx2 in atom_idxs:
+                            bf.append(f)
+            assert len(bf) == 17
+        if r.name == "OAC" and idx == 150:
+            atom_idxs = [atom.index for atom in r.atoms()]
+            atom_names = [atom.name for atom in r.atoms()]
+            print(atom_idxs)
+            print(atom_names)
+            bf = []
+            for force in system.getForces():
+                # print(type(force).__name__)
+                if type(force).__name__ == "HarmonicBondForce":
+                    for bond_id in range(force.getNumBonds()):
+                        f = force.getBondParameters(bond_id)
+                        idx1 = f[0]
+                        idx2 = f[1]
+                        if idx1 in atom_idxs and idx2 in atom_idxs:
+                            bf.append(f)
+            assert len(bf) == 17
+
+
 def test_create_IonicLiquid_residue():
     from ..testsystems import generate_im1h_oac_system, OAC_HOAC, IM1H_IM1
 
@@ -103,6 +271,7 @@ def test_create_IonicLiquid_residue():
     )
 
     ionic_liquid = IonicLiquidSystem(simulation, templates)
+    assert False
     assert len(ionic_liquid.residues) == 1000
 
     residue = ionic_liquid.residues[0]
