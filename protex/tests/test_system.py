@@ -207,13 +207,13 @@ def test_forces():
     system = simulation.system
     topology = simulation.topology
     force_state = defaultdict(list)  # store bond force
-    atom_idxs = defaultdict(list)  # store atom_idxs force
-    atom_names = defaultdict(list)  # store atom_names force
+    atom_idxs = defaultdict(list)  # store atom_idxs
+    atom_names = defaultdict(list)  # store atom_names
     names = []  # store names
 
     # iterate over residues, select the first residue for HOAC and OAC and save the individual bonded forces
-    for idx, r in enumerate(topology.residues()):
-        if r.name == "HOAC" and idx == 650:  # match first HOAC residue
+    for ridx, r in enumerate(topology.residues()):
+        if r.name == "HOAC" and ridx == 650:  # match first HOAC residue
             names.append(r.name)
             atom_idxs[r.name] = [atom.index for atom in r.atoms()]
             atom_names[r.name] = [atom.name for atom in r.atoms()]
@@ -228,7 +228,7 @@ def test_forces():
                         ):  # atom index of bond force needs to be in atom_idxs
                             force_state[r.name].append(f)
 
-        if r.name == "OAC" and idx == 150:
+        if r.name == "OAC" and ridx == 150:
             names.append(r.name)
             atom_idxs[r.name] = [atom.index for atom in r.atoms()]
             atom_names[r.name] = [atom.name for atom in r.atoms()]
