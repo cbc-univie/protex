@@ -177,8 +177,8 @@ class IonicLiquidSystem:
             if query_name == residue.name:
                 atom_idxs = [atom.index for atom in residue.atoms()]
                 atom_names = [atom.name for atom in residue.atoms()]
-                print(atom_idxs)
-                print(atom_names)
+                logger.debug(atom_idxs)
+                logger.debug(atom_names)
 
                 for force in self.system.getForces():
                     # print(type(force).__name__)
@@ -271,20 +271,22 @@ class IonicLiquidSystem:
                             force_name
                         ]  # check the number of entries in the forces
                     ):
-                        print(force_name)
-                        print(name)
-                        print(len(forces_state1[force_name]))
-                        print(len(forces_state2[force_name]))
+                        logger.critical(force_name)
+                        logger.critical(name)
+                        logger.critical(len(forces_state1[force_name]))
+                        logger.critical(len(forces_state2[force_name]))
 
                         for b1, b2, in zip(
                             forces_state1[force_name],
                             forces_state2[force_name],
                         ):
-                            print(f"{name}:{b1}")
-                            print(f"{name_of_paired_ion}:{b2}")
+                            logger.critical(f"{name}:{b1}")
+                            logger.critical(f"{name_of_paired_ion}:{b2}")
 
-                        print(f"{name}:{forces_state1[force_name][-1]}")
-                        print(f"{name_of_paired_ion}:{forces_state2[force_name][-1]}")
+                        logger.critical(f"{name}:{forces_state1[force_name][-1]}")
+                        logger.critical(
+                            f"{name_of_paired_ion}:{forces_state2[force_name][-1]}"
+                        )
 
                         raise AssertionError("ohoh")
 
