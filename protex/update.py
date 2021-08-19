@@ -83,26 +83,26 @@ class StateUpdate:
         self.ionic_liquid = self.updateMethod.ionic_liquid
         self.history = []
 
-    def write_parameters(self, filename: str):
+    def write_charges(self, filename: str):
 
-        par = self.get_parameters()
+        par = self.get_charges()
         with open(filename, "w+") as f:
-            for p, atom in par:
-                charge = p[0]._value
+            for atom_idx, atom, charge in par:
+                charge = charge._value
                 f.write(
                     f"{atom.residue.name:>4}:{int(atom.id): 4}:{int(atom.residue.id): 4}:{atom.name:>4}:{charge}\n"
                 )
 
-    def get_parameters(self) -> list:
-
-        nonbonded_force = self.ionic_liquid.nonbonded_force
-        atom_list = list(self.ionic_liquid.topology.atoms())
+    def get_charges(self) -> list:
         par = []
-        for i in range(nonbonded_force.getNumParticles()):
-            p = nonbonded_force.getParticleParameters(i)
-            a = atom_list[i]
-            par.append((p, a))
-        return par
+        for force in self.ionic_liquid.system.getForces():
+            if type(force).__name__ == "NonbondedForce":
+                for idx, atom in zip(
+                    range(force.getNumParticles()), self.ionic_liquid.topology.atoms()
+                ):
+                    charge, sigma, epsiolon = force.getParticleParameters(idx)
+                    par.append((idx, atom, charge))
+                return par
 
     def _print_start(self):
         print(

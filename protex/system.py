@@ -154,7 +154,6 @@ class Residue:
                         and idx3 in self.atom_idxs
                     ):
                         thetha, k = parms.popleft()
-                        print(thetha, k)
                         force.setAngleParameters(angle_idx, idx1, idx2, idx3, thetha, k)
 
     def _get_NonbondedForce_parameters_at_lambda(self, lamb: float):
