@@ -21,13 +21,13 @@ def test_run_simulation():
     simulation = generate_im1h_oac_system()
     print("Minimizing...")
     simulation.minimizeEnergy(maxIterations=50)
-    simulation.reporters.append(PDBReporter("output.pdb", 1))
-    simulation.reporters.append(DCDReporter("output.dcd", 1))
+    simulation.reporters.append(PDBReporter("output.pdb", 50))
+    simulation.reporters.append(DCDReporter("output.dcd", 50))
 
     simulation.reporters.append(
         StateDataReporter(
             stdout,
-            5,
+            50,
             step=True,
             potentialEnergy=True,
             temperature=True,
@@ -44,31 +44,11 @@ def test_run_simulation():
 def test_create_IonicLiquidTemplate():
     from ..testsystems import generate_im1h_oac_system, OAC_HOAC, IM1H_IM1
 
-    simulation = generate_im1h_oac_system()
     templates = IonicLiquidTemplates(
-        simulation, [OAC_HOAC, IM1H_IM1], (set(["IM1H", "OAC"]), set(["IM1", "HOAC"]))
+        [OAC_HOAC, IM1H_IM1], (set(["IM1H", "OAC"]), set(["IM1", "HOAC"]))
     )
 
     print(templates.states)
-    r = templates.get_charge_template_for("OAC")
-    assert r == [
-        3.1817,
-        -2.4737,
-        2.9879,
-        -3.1819,
-        0.004,
-        0.004,
-        0.004,
-        2.0548,
-        -2.0518,
-        2.0548,
-        -2.0518,
-        0,
-        -0.383,
-        -0.383,
-        -0.383,
-        -0.383,
-    ]
     r = templates.get_residue_name_for_coupled_state("OAC")
     assert r == "HOAC"
     r = templates.get_residue_name_for_coupled_state("HOAC")
@@ -98,11 +78,6 @@ def test_residues():
     from ..testsystems import generate_im1h_oac_system, OAC_HOAC, IM1H_IM1
 
     simulation = generate_im1h_oac_system()
-    templates = IonicLiquidTemplates(
-        [OAC_HOAC, IM1H_IM1], (set(["IM1H", "OAC"]), set(["IM1", "HOAC"]))
-    )
-
-    system = simulation.system
     topology = simulation.topology
     for idx, r in enumerate(topology.residues()):
         if r.name == "IM1H" and idx == 0:
@@ -207,9 +182,9 @@ def test_forces():
     system = simulation.system
     topology = simulation.topology
     force_state = defaultdict(list)  # store bond force
-    atom_idxs = defaultdict(list)  # store atom_idxs
-    atom_names = defaultdict(list)  # store atom_names
-    names = []  # store names
+    atom_idxs = {}  # store atom_idxs
+    atom_names = {}  # store atom_names
+    names = []  # store residue names
 
     # iterate over residues, select the first residue for HOAC and OAC and save the individual bonded forces
     for ridx, r in enumerate(topology.residues()):
@@ -247,6 +222,7 @@ def test_forces():
     ):  # check the number of entries in the forces
         print(f"{names[0]}: {len(force_state[names[0]])}")
         print(f"{names[1]}: {len(force_state[names[1]])}")
+
         print(f"{names[0]}:Atom indicies and atom names")
         for idx, name in zip(atom_idxs[names[0]], atom_names[names[0]]):
             print(f"{idx}:{name}")
@@ -265,11 +241,6 @@ def test_forces():
         for f in force_state[names[1]]:
             print(f)
 
-        # the issue is the last entry of HOAC:
-        # [12400, 12411, Quantity(value=0.2377, unit=nanometer), Quantity(value=12635.68, unit=kilojoule/(nanometer**2*mole))]
-        # 12400:C1
-        # 12411:H
-
         raise AssertionError("ohoh")
 
 
@@ -282,20 +253,12 @@ def test_create_IonicLiquid_residue():
     )
 
     ionic_liquid = IonicLiquidSystem(simulation, templates)
-    assert False
     assert len(ionic_liquid.residues) == 1000
 
     residue = ionic_liquid.residues[0]
     charge = residue.current_charge
-    charges = residue.get_current_charges()
-    inactive_charges = residue.get_inactive_charges()
 
     assert charge == 1
-    assert charges != inactive_charges
-    assert len(charges) == len(inactive_charges)
-    assert np.isclose(charge, np.sum(charges))
-    assert np.isclose(0.0, np.sum(inactive_charges))
-
     print(residue.atom_names)
     assert (residue.get_idx_for_atom_name("H7")) == 18
 

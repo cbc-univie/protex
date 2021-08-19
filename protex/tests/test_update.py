@@ -54,6 +54,205 @@ def test_distance_calculation():
     assert np.max(distances) == distances[-1]
 
 
+def test_get_and_interpolate_forces():
+
+    simulation = generate_im1h_oac_system()
+    # get ionic liquid templates
+    templates = IonicLiquidTemplates(
+        [OAC_HOAC, IM1H_IM1], (set(["IM1H", "OAC"]), set(["IM1", "HOAC"]))
+    )
+    # wrap system in IonicLiquidSystem
+    ionic_liquid = IonicLiquidSystem(simulation, templates)
+
+    # test _get*_parameters
+    int_force_0 = ionic_liquid.residues[0]._get_NonbondedForce_parameters_at_lambda(0.0)
+    int_force_1 = ionic_liquid.residues[0]._get_NonbondedForce_parameters_at_lambda(1.0)
+    int_force_01 = ionic_liquid.residues[0]._get_NonbondedForce_parameters_at_lambda(
+        0.1
+    )
+    assert (
+        int_force_0[0][0]._value * 0.9 + int_force_1[0][0]._value * 0.1
+        == int_force_01[0][0]._value
+    )
+    assert (
+        int_force_0[0][1]._value * 0.9 + int_force_1[0][1]._value * 0.1
+        == int_force_01[0][1]._value
+    )
+
+    int_force_0 = ionic_liquid.residues[0]._get_HarmonicBondForce_parameters_at_lambda(
+        0.0
+    )
+    int_force_1 = ionic_liquid.residues[0]._get_HarmonicBondForce_parameters_at_lambda(
+        1.0
+    )
+    int_force_01 = ionic_liquid.residues[0]._get_HarmonicBondForce_parameters_at_lambda(
+        0.1
+    )
+    assert (
+        int_force_0[0][0]._value * 0.9 + int_force_1[0][0]._value * 0.1
+        == int_force_01[0][0]._value
+    )
+    assert (
+        int_force_0[0][1]._value * 0.9 + int_force_1[0][1]._value * 0.1
+        == int_force_01[0][1]._value
+    )
+
+    int_force_0 = ionic_liquid.residues[0]._get_HarmonicAngleForce_parameters_at_lambda(
+        0.0
+    )
+    int_force_1 = ionic_liquid.residues[0]._get_HarmonicAngleForce_parameters_at_lambda(
+        1.0
+    )
+    int_force_01 = ionic_liquid.residues[
+        0
+    ]._get_HarmonicAngleForce_parameters_at_lambda(0.1)
+    assert (
+        int_force_0[0][0]._value * 0.9 + int_force_1[0][0]._value * 0.1
+        == int_force_01[0][0]._value
+    )
+    assert (
+        int_force_0[0][1]._value * 0.9 + int_force_1[0][1]._value * 0.1
+        == int_force_01[0][1]._value
+    )
+
+
+def test_setting_forces():
+
+    simulation = generate_im1h_oac_system()
+    # get ionic liquid templates
+    templates = IonicLiquidTemplates(
+        [OAC_HOAC, IM1H_IM1], (set(["IM1H", "OAC"]), set(["IM1", "HOAC"]))
+    )
+    # wrap system in IonicLiquidSystem
+    ionic_liquid = IonicLiquidSystem(simulation, templates)
+
+    ##################################################
+    ##################################################
+    # test set*parameters HarmonicBondForce
+    print("Lambda: 0.0")
+    parm_lambda_00 = []
+    for force in ionic_liquid.system.getForces():
+        if type(force).__name__ == "HarmonicBondForce":
+            for bond_idx in range(force.getNumBonds()):
+                f = force.getBondParameters(bond_idx)
+                idx1 = f[0]
+                idx2 = f[1]
+                if (
+                    idx1 in ionic_liquid.residues[0].atom_idxs
+                    and idx2 in ionic_liquid.residues[0].atom_idxs
+                ):
+                    parm_lambda_00.append(f)
+
+    # update HarmonicBondForce
+    int_force_0a = ionic_liquid.residues[0]._get_HarmonicBondForce_parameters_at_lambda(
+        0.5
+    )
+    ionic_liquid.residues[0]._set_HarmonicBondForce_parameters(int_force_0a)
+    print("Lambda: 0.5")
+    parm_lambda_05 = []
+    for force in ionic_liquid.system.getForces():
+        if type(force).__name__ == "HarmonicBondForce":
+            for bond_idx in range(force.getNumBonds()):
+                f = force.getBondParameters(bond_idx)
+                idx1 = f[0]
+                idx2 = f[1]
+                if (
+                    idx1 in ionic_liquid.residues[0].atom_idxs
+                    and idx2 in ionic_liquid.residues[0].atom_idxs
+                ):
+                    parm_lambda_05.append(f)
+    # update HarmonicBondForce
+    int_force_0a = ionic_liquid.residues[0]._get_HarmonicBondForce_parameters_at_lambda(
+        1.0
+    )
+    ionic_liquid.residues[0]._set_HarmonicBondForce_parameters(int_force_0a)
+    print("Lambda: 1.0")
+    parm_lambda_10 = []
+    for force in ionic_liquid.system.getForces():
+        if type(force).__name__ == "HarmonicBondForce":
+            for bond_idx in range(force.getNumBonds()):
+                f = force.getBondParameters(bond_idx)
+                idx1 = f[0]
+                idx2 = f[1]
+                if (
+                    idx1 in ionic_liquid.residues[0].atom_idxs
+                    and idx2 in ionic_liquid.residues[0].atom_idxs
+                ):
+                    parm_lambda_10.append(f)
+
+    assert parm_lambda_00 != parm_lambda_05
+    assert parm_lambda_00[5][3] != parm_lambda_05[5][3]
+    for i, j, k in zip(parm_lambda_00, parm_lambda_05, parm_lambda_10):
+        assert i[2]._value * 0.5 + k[2]._value * 0.5 == j[2]._value
+        assert i[3]._value * 0.5 + k[3]._value * 0.5 == j[3]._value
+
+    ##################################################
+    ##################################################
+    # test set*parameters HarmonicAngleForce
+    print("Lambda: 0.0")
+    parm_lambda_00 = []
+    for force in ionic_liquid.system.getForces():
+        if type(force).__name__ == "HarmonicAngleForce":
+            for bond_idx in range(force.getNumAngles()):
+                f = force.getAngleParameters(bond_idx)
+                idx1 = f[0]
+                idx2 = f[1]
+                idx3 = f[2]
+                if (
+                    idx1 in ionic_liquid.residues[0].atom_idxs
+                    and idx2 in ionic_liquid.residues[0].atom_idxs
+                    and idx3 in ionic_liquid.residues[0].atom_idxs
+                ):
+                    parm_lambda_00.append(f)
+
+    # update HarmonicAngleForce
+    int_force_0a = ionic_liquid.residues[
+        0
+    ]._get_HarmonicAngleForce_parameters_at_lambda(0.5)
+    ionic_liquid.residues[0]._set_HarmonicAngleForce_parameters(int_force_0a)
+    print("Lambda: 0.5")
+    parm_lambda_05 = []
+    for force in ionic_liquid.system.getForces():
+        if type(force).__name__ == "HarmonicAngleForce":
+            for bond_idx in range(force.getNumAngles()):
+                f = force.getAngleParameters(bond_idx)
+                idx1 = f[0]
+                idx2 = f[1]
+                idx3 = f[2]
+                if (
+                    idx1 in ionic_liquid.residues[0].atom_idxs
+                    and idx2 in ionic_liquid.residues[0].atom_idxs
+                    and idx3 in ionic_liquid.residues[0].atom_idxs
+                ):
+                    parm_lambda_05.append(f)
+    # update HarmonicAngleForce
+    int_force_0a = ionic_liquid.residues[
+        0
+    ]._get_HarmonicAngleForce_parameters_at_lambda(1.0)
+    ionic_liquid.residues[0]._set_HarmonicAngleForce_parameters(int_force_0a)
+    print("Lambda: 1.0")
+    parm_lambda_10 = []
+    for force in ionic_liquid.system.getForces():
+        if type(force).__name__ == "HarmonicAngleForce":
+            for bond_idx in range(force.getNumAngles()):
+                f = force.getAngleParameters(bond_idx)
+                idx1 = f[0]
+                idx2 = f[1]
+                idx3 = f[2]
+                if (
+                    idx1 in ionic_liquid.residues[0].atom_idxs
+                    and idx2 in ionic_liquid.residues[0].atom_idxs
+                    and idx3 in ionic_liquid.residues[0].atom_idxs
+                ):
+                    parm_lambda_10.append(f)
+
+    assert parm_lambda_00 != parm_lambda_05
+    assert parm_lambda_00[5][3] != parm_lambda_05[5][3]
+    for i, j, k in zip(parm_lambda_00, parm_lambda_05, parm_lambda_10):
+        assert i[3]._value * 0.5 + k[3]._value * 0.5 == j[3]._value
+        assert i[4]._value * 0.5 + k[4]._value * 0.5 == j[4]._value
+
+
 def test_single_update():
 
     simulation = generate_im1h_oac_system()
@@ -78,28 +277,42 @@ def test_single_update():
     assert state_update.ionic_liquid.residues[idx1].current_name == "IM1H"
     assert state_update.ionic_liquid.residues[idx1].original_name == "IM1H"
     assert state_update.ionic_liquid.residues[idx1].current_charge == 1
-    assert state_update.ionic_liquid.residues[idx1]._current_charge == 1
+    assert state_update.ionic_liquid.residues[idx1].current_charge == 1
 
     assert state_update.ionic_liquid.residues[idx2].current_name == "OAC"
     assert state_update.ionic_liquid.residues[idx2].original_name == "OAC"
     assert state_update.ionic_liquid.residues[idx2].current_charge == -1
-    assert state_update.ionic_liquid.residues[idx2]._current_charge == -1
+    assert state_update.ionic_liquid.residues[idx2].current_charge == -1
 
     candidate_pairs = (
         state_update.ionic_liquid.residues[idx1],
         state_update.ionic_liquid.residues[idx2],
     )
+    ###### update
     state_update.updateMethod._update(candidate_pairs, 11)
 
     assert state_update.ionic_liquid.residues[idx1].current_name == "IM1"
     assert state_update.ionic_liquid.residues[idx1].original_name == "IM1H"
     assert state_update.ionic_liquid.residues[idx1].current_charge == 0
-    assert state_update.ionic_liquid.residues[idx1]._current_charge == 0
+    assert state_update.ionic_liquid.residues[idx1].current_charge == 0
 
     assert state_update.ionic_liquid.residues[idx2].current_name == "HOAC"
     assert state_update.ionic_liquid.residues[idx2].original_name == "OAC"
     assert state_update.ionic_liquid.residues[idx2].current_charge == 0
-    assert state_update.ionic_liquid.residues[idx2]._current_charge == 0
+    assert state_update.ionic_liquid.residues[idx2].current_charge == 0
+
+    ###### update
+    state_update.updateMethod._update(candidate_pairs, 11)
+
+    assert state_update.ionic_liquid.residues[idx1].current_name == "IM1H"
+    assert state_update.ionic_liquid.residues[idx1].original_name == "IM1H"
+    assert state_update.ionic_liquid.residues[idx1].current_charge == 1
+    assert state_update.ionic_liquid.residues[idx1].current_charge == 1
+
+    assert state_update.ionic_liquid.residues[idx2].current_name == "OAC"
+    assert state_update.ionic_liquid.residues[idx2].original_name == "OAC"
+    assert state_update.ionic_liquid.residues[idx2].current_charge == -1
+    assert state_update.ionic_liquid.residues[idx2].current_charge == -1
 
 
 def test_check_updated_charges(caplog):

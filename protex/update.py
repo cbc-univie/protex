@@ -43,50 +43,27 @@ class NaiveMCUpdate(Update):
             f"candiadate_2: {candidate2_residue.current_name}; charge:{candidate2_residue.current_charge}"
         )
 
-        # get charge set for residue 1
-        new_charge_candidate1 = candidate1_residue.get_inactive_charges()
-        old_charge_candidate1 = candidate1_residue.get_current_charges()
-        new_res_name_candidate1 = (
-            self.ionic_liquid.templates.get_residue_name_for_coupled_state(
-                candidate1_residue.current_name
-            )
-        )
-
-        # get charge set for residue 2
-        new_charge_candidate2 = candidate2_residue.get_inactive_charges()
-        old_charge_candidate2 = candidate2_residue.get_current_charges()
-        new_res_name_candidate2 = (
-            self.ionic_liquid.templates.get_residue_name_for_coupled_state(
-                candidate2_residue.current_name
-            )
-        )
-
         logger.info("Start changing states ...")
         for lamb in np.linspace(0, 1, nr_of_steps):
-            charge_candidate1 = (1.0 - lamb) * np.array(
-                old_charge_candidate1
-            ) + lamb * np.array(new_charge_candidate1)
-            charge_candidate2 = (1.0 - lamb) * np.array(
-                old_charge_candidate2
-            ) + lamb * np.array(new_charge_candidate2)
+            ######################
+            # nonbonded parameters
+            ######################
+            candidate1_residue.update("NonbondedForce", lamb)
+            candidate1_residue.update("HarmonicBondedForce", lamb)
+            candidate1_residue.update("HarmonicAngleForce", lamb)
 
-            # set new charges
-            candidate1_residue.set_new_state(
-                list(charge_candidate1), new_res_name_candidate1
-            )
-            candidate2_residue.set_new_state(
-                list(charge_candidate2), new_res_name_candidate2
-            )
             # update the context to include the new parameters
-            self.ionic_liquid.nonbonded_force.updateParametersInContext(
-                self.ionic_liquid.simulation.context
-            )
+            # self.ionic_liquid.nonbonded_force.updateParametersInContext(
+            #     self.ionic_liquid.simulation.context
+            # )
             # get new energy
             state = self.ionic_liquid.simulation.context.getState(getEnergy=True)
             new_e = state.getPotentialEnergy()
 
             self.ionic_liquid.simulation.step(1)
-
+        # after the update is finished the current_name attribute is updated (and since alternative_name depends on current_name it too is updated)
+        candidate1_residue.current_name = candidate1_residue.alternativ_name
+        candidate2_residue.current_name = candidate2_residue.alternativ_name
         # get new energy
         state = self.ionic_liquid.simulation.context.getState(getEnergy=True)
         new_e = state.getPotentialEnergy()
@@ -201,10 +178,6 @@ class StateUpdate:
                     f"Distance between pairs: {distance[candidate_idx1,candidate_idx2]}"
                 )
                 proposed_candidate_pair = (residue1, residue2)
-                proposed_candidate_pair_names = (
-                    residue1.current_name,
-                    residue2.current_name,
-                )
                 # reject if already in last 10 updates
                 if set(proposed_candidate_pair) in self.history[-10:]:
                     print(
