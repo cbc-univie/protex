@@ -243,6 +243,114 @@ def test_forces():
 
         raise AssertionError("ohoh")
 
+def test_drude_forces():
+    from ..testsystems import generate_im1h_oac_system, OAC_HOAC, IM1H_IM1
+    from collections import defaultdict
+    import simtk.openmm as mm
+
+    simulation = generate_im1h_oac_system()
+    templates = IonicLiquidTemplates(
+        [OAC_HOAC, IM1H_IM1], (set(["IM1H", "OAC"]), set(["IM1", "HOAC"]))
+    )
+    ionic_liquid = IonicLiquidSystem(simulation, templates)
+    system = simulation.system
+    topology = simulation.topology
+    force_state = defaultdict(list)  # store drude force
+    force_state_thole = defaultdict(list)  # store drude force
+    atom_idxs = defaultdict(list)  # store atom_idxs
+    atom_names = defaultdict(list)  # store atom_names
+    names = []  # store names
+
+    # iterate over residues, select the first residue for HOAC and OAC and save the individual bonded forces
+    for ridx, r in enumerate(topology.residues()):
+        if r.name == "HOAC" and ridx == 650:  # match first HOAC residue
+            names.append(r.name)
+            atom_idxs[r.name] = [atom.index for atom in r.atoms()]
+            atom_names[r.name] = [atom.name for atom in r.atoms()]
+            drude_force = [f for f in system.getForces() if isinstance(f, mm.DrudeForce)][0]
+            #harmonic_force = system.getForces()[0]
+            #harmonic_force2 = system.getForces()[2]
+            print(f"{r.name=}")
+            print("drude")
+            print(drude_force.getNumParticles())
+            for drude_id in range(drude_force.getNumParticles()):
+                f = drude_force.getParticleParameters(drude_id)
+                idx1, idx2 = f[0], f[1]
+                if (
+                            idx1 in atom_idxs[r.name] and idx2 in atom_idxs[r.name]
+                        ):
+                        print(f)
+                        force_state[r.name].append(f)
+
+            print("thole")
+            print(drude_force.getNumScreenedPairs())
+            for drude_id in range(drude_force.getNumScreenedPairs()):
+                f = drude_force.getScreenedPairParameters(drude_id)
+                parent1, parent2 = ionic_liquid.pair_12_13_list[drude_id]
+                drude1, drude2 = parent1 + 1, parent2 + 1
+                #print(f"thole {idx1=}, {idx2=}")
+                #print(f"{drude_id=}, {f=}")
+                if drude1 in atom_idxs[r.name] and drude2 in atom_idxs[r.name]:
+                #idx1, idx2 = f[0], f[1]
+                #if ( idx1 in atom_idxs[r.name] and idx2 in atom_idxs[r.name] ):
+                        print(f)
+                        force_state_thole[r.name].append(f)
+
+        if r.name == "OAC" and ridx == 150:
+            names.append(r.name)
+            atom_idxs[r.name] = [atom.index for atom in r.atoms()]
+            atom_names[r.name] = [atom.name for atom in r.atoms()]
+            drude_force = [f for f in system.getForces() if isinstance(f, mm.DrudeForce)][0]
+            print(f"{r.name=}")
+            print("drude")
+            print(drude_force.getNumParticles())
+            for drude_id in range(drude_force.getNumParticles()):
+                f = drude_force.getParticleParameters(drude_id)
+                idx1, idx2 = f[0], f[1]
+                if (
+                            idx1 in atom_idxs[r.name] and idx2 in atom_idxs[r.name]
+                        ):
+                        print(f)
+                        force_state[r.name].append(f)
+
+            print("thole")
+            print(drude_force.getNumScreenedPairs())
+            for drude_id in range(drude_force.getNumScreenedPairs()):
+                f = drude_force.getScreenedPairParameters(drude_id)
+                parent1, parent2 = ionic_liquid.pair_12_13_list[drude_id]
+                drude1, drude2 = parent1 + 1, parent2 + 1
+                #print(f"thole {idx1=}, {idx2=}")
+                #print(f"{drude_id=}, {f=}")
+                if drude1 in atom_idxs[r.name] and drude2 in atom_idxs[r.name]:
+                        print(f)
+                        force_state_thole[r.name].append(f)
+            
+
+    if len(force_state[names[0]]) != len(
+        force_state[names[1]]
+    ):  # check the number of entries in the forces
+        print(f"{names[0]}: {len(force_state[names[0]])}")
+        print(f"{names[1]}: {len(force_state[names[1]])}")
+
+        print(f"{names[0]}:Atom indicies and atom names")
+        for idx, name in zip(atom_idxs[names[0]], atom_names[names[0]]):
+            print(f"{idx}:{name}")
+        print(f"{names[1]}:Atom indicies and atom names")
+        for idx, name in zip(atom_idxs[names[1]], atom_names[names[1]]):
+            print(f"{idx}:{name}")
+
+        # print forces for the two residues
+        print("########################")
+        print(names[0])
+        for f in force_state[names[0]]:
+            print(f)
+
+        print("########################")
+        print(names[1])
+        for f in force_state[names[1]]:
+            print(f)
+
+        raise AssertionError("ohoh")
 
 def test_create_IonicLiquid_residue():
     from ..testsystems import generate_im1h_oac_system, OAC_HOAC, IM1H_IM1

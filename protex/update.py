@@ -51,6 +51,8 @@ class NaiveMCUpdate(Update):
             candidate1_residue.update("NonbondedForce", lamb)
             candidate1_residue.update("HarmonicBondedForce", lamb)
             candidate1_residue.update("HarmonicAngleForce", lamb)
+            candidate1_residue.update("DrudeForce", lamb)
+
 
             # update the context to include the new parameters
             # self.ionic_liquid.nonbonded_force.updateParametersInContext(

@@ -42,5 +42,5 @@ def test_outline(caplog):
     for _ in range(10):
         print(_)
         ionic_liquid.simulation.step(1000)
-        state_update.update(1001)
+        state_update.update(101)
         ionic_liquid.report_states()
