@@ -4,7 +4,7 @@
        Copyright(c) 1984-2014  President and Fellows of Harvard College
                               All Rights Reserved
   Current operating system: Linux-4.9.0-16-amd64(x86_64)@sheet.mdy.univie.ac.   
-                 Created on  8/2/21 at 15:00:05 by user: florian     
+                 Created on  8/27/21 at  8:16:39 by user: florian     
 
             Maximum number of ATOMS:    360720, and RESidues:      120240
  RDTITL> *~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -693,8 +693,8 @@ ENER EXTERN:        VDWaals         ELEC       HBONds          ASP         USER
 ENER IMAGES:        IMNBvdw       IMELec       IMHBnd       RXNField    EXTElec
 ENER EWALD:          EWKSum       EWSElf       EWEXcl       EWQCor       EWUTil
  ----------       ---------    ---------    ---------    ---------    ---------
-ENER>        0 16721187647.           0.  4519635287.
-ENER INTERN>     6365.51778  42169.81872 151933.20056    966.53331      0.00741
+ENER>        0 16721188180.           0.  4519635287.
+ENER INTERN>     6365.51778  42169.81872 152465.99166    966.53331      0.00741
 ENER EXTERN>    15273.10535  -3404.37736      0.00000      0.00000      0.00000
 ENER IMAGES>   16720995764.        -200.           0.           0.           0.
 ENER EWALD>      15080.5809-6070322.2788 6034020.6082       0.0000       0.0000
@@ -716,395 +716,13 @@ ENER EWALD>      15080.5809-6070322.2788 6034020.6082       0.0000       0.0000
  CHARMM>    !=======================================================================
  CHARMM>    ! Minimization
  CHARMM>    !=======================================================================
- CHARMM>    mini sd nstep 200
-
- SELECTED IMAGES ATOMS BEING CENTERED ABOUT  0.000000  0.000000  0.000000
-
- <MKIMAT2>: updating the image atom lists and remapping
- Transformation   Atoms  Groups  Residues  Min-Distance
-    1  C001 has     172       9       9        4.34
-    2  C002 has    1232      68      68        1.46
-    3  C003 has      92       5       5        1.46
-    4  C004 has    1128      61      61        0.42
-    5  C005 has    5836     320     320        0.00
-    6  C006 has    1160      64      64        0.56
-    7  C007 has    1192      67      67        0.00
-    8  C008 has    5764     321     321        0.00
-    9  C009 has    1108      62      62        1.00
-   10  C010 has    5940     327     327        0.00
-   12  C012 has     164       9       9        3.19
-   13  C013 has    1216      68      68        0.00
-   14  C014 has     228      13      13        5.12
- Total of43232 atoms and 2394 groups and 2394 residues were included
-
- <MAKGRP> found      0 image group exclusions.
-
- NONBOND OPTION FLAGS: 
-     ELEC     VDW      ATOMs    CDIElec  SWITch   VATOm    VSWItch 
-     BYCB     NOEXtnd  EWALd   
- CUTNB  = 14.000 CTEXNB =999.000 CTONNB = 10.000 CTOFNB = 11.000
- CGONNB =  0.000 CGOFNB = 10.000
- WMIN   =  1.500 WRNMXD =  0.500 E14FAC =  1.000 EPS    =  1.000
- NBXMOD =      5
- PME EWALD OPTIONS: KAPPA  =  0.410  QCOR =  0.000  Bspline order = 6
- FFTX=  48  FFTY=  48  FFTZ=  48
-                Using FFTW
-                Real-to-Complex FFT
-                Using Column FFT 
- There are 13336257 atom  pairs and   136500 atom  exclusions.
- There are        0 group pairs and        0 group exclusions.
- Generating nonbond list with Exclusion mode = 5
- == PRIMARY == SPACE FOR 17337134 ATOM PAIRS AND        0 GROUP PAIRS
- == IMAGES === SPACE FOR  4883348 ATOM PAIRS AND        0 GROUP PAIRS
-Using Image CUBE search
-  NBNDGCM found:
-    13336257  atom pairs
-     3756422  image atom pairs
-           0  self atom pairs
-    13336257 total atom  pairs
-     3756422 total image pairs
-
-
- STEEPD> An energy minimization has been requested.
-
- NSTEP  =          200   NPRINT =           10
- STEP   =    0.0200000   TOLFUN =    0.0000000
- TOLGRD =    0.0000000   TOLSTP =    0.0000000
-
-MINI MIN: Cycle      ENERgy      Delta-E         GRMS    Step-size
-MINI INTERN:          BONDs       ANGLes       UREY-b    DIHEdrals    IMPRopers
-MINI EXTERN:        VDWaals         ELEC       HBONds          ASP         USER
-MINI IMAGES:        IMNBvdw       IMELec       IMHBnd       RXNField    EXTElec
-MINI EWALD:          EWKSum       EWSElf       EWEXcl       EWQCor       EWUTil
- ----------       ---------    ---------    ---------    ---------    ---------
-MINI>        0 16975541166.  -254353519.  4301487632.           0.
-MINI INTERN>     6369.07864  42151.39152 151964.31202    966.53244      0.00895
-MINI EXTERN>    15265.26630  -3418.70651      0.00000      0.00000      0.00000
-MINI IMAGES>   16975349296.        -199.           0.           0.           0.
-MINI EWALD>      15073.9362-6070322.2788 6034019.0748       0.0000       0.0000
- ----------       ---------    ---------    ---------    ---------    ---------
- UPDECI: Image update at step         6
-
- <MKIMAT2>: updating the image atom lists and remapping
- Transformation   Atoms  Groups  Residues  Min-Distance
-    1  C001 has     172       9       9        4.49
-    2  C002 has    1232      68      68        1.36
-    3  C003 has      92       5       5        1.36
-    4  C004 has    1128      61      61        0.34
-    5  C005 has    5800     318     318        0.00
-    6  C006 has    1144      63      63        0.34
-    7  C007 has    1192      67      67        0.00
-    8  C008 has    5744     320     320        0.00
-    9  C009 has    1092      61      61        0.97
-   10  C010 has    5920     326     326        0.00
-   12  C012 has     164       9       9        3.08
-   13  C013 has    1200      67      67        0.00
-   14  C014 has     228      13      13        4.99
- Total of43108 atoms and 2387 groups and 2387 residues were included
-
- <MAKGRP> found      0 image group exclusions.
- UPDECI: Nonbond update at step         6
- Generating nonbond list with Exclusion mode = 5
- == PRIMARY == SPACE FOR 17337134 ATOM PAIRS AND        0 GROUP PAIRS
- == IMAGES === SPACE FOR  4883348 ATOM PAIRS AND        0 GROUP PAIRS
-Using Image CUBE search
-  NBNDGCM found:
-    13345531  atom pairs
-     3746762  image atom pairs
-           0  self atom pairs
-    13345531 total atom  pairs
-     3746762 total image pairs
- UPDECI: Image update at step         7
-
- <MKIMAT2>: updating the image atom lists and remapping
- Transformation   Atoms  Groups  Residues  Min-Distance
-    1  C001 has     172       9       9        4.50
-    2  C002 has    1232      68      68        1.36
-    3  C003 has      92       5       5        1.36
-    4  C004 has    1128      61      61        0.34
-    5  C005 has    5800     318     318        0.00
-    6  C006 has    1144      63      63        0.34
-    7  C007 has    1192      67      67        0.00
-    8  C008 has    5744     320     320        0.00
-    9  C009 has    1092      61      61        0.97
-   10  C010 has    5920     326     326        0.00
-   12  C012 has     164       9       9        3.14
-   13  C013 has    1200      67      67        0.00
-   14  C014 has     228      13      13        5.04
- Total of43108 atoms and 2387 groups and 2387 residues were included
-
- <MAKGRP> found      0 image group exclusions.
- UPDECI: Nonbond update at step         7
- Generating nonbond list with Exclusion mode = 5
- == PRIMARY == SPACE FOR 17337134 ATOM PAIRS AND        0 GROUP PAIRS
- == IMAGES === SPACE FOR  4883348 ATOM PAIRS AND        0 GROUP PAIRS
-Using Image CUBE search
-  NBNDGCM found:
-    13345586  atom pairs
-     3746759  image atom pairs
-           0  self atom pairs
-    13345586 total atom  pairs
-     3746759 total image pairs
- UPDECI: Image update at step         8
-
- <MKIMAT2>: updating the image atom lists and remapping
- Transformation   Atoms  Groups  Residues  Min-Distance
-    1  C001 has     172       9       9        4.51
-    2  C002 has    1232      68      68        1.36
-    3  C003 has      92       5       5        1.37
-    4  C004 has    1128      61      61        0.34
-    5  C005 has    5800     318     318        0.00
-    6  C006 has    1144      63      63        0.36
-    7  C007 has    1192      67      67        0.00
-    8  C008 has    5744     320     320        0.00
-    9  C009 has    1092      61      61        0.99
-   10  C010 has    5920     326     326        0.00
-   12  C012 has     164       9       9        3.19
-   13  C013 has    1200      67      67        0.00
-   14  C014 has     228      13      13        5.10
- Total of43108 atoms and 2387 groups and 2387 residues were included
-
- <MAKGRP> found      0 image group exclusions.
- UPDECI: Nonbond update at step         8
- Generating nonbond list with Exclusion mode = 5
- == PRIMARY == SPACE FOR 17337134 ATOM PAIRS AND        0 GROUP PAIRS
- == IMAGES === SPACE FOR  4883348 ATOM PAIRS AND        0 GROUP PAIRS
-Using Image CUBE search
-  NBNDGCM found:
-    13346070  atom pairs
-     3746339  image atom pairs
-           0  self atom pairs
-    13346070 total atom  pairs
-     3746339 total image pairs
- UPDECI: Image update at step         9
-
- <MKIMAT2>: updating the image atom lists and remapping
- Transformation   Atoms  Groups  Residues  Min-Distance
-    1  C001 has     172       9       9        4.51
-    2  C002 has    1232      68      68        1.36
-    3  C003 has      92       5       5        1.37
-    4  C004 has    1128      61      61        0.34
-    5  C005 has    5800     318     318        0.00
-    6  C006 has    1144      63      63        0.36
-    7  C007 has    1192      67      67        0.00
-    8  C008 has    5744     320     320        0.00
-    9  C009 has    1092      61      61        0.99
-   10  C010 has    5920     326     326        0.00
-   12  C012 has     164       9       9        3.19
-   13  C013 has    1200      67      67        0.00
-   14  C014 has     228      13      13        5.10
- Total of43108 atoms and 2387 groups and 2387 residues were included
-
- <MAKGRP> found      0 image group exclusions.
- UPDECI: Nonbond update at step         9
- Generating nonbond list with Exclusion mode = 5
- == PRIMARY == SPACE FOR 17337134 ATOM PAIRS AND        0 GROUP PAIRS
- == IMAGES === SPACE FOR  4883348 ATOM PAIRS AND        0 GROUP PAIRS
-Using Image CUBE search
-  NBNDGCM found:
-    13345982  atom pairs
-     3746393  image atom pairs
-           0  self atom pairs
-    13345982 total atom  pairs
-     3746393 total image pairs
- EPHI: WARNING. bent improper torsion angle is 
-
-far from minimum for;
-    IPHI=  275  with deltaPHI=  84.5653 MIN=   0.0000 ATOMS:14392143871439414385
- EPHI: WARNING. bent improper torsion angle is 
-
-far from minimum for;
-    IPHI=  275  with deltaPHI=  84.5627 MIN=   0.0000 ATOMS:14392143871439414385
-MINI>       10      208337. 16975332829.          83.           0.
-MINI INTERN>    30269.89869  43636.21090 152163.29337   1472.29153    296.38657
-MINI EXTERN>    12057.84204  -5904.14747      0.00000      0.00000      0.00000
-MINI IMAGES>     4242.17919    741.88540      0.00000      0.00000      0.00000
-MINI EWALD>       8171.5403-6070322.2788 6031512.0675       0.0000       0.0000
- ----------       ---------    ---------    ---------    ---------    ---------
- EPHI: WARNING. bent improper torsion angle is 
-
-far from minimum for;
-    IPHI=   37  with deltaPHI=-171.6864 MIN=   0.0000 ATOMS: 3584 3579 3586 3577
- EPHI: WARNING. bent improper torsion angle is 
-
-far from minimum for;
-    IPHI=   37  with deltaPHI= -98.9950 MIN=   0.0000 ATOMS: 3584 3579 3586 3577
-MINI>       20 178152.82891  30184.34030     13.24178      0.00167
-MINI INTERN>    13288.89629  43224.69315 151288.51900   1435.42250     81.26049
-MINI EXTERN>     8766.55752  -9673.14852      0.00000      0.00000      0.00000
-MINI IMAGES>     1639.88908   -300.06940      0.00000      0.00000      0.00000
-MINI EWALD>       6632.4725-6070322.2788 6032090.6151       0.0000       0.0000
- ----------       ---------    ---------    ---------    ---------    ---------
-MINI>       30 176411.43593   1741.39299     27.29668      0.00180
-MINI INTERN>    13876.71842  43261.83171 151146.89132   1483.84818    155.02691
-MINI EXTERN>     8043.27605 -11044.37667      0.00000      0.00000      0.00000
-MINI IMAGES>     1432.21411   -244.54168      0.00000      0.00000      0.00000
-MINI EWALD>       6550.9838-6070322.2788 6032071.8426       0.0000       0.0000
- ----------       ---------    ---------    ---------    ---------    ---------
-MINI>       40 174802.93870   1608.49722      6.81955      0.00034
-MINI INTERN>    13764.04983  43289.45122 151011.16568   1501.40198     94.27417
-MINI EXTERN>     7712.88665 -11903.31806      0.00000      0.00000      0.00000
-MINI IMAGES>     1334.13507   -245.51288      0.00000      0.00000      0.00000
-MINI EWALD>       6511.0278-6070322.2788 6032055.6560       0.0000       0.0000
- ----------       ---------    ---------    ---------    ---------    ---------
-MINI>       50 174160.33741    642.60129      6.43954      0.00036
-MINI INTERN>    13680.56983  43310.95334 150921.44635   1521.21468     99.36939
-MINI EXTERN>     7437.28485 -12017.84073      0.00000      0.00000      0.00000
-MINI IMAGES>     1258.71249   -244.51634      0.00000      0.00000      0.00000
-MINI EWALD>       6479.6799-6070322.2788 6032035.7425       0.0000       0.0000
- ----------       ---------    ---------    ---------    ---------    ---------
-MINI>       60 173732.37851    427.95890     13.42103      0.00039
-MINI INTERN>    13552.43358  43341.33545 150837.45969   1539.68022    104.25377
-MINI EXTERN>     7190.31768 -11928.88151      0.00000      0.00000      0.00000
-MINI IMAGES>     1194.36538   -244.59448      0.00000      0.00000      0.00000
-MINI EWALD>       6449.9851-6070322.2788 6032018.3024       0.0000       0.0000
- ----------       ---------    ---------    ---------    ---------    ---------
-MINI>       70 173174.80197    557.57653      7.96710      0.00042
-MINI INTERN>    13331.35562  43383.48348 150759.09713   1554.52580    108.39090
-MINI EXTERN>     6991.62274 -11961.35998      0.00000      0.00000      0.00000
-MINI IMAGES>     1144.19916   -245.28035      0.00000      0.00000      0.00000
-MINI EWALD>       6423.7227-6070322.2788 6032007.3236       0.0000       0.0000
- ----------       ---------    ---------    ---------    ---------    ---------
-MINI>       80 172551.01180    623.79017     13.61789      0.00045
-MINI INTERN>    13046.27792  43438.24776 150682.20997   1571.30774    113.11009
-MINI EXTERN>     6777.51375 -11986.73789      0.00000      0.00000      0.00000
-MINI IMAGES>     1091.01498   -248.45577      0.00000      0.00000      0.00000
-MINI EWALD>       6394.3610-6070322.2788 6031994.4411       0.0000       0.0000
- ----------       ---------    ---------    ---------    ---------    ---------
-MINI>       90 172166.05194    384.95987     15.41865      0.00048
-MINI INTERN>    12930.42955  43472.43052 150620.16273   1584.78375    117.09097
-MINI EXTERN>     6607.40803 -11997.63053      0.00000      0.00000      0.00000
-MINI IMAGES>     1049.31111   -250.76135      0.00000      0.00000      0.00000
-MINI EWALD>       6369.9488-6070322.2788 6031985.1572       0.0000       0.0000
- ----------       ---------    ---------    ---------    ---------    ---------
- UPDECI: Image update at step       100
-
- <MKIMAT2>: updating the image atom lists and remapping
- Transformation   Atoms  Groups  Residues  Min-Distance
-    1  C001 has     172       9       9        4.43
-    2  C002 has    1232      68      68        1.27
-    3  C003 has      92       5       5        1.30
-    4  C004 has    1128      61      61        0.19
-    5  C005 has    5820     319     319        0.00
-    6  C006 has    1144      63      63        0.42
-    7  C007 has    1192      67      67        0.00
-    8  C008 has    5744     320     320        0.00
-    9  C009 has    1076      60      60        1.00
-   10  C010 has    5920     326     326        0.00
-   12  C012 has     164       9       9        3.18
-   13  C013 has    1200      67      67        0.00
-   14  C014 has     228      13      13        5.16
- Total of43112 atoms and 2387 groups and 2387 residues were included
-
- <MAKGRP> found      0 image group exclusions.
- UPDECI: Nonbond update at step       100
- Generating nonbond list with Exclusion mode = 5
- == PRIMARY == SPACE FOR 17337134 ATOM PAIRS AND        0 GROUP PAIRS
- == IMAGES === SPACE FOR  4883348 ATOM PAIRS AND        0 GROUP PAIRS
-Using Image CUBE search
-  NBNDGCM found:
-    13349635  atom pairs
-     3742096  image atom pairs
-           0  self atom pairs
-    13349635 total atom  pairs
-     3742096 total image pairs
-MINI>      100 171881.50170    284.55024     16.25301      0.00052
-MINI INTERN>    12886.46624  43498.79867 150568.46294   1596.89735    120.70228
-MINI EXTERN>     6455.64392 -12007.70465      0.00000      0.00000      0.00000
-MINI IMAGES>     1011.63247   -252.63114      0.00000      0.00000      0.00000
-MINI EWALD>       6347.0263-6070322.2788 6031978.4861       0.0000       0.0000
- ----------       ---------    ---------    ---------    ---------    ---------
-MINI>      110 171516.56669    364.93501      6.93816      0.00023
-MINI INTERN>    12896.88584  43521.60601 150513.33414   1608.28661    124.18273
-MINI EXTERN>     6312.33421 -12154.60330      0.00000      0.00000      0.00000
-MINI IMAGES>      974.89676   -256.04056      0.00000      0.00000      0.00000
-MINI EWALD>       6324.2444-6070322.2788 6031973.7187       0.0000       0.0000
- ----------       ---------    ---------    ---------    ---------    ---------
-MINI>      120 171293.82773    222.73896      8.14326      0.00025
-MINI INTERN>    12894.16801  43538.83267 150472.29344   1618.63775    127.36995
-MINI EXTERN>     6181.09879 -12175.26140      0.00000      0.00000      0.00000
-MINI IMAGES>      943.23830   -256.71860      0.00000      0.00000      0.00000
-MINI EWALD>       6304.6669-6070322.2788 6031967.7808       0.0000       0.0000
- ----------       ---------    ---------    ---------    ---------    ---------
-MINI>      130 171083.84680    209.98093      9.10307      0.00027
-MINI INTERN>    12887.38060  43553.95480 150436.82657   1628.51152    130.43041
-MINI EXTERN>     6054.25117 -12189.49846      0.00000      0.00000      0.00000
-MINI IMAGES>      913.28792   -256.72065      0.00000      0.00000      0.00000
-MINI EWALD>       6286.0353-6070322.2788 6031961.6665       0.0000       0.0000
- ----------       ---------    ---------    ---------    ---------    ---------
-MINI>      140 170886.03615    197.81065      9.60999      0.00029
-MINI INTERN>    12891.11715  43565.23314 150401.27393   1637.68648    133.28643
-MINI EXTERN>     5936.19531 -12209.22120      0.00000      0.00000      0.00000
-MINI IMAGES>      885.36539   -256.93679      0.00000      0.00000      0.00000
-MINI EWALD>       6268.5485-6070322.2788 6031955.7666       0.0000       0.0000
- ----------       ---------    ---------    ---------    ---------    ---------
-MINI>      150 170698.68065    187.35550     10.24577      0.00031
-MINI INTERN>    12889.55112  43576.54870 150373.06212   1646.35511    135.98798
-MINI EXTERN>     5823.03258 -12227.98459      0.00000      0.00000      0.00000
-MINI IMAGES>      859.08584   -256.61389      0.00000      0.00000      0.00000
-MINI EWALD>       6251.6799-6070322.2788 6031950.2546       0.0000       0.0000
- ----------       ---------    ---------    ---------    ---------    ---------
-MINI>      160 170532.76123    165.91942     11.40729      0.00033
-MINI INTERN>    12886.59938  43586.00441 150349.29123   1654.17379    138.41815
-MINI EXTERN>     5719.47840 -12239.15690      0.00000      0.00000      0.00000
-MINI IMAGES>      835.12298   -256.24473      0.00000      0.00000      0.00000
-MINI EWALD>       6236.2019-6070322.2788 6031945.1514       0.0000       0.0000
- ----------       ---------    ---------    ---------    ---------    ---------
-MINI>      170 170375.10389    157.65734     12.31146      0.00036
-MINI INTERN>    12889.24464  43593.05528 150325.55039   1661.49121    140.69005
-MINI EXTERN>     5621.74683 -12252.46536      0.00000      0.00000      0.00000
-MINI IMAGES>      812.47068   -256.13640      0.00000      0.00000      0.00000
-MINI EWALD>       6221.4471-6070322.2788 6031940.2883       0.0000       0.0000
- ----------       ---------    ---------    ---------    ---------    ---------
-MINI>      180 170172.01023    203.09365      3.50911      0.00016
-MINI INTERN>    12869.48041  43593.75318 150301.86344   1668.21844    142.72163
-MINI EXTERN>     5532.75298 -12295.19000      0.00000      0.00000      0.00000
-MINI IMAGES>      792.35320   -255.06053      0.00000      0.00000      0.00000
-MINI EWALD>       6208.8555-6070322.2788 6031934.5408       0.0000       0.0000
- ----------       ---------    ---------    ---------    ---------    ---------
-MINI>      190 170022.95417    149.05606      3.55028      0.00017
-MINI INTERN>    12866.47525  43598.16879 150283.32625   1674.57134    144.66894
-MINI EXTERN>     5445.19517 -12310.38963      0.00000      0.00000      0.00000
-MINI IMAGES>      772.28150   -254.75782      0.00000      0.00000      0.00000
-MINI EWALD>       6195.6092-6070322.2788 6031930.0839       0.0000       0.0000
- ----------       ---------    ---------    ---------    ---------    ---------
-MINI>      200 169881.87972    141.07445      3.45773      0.00019
-MINI INTERN>    12863.31473  43601.45729 150266.71566   1680.44473    146.45775
-MINI EXTERN>     5362.72933 -12324.88927      0.00000      0.00000      0.00000
-MINI IMAGES>      753.42359   -254.47511      0.00000      0.00000      0.00000
-MINI EWALD>       6183.0608-6070322.2788 6031925.9191       0.0000       0.0000
- ----------       ---------    ---------    ---------    ---------    ---------
-
- STEEPD> Minimization exiting with number of steps limit (       200) exceeded.
-
-STPD MIN: Cycle      ENERgy      Delta-E         GRMS    Step-size
-STPD INTERN:          BONDs       ANGLes       UREY-b    DIHEdrals    IMPRopers
-STPD EXTERN:        VDWaals         ELEC       HBONds          ASP         USER
-STPD IMAGES:        IMNBvdw       IMELec       IMHBnd       RXNField    EXTElec
-STPD EWALD:          EWKSum       EWSElf       EWEXcl       EWQCor       EWUTil
- ----------       ---------    ---------    ---------    ---------    ---------
-STPD>      200 169881.87972    141.07445      3.45773      0.00022
-STPD INTERN>    12863.31473  43601.45729 150266.71566   1680.44473    146.45775
-STPD EXTERN>     5362.72933 -12324.88927      0.00000      0.00000      0.00000
-STPD IMAGES>      753.42359   -254.47511      0.00000      0.00000      0.00000
-STPD EWALD>       6183.0608-6070322.2788 6031925.9191       0.0000       0.0000
- ----------       ---------    ---------    ---------    ---------    ---------
-  
+ CHARMM>    !mini sd nstep 200
  CHARMM>    !mini abnr nstep 3000
  CHARMM>     
   
- CHARMM>    open  unit 10 write form name "./im1h_oac_150_im1_hoac_350_lp.crd"
- VOPEN> Attempting to open::./im1h_oac_150_im1_hoac_350_lp.crd::
- OPNLGU> Unit 10 opened for WRITE access to ./im1h_oac_150_im1_hoac_350_lp.crd
-  
- CHARMM>    write unit 10 coor card
- RDTITL> CLOSE UNIT 10
- RDTITL> No title read.
- VCLOSE: Closing unit   10 with status "KEEP"
-  
- CHARMM>    close unit 10
- CLOLGU>  *****  WARNING  ***** Attempt to close unit that was not open.
-  
+ CHARMM>    !open  unit 10 write form name "./im1h_oac_150_im1_hoac_350_lp.crd"
+ CHARMM>    !write unit 10 coor card
+ CHARMM>    !close unit 10
  CHARMM>     
   
  CHARMM>    open unit 10 write form name "./im1h_oac_150_im1_hoac_350_lp.psf"
@@ -1123,62 +741,56 @@ STPD EWALD>       6183.0608-6070322.2788 6031925.9191       0.0000       0.0000
  CHARMM>    stop
       $$$$$$  New timer profile Local node$$$$$
    Shake Setup                     0.01 Other:            0.00
-   Shake time                      0.18 Other:            0.00
-      Image Update                    0.01 Other:            0.00
+   Shake time                      0.00 Other:            0.00
       xdistm setup                    0.00 Other:            0.00
-      xdistm Build list               2.80 Other:            0.00
-      Heuristic check                 0.00 Other:            0.00
-      NBONDS                          1.75 Other:            0.00
-   List time                       4.56 Other:            0.00
-            Direct Ewald time              49.39 Other:            0.00
-         Ewald time                     50.08 Other:            0.69
-      Nonbond force                  51.15 Other:            1.07
-         Bond energy                     0.06 Other:            0.00
-         Angle energy                    0.18 Other:            0.00
-         Dihedral energy                 0.22 Other:            0.00
+      xdistm Build list               0.71 Other:            0.00
+   List time                       0.76 Other:            0.05
+            Direct Ewald time               0.24 Other:            0.00
+         Ewald time                      0.28 Other:            0.03
+      Nonbond force                   0.28 Other:            0.01
+         Bond energy                     0.00 Other:            0.00
+         Angle energy                    0.00 Other:            0.00
+         Dihedral energy                 0.00 Other:            0.00
          Restraints energy               0.00 Other:            0.00
-      INTRNL energy                   0.49 Other:            0.03
+      INTRNL energy                   0.00 Other:            0.00
       Comm energy                     0.00 Other:            0.00
       Comm force                      0.00 Other:            0.00
-         Fill charge grid                0.34 Other:            0.00
-         Scalar sum                      0.03 Other:            0.00
-         Grad sum                        0.22 Other:            0.00
-            FFTcomm                         0.03 Other:            0.00
-         FFT                             0.08 Other:            0.06
-      Recip Ewald time                0.69 Other:            0.02
-   Energy time                    52.32 Other:            0.00
- Total time                     57.07 Other:            0.00
+         Fill charge grid                0.01 Other:            0.00
+         Scalar sum                      0.00 Other:            0.00
+         Grad sum                        0.00 Other:            0.00
+            FFTcomm                         0.00 Other:            0.00
+         FFT                             0.02 Other:            0.02
+      Recip Ewald time                0.03 Other:            0.00
+   Energy time                     0.32 Other:            0.00
+ Total time                      1.71 Other:            0.62
          $$$$$$  Average   profile $$$$$
    Shake Setup                     0.01 Other:            0.00
-   Shake time                      0.18 Other:            0.00
-      Image Update                    0.01 Other:            0.00
+   Shake time                      0.00 Other:            0.00
       xdistm setup                    0.00 Other:            0.00
-      xdistm Build list               2.80 Other:            0.00
-      Heuristic check                 0.00 Other:            0.00
-      NBONDS                          1.75 Other:            0.00
-   List time                       4.56 Other:            0.00
-            Direct Ewald time              49.39 Other:            0.00
-         Ewald time                     50.08 Other:            0.69
-      Nonbond force                  51.15 Other:            1.07
-         Bond energy                     0.06 Other:            0.00
-         Angle energy                    0.18 Other:            0.00
-         Dihedral energy                 0.22 Other:            0.00
+      xdistm Build list               0.71 Other:            0.00
+   List time                       0.76 Other:            0.05
+            Direct Ewald time               0.24 Other:            0.00
+         Ewald time                      0.28 Other:            0.03
+      Nonbond force                   0.28 Other:            0.01
+         Bond energy                     0.00 Other:            0.00
+         Angle energy                    0.00 Other:            0.00
+         Dihedral energy                 0.00 Other:            0.00
          Restraints energy               0.00 Other:            0.00
-      INTRNL energy                   0.49 Other:            0.03
+      INTRNL energy                   0.00 Other:            0.00
       Comm energy                     0.00 Other:            0.00
       Comm force                      0.00 Other:            0.00
-         Fill charge grid                0.34 Other:            0.00
-         Scalar sum                      0.03 Other:            0.00
-         Grad sum                        0.22 Other:            0.00
-            FFTcomm                         0.03 Other:            0.00
-         FFT                             0.08 Other:            0.06
-      Recip Ewald time                0.69 Other:            0.02
-   Energy time                    52.32 Other:            0.00
- Total time                     57.07 Other:            0.00
+         Fill charge grid                0.01 Other:            0.00
+         Scalar sum                      0.00 Other:            0.00
+         Grad sum                        0.00 Other:            0.00
+            FFTcomm                         0.00 Other:            0.00
+         FFT                             0.02 Other:            0.02
+      Recip Ewald time                0.03 Other:            0.00
+   Energy time                     0.32 Other:            0.00
+ Total time                      1.71 Other:            0.62
 
                     NORMAL TERMINATION BY NORMAL STOP
                     MOST SEVERE WARNING WAS AT LEVEL  2
 
                     $$$$$ JOB ACCOUNTING INFORMATION $$$$$
-                     ELAPSED TIME:    55.70  SECONDS 
-                         CPU TIME:     1.27  MINUTES 
+                     ELAPSED TIME:     1.72  SECONDS 
+                         CPU TIME:     1.92  SECONDS 

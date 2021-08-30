@@ -50,9 +50,9 @@ BOND C3  N2
 BOND N2  C4 
 BOND C4  H6 
 BOND N2  H7 
-BOND  LPN21  N2 
+BOND LPN21  N2 
 
-LONEPAIR BISECTOR LPN21  N2  C1  C2 DIST 0.3000 ANGLE  179.99 DIHE  179.99 ! war 0.3 180 180 ev dist 0.35 angle 179.99 dihe 179.99 so jedenfalls für IMID in toppar model
+LONEPAIR BISECTOR LPN21  N2  C4  C3 DIST 0.3000 ANGLE  179.99 DIHE  179.99 ! war 0.3 180 180 ev dist 0.35 angle 179.99 dihe 179.99 so jedenfalls für IMID in toppar model
 END
 
 
