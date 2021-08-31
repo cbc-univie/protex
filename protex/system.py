@@ -1,11 +1,8 @@
 import itertools
-from typing import Tuple
 import numpy as np
 import logging
 from collections import ChainMap, defaultdict, deque
 from simtk.openmm import openmm
-from simtk.openmm.app import Simulation
-import simtk.openmm as mm
 
 logger = logging.getLogger(__name__)
 
