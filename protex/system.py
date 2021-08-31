@@ -3,6 +3,7 @@ from typing import Tuple
 import numpy as np
 import logging
 from collections import ChainMap, defaultdict, deque
+from simtk.openmm import openmm
 from simtk.openmm.app import Simulation
 import simtk.openmm as mm
 
@@ -86,7 +87,7 @@ class Residue:
         inital_parameters,
         alternativ_parameters,
         canonical_name: str,
-        pair_12_13_exclusion_list
+        pair_12_13_exclusion_list,
     ) -> None:
 
         self.residue = residue
@@ -110,28 +111,31 @@ class Residue:
             if name != self.current_name:
                 return name
 
-    def update(self, force_name, lamb): # We do not need updateParametersInContext for the forces to take effect?
+    def update(
+        self, force_name: str, context: openmm.Context, lamb: float
+    ):  # We do not need updateParametersInContext for the forces to take effect?
         if force_name == "NonbondedForce":
             parms = self._get_NonbondedForce_parameters_at_lambda(lamb)
-            self._set_NonbondedForce_parameters(parms)
+            self._set_NonbondedForce_parameters(parms, context)
         elif force_name == "HarmonicBondedForce":
             parms = self._get_HarmonicBondForce_parameters_at_lambda(lamb)
-            self._set_HarmonicBondForce_parameters(parms)
+            self._set_HarmonicBondForce_parameters(parms, context)
         elif force_name == "HarmonicAngleForce":
             parms = self._get_HarmonicAngleForce_parameters_at_lambda(lamb)
-            self._set_HarmonicAngleForce_parameters(parms)
+            self._set_HarmonicAngleForce_parameters(parms, context)
         elif force_name == "DrudeForce":
             parms = self._get_DrudeForce_parameters_at_lambda(lamb)
-            self._set_DrudeForce_parameters(parms)
+            self._set_DrudeForce_parameters(parms, context)
 
-    def _set_NonbondedForce_parameters(self, parms):
+    def _set_NonbondedForce_parameters(self, parms, context):
         for force in self.system.getForces():
             if type(force).__name__ == "NonbondedForce":
                 for parms, idx in zip(parms, self.atom_idxs):
                     charge, sigma, epsiolon = parms
                     force.setParticleParameters(idx, charge, sigma, epsiolon)
+                force.updateParametersInContext(context)
 
-    def _set_HarmonicBondForce_parameters(self, parms):
+    def _set_HarmonicBondForce_parameters(self, parms, context):
 
         parms = deque(parms)
         for force in self.system.getForces():
@@ -143,8 +147,9 @@ class Residue:
                     if idx1 in self.atom_idxs and idx2 in self.atom_idxs:
                         r, k = parms.popleft()
                         force.setBondParameters(bond_idx, idx1, idx2, r, k)
+                force.updateParametersInContext(context)
 
-    def _set_HarmonicAngleForce_parameters(self, parms):
+    def _set_HarmonicAngleForce_parameters(self, parms, context):
         parms = deque(parms)
 
         for force in self.system.getForces():
@@ -161,8 +166,9 @@ class Residue:
                     ):
                         thetha, k = parms.popleft()
                         force.setAngleParameters(angle_idx, idx1, idx2, idx3, thetha, k)
+                force.updateParametersInContext(context)
 
-    def _set_DrudeForce_parameters(self, parms):
+    def _set_DrudeForce_parameters(self, parms, context):
 
         parms_pol = deque(parms[0])
         parms_thole = deque(parms[1])
@@ -177,7 +183,18 @@ class Residue:
                     idx5 = f[4]
                     if idx1 in self.atom_idxs and idx2 in self.atom_idxs:
                         charge, pol, aniso12, aniso14 = parms_pol.popleft()
-                        force.setParticleParameters(drude_idx, idx1, idx2, idx3, idx4, idx5, charge, pol, aniso12, aniso14)
+                        force.setParticleParameters(
+                            drude_idx,
+                            idx1,
+                            idx2,
+                            idx3,
+                            idx4,
+                            idx5,
+                            charge,
+                            pol,
+                            aniso12,
+                            aniso14,
+                        )
                 for drude_idx in range(force.getNumScreenedPairs()):
                     f = force.getScreenedPairParameters(drude_idx)
                     idx1 = f[0]
@@ -187,6 +204,7 @@ class Residue:
                     if drude1 in self.atom_idxs and drude2 in self.atom_idxs:
                         thole = parms_thole.popleft()
                         force.setScreenedPairParameters(drude_idx, idx1, idx2, thole)
+                force.updateParametersInContext(context)
 
     def _get_NonbondedForce_parameters_at_lambda(self, lamb: float):
         # returns interpolated sorted nonbonded Forces.
@@ -220,6 +238,7 @@ class Residue:
                 *[query_parm[0:2] for query_parm in self.parameters[name][force_name]]
             )
         )
+
     def _get_offset_thole(self, name):
         # get offset for atom idx for thole parameters
         force_name = "DrudeForceThole"
@@ -239,10 +258,10 @@ class Residue:
         force_name = "HarmonicBondForce"
         new_parms_offset = self._get_offset(new_name)
         old_parms_offset = self._get_offset(old_name)
-        #print(f"{old_name=}, {new_name=}")
-        #print(f"{new_parms_offset=}, {old_parms_offset=}")
-        #print(f"{self.parameters[old_name][force_name]=}")
-        #print(f"{self.parameters[new_name][force_name]=}")
+        # print(f"{old_name=}, {new_name=}")
+        # print(f"{new_parms_offset=}, {old_parms_offset=}")
+        # print(f"{self.parameters[old_name][force_name]=}")
+        # print(f"{self.parameters[new_name][force_name]=}")
 
         # match parameters
         parms_old = []
@@ -326,10 +345,10 @@ class Residue:
             parm_interpolated.append([theta_interpolated, k_interpolated])
 
         return parm_interpolated
-    
+
     def _get_DrudeForce_parameters_at_lambda(self, lamb):
         # Split in two parts, one for charge and polarizability one for thole
-        #returns a list with the two, different than the other get methods!
+        # returns a list with the two, different than the other get methods!
         # returns Drude Forces ordered.
         assert lamb >= 0 and lamb <= 1
         # get the names of new and current state
@@ -340,8 +359,8 @@ class Residue:
         new_parms_offset = self._get_offset(new_name)
         old_parms_offset = self._get_offset(old_name)
 
-        #print(f"{old_name=}, {new_name=}")
-        #print(f"{new_parms_offset=}, {old_parms_offset=}")
+        # print(f"{old_name=}, {new_name=}")
+        # print(f"{new_parms_offset=}, {old_parms_offset=}")
 
         # match parameters
         parms_old = []
@@ -371,19 +390,23 @@ class Residue:
             aniso12_interpolated = (1 - lamb) * aniso12_old + lamb * aniso12_new
             aniso14_interpolated = (1 - lamb) * aniso14_old + lamb * aniso14_new
 
-            
+            parm_interpolated.append(
+                [
+                    charge_interpolated,
+                    pol_interpolated,
+                    aniso12_interpolated,
+                    aniso14_interpolated,
+                ]
+            )
 
-            parm_interpolated.append([charge_interpolated, pol_interpolated, aniso12_interpolated, aniso14_interpolated])
-
-        # Thole 
+        # Thole
         parm_interpolated_thole = []
         force_name = "DrudeForceThole"
         new_parms_offset = self._get_offset_thole(new_name)
         old_parms_offset = self._get_offset_thole(old_name)
-        #print(f"{new_parms_offset=}, {old_parms_offset=}")
-        #print(f"{self.parameters[old_name][force_name]=}")
-        #print(f"{self.parameters[new_name][force_name]=}")
-
+        # print(f"{new_parms_offset=}, {old_parms_offset=}")
+        # print(f"{self.parameters[old_name][force_name]=}")
+        # print(f"{self.parameters[new_name][force_name]=}")
 
         # match parameters
         parms_old = []
@@ -474,22 +497,24 @@ class IonicLiquidSystem:
         ] = 100  # this number should automatically be fetched from input somehow form dcdreporter
         self.charge_changes["charges_at_step"] = {}
 
-    
     def _build_exclusion_list(self):
         pair_12_set = set()
         pair_13_set = set()
         for bond in self.topology.bonds():
             a1, a2 = bond.atom1, bond.atom2
             if "H" not in a1.name and "H" not in a2.name:
-                pair = (min(a1.index, a2.index), max(a1.index, a2.index),)
+                pair = (
+                    min(a1.index, a2.index),
+                    max(a1.index, a2.index),
+                )
                 pair_12_set.add(pair)
         for a in pair_12_set:
             for b in pair_12_set:
                 shared = set(a).intersection(set(b))
                 if len(shared) == 1:
-                    pair = tuple(set(list(a) + list(b))- shared)
+                    pair = tuple(set(list(a) + list(b)) - shared)
                     pair_13_set.add(pair)
-        #for bond in self.topology.bonds():
+        # for bond in self.topology.bonds():
         #    a2, a3 = bond.atom1, bond.atom2
         #    for a1 in a2.bond_partners:
         #        pair = (min(a1.idx, a3.idx), max(a1.idx, a3.idx),)
@@ -518,7 +543,7 @@ class IonicLiquidSystem:
         # CMMotionRemover       # this can be ignored
 
         for residue in self.topology.residues():
-            if query_name == residue.name:   
+            if query_name == residue.name:
                 atom_idxs = [atom.index for atom in residue.atoms()]
                 atom_names = [atom.name for atom in residue.atoms()]
                 logger.debug(atom_idxs)
@@ -578,30 +603,30 @@ class IonicLiquidSystem:
                         pass
                         # print(dir(force))
                         # print(force.getNumTorsions())
-                    
+
                     # DrudeForce stores charge and polarizability in ParticleParameters and Thole values in ScreenedPairParameters
                     # Number of these two is not the same -> i did two loops, and called the thole parameters DrudeForceThole.
                     # Not ideal but i could not think of anything better, pay attention to the set and get methods for drudes.
                     if type(force).__name__ == "DrudeForce":
                         for drude_id in range(force.getNumParticles()):
                             f = force.getParticleParameters(drude_id)
-                            idx1 = f[0] #drude
-                            idx2 = f[1] #parentatom
+                            idx1 = f[0]  # drude
+                            idx2 = f[1]  # parentatom
                             if idx1 in atom_idxs and idx2 in atom_idxs:
                                 forces_dict[type(force).__name__].append(f)
                         assert len(self.pair_12_13_list) == force.getNumScreenedPairs()
                         for drude_id in range(force.getNumScreenedPairs()):
                             f = force.getScreenedPairParameters(drude_id)
-                            #idx1 = f[0]
-                            #idx2 = f[1]
+                            # idx1 = f[0]
+                            # idx2 = f[1]
                             parent1, parent2 = self.pair_12_13_list[drude_id]
                             drude1, drude2 = parent1 + 1, parent2 + 1
-                            #print(f"thole {idx1=}, {idx2=}")
-                            #print(f"{drude_id=}, {f=}")
+                            # print(f"thole {idx1=}, {idx2=}")
+                            # print(f"{drude_id=}, {f=}")
                             if drude1 in atom_idxs and drude2 in atom_idxs:
-                                #print(f"Thole {query_name=}")
-                                #print(f"{drude1=}, {drude2=}")
-                                forces_dict[type(force).__name__+"Thole"].append(f)    
+                                # print(f"Thole {query_name=}")
+                                # print(f"{drude1=}, {drude2=}")
+                                forces_dict[type(force).__name__ + "Thole"].append(f)
                 break  # do this only for the relevant amino acid once
         return forces_dict
 
@@ -680,7 +705,7 @@ class IonicLiquidSystem:
                         parameters_state1,
                         parameters_state2,
                         self.templates.get_canonical_name(name),
-                        self.pair_12_13_list
+                        self.pair_12_13_list,
                     )
                 )
                 residues[-1].current_name = name

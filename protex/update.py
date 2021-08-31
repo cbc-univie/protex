@@ -48,11 +48,18 @@ class NaiveMCUpdate(Update):
             ######################
             # nonbonded parameters
             ######################
-            candidate1_residue.update("NonbondedForce", lamb)
-            candidate1_residue.update("HarmonicBondedForce", lamb)
-            candidate1_residue.update("HarmonicAngleForce", lamb)
-            candidate1_residue.update("DrudeForce", lamb)
-
+            candidate1_residue.update(
+                "NonbondedForce", self.ionic_liquid.simulation.context, lamb
+            )
+            candidate1_residue.update(
+                "HarmonicBondedForce", self.ionic_liquid.simulation.context, lamb
+            )
+            candidate1_residue.update(
+                "HarmonicAngleForce", self.ionic_liquid.simulation.context, lamb
+            )
+            candidate1_residue.update(
+                "DrudeForce", self.ionic_liquid.simulation.context, lamb
+            )
 
             # update the context to include the new parameters
             # self.ionic_liquid.nonbonded_force.updateParametersInContext(

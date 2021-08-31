@@ -114,8 +114,8 @@ def test_get_and_interpolate_forces():
         int_force_0[0][1]._value * 0.9 + int_force_1[0][1]._value * 0.1
         == int_force_01[0][1]._value
     )
-    # Drude 
-    #charges, pol
+    # Drude
+    # charges, pol
     int_force_0 = ionic_liquid.residues[0]._get_DrudeForce_parameters_at_lambda(0.0)[0]
     int_force_1 = ionic_liquid.residues[0]._get_DrudeForce_parameters_at_lambda(1.0)[0]
     int_force_01 = ionic_liquid.residues[0]._get_DrudeForce_parameters_at_lambda(0.1)[0]
@@ -127,14 +127,11 @@ def test_get_and_interpolate_forces():
         int_force_0[0][1]._value * 0.9 + int_force_1[0][1]._value * 0.1
         == int_force_01[0][1]._value
     )
-    #thole
+    # thole
     int_force_0 = ionic_liquid.residues[0]._get_DrudeForce_parameters_at_lambda(0.0)[1]
     int_force_1 = ionic_liquid.residues[0]._get_DrudeForce_parameters_at_lambda(1.0)[1]
     int_force_01 = ionic_liquid.residues[0]._get_DrudeForce_parameters_at_lambda(0.1)[1]
-    assert (
-        int_force_0[0] * 0.9 + int_force_1[0] * 0.1
-        == int_force_01[0]
-    )
+    assert int_force_0[0] * 0.9 + int_force_1[0] * 0.1 == int_force_01[0]
 
 
 def test_setting_forces():
@@ -168,7 +165,9 @@ def test_setting_forces():
     int_force_0a = ionic_liquid.residues[0]._get_HarmonicBondForce_parameters_at_lambda(
         0.5
     )
-    ionic_liquid.residues[0]._set_HarmonicBondForce_parameters(int_force_0a)
+    ionic_liquid.residues[0]._set_HarmonicBondForce_parameters(
+        int_force_0a, ionic_liquid.simulation.context
+    )
     print("Lambda: 0.5")
     parm_lambda_05 = []
     for force in ionic_liquid.system.getForces():
@@ -186,7 +185,7 @@ def test_setting_forces():
     int_force_0a = ionic_liquid.residues[0]._get_HarmonicBondForce_parameters_at_lambda(
         1.0
     )
-    ionic_liquid.residues[0]._set_HarmonicBondForce_parameters(int_force_0a)
+    ionic_liquid.residues[0]._set_HarmonicBondForce_parameters(int_force_0a, ionic_liquid.simulation.context)
     print("Lambda: 1.0")
     parm_lambda_10 = []
     for force in ionic_liquid.system.getForces():
@@ -230,7 +229,7 @@ def test_setting_forces():
     int_force_0a = ionic_liquid.residues[
         0
     ]._get_HarmonicAngleForce_parameters_at_lambda(0.5)
-    ionic_liquid.residues[0]._set_HarmonicAngleForce_parameters(int_force_0a)
+    ionic_liquid.residues[0]._set_HarmonicAngleForce_parameters(int_force_0a, ionic_liquid.simulation.context)
     print("Lambda: 0.5")
     parm_lambda_05 = []
     for force in ionic_liquid.system.getForces():
@@ -250,7 +249,7 @@ def test_setting_forces():
     int_force_0a = ionic_liquid.residues[
         0
     ]._get_HarmonicAngleForce_parameters_at_lambda(1.0)
-    ionic_liquid.residues[0]._set_HarmonicAngleForce_parameters(int_force_0a)
+    ionic_liquid.residues[0]._set_HarmonicAngleForce_parameters(int_force_0a, ionic_liquid.simulation.context)
     print("Lambda: 1.0")
     parm_lambda_10 = []
     for force in ionic_liquid.system.getForces():
@@ -284,24 +283,28 @@ def test_setting_forces():
                 f = force.getParticleParameters(drude_idx)
                 idx1 = f[0]
                 idx2 = f[1]
-                #idx3 = f[2]
-                #idx4 = f[3]
-                #idx5 = f[4]
-                if (idx1 in ionic_liquid.residues[0].atom_idxs and idx2 in ionic_liquid.residues[0].atom_idxs):
+                # idx3 = f[2]
+                # idx4 = f[3]
+                # idx5 = f[4]
+                if (
+                    idx1 in ionic_liquid.residues[0].atom_idxs
+                    and idx2 in ionic_liquid.residues[0].atom_idxs
+                ):
                     parm_lambda_00_charges_pol.append(f)
             for drude_idx in range(force.getNumScreenedPairs()):
                 f = force.getScreenedPairParameters(drude_idx)
                 idx1 = f[0]
                 idx2 = f[1]
-                if (idx1 in ionic_liquid.residues[0].atom_idxs and idx2 in ionic_liquid.residues[0].atom_idxs):
+                if (
+                    idx1 in ionic_liquid.residues[0].atom_idxs
+                    and idx2 in ionic_liquid.residues[0].atom_idxs
+                ):
                     parm_lambda_00_thole.append(f)
     parm_lambda_00 = [parm_lambda_00_charges_pol, parm_lambda_00_thole]
 
     # update DrudeForce
-    int_force_0a = ionic_liquid.residues[0]._get_DrudeForce_parameters_at_lambda(
-        0.5
-    )
-    ionic_liquid.residues[0]._set_DrudeForce_parameters(int_force_0a)
+    int_force_0a = ionic_liquid.residues[0]._get_DrudeForce_parameters_at_lambda(0.5)
+    ionic_liquid.residues[0]._set_DrudeForce_parameters(int_force_0a, ionic_liquid.simulation.context)
     print("Lambda: 0.5")
     parm_lambda_05_charges_pol = []
     parm_lambda_05_thole = []
@@ -311,24 +314,28 @@ def test_setting_forces():
                 f = force.getParticleParameters(drude_idx)
                 idx1 = f[0]
                 idx2 = f[1]
-                #idx3 = f[2]
-                #idx4 = f[3]
-                #idx5 = f[4]
-                if (idx1 in ionic_liquid.residues[0].atom_idxs and idx2 in ionic_liquid.residues[0].atom_idxs):
+                # idx3 = f[2]
+                # idx4 = f[3]
+                # idx5 = f[4]
+                if (
+                    idx1 in ionic_liquid.residues[0].atom_idxs
+                    and idx2 in ionic_liquid.residues[0].atom_idxs
+                ):
                     parm_lambda_05_charges_pol.append(f)
             for drude_idx in range(force.getNumScreenedPairs()):
                 f = force.getScreenedPairParameters(drude_idx)
                 idx1 = f[0]
                 idx2 = f[1]
-                if (idx1 in ionic_liquid.residues[0].atom_idxs and idx2 in ionic_liquid.residues[0].atom_idxs):
+                if (
+                    idx1 in ionic_liquid.residues[0].atom_idxs
+                    and idx2 in ionic_liquid.residues[0].atom_idxs
+                ):
                     parm_lambda_05_thole.append(f)
     parm_lambda_05 = [parm_lambda_05_charges_pol, parm_lambda_05_thole]
-    
+
     # update DrudeForce
-    int_force_0a = ionic_liquid.residues[0]._get_DrudeForce_parameters_at_lambda(
-        1.0
-    )
-    ionic_liquid.residues[0]._set_DrudeForce_parameters(int_force_0a)
+    int_force_0a = ionic_liquid.residues[0]._get_DrudeForce_parameters_at_lambda(1.0)
+    ionic_liquid.residues[0]._set_DrudeForce_parameters(int_force_0a, ionic_liquid.simulation.context)
     print("Lambda: 1.0")
     parm_lambda_10_charges_pol = []
     parm_lambda_10_thole = []
@@ -338,25 +345,31 @@ def test_setting_forces():
                 f = force.getParticleParameters(drude_idx)
                 idx1 = f[0]
                 idx2 = f[1]
-                #idx3 = f[2]
-                #idx4 = f[3]
-                #idx5 = f[4]
-                if (idx1 in ionic_liquid.residues[0].atom_idxs and idx2 in ionic_liquid.residues[0].atom_idxs):
+                # idx3 = f[2]
+                # idx4 = f[3]
+                # idx5 = f[4]
+                if (
+                    idx1 in ionic_liquid.residues[0].atom_idxs
+                    and idx2 in ionic_liquid.residues[0].atom_idxs
+                ):
                     parm_lambda_10_charges_pol.append(f)
             for drude_idx in range(force.getNumScreenedPairs()):
                 f = force.getScreenedPairParameters(drude_idx)
                 idx1 = f[0]
                 idx2 = f[1]
-                if (idx1 in ionic_liquid.residues[0].atom_idxs and idx2 in ionic_liquid.residues[0].atom_idxs):
+                if (
+                    idx1 in ionic_liquid.residues[0].atom_idxs
+                    and idx2 in ionic_liquid.residues[0].atom_idxs
+                ):
                     parm_lambda_05_thole.append(f)
     parm_lambda_10 = [parm_lambda_10_charges_pol, parm_lambda_10_thole]
 
     assert parm_lambda_00 != parm_lambda_05
-    #charges, pol
+    # charges, pol
     for i, j, k in zip(parm_lambda_00[0], parm_lambda_05[0], parm_lambda_10[0]):
         assert i[5]._value * 0.5 + k[5]._value * 0.5 == j[5]._value
         assert i[6]._value * 0.5 + k[6]._value * 0.5 == j[6]._value
-    #thole
+    # thole
     for i, j, k in zip(parm_lambda_00[1], parm_lambda_05[1], parm_lambda_10[1]):
         assert i[3] * 0.5 + k[3] * 0.5 == j[3]
 
