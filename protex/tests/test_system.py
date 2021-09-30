@@ -1,12 +1,24 @@
 # Import package, test suite, and other packages as needed
 from sys import stdout
 from ..testsystems import generate_im1h_oac_system
+from ..testsystems import generate_im1h_oac_system_chelpg
 from ..system import IonicLiquidSystem, IonicLiquidTemplates
 import numpy as np
 
 
 def test_setup_simulation():
     simulation = generate_im1h_oac_system()
+    print("Minimizing...")
+    simulation.minimizeEnergy(maxIterations=100)
+    system = simulation.system
+
+    nr_of_particles = system.getNumParticles()
+    assert nr_of_particles == 17500 + 500  # +lps for im1 im1h
+
+
+def test_setup_simulation_chelpg():
+    simulation = generate_im1h_oac_system_chelpg()
+    # print(simulation.context.getPeriodicBoxVectors())
     print("Minimizing...")
     simulation.minimizeEnergy(maxIterations=100)
     system = simulation.system
@@ -243,6 +255,7 @@ def test_forces():
 
         raise AssertionError("ohoh")
 
+
 def test_drude_forces():
     from ..testsystems import generate_im1h_oac_system, OAC_HOAC, IM1H_IM1
     from collections import defaultdict
@@ -267,20 +280,20 @@ def test_drude_forces():
             names.append(r.name)
             atom_idxs[r.name] = [atom.index for atom in r.atoms()]
             atom_names[r.name] = [atom.name for atom in r.atoms()]
-            drude_force = [f for f in system.getForces() if isinstance(f, mm.DrudeForce)][0]
-            #harmonic_force = system.getForces()[0]
-            #harmonic_force2 = system.getForces()[2]
+            drude_force = [
+                f for f in system.getForces() if isinstance(f, mm.DrudeForce)
+            ][0]
+            # harmonic_force = system.getForces()[0]
+            # harmonic_force2 = system.getForces()[2]
             print(f"{r.name=}")
             print("drude")
             print(drude_force.getNumParticles())
             for drude_id in range(drude_force.getNumParticles()):
                 f = drude_force.getParticleParameters(drude_id)
                 idx1, idx2 = f[0], f[1]
-                if (
-                            idx1 in atom_idxs[r.name] and idx2 in atom_idxs[r.name]
-                        ):
-                        print(f)
-                        force_state[r.name].append(f)
+                if idx1 in atom_idxs[r.name] and idx2 in atom_idxs[r.name]:
+                    print(f)
+                    force_state[r.name].append(f)
 
             print("thole")
             print(drude_force.getNumScreenedPairs())
@@ -288,30 +301,30 @@ def test_drude_forces():
                 f = drude_force.getScreenedPairParameters(drude_id)
                 parent1, parent2 = ionic_liquid.pair_12_13_list[drude_id]
                 drude1, drude2 = parent1 + 1, parent2 + 1
-                #print(f"thole {idx1=}, {idx2=}")
-                #print(f"{drude_id=}, {f=}")
+                # print(f"thole {idx1=}, {idx2=}")
+                # print(f"{drude_id=}, {f=}")
                 if drude1 in atom_idxs[r.name] and drude2 in atom_idxs[r.name]:
-                #idx1, idx2 = f[0], f[1]
-                #if ( idx1 in atom_idxs[r.name] and idx2 in atom_idxs[r.name] ):
-                        print(f)
-                        force_state_thole[r.name].append(f)
+                    # idx1, idx2 = f[0], f[1]
+                    # if ( idx1 in atom_idxs[r.name] and idx2 in atom_idxs[r.name] ):
+                    print(f)
+                    force_state_thole[r.name].append(f)
 
         if r.name == "OAC" and ridx == 150:
             names.append(r.name)
             atom_idxs[r.name] = [atom.index for atom in r.atoms()]
             atom_names[r.name] = [atom.name for atom in r.atoms()]
-            drude_force = [f for f in system.getForces() if isinstance(f, mm.DrudeForce)][0]
+            drude_force = [
+                f for f in system.getForces() if isinstance(f, mm.DrudeForce)
+            ][0]
             print(f"{r.name=}")
             print("drude")
             print(drude_force.getNumParticles())
             for drude_id in range(drude_force.getNumParticles()):
                 f = drude_force.getParticleParameters(drude_id)
                 idx1, idx2 = f[0], f[1]
-                if (
-                            idx1 in atom_idxs[r.name] and idx2 in atom_idxs[r.name]
-                        ):
-                        print(f)
-                        force_state[r.name].append(f)
+                if idx1 in atom_idxs[r.name] and idx2 in atom_idxs[r.name]:
+                    print(f)
+                    force_state[r.name].append(f)
 
             print("thole")
             print(drude_force.getNumScreenedPairs())
@@ -319,12 +332,11 @@ def test_drude_forces():
                 f = drude_force.getScreenedPairParameters(drude_id)
                 parent1, parent2 = ionic_liquid.pair_12_13_list[drude_id]
                 drude1, drude2 = parent1 + 1, parent2 + 1
-                #print(f"thole {idx1=}, {idx2=}")
-                #print(f"{drude_id=}, {f=}")
+                # print(f"thole {idx1=}, {idx2=}")
+                # print(f"{drude_id=}, {f=}")
                 if drude1 in atom_idxs[r.name] and drude2 in atom_idxs[r.name]:
-                        print(f)
-                        force_state_thole[r.name].append(f)
-            
+                    print(f)
+                    force_state_thole[r.name].append(f)
 
     if len(force_state[names[0]]) != len(
         force_state[names[1]]
@@ -351,6 +363,7 @@ def test_drude_forces():
             print(f)
 
         raise AssertionError("ohoh")
+
 
 def test_create_IonicLiquid_residue():
     from ..testsystems import generate_im1h_oac_system, OAC_HOAC, IM1H_IM1
@@ -392,27 +405,26 @@ def test_report_charge_changes():
     )
     # wrap system in IonicLiquidSystem
     ionic_liquid = IonicLiquidSystem(simulation, templates)
-    # initialize state report
-    ionic_liquid.report_charge_changes(step=0)
     # initialize update method
     update = NaiveMCUpdate(ionic_liquid)
     # initialize state update class
     state_update = StateUpdate(update)
 
+    n_steps = 2
+    ionic_liquid.report_charge_changes(
+        filename="test_charge_changes.dat", step=0, n_steps=n_steps
+    )
     state_update.update()
-    ionic_liquid.report_charge_changes(step=1)
     ionic_liquid.simulation.step(1000)
-    ionic_liquid.report_charge_changes(step=1000)
+    ionic_liquid.report_charge_changes(
+        filename="test_charge_changes.dat", step=1, n_steps=n_steps
+    )
 
-    # check correct amount of charge entries per step
-    assert len(ionic_liquid.charge_changes["charges_at_step"]["0"]) == 1000
-    assert len(ionic_liquid.charge_changes["charges_at_step"]["1"]) == 1000
-    assert len(ionic_liquid.charge_changes["charges_at_step"]["1000"]) == 1000
+    # ionic_liquid.charge_changes_to_json("test.json", append=False)
 
-    ionic_liquid.charge_changes_to_json("test.json", append=False)
-
-    with open("test.json", "r") as json_file:
+    with open("test_charge_changes.dat", "r") as json_file:
         data = json.load(json_file)
-
+    print(data)
     # test if dict after writing and reading json stays same
-    assert data == ionic_liquid.charge_changes
+    assert len(data["charges_at_step"]["0"]) == 1000
+    assert len(data["charges_at_step"]["1"]) == 1000

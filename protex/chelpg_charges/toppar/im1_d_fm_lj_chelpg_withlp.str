@@ -54,6 +54,7 @@ BOND LPN21  N2
 IMPR C2 C3 N2 H4
 IMPR C3 C2 N1 H5
 IMPR C4 N1 N2 H6
+IMPR N2 C4 C3 H7
 IMPR N1 C4 C3 C1
 
 LONEPAIR BISECTOR LPN21  N2  C4  C3 DIST 0.3000 ANGLE  179.99 DIHE  179.99 ! war 0.3 180 180 ev dist 0.35 angle 179.99 dihe 179.99 so jedenfalls für IMID in toppar model
@@ -125,6 +126,7 @@ CD2R5A CD2R5A ND2R5B HDP1A     3.77773 2   180.00
 
 IMPROPERS
 ND2R5A   CD2R5B   CD2R5A   CD33A       0.450  0     0.00 !copied from im1h ndc2rc
+ND2R5B   CD2R5B   CD2R5A   HDP1A       0.450   0     0.00 ! copied from IMIM, from IMID (EH) 
 
 !NONBONDED nbxmod  5 atom vatom cdiel vdistance switch vswitch - 
 !cutnb 16.0 ctofnb 12.0 ctonnb 10.0 eps 1.0 e14fac 1.0 wmin 1.5 

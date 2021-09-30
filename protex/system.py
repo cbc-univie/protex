@@ -488,11 +488,11 @@ class IonicLiquidSystem:
 
         self.residues = self._set_initial_states()
         # Should this be here or somewhere else? (needed for report_charge_changes)
-        self.charge_changes = {}
-        self.charge_changes[
-            "dcd_save_freq"
-        ] = 100  # this number should automatically be fetched from input somehow form dcdreporter
-        self.charge_changes["charges_at_step"] = {}
+        # self.charge_changes = {}
+        # self.charge_changes[
+        #    "dcd_save_freq"
+        # ] = 100  # this number should automatically be fetched from input somehow form dcdreporter
+        # self.charge_changes["charges_at_step"] = {}
 
     def _build_exclusion_list(self):
         pair_12_set = set()
@@ -717,26 +717,45 @@ class IonicLiquidSystem:
         """
         pass
 
-    def report_charge_changes(self, step=0):
+    def report_charge_changes(self, filename: str, step=0, n_steps=None):
         """
+        call for each round, before first update to have step 0 as initial step saved
         report_charge_changes reports the current charges after each update step in a dictionary format:
         {"step": [residue_charges]}
         additional header data is the dcd save frequency needed for later reconstruction of the charges at different steps
         """
-        self.charge_changes["charges_at_step"][str(step)] = [
-            residue.current_charge for residue in self.residues
-        ]
-
-    def charge_changes_to_json(self, filename, append=False):
-        """
-        charge_changes_to_json writes the charge_chages dictionary constructed with report_charge_changes to a json file
-        """
-        import json
-
-        if append:
-            mode = "r+"
-        else:
+        if step == 0:
             mode = "w"
+        else:
+            mode = "a"
 
         with open(filename, mode) as f:
-            json.dump(self.charge_changes, f)
+            if mode == "w":
+                f.write('{"dcd_save_freq": 100,\n')  # TODO: fetch automatically!
+                f.write('"charges_at_step": {\n')
+            if step != n_steps - 1:
+                f.write(
+                    f'"{step}": {[residue.current_charge for residue in self.residues]},\n'
+                )
+            elif step == n_steps - 1:
+                f.write(
+                    f'"{step}": {[residue.current_charge for residue in self.residues]}}}}}\n'
+                )
+
+        # self.charge_changes["charges_at_step"][str(step)] = [
+        #    residue.current_charge for residue in self.residues
+        # ]
+
+    # def charge_changes_to_json(self, filename, append=False):
+    #     """
+    #     charge_changes_to_json writes the charge_chages dictionary constructed with report_charge_changes to a json file
+    #     """
+    #     import json
+
+    #     if append:
+    #         mode = "r+"
+    #     else:
+    #         mode = "w"
+
+    #     with open(filename, mode) as f:
+    #         json.dump(self.charge_changes, f)

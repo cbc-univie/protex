@@ -1,16 +1,22 @@
 from ..testsystems import generate_im1h_oac_system, OAC_HOAC, IM1H_IM1
+from ..testsystems import (
+    generate_im1h_oac_system_chelpg,
+    OAC_HOAC_chelpg,
+    IM1H_IM1_chelpg,
+)
 from ..system import IonicLiquidSystem, IonicLiquidTemplates
 from ..update import NaiveMCUpdate, StateUpdate
 from scipy.spatial import distance_matrix
+from scipy.spatial.distance import cdist
 import numpy as np
 import logging
 
 
 def test_distance_calculation():
-    simulation = generate_im1h_oac_system()
+    simulation = generate_im1h_oac_system_chelpg()
     # get ionic liquid templates
     templates = IonicLiquidTemplates(
-        [OAC_HOAC, IM1H_IM1], (set(["IM1H", "OAC"]), set(["IM1", "HOAC"]))
+        [OAC_HOAC_chelpg, IM1H_IM1_chelpg], (set(["IM1H", "OAC"]), set(["IM1", "HOAC"]))
     )
     # wrap system in IonicLiquidSystem
     ionic_liquid = IonicLiquidSystem(simulation, templates)
@@ -185,7 +191,9 @@ def test_setting_forces():
     int_force_0a = ionic_liquid.residues[0]._get_HarmonicBondForce_parameters_at_lambda(
         1.0
     )
-    ionic_liquid.residues[0]._set_HarmonicBondForce_parameters(int_force_0a, ionic_liquid.simulation.context)
+    ionic_liquid.residues[0]._set_HarmonicBondForce_parameters(
+        int_force_0a, ionic_liquid.simulation.context
+    )
     print("Lambda: 1.0")
     parm_lambda_10 = []
     for force in ionic_liquid.system.getForces():
@@ -229,7 +237,9 @@ def test_setting_forces():
     int_force_0a = ionic_liquid.residues[
         0
     ]._get_HarmonicAngleForce_parameters_at_lambda(0.5)
-    ionic_liquid.residues[0]._set_HarmonicAngleForce_parameters(int_force_0a, ionic_liquid.simulation.context)
+    ionic_liquid.residues[0]._set_HarmonicAngleForce_parameters(
+        int_force_0a, ionic_liquid.simulation.context
+    )
     print("Lambda: 0.5")
     parm_lambda_05 = []
     for force in ionic_liquid.system.getForces():
@@ -249,7 +259,9 @@ def test_setting_forces():
     int_force_0a = ionic_liquid.residues[
         0
     ]._get_HarmonicAngleForce_parameters_at_lambda(1.0)
-    ionic_liquid.residues[0]._set_HarmonicAngleForce_parameters(int_force_0a, ionic_liquid.simulation.context)
+    ionic_liquid.residues[0]._set_HarmonicAngleForce_parameters(
+        int_force_0a, ionic_liquid.simulation.context
+    )
     print("Lambda: 1.0")
     parm_lambda_10 = []
     for force in ionic_liquid.system.getForces():
@@ -304,7 +316,9 @@ def test_setting_forces():
 
     # update DrudeForce
     int_force_0a = ionic_liquid.residues[0]._get_DrudeForce_parameters_at_lambda(0.5)
-    ionic_liquid.residues[0]._set_DrudeForce_parameters(int_force_0a, ionic_liquid.simulation.context)
+    ionic_liquid.residues[0]._set_DrudeForce_parameters(
+        int_force_0a, ionic_liquid.simulation.context
+    )
     print("Lambda: 0.5")
     parm_lambda_05_charges_pol = []
     parm_lambda_05_thole = []
@@ -335,7 +349,9 @@ def test_setting_forces():
 
     # update DrudeForce
     int_force_0a = ionic_liquid.residues[0]._get_DrudeForce_parameters_at_lambda(1.0)
-    ionic_liquid.residues[0]._set_DrudeForce_parameters(int_force_0a, ionic_liquid.simulation.context)
+    ionic_liquid.residues[0]._set_DrudeForce_parameters(
+        int_force_0a, ionic_liquid.simulation.context
+    )
     print("Lambda: 1.0")
     parm_lambda_10_charges_pol = []
     parm_lambda_10_thole = []
@@ -540,7 +556,7 @@ def test_transfer_with_distance_matrix():
     # assert np.isclose(total_charge_second, 0.0)
 
     for _ in range(500):
-        state_update.update(11)
+        state_update.update(21)
 
 
 def test_updates(caplog):
@@ -561,7 +577,7 @@ def test_updates(caplog):
     ionic_liquid.simulation.step(500)
 
     for _ in range(15):
-        ionic_liquid.simulation.step(200)
+        ionic_liquid.simulation.step(2000)
         pars.append(state_update.get_charges())
         candidate_pairs = state_update.update(101)
 
@@ -569,10 +585,10 @@ def test_updates(caplog):
 def test_dry_updates(caplog):
     caplog.set_level(logging.DEBUG)
 
-    simulation = generate_im1h_oac_system()
+    simulation = generate_im1h_oac_system_chelpg()
     # get ionic liquid templates
     templates = IonicLiquidTemplates(
-        [OAC_HOAC, IM1H_IM1], (set(["IM1H", "OAC"]), set(["IM1", "HOAC"]))
+        [OAC_HOAC_chelpg, IM1H_IM1_chelpg], (set(["IM1H", "OAC"]), set(["IM1", "HOAC"]))
     )
     # wrap system in IonicLiquidSystem
     ionic_liquid = IonicLiquidSystem(simulation, templates)

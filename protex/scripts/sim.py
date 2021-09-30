@@ -20,14 +20,14 @@ def test_outline():
     update = NaiveMCUpdate(ionic_liquid)
     # initialize state update class
     state_update = StateUpdate(update)
-    ionic_liquid.simulation.minimizeEnergy(maxIterations=1000)
+    ionic_liquid.simulation.minimizeEnergy(maxIterations=100)
     # adding reporter
-    ionic_liquid.simulation.reporters.append(DCDReporter("output.dcd", 2_000))
+    ionic_liquid.simulation.reporters.append(DCDReporter("output.dcd", 200))
 
     ionic_liquid.simulation.reporters.append(
         StateDataReporter(
             stdout,
-            2_000,
+            200,
             step=True,
             potentialEnergy=True,
             temperature=True,
@@ -36,11 +36,14 @@ def test_outline():
             density=False,
         )
     )
-    for _ in range(100):
+    n_steps = 500
+    for _ in range(n_steps):
         print(_)
-        ionic_liquid.simulation.step(10_000)
-        state_update.update(1001)
-        ionic_liquid.report_states()
+        ionic_liquid.report_charge_changes(
+            "charge_changes.json", step=_, n_steps=n_steps
+        )
+        ionic_liquid.simulation.step(10000)
+        state_update.update(101)
 
 
 test_outline()
