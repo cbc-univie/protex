@@ -163,11 +163,36 @@ class StateUpdate:
         distance = distance_matrix(
             distance_dict[canonical_names[0]], distance_dict[canonical_names[1]]
         )
+        # TODO: PBC need to be enforced
+        # -> what about:
+        from scipy.spatial.distance import cdist
+
+        boxl = (
+            self.ionic_liquid.simulation.context.getState()
+            .getPeriodicBoxVectors()[0][0]
+            ._value
+        )
+
+        def rPBC(coor1, coor2, boxl=boxl):
+            dx = abs(coor1[0] - coor2[0])
+            if dx > boxl / 2:
+                dx = boxl - dx
+            dy = abs(coor1[1] - coor2[1])
+            if dy > boxl / 2:
+                dy = boxl - dy
+            dz = abs(coor1[2] - coor2[2])
+            if dz > boxl / 2:
+                dz = boxl - dz
+            return np.sqrt(dx * dx + dy * dy + dz * dz)
+
+        distance_pbc = cdist(
+            distance_dict[canonical_names[0]], distance_dict[canonical_names[1]], rPBC
+        )
         # get a list of indices for elements in the distance matrix sorted by increasing distance
         # NOTE: This always accepts a move!
         shape = distance.shape
         idx = np.dstack(np.unravel_index(np.argsort(distance.ravel()), shape))[0]
-        # TODO: PBC need to be enforced
+
         # check if charge transfer is possible
         for candidate_idx1, candidate_idx2 in idx:
             residue1 = res_dict[canonical_names[0]][candidate_idx1]
