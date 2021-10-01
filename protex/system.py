@@ -8,12 +8,15 @@ logger = logging.getLogger(__name__)
 
 
 class IonicLiquidTemplates:
-    def __init__(self, states: list, allowed_updates: tuple) -> None:
+    def __init__(self, states: list, allowed_updates: dict[frozenset]) -> None:
 
         self.pairs = [list(i.keys()) for i in states]
         self.states = dict(ChainMap(*states))  #
         self.names = list(itertools.chain(*self.pairs))
         self.allowed_updates = allowed_updates
+        self.overall_max_distance = max(
+            [value["r_max"] for value in self.allowed_updates.values()]
+        )
 
     def get_canonical_name(self, name: str) -> str:
         assert name in self.names

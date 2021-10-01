@@ -562,10 +562,20 @@ def test_transfer_with_distance_matrix():
 def test_updates(caplog):
     caplog.set_level(logging.DEBUG)
 
-    simulation = generate_im1h_oac_system()
+    simulation = generate_im1h_oac_system_chelpg()
+    allowed_updates = {}
+    # allowed updates according to simple protonation scheme
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {
+        "r_max": 0.16,
+        "delta_e": 2.33,
+    }  # r_max in nanometer, delta_e in kcal/mol
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "delta_e": -2.33}
+    # allowed_updates[set(["IM1H", "IM1"])] = {"r_max": 0.2, "delta_e": 1.78}
+    # allowed_updates[set(["HOAC", "OAC"])] = {"r_max": 0.2, "delta_e": 0.68}
+    print(allowed_updates.keys())
     # get ionic liquid templates
     templates = IonicLiquidTemplates(
-        [OAC_HOAC, IM1H_IM1], (set(["IM1H", "OAC"]), set(["IM1", "HOAC"]))
+        [OAC_HOAC_chelpg, IM1H_IM1_chelpg], (allowed_updates)
     )
     # wrap system in IonicLiquidSystem
     ionic_liquid = IonicLiquidSystem(simulation, templates)
@@ -573,13 +583,13 @@ def test_updates(caplog):
     update = NaiveMCUpdate(ionic_liquid)
     # initialize state update class
     state_update = StateUpdate(update)
-    ionic_liquid.simulation.minimizeEnergy(maxIterations=200)
+    # ionic_liquid.simulation.minimizeEnergy(maxIterations=200)
     ionic_liquid.simulation.step(500)
 
-    for _ in range(15):
+    for _ in range(1):
         ionic_liquid.simulation.step(2000)
         pars.append(state_update.get_charges())
-        candidate_pairs = state_update.update(101)
+        candidate_pairs = state_update.update(1)
 
 
 def test_dry_updates(caplog):
@@ -587,8 +597,20 @@ def test_dry_updates(caplog):
 
     simulation = generate_im1h_oac_system_chelpg()
     # get ionic liquid templates
+    allowed_updates = {}
+    # allowed updates according to simple protonation scheme
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {
+        "r_max": 0.16,
+        "delta_e": 2.33,
+    }  # r_max in nanometer, delta_e in kcal/mol
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "delta_e": -2.33}
+    # allowed_updates[set(["IM1H", "IM1"])] = {"r_max": 0.2, "delta_e": 1.78}
+    # allowed_updates[set(["HOAC", "OAC"])] = {"r_max": 0.2, "delta_e": 0.68}
+    print(allowed_updates.keys())
     templates = IonicLiquidTemplates(
-        [OAC_HOAC_chelpg, IM1H_IM1_chelpg], (set(["IM1H", "OAC"]), set(["IM1", "HOAC"]))
+        # [OAC_HOAC_chelpg, IM1H_IM1_chelpg], (set(["IM1H", "OAC"]), set(["IM1", "HOAC"]))
+        [OAC_HOAC_chelpg, IM1H_IM1_chelpg],
+        (allowed_updates),
     )
     # wrap system in IonicLiquidSystem
     ionic_liquid = IonicLiquidSystem(simulation, templates)
@@ -599,11 +621,12 @@ def test_dry_updates(caplog):
     ionic_liquid.simulation.minimizeEnergy(maxIterations=200)
     ionic_liquid.simulation.step(500)
 
-    for _ in range(15):
+    for _ in range(1):
         ionic_liquid.simulation.step(200)
         distance_dict, res_dict = state_update._get_positions_for_mutation_sites()
         # propose the update candidates based on distances
         state_update._print_start()
         candidate_pairs = state_update._propose_candidate_pair(distance_dict, res_dict)
+        print(f"{candidate_pairs=}, {len(candidate_pairs)=}")
         state_update._print_stop()
         pars.append(state_update.get_charges())
