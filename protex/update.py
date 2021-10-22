@@ -60,6 +60,12 @@ class NaiveMCUpdate(Update):
                     "HarmonicAngleForce", self.ionic_liquid.simulation.context, lamb
                 )
                 candidate1_residue.update(
+                    "PeriodicTorsionForce", self.ionic_liquid.simulation.context, lamb
+                )
+                candidate1_residue.update(
+                    "CustomTorsionForce", self.ionic_liquid.simulation.context, lamb
+                )
+                candidate1_residue.update(
                     "DrudeForce", self.ionic_liquid.simulation.context, lamb
                 )
 

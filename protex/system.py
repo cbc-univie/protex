@@ -123,6 +123,12 @@ class Residue:
         elif force_name == "HarmonicAngleForce":
             parms = self._get_HarmonicAngleForce_parameters_at_lambda(lamb)
             self._set_HarmonicAngleForce_parameters(parms, context)
+        elif force_name == "PeriodicTorsionForce":
+            parms = self._get_PeriodicTorsionForce_parameters_at_lambda(lamb)
+            self._set_PeriodicTorsionForce_parameters(parms, context)
+        elif force_name == "CustomTorsionForce":
+            parms = self._get_CustomTorsionForce_parameters_at_lambda(lamb)
+            self._set_CustomTorsionForce_parameters(parms, context)
         elif force_name == "DrudeForce":
             parms = self._get_DrudeForce_parameters_at_lambda(lamb)
             self._set_DrudeForce_parameters(parms, context)
@@ -167,6 +173,12 @@ class Residue:
                         thetha, k = parms.popleft()
                         force.setAngleParameters(angle_idx, idx1, idx2, idx3, thetha, k)
                 force.updateParametersInContext(context)
+
+    def _set_PeriodicTorsionForce_parameters(self, parms, context):
+        pass
+
+    def _set_CustomTorsionForce_parameters(self, parms, context):
+        pass
 
     def _set_DrudeForce_parameters(self, parms, context):
 
@@ -345,6 +357,12 @@ class Residue:
             parm_interpolated.append([theta_interpolated, k_interpolated])
 
         return parm_interpolated
+
+    def _get_PeriodicTorsionForce_parameters_at_lambda(self, lamb):
+        return None
+
+    def _get_CustomTorsionForce_parameters_at_lambda(self, lamb):
+        return None
 
     def _get_DrudeForce_parameters_at_lambda(self, lamb):
         # Split in two parts, one for charge and polarizability one for thole
