@@ -3222,6 +3222,9 @@ BONDS
 !atom type      Kb       b0 
 !============================================ 
 ! 
+!for im1 dummmy (copied from nd2r5c hdp1a)
+ND2R5B   HDP1A    466.00      1.000 ! IMIM, first guess (EH) 
+!
 ND2A1    CD2O1A   420.00      1.350 ! ACEM, acetamide 
 ND2A1    CD2R6B   360.00      1.362 ! CTY, va 
 ND2A1    CD2R6C   360.00      1.369 ! ADE, cmb 
@@ -3290,6 +3293,7 @@ ND3P2A   HDP1B    440.00      1.025 ! NH4, NMA, need work**
 ND3P3A   HDP1B    440.00      1.025 ! NH4, NMA, need work** 
 OD2C1A   CD2O1A   673.70      1.245 ! NMA, N-methylacetamide     %PEML jan13 
 OD2C2A   CD2O2A   527.00      1.250 ! ACET, CTER, PEML 
+OD2C2A   CD2O3A   527.00      1.250 ! test 
 OD2C1B   CD2O4A   623.00      1.239 ! NA bases, jal 
 !!
 OD2C2B   PD1A     525.00      1.500 ! DMP, cmb, 06/09, lipids
@@ -3360,6 +3364,7 @@ CD2O2A   CD31C     90.00      1.560 ! CTER, PEML
 CD2O2A   CD32A    110.00      1.535 ! ACET, PEML 
 CD2O2A   CD32C     90.00      1.560 ! CTER, PEML 
 CD2O2A   CD33A    110.00      1.535 ! ACET, PEML 
+CD2O3A   CD33A    110.00      1.535 ! test 
 CD2O3A   CD31A    282.20      1.505 ! ACEH/CNEU PEML 
 CD2O3A   CD31C    108.00      1.509 ! CNEU, PEML 
 CD2O3A   CD32C    200.00      1.510 ! MAS, csd, EH 2007, ACEH 
@@ -3517,6 +3522,7 @@ CD33B    LPD        0.00      0.000 ! MEOH
 CD33C    LPD        0.00      0.000 ! MAS 
 CD33E    LPD        0.00      0.000 ! DMP 
 ND2R5B   LPD        0.00      0.000 ! IMID 
+ND2R5C   LPD        0.00      0.000 ! for dummy LP on IM1H
 ND2R5B   LPDNA1     0.00      0.000 ! Purine
 ND2R5E   LPDNA1     0.00      0.000 ! GUA/ADE, cmb 04/10 
 ND2R6A   LPDNA1     0.00      0.000 ! PYR 
@@ -3686,11 +3692,13 @@ OD2C1A   CD2O1A   CD32A     69.30    111.80 ! NTER-(X)n-CNEU
 OD2C1A   CD2O1A   CD32C    110.40    116.20  180.10   2.4180 ! GLYD ??? CHECK 
 OD2C1A   CD2O1A   CD33C     59.20    116.10   81.70   2.4774 ! NMA+ALAD % important for Ca-C=O  (dC=O) 
 OD2C2A   CD2O2A   OD2C2A    83.70    127.90  128.80   2.3790 ! ACET, PEML 
+OD2C2A   CD2O3A   OD2C2A    83.70    127.90  128.80   2.3790 ! test 
 OD2C2A   CD2O2A   CD31A     40.00    109.30                  ! NTER, PEML 
 OD2C2A   CD2O2A   CD31C     48.90    123.00   29.90   2.2930 ! CTER, PEML, ACET 
 OD2C2A   CD2O2A   CD32A     48.90    123.00   29.90   2.2930 ! CTER, PEML, ACET 
 OD2C2A   CD2O2A   CD32C     40.00    109.30                  ! NTER, PEML, terminal Gly 
 OD2C2A   CD2O2A   CD33A     23.80    123.00   34.90   2.3910 ! ACET, PEML 
+OD2C2A   CD2O3A   CD33A     23.80    123.00   34.90   2.3910 ! test 
 !!
 OD2C2B   PD1A     OD2C2B    60.00    116.00 ! DMP, lipids
 OD2C2C   PD1AN    OD2C2C   120.00    125.00 ! nucleic acids
@@ -4101,6 +4109,7 @@ SD30A    CD33A    HDA3A     41.30    109.00 ! EMS
 SD30B    CD33A    HDA3A     42.70    108.30 ! DMDS 
 SD31A    CD33A    HDA3A     40.00    108.69 ! MESH 
 CD2O2A   CD33A    HDA3A     27.70    107.50   25.30   2.1670 ! ACET, PEML 
+CD2O3A   CD33A    HDA3A     27.70    107.50   25.30   2.1670 ! test 
 CD2R5A   CD33A    HDA3A     33.43    109.50 ! 4MIM, 4-methyl-imidazole 
 CD2R5C   CD33A    HDA3A     49.30    107.50 ! INDM, methyl-indole 
 CD2R6A   CD33A    HDA3A     49.30    107.50 ! TOLU, toluene
@@ -4794,6 +4803,7 @@ OD2C2A   CD2O2A   CD32C    ND2A2       1.000    2   180.00 ! CTER, PEML, Gly
 OD2C2A   CD2O2A   CD32C    HDA2A       0.000    1   180.00 ! CTER, PEML, GLY 
 OD2C2A   CD2O2A   CD32C    HDA2C       0.000    1   180.00 ! CTER, PEML, GLY 
 OD2C2A   CD2O2A   CD33A    HDA3A       0.420    3   180.00 ! ASP, ACET, PEML 
+OD2C2A   CD2O3A   CD33A    HDA3A       0.420    3   180.00 ! test 
 OD2C3A   CD2O3A   CD31A    ND3P3A      0.000    1     0.00 ! CNEU/NTER 
 OD2C3A   CD2O3A   CD31C    ND3P3A      0.000    1     0.00 ! CNEU/NTER 
 OD2C3A   CD2O3A   CD31A    CD31A       0.900    2   180.00 ! CNEU/NTER 
@@ -5812,6 +5822,7 @@ CD2O1A   CD33C    ND3A3    OD2C1A    120.000   0     0.00 ! NTER
 OD2C2A   CD31A    OD2C2A   CD2O2A     71.000   0     0.00 ! CTER 
 OD2C2A   CD32A    OD2C2A   CD2O2A     71.000   0     0.00 ! ASP/GLU 
 OD2C2A   CD33A    OD2C2A   CD2O2A     71.000   0     0.00 ! ACET 
+OD2C2A   CD33A    OD2C2A   CD2O3A     71.000   0     0.00 ! test 
 OD2C2A   CD31C    OD2C2A   CD2O2A     71.000   0     0.00 ! CTER 
 OD2C2A   CD32C    OD2C2A   CD2O2A     71.000   0     0.00 ! CTER, Gly 
 OD2C3A   CD31C    OD31F    CD2O3A     85.000   0     0.00 ! ACEH/CTP, PEML 
