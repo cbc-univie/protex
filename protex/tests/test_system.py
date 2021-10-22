@@ -256,6 +256,96 @@ def test_forces():
         raise AssertionError("ohoh")
 
 
+def test_torsion_forces():
+    from ..testsystems import (
+        generate_im1h_oac_system_chelpg,
+        OAC_HOAC_chelpg,
+        IM1H_IM1_chelpg,
+    )
+    from collections import defaultdict
+
+    simulation = generate_im1h_oac_system_chelpg()
+    system = simulation.system
+    topology = simulation.topology
+    force_state = defaultdict(list)  # store bond force
+    atom_idxs = {}  # store atom_idxs
+    atom_names = {}  # store atom_names
+    names = []  # store residue names
+
+    # iterate over residues, select the first residue for HOAC and OAC and save the individual bonded forces
+    for ridx, r in enumerate(topology.residues()):
+        if r.name == "HOAC" and ridx == 650:  # match first HOAC residue
+            names.append(r.name)
+            atom_idxs[r.name] = [atom.index for atom in r.atoms()]
+            atom_names[r.name] = [atom.name for atom in r.atoms()]
+            for force in system.getForces():
+                if type(force).__name__ == "PeriodicTorsionForce":
+                    for torsion_id in range(
+                        force.getNumTorsions()
+                    ):  # iterate over all bonds
+                        f = force.getTorsionParameters(torsion_id)
+                        idx1 = f[0]
+                        idx2 = f[1]
+                        idx3 = f[2]
+                        idx4 = f[3]
+                        if (
+                            idx1 in atom_idxs[r.name]
+                            and idx2 in atom_idxs[r.name]
+                            and idx3 in atom_idxs[r.name]
+                            and idx4 in atom_idxs[r.name]
+                        ):  # atom index of bond force needs to be in atom_idxs
+                            force_state[r.name].append(f)
+                            print("hoac", f)
+
+        if r.name == "OAC" and ridx == 150:
+            names.append(r.name)
+            atom_idxs[r.name] = [atom.index for atom in r.atoms()]
+            atom_names[r.name] = [atom.name for atom in r.atoms()]
+            for force in system.getForces():
+                # print(type(force).__name__)
+                if type(force).__name__ == "PeriodicTorsionForce":
+                    for torsion_id in range(force.getNumTorsions()):
+                        f = force.getTorsionParameters(torsion_id)
+                        idx1 = f[0]
+                        idx2 = f[1]
+                        idx3 = f[2]
+                        idx4 = f[3]
+                        if (
+                            idx1 in atom_idxs[r.name]
+                            and idx2 in atom_idxs[r.name]
+                            and idx3 in atom_idxs[r.name]
+                            and idx4 in atom_idxs[r.name]
+                        ):
+                            force_state[r.name].append(f)
+                            print("oac", f)
+
+    if len(force_state[names[0]]) != len(
+        force_state[names[1]]
+    ):  # check the number of entries in the forces
+        print(f"{names[0]}: {len(force_state[names[0]])}")
+        print(f"{names[1]}: {len(force_state[names[1]])}")
+
+        print(f"{names[0]}:Atom indicies and atom names")
+        for idx, name in zip(atom_idxs[names[0]], atom_names[names[0]]):
+            print(f"{idx}:{name}")
+        print(f"{names[1]}:Atom indicies and atom names")
+        for idx, name in zip(atom_idxs[names[1]], atom_names[names[1]]):
+            print(f"{idx}:{name}")
+
+        # print forces for the two residues
+        print("########################")
+        print(names[0])
+        for f in force_state[names[0]]:
+            print(f)
+
+        print("########################")
+        print(names[1])
+        for f in force_state[names[1]]:
+            print(f)
+
+        raise AssertionError("ohoh")
+
+
 def test_drude_forces():
     from ..testsystems import generate_im1h_oac_system, OAC_HOAC, IM1H_IM1
     from collections import defaultdict
