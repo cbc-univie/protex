@@ -163,6 +163,7 @@ def test_setting_forces():
     ##################################################
     ##################################################
     # test set*parameters HarmonicBondForce
+    print("Testing HarmonicBondForce")
     print("Lambda: 0.0")
     parm_lambda_00 = []
     for force in ionic_liquid.system.getForces():
@@ -227,6 +228,7 @@ def test_setting_forces():
     ##################################################
     ##################################################
     # test set*parameters HarmonicAngleForce
+    print("Testing HarmonicAngleForce")
     print("Lambda: 0.0")
     parm_lambda_00 = []
     for force in ionic_liquid.system.getForces():
@@ -297,6 +299,7 @@ def test_setting_forces():
     ##################################################
     ##################################################
     # test set*parameters PeriodicTorsionForce
+    print("Testing PeriodicTorsionForce")
     print("Lambda: 0.0")
     parm_lambda_00 = []
     for force in ionic_liquid.system.getForces():
@@ -371,9 +374,86 @@ def test_setting_forces():
         assert i[6]._value * 0.5 + k[6]._value * 0.5 == j[6]._value
         # assert i[4]._value * 0.5 + k[4]._value * 0.5 == j[4]._value
 
+    ##################################################
+    ##################################################
+    # test set*parameters CustomTorsionForce
+    print("Testing CustomTorsionForce")
+    print("Lambda: 0.0")
+    parm_lambda_00 = []
+    for force in ionic_liquid.system.getForces():
+        if type(force).__name__ == "CustomTorsionForce":
+            for torsion_idx in range(force.getNumTorsions()):
+                f = force.getTorsionParameters(torsion_idx)
+                idx1 = f[0]
+                idx2 = f[1]
+                idx3 = f[2]
+                idx4 = f[3]
+                if (
+                    idx1 in ionic_liquid.residues[200].atom_idxs
+                    and idx2 in ionic_liquid.residues[200].atom_idxs
+                    and idx3 in ionic_liquid.residues[200].atom_idxs
+                    and idx4 in ionic_liquid.residues[200].atom_idxs
+                ):
+                    parm_lambda_00.append(f)
+
+    # update CustomTorsionForce
+    int_force_0a = ionic_liquid.residues[
+        200
+    ]._get_CustomTorsionForce_parameters_at_lambda(0.5)
+    ionic_liquid.residues[200]._set_CustomTorsionForce_parameters(
+        int_force_0a, ionic_liquid.simulation.context
+    )
+    print("Lambda: 0.5")
+    parm_lambda_05 = []
+    for force in ionic_liquid.system.getForces():
+        if type(force).__name__ == "CustomTorsionForce":
+            for bond_idx in range(force.getNumTorsions()):
+                f = force.getTorsionParameters(bond_idx)
+                idx1 = f[0]
+                idx2 = f[1]
+                idx3 = f[2]
+                idx4 = f[3]
+                if (
+                    idx1 in ionic_liquid.residues[200].atom_idxs
+                    and idx2 in ionic_liquid.residues[200].atom_idxs
+                    and idx3 in ionic_liquid.residues[200].atom_idxs
+                    and idx4 in ionic_liquid.residues[200].atom_idxs
+                ):
+                    parm_lambda_05.append(f)
+
+    # update CustomTorsionForce
+    int_force_0a = ionic_liquid.residues[
+        200
+    ]._get_CustomTorsionForce_parameters_at_lambda(1.0)
+    ionic_liquid.residues[200]._set_CustomTorsionForce_parameters(
+        int_force_0a, ionic_liquid.simulation.context
+    )
+    print("Lambda: 1.0")
+    parm_lambda_10 = []
+    for force in ionic_liquid.system.getForces():
+        if type(force).__name__ == "CustomTorsionForce":
+            for bond_idx in range(force.getNumTorsions()):
+                f = force.getTorsionParameters(bond_idx)
+                idx1 = f[0]
+                idx2 = f[1]
+                idx3 = f[2]
+                idx4 = f[3]
+                if (
+                    idx1 in ionic_liquid.residues[200].atom_idxs
+                    and idx2 in ionic_liquid.residues[200].atom_idxs
+                    and idx3 in ionic_liquid.residues[200].atom_idxs
+                    and idx4 in ionic_liquid.residues[200].atom_idxs
+                ):
+                    parm_lambda_10.append(f)
+    assert parm_lambda_00 != parm_lambda_10
+    # assert parm_lambda_00[0][6] != parm_lambda_05[5][6]
+    for i, j, k in zip(parm_lambda_00, parm_lambda_05, parm_lambda_10):
+        assert i[0] * 0.5 + k[0] * 0.5 == j[0]
+
     ###################################################################
     ###################################################################
     # test set*parameters DrudeForce
+    print("Testing DrudeForce")
     print("Lambda: 0.0")
     parm_lambda_00_charges_pol = []
     parm_lambda_00_thole = []

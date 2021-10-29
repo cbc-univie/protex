@@ -198,7 +198,27 @@ class Residue:
                 force.updateParametersInContext(context)
 
     def _set_CustomTorsionForce_parameters(self, parms, context):
-        pass
+        parms = deque(parms)
+
+        for force in self.system.getForces():
+            if type(force).__name__ == "CustomTorsionForce":
+                for torsion_idx in range(force.getNumTorsions()):
+                    f = force.getTorsionParameters(torsion_idx)
+                    idx1 = f[0]
+                    idx2 = f[1]
+                    idx3 = f[2]
+                    idx4 = f[3]
+                    if (
+                        idx1 in self.atom_idxs
+                        and idx2 in self.atom_idxs
+                        and idx3 in self.atom_idxs
+                        and idx4 in self.atom_idxs
+                    ):
+                        k, psi0 = parms.popleft()  # tuple with (k,psi0)
+                        force.setTorsionParameters(
+                            torsion_idx, idx1, idx2, idx3, idx4, (k, psi0)
+                        )
+                force.updateParametersInContext(context)
 
     def _set_DrudeForce_parameters(self, parms, context):
 
@@ -439,7 +459,64 @@ class Residue:
         return parm_interpolated
 
     def _get_CustomTorsionForce_parameters_at_lambda(self, lamb):
-        return None
+        # returns CustomTorsionForce Forces (=impropers) ordered.
+        assert lamb >= 0 and lamb <= 1
+        # get the names of new and current state
+        old_name = self.current_name
+        new_name = self.alternativ_name
+        parm_interpolated = []
+        force_name = "CustomTorsionForce"
+        new_parms_offset = self._get_offset(new_name)
+        old_parms_offset = self._get_offset(old_name)
+
+        # match parameters
+        parms_old = []
+        parms_new = []
+
+        for old_idx, old_parm in enumerate(self.parameters[old_name][force_name]):
+            idx1, idx2, idx3, idx4 = old_parm[0], old_parm[1], old_parm[2], old_parm[3]
+            for new_idx, new_parm in enumerate(self.parameters[new_name][force_name]):
+                if set(
+                    [
+                        new_parm[0] - new_parms_offset,
+                        new_parm[1] - new_parms_offset,
+                        new_parm[2] - new_parms_offset,
+                        new_parm[3] - new_parms_offset,
+                    ]
+                ) == set(
+                    [
+                        idx1 - old_parms_offset,
+                        idx2 - old_parms_offset,
+                        idx3 - old_parms_offset,
+                        idx4 - old_parms_offset,
+                    ]
+                ):
+                    if old_idx != new_idx:
+                        raise RuntimeError(
+                            "Odering of improper parameters is different between the two topologies."
+                        )
+                    # print("Here with index:")
+                    # print(f"{old_idx=}, {new_idx=}")
+                    parms_old.append(old_parm)
+                    parms_new.append(new_parm)
+                    break
+            else:
+                raise RuntimeError()
+
+        # interpolate parameters
+        # omm improper: [atom1, atom2, atom3, atom4, k, psi0]
+        for parm_old_i, parm_new_i in zip(parms_old, parms_new):
+            k_old, psi0_old = parm_old_i[-1]
+            k_new, psi0_new = parm_new_i[-1]
+            k_interpolated = (1 - lamb) * k_old + lamb * k_new
+
+            if lamb <= 0.5:  # use per, phase from original residue
+                parm_interpolated.append([k_interpolated, psi0_old])
+
+            if lamb > 0.5:  # use per, phase from final residue
+                parm_interpolated.append([k_interpolated, psi0_new])
+
+        return parm_interpolated
 
     def _get_DrudeForce_parameters_at_lambda(self, lamb):
         # Split in two parts, one for charge and polarizability one for thole
