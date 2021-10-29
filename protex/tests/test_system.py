@@ -1,24 +1,18 @@
 # Import package, test suite, and other packages as needed
 from sys import stdout
-from ..testsystems import generate_im1h_oac_system
-from ..testsystems import generate_im1h_oac_system_chelpg
+
+# from ..testsystems import generate_im1h_oac_system
+from ..testsystems import (
+    generate_im1h_oac_system_chelpg,
+    IM1H_IM1_chelpg,
+    OAC_HOAC_chelpg,
+)
 from ..system import IonicLiquidSystem, IonicLiquidTemplates
 import numpy as np
 
 
 def test_setup_simulation():
-    simulation = generate_im1h_oac_system()
-    print("Minimizing...")
-    simulation.minimizeEnergy(maxIterations=100)
-    system = simulation.system
-
-    nr_of_particles = system.getNumParticles()
-    assert nr_of_particles == 17500 + 500  # +lps for im1 im1h
-
-
-def test_setup_simulation_chelpg():
     simulation = generate_im1h_oac_system_chelpg()
-    # print(simulation.context.getPeriodicBoxVectors())
     print("Minimizing...")
     simulation.minimizeEnergy(maxIterations=100)
     system = simulation.system
@@ -30,7 +24,7 @@ def test_setup_simulation_chelpg():
 def test_run_simulation():
     from simtk.openmm.app import StateDataReporter, PDBReporter, DCDReporter
 
-    simulation = generate_im1h_oac_system()
+    simulation = generate_im1h_oac_system_chelpg()
     print("Minimizing...")
     simulation.minimizeEnergy(maxIterations=50)
     simulation.reporters.append(PDBReporter("output.pdb", 50))
@@ -54,10 +48,12 @@ def test_run_simulation():
 
 
 def test_create_IonicLiquidTemplate():
-    from ..testsystems import generate_im1h_oac_system, OAC_HOAC, IM1H_IM1
+    allowed_updates = {}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "delta_e": 2.33}
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "delta_e": -2.33}
 
     templates = IonicLiquidTemplates(
-        [OAC_HOAC, IM1H_IM1], (set(["IM1H", "OAC"]), set(["IM1", "HOAC"]))
+        [OAC_HOAC_chelpg, IM1H_IM1_chelpg], (allowed_updates)
     )
 
     print(templates.states)
@@ -70,13 +66,17 @@ def test_create_IonicLiquidTemplate():
 
 
 def test_create_IonicLiquid():
-    from ..testsystems import generate_im1h_oac_system, OAC_HOAC, IM1H_IM1
     from collections import defaultdict
 
-    simulation = generate_im1h_oac_system()
+    simulation = generate_im1h_oac_system_chelpg()
+    allowed_updates = {}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "delta_e": 2.33}
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "delta_e": -2.33}
+
     templates = IonicLiquidTemplates(
-        [OAC_HOAC, IM1H_IM1], (set(["IM1H", "OAC"]), set(["IM1", "HOAC"]))
+        [OAC_HOAC_chelpg, IM1H_IM1_chelpg], (allowed_updates)
     )
+
     count = defaultdict(int)
     ionic_liquid = IonicLiquidSystem(simulation, templates)
     assert len(ionic_liquid.residues) == 1000
@@ -87,9 +87,7 @@ def test_create_IonicLiquid():
 
 
 def test_residues():
-    from ..testsystems import generate_im1h_oac_system, OAC_HOAC, IM1H_IM1
-
-    simulation = generate_im1h_oac_system()
+    simulation = generate_im1h_oac_system_chelpg()
     topology = simulation.topology
     for idx, r in enumerate(topology.residues()):
         if r.name == "IM1H" and idx == 0:
@@ -187,10 +185,9 @@ def test_residues():
 
 
 def test_forces():
-    from ..testsystems import generate_im1h_oac_system, OAC_HOAC, IM1H_IM1
     from collections import defaultdict
 
-    simulation = generate_im1h_oac_system()
+    simulation = generate_im1h_oac_system_chelpg()
     system = simulation.system
     topology = simulation.topology
     force_state = defaultdict(list)  # store bond force
@@ -257,11 +254,6 @@ def test_forces():
 
 
 def test_torsion_forces():
-    from ..testsystems import (
-        generate_im1h_oac_system_chelpg,
-        OAC_HOAC_chelpg,
-        IM1H_IM1_chelpg,
-    )
     from collections import defaultdict
 
     simulation = generate_im1h_oac_system_chelpg()
@@ -418,14 +410,18 @@ def test_torsion_forces():
 
 
 def test_drude_forces():
-    from ..testsystems import generate_im1h_oac_system, OAC_HOAC, IM1H_IM1
     from collections import defaultdict
     import simtk.openmm as mm
 
-    simulation = generate_im1h_oac_system()
+    simulation = generate_im1h_oac_system_chelpg()
+    allowed_updates = {}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "delta_e": 2.33}
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "delta_e": -2.33}
+
     templates = IonicLiquidTemplates(
-        [OAC_HOAC, IM1H_IM1], (set(["IM1H", "OAC"]), set(["IM1", "HOAC"]))
+        [OAC_HOAC_chelpg, IM1H_IM1_chelpg], (allowed_updates)
     )
+
     ionic_liquid = IonicLiquidSystem(simulation, templates)
     system = simulation.system
     topology = simulation.topology
@@ -527,11 +523,13 @@ def test_drude_forces():
 
 
 def test_create_IonicLiquid_residue():
-    from ..testsystems import generate_im1h_oac_system, OAC_HOAC, IM1H_IM1
+    simulation = generate_im1h_oac_system_chelpg()
+    allowed_updates = {}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "delta_e": 2.33}
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "delta_e": -2.33}
 
-    simulation = generate_im1h_oac_system()
     templates = IonicLiquidTemplates(
-        [OAC_HOAC, IM1H_IM1], (set(["IM1H", "OAC"]), set(["IM1", "HOAC"]))
+        [OAC_HOAC_chelpg, IM1H_IM1_chelpg], (allowed_updates)
     )
 
     ionic_liquid = IonicLiquidSystem(simulation, templates)
@@ -555,14 +553,17 @@ def test_create_IonicLiquid_residue():
 
 def test_report_charge_changes():
     import json
-    from ..testsystems import generate_im1h_oac_system, OAC_HOAC, IM1H_IM1
     from ..update import NaiveMCUpdate, StateUpdate
 
     # obtain simulation object
-    simulation = generate_im1h_oac_system()
+    simulation = generate_im1h_oac_system_chelpg()
     # get ionic liquid templates
+    allowed_updates = {}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "delta_e": 2.33}
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "delta_e": -2.33}
+
     templates = IonicLiquidTemplates(
-        [OAC_HOAC, IM1H_IM1], (set(["IM1H", "OAC"]), set(["IM1", "HOAC"]))
+        [OAC_HOAC_chelpg, IM1H_IM1_chelpg], (allowed_updates)
     )
     # wrap system in IonicLiquidSystem
     ionic_liquid = IonicLiquidSystem(simulation, templates)

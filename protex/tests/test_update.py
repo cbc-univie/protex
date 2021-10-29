@@ -1,4 +1,3 @@
-from ..testsystems import generate_im1h_oac_system, OAC_HOAC, IM1H_IM1
 from ..testsystems import (
     generate_im1h_oac_system_chelpg,
     OAC_HOAC_chelpg,
@@ -15,8 +14,12 @@ import logging
 def test_distance_calculation():
     simulation = generate_im1h_oac_system_chelpg()
     # get ionic liquid templates
+    allowed_updates = {}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "delta_e": 2.33}
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "delta_e": -2.33}
+
     templates = IonicLiquidTemplates(
-        [OAC_HOAC_chelpg, IM1H_IM1_chelpg], (set(["IM1H", "OAC"]), set(["IM1", "HOAC"]))
+        [OAC_HOAC_chelpg, IM1H_IM1_chelpg], (allowed_updates)
     )
     # wrap system in IonicLiquidSystem
     ionic_liquid = IonicLiquidSystem(simulation, templates)
@@ -44,7 +47,7 @@ def test_distance_calculation():
         residue2 = res_dict[canonical_names[1]][candidate_idx2]
         # is this combination allowed?
         if (
-            set([residue1.current_name, residue2.current_name])
+            frozenset([residue1.current_name, residue2.current_name])
             in state_update.ionic_liquid.templates.allowed_updates
         ):
             charge_candidate_idx1 = residue1.current_charge
@@ -62,10 +65,14 @@ def test_distance_calculation():
 
 def test_get_and_interpolate_forces():
 
-    simulation = generate_im1h_oac_system()
+    simulation = generate_im1h_oac_system_chelpg()
     # get ionic liquid templates
+    allowed_updates = {}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "delta_e": 2.33}
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "delta_e": -2.33}
+
     templates = IonicLiquidTemplates(
-        [OAC_HOAC, IM1H_IM1], (set(["IM1H", "OAC"]), set(["IM1", "HOAC"]))
+        [OAC_HOAC_chelpg, IM1H_IM1_chelpg], (allowed_updates)
     )
     # wrap system in IonicLiquidSystem
     ionic_liquid = IonicLiquidSystem(simulation, templates)
@@ -560,10 +567,14 @@ def test_setting_forces():
 
 def test_single_update():
 
-    simulation = generate_im1h_oac_system()
+    simulation = generate_im1h_oac_system_chelpg()
     # get ionic liquid templates
+    allowed_updates = {}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "delta_e": 2.33}
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "delta_e": -2.33}
+
     templates = IonicLiquidTemplates(
-        [OAC_HOAC, IM1H_IM1], (set(["IM1H", "OAC"]), set(["IM1", "HOAC"]))
+        [OAC_HOAC_chelpg, IM1H_IM1_chelpg], (allowed_updates)
     )
     # wrap system in IonicLiquidSystem
     ionic_liquid = IonicLiquidSystem(simulation, templates)
@@ -589,10 +600,12 @@ def test_single_update():
     assert state_update.ionic_liquid.residues[idx2].current_charge == -1
     assert state_update.ionic_liquid.residues[idx2].current_charge == -1
 
-    candidate_pairs = (
-        state_update.ionic_liquid.residues[idx1],
-        state_update.ionic_liquid.residues[idx2],
-    )
+    candidate_pairs = [
+        (
+            state_update.ionic_liquid.residues[idx1],
+            state_update.ionic_liquid.residues[idx2],
+        )
+    ]
     ###### update
     state_update.updateMethod._update(candidate_pairs, 11)
 
@@ -623,10 +636,14 @@ def test_single_update():
 def test_check_updated_charges(caplog):
     caplog.set_level(logging.DEBUG)
 
-    simulation = generate_im1h_oac_system()
+    simulation = generate_im1h_oac_system_chelpg()
     # get ionic liquid templates
+    allowed_updates = {}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "delta_e": 2.33}
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "delta_e": -2.33}
+
     templates = IonicLiquidTemplates(
-        [OAC_HOAC, IM1H_IM1], (set(["IM1H", "OAC"]), set(["IM1", "HOAC"]))
+        [OAC_HOAC_chelpg, IM1H_IM1_chelpg], (allowed_updates)
     )
     # wrap system in IonicLiquidSystem
     ionic_liquid = IonicLiquidSystem(simulation, templates)
@@ -637,10 +654,12 @@ def test_check_updated_charges(caplog):
     # define mutation
     idx1, idx2 = 0, 200
 
-    candidate_pairs = (
-        state_update.ionic_liquid.residues[idx1],
-        state_update.ionic_liquid.residues[idx2],
-    )
+    candidate_pairs = [
+        (
+            state_update.ionic_liquid.residues[idx1],
+            state_update.ionic_liquid.residues[idx2],
+        )
+    ]
 
     state_update.write_charges("output_initial.txt")
     par_initial = state_update.get_charges()
@@ -679,10 +698,14 @@ def test_transfer_with_distance_matrix():
 
     import numpy as np
 
-    simulation = generate_im1h_oac_system()
+    simulation = generate_im1h_oac_system_chelpg()
     # get ionic liquid templates
+    allowed_updates = {}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "delta_e": 2.33}
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "delta_e": -2.33}
+
     templates = IonicLiquidTemplates(
-        [OAC_HOAC, IM1H_IM1], (set(["IM1H", "OAC"]), set(["IM1", "HOAC"]))
+        [OAC_HOAC_chelpg, IM1H_IM1_chelpg], (allowed_updates)
     )
     # wrap system in IonicLiquidSystem
     ionic_liquid = IonicLiquidSystem(simulation, templates)
@@ -692,10 +715,40 @@ def test_transfer_with_distance_matrix():
     state_update = StateUpdate(update)
     state_update.write_charges("output_initial.txt")
     par_initial = state_update.get_charges()
-    candidate_pairs1 = state_update.update(11)
+    res_dict = state_update.get_num_residues()
+    print(res_dict)
+    for residue in ionic_liquid.residues:
+        current_charge = 0
+        for idx in residue.atom_idxs:
+            current_charge += par_initial[idx][2]._value
+        if not np.round(current_charge) == residue.current_charge:
+            print(
+                f"{residue.residue.id=},{residue.current_name=},{residue.original_name=},{current_charge=},{residue.current_charge=}"
+            )
+    candidate_pairs1 = state_update.update(2)
     par_after_first_update = state_update.get_charges()
-    candidate_pairs2 = state_update.update(11)
+    res_dict = state_update.get_num_residues()
+    print(res_dict)
+    for residue in ionic_liquid.residues:
+        current_charge = 0
+        for idx in residue.atom_idxs:
+            current_charge += par_after_first_update[idx][2]._value
+        if not np.round(current_charge) == residue.current_charge:
+            print(
+                f"{residue.residue.id=},{residue.current_name=},{residue.original_name=},{current_charge=},{residue.current_charge=}"
+            )  # -> why?
+    candidate_pairs2 = state_update.update(2)
     par_after_second_update = state_update.get_charges()
+    res_dict = state_update.get_num_residues()
+    print(res_dict)
+    for residue in ionic_liquid.residues:
+        current_charge = 0
+        for idx in residue.atom_idxs:
+            current_charge += par_after_second_update[idx][2]._value
+        if not np.round(current_charge) == residue.current_charge:
+            print(
+                f"{residue.residue.id=},{residue.current_name=},{residue.original_name=},{current_charge=},{residue.current_charge=}"
+            )
 
     # Number of atoms is constant
     assert (
@@ -707,24 +760,27 @@ def test_transfer_with_distance_matrix():
     # check that total charge remains constant
     total_charge_init, total_charge_first, total_charge_second = 0.0, 0.0, 0.0
     print(candidate_pairs1)
-    r1, r2 = candidate_pairs1
+    r1, r2 = candidate_pairs1[0]
     print(r1.current_name)
     print(r2.current_name)
 
     for (idx1, atom1, charge1), (idx2, atom2, charge2), (idx3, atom3, charge3) in zip(
         par_initial, par_after_first_update, par_after_second_update
     ):
+        # if charge1._value != charge2._value or charge2._value != charge3._value:
+        # print(f"{charge1._value=},{charge2._value=}, {charge3._value=}")
         total_charge_init += charge1._value
         total_charge_first += charge2._value
         total_charge_second += charge3._value
+    print(f"{total_charge_init=}, {total_charge_first=}, {total_charge_second=}")
 
     # Total charge should be 0
-    # assert np.isclose(total_charge_init, 0.0)
-    # assert np.isclose(total_charge_first, 0.0)
-    # assert np.isclose(total_charge_second, 0.0)
+    assert np.isclose(total_charge_init, 0.0)
+    assert np.isclose(total_charge_first, 0.0)
+    assert np.isclose(total_charge_second, 0.0)
 
-    for _ in range(500):
-        state_update.update(21)
+    for _ in range(100):
+        state_update.update(11)
 
 
 def test_updates(caplog):

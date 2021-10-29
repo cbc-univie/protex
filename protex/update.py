@@ -121,9 +121,15 @@ class StateUpdate:
                 for idx, atom in zip(
                     range(force.getNumParticles()), self.ionic_liquid.topology.atoms()
                 ):
-                    charge, sigma, epsiolon = force.getParticleParameters(idx)
+                    charge, sigma, epsilon = force.getParticleParameters(idx)
                     par.append((idx, atom, charge))
                 return par
+
+    def get_num_residues(self) -> dict:
+        res_dict = {"IM1H": 0, "OAC": 0, "IM1": 0, "HOAC": 0}
+        for residue in self.ionic_liquid.residues:
+            res_dict[residue.current_name] += 1
+        return res_dict
 
     def _print_start(self):
         print(
@@ -174,7 +180,9 @@ class StateUpdate:
 
         return candidate_pairs
 
-    def _propose_candidate_pair(self, distance_dict: dict, res_dict: dict) -> tuple:
+    def _propose_candidate_pair(
+        self, distance_dict: dict, res_dict: dict
+    ) -> list[tuple]:
 
         canonical_names = list(
             set([residue.canonical_name for residue in self.ionic_liquid.residues])
