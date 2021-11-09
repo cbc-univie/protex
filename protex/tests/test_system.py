@@ -56,13 +56,21 @@ def test_create_IonicLiquidTemplate():
         [OAC_HOAC_chelpg, IM1H_IM1_chelpg], (allowed_updates)
     )
 
-    print(templates.states)
     r = templates.get_residue_name_for_coupled_state("OAC")
     assert r == "HOAC"
     r = templates.get_residue_name_for_coupled_state("HOAC")
     assert r == "OAC"
     r = templates.get_residue_name_for_coupled_state("IM1H")
     assert r == "IM1"
+
+    print("###################")
+    assert templates.pairs == [["OAC", "HOAC"], ["IM1H", "IM1"]]
+    assert templates.states["IM1H"]["atom_name"] == "H7"
+    assert templates.states["IM1"]["atom_name"] == "N2"
+
+    assert sorted(templates.names) == sorted(["OAC", "HOAC", "IM1H", "IM1"])
+    print(templates.allowed_updates)
+    assert templates.overall_max_distance == 0.16
 
 
 def test_create_IonicLiquid():
@@ -79,11 +87,16 @@ def test_create_IonicLiquid():
 
     count = defaultdict(int)
     ionic_liquid = IonicLiquidSystem(simulation, templates)
+    
     assert len(ionic_liquid.residues) == 1000
     for idx, residue in enumerate(ionic_liquid.residues):
-        print(f"{idx} : {residue.original_name}")
+        # print(f"{idx} : {residue.original_name}")
         count[residue.original_name] += 1
-    print(count)
+        
+    assert count["IM1H"] == 150
+    assert count["OAC"] == 150
+    assert count["IM1"] == 350
+    assert count["HOAC"] == 350
 
 
 def test_residues():

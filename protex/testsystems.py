@@ -102,7 +102,7 @@ def generate_im1h_oac_system_chelpg(coll_freq=10, drude_coll_freq=120):
         simulation.context.setPositions(crd.positions)
         # Try with positinos from equilibrated system:
         base = f"{protex.__path__[0]}/chelpg_charges"
-        if os.isfile(f"{base}/traj/im1h_oac_150_im1_hoac_350_npt_4.rst"):
+        if os.path.exists(f"{base}/traj/im1h_oac_150_im1_hoac_350_npt_4.rst"):
             with open(f"{base}/traj/im1h_oac_150_im1_hoac_350_npt_4.rst") as f:
                 print(f"Opening restart file {f}")
                 simulation.context.setState(XmlSerializer.deserialize(f.read()))
