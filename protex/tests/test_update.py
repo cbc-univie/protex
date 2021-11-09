@@ -6,7 +6,6 @@ from ..testsystems import (
 from ..system import IonicLiquidSystem, IonicLiquidTemplates
 from ..update import NaiveMCUpdate, StateUpdate
 from scipy.spatial import distance_matrix
-from scipy.spatial.distance import cdist
 import numpy as np
 import logging
 

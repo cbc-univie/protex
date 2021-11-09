@@ -7,11 +7,10 @@ from ..testsystems import (
 from ..system import IonicLiquidSystem, IonicLiquidTemplates
 from ..update import NaiveMCUpdate, StateUpdate
 from sys import stdout
-import logging
 
 
 def test_outline_chelpg():
-    from simtk.openmm.app import StateDataReporter, PDBReporter, DCDReporter
+    from simtk.openmm.app import StateDataReporter, DCDReporter
     from ..scripts.ommhelper import DrudeTemperatureReporter
 
     # obtain simulation object

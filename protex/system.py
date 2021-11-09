@@ -11,7 +11,7 @@ class IonicLiquidTemplates:
     def __init__(self, states: list, allowed_updates: dict[frozenset]) -> None:
 
         self.pairs = [list(i.keys()) for i in states]
-        self.states = dict(ChainMap(*states))  #
+        self.states = dict(ChainMap(*states))
         self.names = list(itertools.chain(*self.pairs))
         self.allowed_updates = allowed_updates
         self.overall_max_distance = max(
@@ -660,14 +660,7 @@ class IonicLiquidSystem:
         self.topology = simulation.topology
         self.simulation = simulation
         self.templates = templates
-
         self.residues = self._set_initial_states()
-        # Should this be here or somewhere else? (needed for report_charge_changes)
-        # self.charge_changes = {}
-        # self.charge_changes[
-        #    "dcd_save_freq"
-        # ] = 100  # this number should automatically be fetched from input somehow form dcdreporter
-        # self.charge_changes["charges_at_step"] = {}
 
     def _build_exclusion_list(self):
         pair_12_set = set()
@@ -686,17 +679,7 @@ class IonicLiquidSystem:
                 if len(shared) == 1:
                     pair = tuple(set(list(a) + list(b)) - shared)
                     pair_13_set.add(pair)
-        # for bond in self.topology.bonds():
-        #    a2, a3 = bond.atom1, bond.atom2
-        #    for a1 in a2.bond_partners:
-        #        pair = (min(a1.idx, a3.idx), max(a1.idx, a3.idx),)
-        #        if a1 != a3:
-        #            pair_13_set.add(pair)
-        #    for a4 in a3.bond_partners:
-        #        pair = (min(a2.idx, a4.idx), max(a2.idx, a4.idx),)
-        #        if a2 != a4:
-        #            pair_13_set.add(pair)
-        # in case there are 3,4,5-member rings
+
         self.pair_12_list = list(sorted(pair_12_set))
         self.pair_13_list = list(sorted(pair_13_set - pair_12_set))
         self.pair_12_13_list = self.pair_12_list + self.pair_13_list
@@ -704,15 +687,6 @@ class IonicLiquidSystem:
     def _extract_templates(self, query_name: str) -> defaultdict:
         # returns the forces for the residue name
         forces_dict = defaultdict(list)
-        # HarmonicBondForce
-        # HarmonicAngleForce
-        # HarmonicBondForce
-        # PeriodicTorsionForce
-        # CustomTorsionForce
-        # CMAPTorsionForce      # this is currently excluded since no force is defined
-        # NonbondedForce
-        # DrudeForce            # TODO
-        # CMMotionRemover       # this can be ignored
 
         for residue in self.topology.residues():
             if query_name == residue.name:
@@ -802,42 +776,38 @@ class IonicLiquidSystem:
                 break  # do this only for the relevant amino acid once
         return forces_dict
 
+    @staticmethod
+    def _check_nr_of_forces(
+        forces_state1, forces_state2, name, name_of_paired_ion
+    ):
+        # check if two forces lists have the same number of forces
+        assert len(forces_state1) == len(forces_state2)  # check the number of forces
+        for force_name in forces_state1:
+            if len(forces_state1[force_name]) != len(
+                forces_state2[force_name]  # check the number of entries in the forces
+            ):
+                logger.critical(force_name)
+                logger.critical(name)
+                logger.critical(len(forces_state1[force_name]))
+                logger.critical(len(forces_state2[force_name]))
+
+                for b1, b2, in zip(
+                    forces_state1[force_name],
+                    forces_state2[force_name],
+                ):
+                    logger.critical(f"{name}:{b1}")
+                    logger.critical(f"{name_of_paired_ion}:{b2}")
+
+                logger.critical(f"{name}:{forces_state1[force_name][-1]}")
+                logger.critical(f"{name_of_paired_ion}:{forces_state2[force_name][-1]}")
+
+                raise AssertionError("ohoh")
+
     def _set_initial_states(self) -> list:
         """
         set_initial_states For each ionic liquid residue in the system the protonation state
         is interfered from the provided openMM system object and the protonation site is defined.
         """
-
-        def _check_nr_of_forces(forces_state1, forces_state2) -> bool:
-            # check if two forces lists have the same number of forces
-            assert len(forces_state1) == len(
-                forces_state2
-            )  # check the number of forces
-            for force_name in forces_state1:
-                if len(forces_state1[force_name]) != len(
-                    forces_state2[
-                        force_name
-                    ]  # check the number of entries in the forces
-                ):
-                    logger.critical(force_name)
-                    logger.critical(name)
-                    logger.critical(len(forces_state1[force_name]))
-                    logger.critical(len(forces_state2[force_name]))
-
-                    for b1, b2, in zip(
-                        forces_state1[force_name],
-                        forces_state2[force_name],
-                    ):
-                        logger.critical(f"{name}:{b1}")
-                        logger.critical(f"{name_of_paired_ion}:{b2}")
-
-                    logger.critical(f"{name}:{forces_state1[force_name][-1]}")
-                    logger.critical(
-                        f"{name_of_paired_ion}:{forces_state2[force_name][-1]}"
-                    )
-
-                    raise AssertionError("ohoh")
-            return True
 
         self._build_exclusion_list()
 
@@ -865,8 +835,8 @@ class IonicLiquidSystem:
                 parameters_state1 = templates[name]
                 parameters_state2 = templates[name_of_paired_ion]
                 # check that we have the same number of parameters
-                RuntimeError() and _check_nr_of_forces(
-                    parameters_state1, parameters_state2
+                self._check_nr_of_forces(
+                    parameters_state1, parameters_state2, name, name_of_paired_ion
                 )
 
                 residues.append(
@@ -916,21 +886,3 @@ class IonicLiquidSystem:
                 f.write(
                     f'"{step}": {[residue.current_charge for residue in self.residues]}}}}}\n'
                 )
-
-        # self.charge_changes["charges_at_step"][str(step)] = [
-        #    residue.current_charge for residue in self.residues
-        # ]
-
-    # def charge_changes_to_json(self, filename, append=False):
-    #     """
-    #     charge_changes_to_json writes the charge_chages dictionary constructed with report_charge_changes to a json file
-    #     """
-    #     import json
-
-    #     if append:
-    #         mode = "r+"
-    #     else:
-    #         mode = "w"
-
-    #     with open(filename, mode) as f:
-    #         json.dump(self.charge_changes, f)
