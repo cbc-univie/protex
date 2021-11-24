@@ -157,24 +157,17 @@ class StateUpdate:
         updates the current state using the method defined in the UpdateMethod class
         """
         # calculate the distance betwen updateable residues
-        # distance_dict, res_dict = self._get_positions_for_mutation_sites()
         pos_list, res_list = self._get_positions_for_mutation_sites_new()
         # propose the update candidates based on distances
         self._print_start()
-        # candidate_pairs = self._propose_candidate_pair(distance_dict, res_dict)
         candidate_pairs = self._propose_candidate_pair_new(pos_list, res_list)
-        # print(f"{candidate_pairs=}")
         print(f"{len(candidate_pairs)=}")
 
-        # assert len(candidate_pairs) == 2
-        # add candidate pairs to history
-        # self.history.append(set(candidate_pairs)) -> moved inside _propose_candidate_pair
         if len(candidate_pairs) == 0:
             print("No transfers this time")
         elif len(candidate_pairs) > 0:
-            # print details
-            # update
             self.updateMethod._update(candidate_pairs, nr_of_steps)
+
         self.update_trial += 1
         self._print_stop()
 
@@ -249,23 +242,23 @@ class StateUpdate:
                     charge_candidate_idx1 = residue1.current_charge
                     charge_candidate_idx2 = residue2.current_charge
 
-                    print(
+                    logger.debug(
                         f"{residue1.original_name}:{residue1.current_name}:{residue1.residue.id}:{charge_candidate_idx1}-{residue2.original_name}:{residue2.current_name}:{residue2.residue.id}:{charge_candidate_idx2} pair suggested ..."
                     )
-                    print(
+                    logger.debug(
                         f"Distance between pairs: {distance[candidate_idx1,candidate_idx2]}"
                     )
                     proposed_candidate_pair = (residue1, residue2)
                     # reject if already used in this transfer call
                     # print(f"{residue1=}, {residue2=}")
                     if residue1 in used_residues or residue2 in used_residues:
-                        print(
+                        logger.debug(
                             f"{residue1.current_name}:{residue1.residue.id}:{charge_candidate_idx1}-{residue2.current_name}:{residue2.residue.id}:{charge_candidate_idx2} pair rejected, bc used this transfer call ..."
                         )
                         continue
                     # reject if already in last 10 updates
                     if set(proposed_candidate_pair) in self.history[-10:]:
-                        print(
+                        logger.debug(
                             f"{residue1.current_name}:{residue1.residue.id}:{charge_candidate_idx1}-{residue2.current_name}:{residue2.residue.id}:{charge_candidate_idx2} pair rejected, bc in history ..."
                         )
 
@@ -323,32 +316,8 @@ class StateUpdate:
         # -> what about:
         # from scipy.spatial.distance import cdist
 
-        # boxl = (
-        #     self.ionic_liquid.simulation.context.getState()
-        #     .getPeriodicBoxVectors()[0][0]
-        #     ._value
-        # )  # move to place where it is checked only once -> NVT, same boxl the whole time
-
-        # def rPBC(coor1, coor2, boxl=boxl):
-        #     dx = abs(coor1[0] - coor2[0])
-        #     if dx > boxl / 2:
-        #         dx = boxl - dx
-        #     dy = abs(coor1[1] - coor2[1])
-        #     if dy > boxl / 2:
-        #         dy = boxl - dy
-        #     dz = abs(coor1[2] - coor2[2])
-        #     if dz > boxl / 2:
-        #         dz = boxl - dz
-        #     return np.sqrt(dx * dx + dy * dy + dz * dz)
-
-        # distance_pbc = cdist(
-        #     distance_dict[canonical_names[0]], distance_dict[canonical_names[1]], rPBC
-        # )
-        # get a list of indices for elements in the distance matrix sorted by increasing distance
-        # NOTE: This always accepts a move!
         shape = distance.shape
         idx = np.dstack(np.unravel_index(np.argsort(distance.ravel()), shape))[0]
-        # print(f"{idx=}")
 
         proposed_candidate_pairs = []
         used_residues = []
@@ -357,10 +326,13 @@ class StateUpdate:
             residue1 = res_list[candidate_idx1]
             residue2 = res_list[candidate_idx2]
             # is this combination allowed?
-            if (
+            if residue1.current_name == residue2.current_name:
+                continue
+            elif (
                 frozenset([residue1.current_name, residue2.current_name])
                 in self.ionic_liquid.templates.allowed_updates.keys()
             ):
+                print(residue1.current_name, residue2.current_name)
                 r_max = self.ionic_liquid.templates.allowed_updates[
                     frozenset([residue1.current_name, residue2.current_name])
                 ]["r_max"]
@@ -376,23 +348,23 @@ class StateUpdate:
                     charge_candidate_idx1 = residue1.current_charge
                     charge_candidate_idx2 = residue2.current_charge
 
-                    print(
+                    logger.debug(
                         f"{residue1.original_name}:{residue1.current_name}:{residue1.residue.id}:{charge_candidate_idx1}-{residue2.original_name}:{residue2.current_name}:{residue2.residue.id}:{charge_candidate_idx2} pair suggested ..."
                     )
-                    print(
+                    logger.debug(
                         f"Distance between pairs: {distance[candidate_idx1,candidate_idx2]}"
                     )
-                    proposed_candidate_pair = (residue1, residue2)
-                    # reject if already used in this transfer call
+                    proposed_candidate_pair = frozenset([residue1, residue2])
+                    # reject if already used in this transfer callused_residues
                     # print(f"{residue1=}, {residue2=}")
                     if residue1 in used_residues or residue2 in used_residues:
-                        print(
+                        logger.debug(
                             f"{residue1.current_name}:{residue1.residue.id}:{charge_candidate_idx1}-{residue2.current_name}:{residue2.residue.id}:{charge_candidate_idx2} pair rejected, bc used this transfer call ..."
                         )
                         continue
                     # reject if already in last 10 updates
-                    if set(proposed_candidate_pair) in self.history[-10:]:
-                        print(
+                    if proposed_candidate_pair in self.history[-10:]:
+                        logger.debug(
                             f"{residue1.current_name}:{residue1.residue.id}:{charge_candidate_idx1}-{residue2.current_name}:{residue2.residue.id}:{charge_candidate_idx2} pair rejected, bc in history ..."
                         )
 
@@ -401,7 +373,7 @@ class StateUpdate:
                     proposed_candidate_pairs.append(proposed_candidate_pair)
                     used_residues.append(residue1)
                     used_residues.append(residue2)
-                    self.history.append(set(proposed_candidate_pair))
+                    self.history.append(proposed_candidate_pair)
                     print(
                         f"{residue1.current_name}:{residue1.residue.id}:{charge_candidate_idx1}-{residue2.current_name}:{residue2.residue.id}:{charge_candidate_idx2} pair accepted ..."
                     )
