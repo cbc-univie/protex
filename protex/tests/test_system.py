@@ -1,14 +1,13 @@
 # Import package, test suite, and other packages as needed
+import os
 from sys import stdout
 
-# from ..testsystems import generate_im1h_oac_system
-from ..testsystems import (
-    generate_im1h_oac_system_chelpg,
-    IM1H_IM1_chelpg,
-    OAC_HOAC_chelpg,
-)
+import pytest
+
 from ..system import IonicLiquidSystem, IonicLiquidTemplates
-import numpy as np
+# from ..testsystems import generate_im1h_oac_system
+from ..testsystems import (IM1H_IM1_chelpg, OAC_HOAC_chelpg,
+                           generate_im1h_oac_system_chelpg)
 
 
 def test_setup_simulation():
@@ -22,7 +21,7 @@ def test_setup_simulation():
 
 
 def test_run_simulation():
-    from simtk.openmm.app import StateDataReporter, PDBReporter, DCDReporter
+    from simtk.openmm.app import DCDReporter, PDBReporter, StateDataReporter
 
     simulation = generate_im1h_oac_system_chelpg()
     print("Minimizing...")
@@ -87,12 +86,12 @@ def test_create_IonicLiquid():
 
     count = defaultdict(int)
     ionic_liquid = IonicLiquidSystem(simulation, templates)
-    
+
     assert len(ionic_liquid.residues) == 1000
     for idx, residue in enumerate(ionic_liquid.residues):
         # print(f"{idx} : {residue.original_name}")
         count[residue.original_name] += 1
-        
+
     assert count["IM1H"] == 150
     assert count["OAC"] == 150
     assert count["IM1"] == 350
@@ -424,6 +423,7 @@ def test_torsion_forces():
 
 def test_drude_forces():
     from collections import defaultdict
+
     import simtk.openmm as mm
 
     simulation = generate_im1h_oac_system_chelpg()
@@ -564,8 +564,13 @@ def test_create_IonicLiquid_residue():
     assert ionic_liquid.residues[0].original_name == "IM1H"
 
 
+@pytest.mark.skipif(
+    os.getenv("CI") == "true",
+    reason="Skipping tests that cannot pass in github actions",
+)
 def test_report_charge_changes():
     import json
+
     from ..update import NaiveMCUpdate, StateUpdate
 
     # obtain simulation object
