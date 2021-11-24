@@ -644,22 +644,20 @@ def test_check_updated_charges(caplog):
     idx1, idx2 = 0, 200
 
     candidate_pairs = [
-        (
-            state_update.ionic_liquid.residues[idx1],
-            state_update.ionic_liquid.residues[idx2],
+        set(
+            [
+                state_update.ionic_liquid.residues[idx1],
+                state_update.ionic_liquid.residues[idx2],
+            ],
         )
     ]
 
     state_update.write_charges("output_initial.txt")
     par_initial = state_update.get_charges()
-    print(par_initial)
-    state_update.updateMethod._update(candidate_pairs, 11)
+    state_update.updateMethod._update(candidate_pairs, 21)
     par_after_first_update = state_update.get_charges()
-    state_update.updateMethod._update(candidate_pairs, 11)
+    state_update.updateMethod._update(candidate_pairs, 21)
     par_after_second_update = state_update.get_charges()
-
-    assert par_initial == par_after_second_update
-    assert par_initial != par_after_first_update
 
     print("####################################")
     print("Comparing intial charges with first update")
@@ -669,8 +667,9 @@ def test_check_updated_charges(caplog):
     ):
         if charge1._value != charge2._value:
             print(
-                f"{atom1.residue.name}:{atom1.residue.id}:{atom1.name}:{charge1._value}, {atom2.residue.name}:{atom2.residue.id}:{atom2.name}:{charge1._value}"
+                f"{atom1.residue.name}:{atom1.residue.id}:{atom1.name}:{charge1._value}, {atom2.residue.name}:{atom2.residue.id}:{atom2.name}:{charge2._value}"
             )
+    assert par_initial != par_after_first_update
 
     print("####################################")
     print("Comparing intial charges with second update")
@@ -680,7 +679,11 @@ def test_check_updated_charges(caplog):
     ):
 
         if charge1._value != charge2._value:
-            assert False  # should not happen!
+            print(
+                f"{atom1.residue.name}:{atom1.residue.id}:{atom1.name}:{charge1._value}, {atom2.residue.name}:{atom2.residue.id}:{atom2.name}:{charge2._value}"
+            )
+    assert par_after_first_update != par_after_second_update
+    assert par_initial == par_after_second_update
 
 
 def test_transfer_with_distance_matrix():

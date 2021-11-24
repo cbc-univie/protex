@@ -41,6 +41,8 @@ class NaiveMCUpdate(Update):
         state = self.ionic_liquid.simulation.context.getState(getEnergy=True)
         # get initial energy
         initial_e = state.getPotentialEnergy()
+        if np.isnan(initial_e._value):
+            raise RuntimeError(f"Energy is {initial_e}")
 
         logger.info("Start changing states ...")
         for lamb in np.linspace(0, 1, nr_of_steps):
@@ -55,14 +57,26 @@ class NaiveMCUpdate(Update):
                 )
 
                 ######################
+                # candidate1
                 # nonbonded and bonded parameters
                 ######################
                 candidate1_residue.update("NonbondedForce", lamb)
-                candidate1_residue.update("HarmonicBondedForce", lamb)
-                candidate1_residue.update("HarmonicAngleForce", lamb)
-                candidate1_residue.update("PeriodicTorsionForce", lamb)
-                candidate1_residue.update("CustomTorsionForce", lamb)
-                candidate1_residue.update("DrudeForce", lamb)
+                # candidate1_residue.update("HarmonicBondedForce", lamb)
+                # candidate1_residue.update("HarmonicAngleForce", lamb)
+                # candidate1_residue.update("PeriodicTorsionForce", lamb)
+                # candidate1_residue.update("CustomTorsionForce", lamb)
+                # candidate1_residue.update("DrudeForce", lamb)
+
+                ######################
+                # candidate2
+                # nonbonded and bonded parameters
+                ######################
+                candidate2_residue.update("NonbondedForce", lamb)
+                # candidate2_residue.update("HarmonicBondedForce", lamb)
+                # candidate2_residue.update("HarmonicAngleForce", lamb)
+                # candidate2_residue.update("PeriodicTorsionForce", lamb)
+                # candidate2_residue.update("CustomTorsionForce", lamb)
+                # candidate2_residue.update("DrudeForce", lamb)
 
             # update the context to include the new parameters
             for force in self.ionic_liquid.system.getForces():
@@ -72,6 +86,8 @@ class NaiveMCUpdate(Update):
             # get new energy
             state = self.ionic_liquid.simulation.context.getState(getEnergy=True)
             new_e = state.getPotentialEnergy()
+            if np.isnan(new_e._value):
+                raise RuntimeError(f"Energy is {new_e}")
 
             self.ionic_liquid.simulation.step(1)
 
@@ -80,6 +96,10 @@ class NaiveMCUpdate(Update):
             # after the update is finished the current_name attribute is updated (and since alternative_name depends on current_name it too is updated)
             candidate1_residue.current_name = candidate1_residue.alternativ_name
             candidate2_residue.current_name = candidate2_residue.alternativ_name
+
+            assert candidate1_residue.current_name != candidate1_residue.alternativ_name
+            assert candidate2_residue.current_name != candidate2_residue.alternativ_name
+
         # get new energy
         state = self.ionic_liquid.simulation.context.getState(getEnergy=True)
         new_e = state.getPotentialEnergy()
