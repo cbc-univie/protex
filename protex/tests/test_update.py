@@ -188,9 +188,7 @@ def test_setting_forces():
     int_force_0a = ionic_liquid.residues[0]._get_HarmonicBondForce_parameters_at_lambda(
         0.5
     )
-    ionic_liquid.residues[0]._set_HarmonicBondForce_parameters(
-        int_force_0a, ionic_liquid.simulation.context
-    )
+    ionic_liquid.residues[0]._set_HarmonicBondForce_parameters(int_force_0a)
     print("Lambda: 0.5")
     parm_lambda_05 = []
     for force in ionic_liquid.system.getForces():
@@ -209,7 +207,7 @@ def test_setting_forces():
         1.0
     )
     ionic_liquid.residues[0]._set_HarmonicBondForce_parameters(
-        int_force_0a, ionic_liquid.simulation.context
+        int_force_0a,
     )
     print("Lambda: 1.0")
     parm_lambda_10 = []
@@ -255,9 +253,7 @@ def test_setting_forces():
     int_force_0a = ionic_liquid.residues[
         0
     ]._get_HarmonicAngleForce_parameters_at_lambda(0.5)
-    ionic_liquid.residues[0]._set_HarmonicAngleForce_parameters(
-        int_force_0a, ionic_liquid.simulation.context
-    )
+    ionic_liquid.residues[0]._set_HarmonicAngleForce_parameters(int_force_0a)
     print("Lambda: 0.5")
     parm_lambda_05 = []
     for force in ionic_liquid.system.getForces():
@@ -277,9 +273,7 @@ def test_setting_forces():
     int_force_0a = ionic_liquid.residues[
         0
     ]._get_HarmonicAngleForce_parameters_at_lambda(1.0)
-    ionic_liquid.residues[0]._set_HarmonicAngleForce_parameters(
-        int_force_0a, ionic_liquid.simulation.context
-    )
+    ionic_liquid.residues[0]._set_HarmonicAngleForce_parameters(int_force_0a)
     print("Lambda: 1.0")
     parm_lambda_10 = []
     for force in ionic_liquid.system.getForces():
@@ -328,9 +322,7 @@ def test_setting_forces():
     int_force_0a = ionic_liquid.residues[
         0
     ]._get_PeriodicTorsionForce_parameters_at_lambda(0.5)
-    ionic_liquid.residues[0]._set_PeriodicTorsionForce_parameters(
-        int_force_0a, ionic_liquid.simulation.context
-    )
+    ionic_liquid.residues[0]._set_PeriodicTorsionForce_parameters(int_force_0a)
     print("Lambda: 0.5")
     parm_lambda_05 = []
     for force in ionic_liquid.system.getForces():
@@ -353,9 +345,7 @@ def test_setting_forces():
     int_force_0a = ionic_liquid.residues[
         0
     ]._get_PeriodicTorsionForce_parameters_at_lambda(1.0)
-    ionic_liquid.residues[0]._set_PeriodicTorsionForce_parameters(
-        int_force_0a, ionic_liquid.simulation.context
-    )
+    ionic_liquid.residues[0]._set_PeriodicTorsionForce_parameters(int_force_0a)
     print("Lambda: 1.0")
     parm_lambda_10 = []
     for force in ionic_liquid.system.getForces():
@@ -407,7 +397,7 @@ def test_setting_forces():
         200
     ]._get_CustomTorsionForce_parameters_at_lambda(0.5)
     ionic_liquid.residues[200]._set_CustomTorsionForce_parameters(
-        int_force_0a, ionic_liquid.simulation.context
+        int_force_0a,
     )
     print("Lambda: 0.5")
     parm_lambda_05 = []
@@ -432,7 +422,7 @@ def test_setting_forces():
         200
     ]._get_CustomTorsionForce_parameters_at_lambda(1.0)
     ionic_liquid.residues[200]._set_CustomTorsionForce_parameters(
-        int_force_0a, ionic_liquid.simulation.context
+        int_force_0a,
     )
     print("Lambda: 1.0")
     parm_lambda_10 = []
@@ -491,7 +481,7 @@ def test_setting_forces():
     # update DrudeForce
     int_force_0a = ionic_liquid.residues[0]._get_DrudeForce_parameters_at_lambda(0.5)
     ionic_liquid.residues[0]._set_DrudeForce_parameters(
-        int_force_0a, ionic_liquid.simulation.context
+        int_force_0a,
     )
     print("Lambda: 0.5")
     parm_lambda_05_charges_pol = []
@@ -524,7 +514,7 @@ def test_setting_forces():
     # update DrudeForce
     int_force_0a = ionic_liquid.residues[0]._get_DrudeForce_parameters_at_lambda(1.0)
     ionic_liquid.residues[0]._set_DrudeForce_parameters(
-        int_force_0a, ionic_liquid.simulation.context
+        int_force_0a,
     )
     print("Lambda: 1.0")
     parm_lambda_10_charges_pol = []

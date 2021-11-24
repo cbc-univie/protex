@@ -113,7 +113,7 @@ class Residue:
 
     def update(
         self, force_name: str, lamb: float
-    ):  # We do not need updateParametersInContext for the forces to take effect?
+    ):  # we don't need to call update in context since we are doing this in NaiveMCUpdate
         if force_name == "NonbondedForce":
             parms = self._get_NonbondedForce_parameters_at_lambda(lamb)
             self._set_NonbondedForce_parameters(parms)
@@ -153,7 +153,7 @@ class Residue:
                         r, k = parms.popleft()
                         force.setBondParameters(bond_idx, idx1, idx2, r, k)
 
-    def _set_HarmonicAngleForce_parameters(self, parms, context):
+    def _set_HarmonicAngleForce_parameters(self, parms):
         parms = deque(parms)
 
         for force in self.system.getForces():
@@ -171,7 +171,7 @@ class Residue:
                         thetha, k = parms.popleft()
                         force.setAngleParameters(angle_idx, idx1, idx2, idx3, thetha, k)
 
-    def _set_PeriodicTorsionForce_parameters(self, parms, context):
+    def _set_PeriodicTorsionForce_parameters(self, parms):
         parms = deque(parms)
 
         for force in self.system.getForces():
@@ -193,7 +193,7 @@ class Residue:
                             torsion_idx, idx1, idx2, idx3, idx4, per, phase, k
                         )
 
-    def _set_CustomTorsionForce_parameters(self, parms, context):
+    def _set_CustomTorsionForce_parameters(self, parms):
         parms = deque(parms)
 
         for force in self.system.getForces():
@@ -215,7 +215,7 @@ class Residue:
                             torsion_idx, idx1, idx2, idx3, idx4, (k, psi0)
                         )
 
-    def _set_DrudeForce_parameters(self, parms, context):
+    def _set_DrudeForce_parameters(self, parms):
 
         parms_pol = deque(parms[0])
         parms_thole = deque(parms[1])
@@ -640,6 +640,12 @@ class IonicLiquidSystem:
         self.simulation = simulation
         self.templates = templates
         self.residues = self._set_initial_states()
+
+    def update_context(self, name: str):
+        for force in self.system.getForces():
+            if type(force).__name__ == name:
+                force.updateParametersInContext(self.simulation.context)
+                break
 
     def _build_exclusion_list(self):
         pair_12_set = set()

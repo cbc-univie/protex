@@ -26,6 +26,14 @@ class NaiveMCUpdate(Update):
 
     def __init__(self, ionic_liquid: IonicLiquidSystem) -> None:
         super().__init__(ionic_liquid)
+        self.allowed_forces = [
+            "NonbondedForce",
+            "HarmonicBondedForce",
+            "HarmonicAngleForce",
+            "PeriodicTorsionForce",
+            "CustomTorsionForce",
+            "DrudeForce",
+        ]
 
     def _update(self, candidates: list[tuple], nr_of_steps: int):
         logger.info("called _update")
@@ -47,31 +55,19 @@ class NaiveMCUpdate(Update):
                 )
 
                 ######################
-                # nonbonded parameters
+                # nonbonded and bonded parameters
                 ######################
-                candidate1_residue.update(
-                    "NonbondedForce", self.ionic_liquid.simulation.context, lamb
-                )
-                candidate1_residue.update(
-                    "HarmonicBondedForce", self.ionic_liquid.simulation.context, lamb
-                )
-                candidate1_residue.update(
-                    "HarmonicAngleForce", self.ionic_liquid.simulation.context, lamb
-                )
-                candidate1_residue.update(
-                    "PeriodicTorsionForce", self.ionic_liquid.simulation.context, lamb
-                )
-                candidate1_residue.update(
-                    "CustomTorsionForce", self.ionic_liquid.simulation.context, lamb
-                )
-                candidate1_residue.update(
-                    "DrudeForce", self.ionic_liquid.simulation.context, lamb
-                )
+                candidate1_residue.update("NonbondedForce", lamb)
+                candidate1_residue.update("HarmonicBondedForce", lamb)
+                candidate1_residue.update("HarmonicAngleForce", lamb)
+                candidate1_residue.update("PeriodicTorsionForce", lamb)
+                candidate1_residue.update("CustomTorsionForce", lamb)
+                candidate1_residue.update("DrudeForce", lamb)
 
             # update the context to include the new parameters
             for force in self.ionic_liquid.system.getForces():
-                if force.__name__ in ['NonbondedForce', "HarmonicBondedForce","HarmonicAngleForce","PeriodicTorsionForce","CustomTorsionForce","DrudeForce"]:
-                    force.updateParametersInContext(self.ionic_liquid.simulation.context)
+                if type(force).__name__ in self.allowed_forces:
+                    self.ionic_liquid.update_context(type(force).__name__)
 
             # get new energy
             state = self.ionic_liquid.simulation.context.getState(getEnergy=True)
