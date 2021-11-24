@@ -112,36 +112,35 @@ class Residue:
                 return name
 
     def update(
-        self, force_name: str, context: openmm.Context, lamb: float
+        self, force_name: str, lamb: float
     ):  # We do not need updateParametersInContext for the forces to take effect?
         if force_name == "NonbondedForce":
             parms = self._get_NonbondedForce_parameters_at_lambda(lamb)
-            self._set_NonbondedForce_parameters(parms, context)
+            self._set_NonbondedForce_parameters(parms)
         elif force_name == "HarmonicBondedForce":
             parms = self._get_HarmonicBondForce_parameters_at_lambda(lamb)
-            self._set_HarmonicBondForce_parameters(parms, context)
+            self._set_HarmonicBondForce_parameters(parms)
         elif force_name == "HarmonicAngleForce":
             parms = self._get_HarmonicAngleForce_parameters_at_lambda(lamb)
-            self._set_HarmonicAngleForce_parameters(parms, context)
+            self._set_HarmonicAngleForce_parameters(parms)
         elif force_name == "PeriodicTorsionForce":
             parms = self._get_PeriodicTorsionForce_parameters_at_lambda(lamb)
-            self._set_PeriodicTorsionForce_parameters(parms, context)
+            self._set_PeriodicTorsionForce_parameters(parms)
         elif force_name == "CustomTorsionForce":
             parms = self._get_CustomTorsionForce_parameters_at_lambda(lamb)
-            self._set_CustomTorsionForce_parameters(parms, context)
+            self._set_CustomTorsionForce_parameters(parms)
         elif force_name == "DrudeForce":
             parms = self._get_DrudeForce_parameters_at_lambda(lamb)
-            self._set_DrudeForce_parameters(parms, context)
+            self._set_DrudeForce_parameters(parms)
 
-    def _set_NonbondedForce_parameters(self, parms, context):
+    def _set_NonbondedForce_parameters(self, parms):
         for force in self.system.getForces():
             if type(force).__name__ == "NonbondedForce":
                 for parms, idx in zip(parms, self.atom_idxs):
                     charge, sigma, epsiolon = parms
                     force.setParticleParameters(idx, charge, sigma, epsiolon)
-                force.updateParametersInContext(context)
 
-    def _set_HarmonicBondForce_parameters(self, parms, context):
+    def _set_HarmonicBondForce_parameters(self, parms):
 
         parms = deque(parms)
         for force in self.system.getForces():
@@ -153,7 +152,6 @@ class Residue:
                     if idx1 in self.atom_idxs and idx2 in self.atom_idxs:
                         r, k = parms.popleft()
                         force.setBondParameters(bond_idx, idx1, idx2, r, k)
-                force.updateParametersInContext(context)
 
     def _set_HarmonicAngleForce_parameters(self, parms, context):
         parms = deque(parms)
@@ -172,7 +170,6 @@ class Residue:
                     ):
                         thetha, k = parms.popleft()
                         force.setAngleParameters(angle_idx, idx1, idx2, idx3, thetha, k)
-                force.updateParametersInContext(context)
 
     def _set_PeriodicTorsionForce_parameters(self, parms, context):
         parms = deque(parms)
@@ -195,7 +192,6 @@ class Residue:
                         force.setTorsionParameters(
                             torsion_idx, idx1, idx2, idx3, idx4, per, phase, k
                         )
-                force.updateParametersInContext(context)
 
     def _set_CustomTorsionForce_parameters(self, parms, context):
         parms = deque(parms)
@@ -218,7 +214,6 @@ class Residue:
                         force.setTorsionParameters(
                             torsion_idx, idx1, idx2, idx3, idx4, (k, psi0)
                         )
-                force.updateParametersInContext(context)
 
     def _set_DrudeForce_parameters(self, parms, context):
 
@@ -256,17 +251,16 @@ class Residue:
                     if drude1 in self.atom_idxs and drude2 in self.atom_idxs:
                         thole = parms_thole.popleft()
                         force.setScreenedPairParameters(drude_idx, idx1, idx2, thole)
-                force.updateParametersInContext(context)
 
     def _get_NonbondedForce_parameters_at_lambda(self, lamb: float):
         # returns interpolated sorted nonbonded Forces.
         assert lamb >= 0 and lamb <= 1
         current_name = self.current_name
-        new_name = [
-            name for name in self.parameters.keys() if name != self.current_name
-        ][0]
+        new_name = self.alternativ_name
+
         parm_old = [parm for parm in self.parameters[current_name]["NonbondedForce"]]
         parm_new = [parm for parm in self.parameters[new_name]["NonbondedForce"]]
+        assert len(parm_old) == len(parm_new)
         parm_interpolated = []
 
         for parm_old_i, parm_new_i in zip(parm_old, parm_new):
@@ -633,21 +627,6 @@ class Residue:
 
         return charge
 
-    # def set_new_state(self, new_charges: list, new_res_name: str) -> None:
-    #     from simtk import unit
-
-    #     for new_charge, idx in zip(new_charges, self.atom_idxs):
-    #         (
-    #             _,
-    #             old_sigma,
-    #             old_epsilon,
-    #         ) = self.nonbonded_force.getParticleParameters(idx)
-    #         self.nonbonded_force.setParticleParameters(
-    #             idx, new_charge * unit.elementary_charge, old_sigma, old_epsilon
-    #         )
-    #     self.current_name = new_res_name
-    #     self.record_charge_state.append(self._current_charge)
-
 
 class IonicLiquidSystem:
     """
@@ -742,13 +721,9 @@ class IonicLiquidSystem:
                                 and f[3] in atom_idxs
                             ):
                                 forces_dict[type(force).__name__].append(f)
-                                # print(force.getNumTorsions())update
-                                # print(query_name)
 
                     if type(force).__name__ == "CMAPTorsionForce":
                         pass
-                        # print(dir(force))
-                        # print(force.getNumTorsions())
 
                     # DrudeForce stores charge and polarizability in ParticleParameters and Thole values in ScreenedPairParameters
                     # Number of these two is not the same -> i did two loops, and called the thole parameters DrudeForceThole.
@@ -777,9 +752,7 @@ class IonicLiquidSystem:
         return forces_dict
 
     @staticmethod
-    def _check_nr_of_forces(
-        forces_state1, forces_state2, name, name_of_paired_ion
-    ):
+    def _check_nr_of_forces(forces_state1, forces_state2, name, name_of_paired_ion):
         # check if two forces lists have the same number of forces
         assert len(forces_state1) == len(forces_state2)  # check the number of forces
         for force_name in forces_state1:
@@ -813,8 +786,8 @@ class IonicLiquidSystem:
 
         residues = []
         templates = dict()
-        # for each residue type get forces
 
+        # for each residue type get forces
         for r in self.topology.residues():
             name = r.name
             name_of_paired_ion = self.templates.get_residue_name_for_coupled_state(name)

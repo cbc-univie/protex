@@ -724,30 +724,41 @@ def test_transfer_with_distance_matrix():
             raise RuntimeError(
                 f"{residue.residue.id=},{residue.current_name=},{residue.original_name=},{current_charge=},{residue.current_charge=}"
             )
-            
+
+    ##############################
+    ###### FIRST UPDATE
+    ##############################
+
     candidate_pairs1 = state_update.update(2)
     par_after_first_update = state_update.get_charges()
     res_dict = state_update.get_num_residues()
-    print(res_dict)
-    
+
     for residue in ionic_liquid.residues:
         current_charge = 0
+        atoms = []
+        print(f"{residue.current_name=}")
         for idx in residue.atom_idxs:
             current_charge += par_after_first_update[idx][2]._value
+            atoms.append(par_after_first_update[idx][1])
         if not np.round(current_charge) == residue.current_charge:
-            print(
+            print(atoms)
+            raise RuntimeError(
                 f"{residue.residue.id=},{residue.current_name=},{residue.original_name=},{current_charge=},{residue.current_charge=}"
-            )  # -> why?
+            )
+
+    ##############################
+    ###### SECOND UPDATE
+    #############################
     candidate_pairs2 = state_update.update(2)
     par_after_second_update = state_update.get_charges()
     res_dict = state_update.get_num_residues()
-    print(res_dict)
+
     for residue in ionic_liquid.residues:
         current_charge = 0
         for idx in residue.atom_idxs:
             current_charge += par_after_second_update[idx][2]._value
         if not np.round(current_charge) == residue.current_charge:
-            print(
+            raise RuntimeError(
                 f"{residue.residue.id=},{residue.current_name=},{residue.original_name=},{current_charge=},{residue.current_charge=}"
             )
 

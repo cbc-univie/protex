@@ -1,10 +1,10 @@
+import logging
 from collections import defaultdict
 
-from scipy.spatial import distance_matrix
-from protex.system import IonicLiquidSystem
-import logging
 import numpy as np
-from simtk import unit
+from scipy.spatial import distance_matrix
+
+from protex.system import IonicLiquidSystem
 
 logger = logging.getLogger(__name__)
 
@@ -38,13 +38,12 @@ class NaiveMCUpdate(Update):
         for lamb in np.linspace(0, 1, nr_of_steps):
             for candidate in candidates:
                 # retrive residue instances
-                candidate1_residue, candidate2_residue = candidate
+                candidate1_residue, candidate2_residue = sorted(
+                    candidate, key=lambda candidate: candidate.current_name
+                )
 
                 print(
-                    f"candiadate_1: {candidate1_residue.current_name}; charge:{candidate1_residue.current_charge}"
-                )
-                print(
-                    f"candiadate_2: {candidate2_residue.current_name}; charge:{candidate2_residue.current_charge}"
+                    f"candiadate_1: {candidate1_residue.current_name}; charge:{candidate1_residue.current_charge}: candiadate_2: {candidate2_residue.current_name}; charge:{candidate2_residue.current_charge}"
                 )
 
                 ######################
@@ -69,10 +68,11 @@ class NaiveMCUpdate(Update):
                     "DrudeForce", self.ionic_liquid.simulation.context, lamb
                 )
 
-                # update the context to include the new parameters
-                # self.ionic_liquid.nonbonded_force.updateParametersInContext(
-                #     self.ionic_liquid.simulation.context
-                # )
+            # update the context to include the new parameters
+            for force in self.ionic_liquid.system.getForces():
+                if force.__name__ in ['NonbondedForce', "HarmonicBondedForce","HarmonicAngleForce","PeriodicTorsionForce","CustomTorsionForce","DrudeForce"]:
+                    force.updateParametersInContext(self.ionic_liquid.simulation.context)
+
             # get new energy
             state = self.ionic_liquid.simulation.context.getState(getEnergy=True)
             new_e = state.getPotentialEnergy()
@@ -88,6 +88,7 @@ class NaiveMCUpdate(Update):
         state = self.ionic_liquid.simulation.context.getState(getEnergy=True)
         new_e = state.getPotentialEnergy()
         logger.info(f"Energy before/after state change:{initial_e}/{new_e}")
+
         # self.ionic_liquid.simulation.context.setVelocitiesToTemperature(
         #    300.0 * unit.kelvin
         # )
@@ -115,13 +116,14 @@ class StateUpdate:
                 )
 
     def get_charges(self) -> list:
+
         par = []
         for force in self.ionic_liquid.system.getForces():
             if type(force).__name__ == "NonbondedForce":
                 for idx, atom in zip(
                     range(force.getNumParticles()), self.ionic_liquid.topology.atoms()
                 ):
-                    charge, sigma, epsilon = force.getParticleParameters(idx)
+                    charge, _, _ = force.getParticleParameters(idx)
                     par.append((idx, atom, charge))
                 return par
 
@@ -332,7 +334,6 @@ class StateUpdate:
                 frozenset([residue1.current_name, residue2.current_name])
                 in self.ionic_liquid.templates.allowed_updates.keys()
             ):
-                print(residue1.current_name, residue2.current_name)
                 r_max = self.ionic_liquid.templates.allowed_updates[
                     frozenset([residue1.current_name, residue2.current_name])
                 ]["r_max"]
