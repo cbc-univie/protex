@@ -1,16 +1,22 @@
 # from ..testsystems import generate_im1h_oac_system, OAC_HOAC, IM1H_IM1
-from ..testsystems import (
-    generate_im1h_oac_system_chelpg,
-    OAC_HOAC_chelpg,
-    IM1H_IM1_chelpg,
-)
-from ..system import IonicLiquidSystem, IonicLiquidTemplates
-from ..update import NaiveMCUpdate, StateUpdate
+import os
 from sys import stdout
 
+import pytest
 
+from ..system import IonicLiquidSystem, IonicLiquidTemplates
+from ..testsystems import (IM1H_IM1_chelpg, OAC_HOAC_chelpg,
+                           generate_im1h_oac_system_chelpg)
+from ..update import NaiveMCUpdate, StateUpdate
+
+
+@pytest.mark.skipif(
+    os.getenv("CI") == "true",
+    reason="Skipping tests that cannot pass in github actions",
+)
 def test_outline_chelpg():
-    from simtk.openmm.app import StateDataReporter, DCDReporter
+    from simtk.openmm.app import DCDReporter, StateDataReporter
+
     from ..scripts.ommhelper import DrudeTemperatureReporter
 
     # obtain simulation object
