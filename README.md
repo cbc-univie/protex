@@ -1,8 +1,8 @@
 protex
 ==============================
 [//]: # (Badges)
-[![GitHub Actions Build Status](https://github.com/REPLACE_WITH_OWNER_ACCOUNT/protex/workflows/CI/badge.svg)](https://github.com/REPLACE_WITH_OWNER_ACCOUNT/protex/actions?query=workflow%3ACI)
-[![codecov](https://codecov.io/gh/REPLACE_WITH_OWNER_ACCOUNT/protex/branch/master/graph/badge.svg)](https://codecov.io/gh/REPLACE_WITH_OWNER_ACCOUNT/protex/branch/master)
+[![GitHub Actions Build Status](https://github.com/wiederm/protex/workflows/CI/badge.svg)](https://github.com/wiederm/protex/actions?query=workflow%3ACI)
+[![codecov](https://codecov.io/gh/wiederm/protex/branch/master/graph/badge.svg)](https://codecov.io/gh/wiederm/protex/branch/master)
 
 
 Proton exchange using SAMS and openMM for ionic liquids
