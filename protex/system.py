@@ -102,7 +102,7 @@ class Residue:
         self.record_charge_state = []
         self.canonical_name = canonical_name
         self.system = system
-        self.record_charge_state.append(self.current_charge)
+        self.record_charge_state.append(self.endstate_charge)
         self.pair_12_13_list = pair_12_13_exclusion_list
 
     @property
@@ -612,7 +612,7 @@ class Residue:
             raise RuntimeError()
 
     @property
-    def current_charge(self) -> int:
+    def endstate_charge(self) -> int:
         charge = int(
             np.round(
                 sum(
@@ -624,8 +624,19 @@ class Residue:
                 4,
             )
         )
-
         return charge
+
+    @property
+    def current_charge(self) -> int:
+
+        charge = 0
+        for force in self.system.getForces():
+            if type(force).__name__ == "NonbondedForce":
+                for idx in self.atom_idxs:
+                    charge_idx, _, _ = force.getParticleParameters(idx)
+                    charge += charge_idx._value
+
+        return np.round(charge, 3)
 
 
 class IonicLiquidSystem:
@@ -859,9 +870,9 @@ class IonicLiquidSystem:
                 f.write('"charges_at_step": {\n')
             if step != n_steps - 1:
                 f.write(
-                    f'"{step}": {[residue.current_charge for residue in self.residues]},\n'
+                    f'"{step}": {[residue.endstate_charge for residue in self.residues]},\n'
                 )
             elif step == n_steps - 1:
                 f.write(
-                    f'"{step}": {[residue.current_charge for residue in self.residues]}}}}}\n'
+                    f'"{step}": {[residue.endstate_charge for residue in self.residues]}}}}}\n'
                 )
