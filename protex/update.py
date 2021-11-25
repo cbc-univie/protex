@@ -5,6 +5,7 @@ import numpy as np
 from scipy.spatial import distance_matrix
 
 from protex.system import IonicLiquidSystem
+from simtk import unit
 
 logger = logging.getLogger(__name__)
 
@@ -28,10 +29,10 @@ class NaiveMCUpdate(Update):
         super().__init__(ionic_liquid)
         self.allowed_forces = [
             "NonbondedForce",
-            "HarmonicBondedForce",
-            "HarmonicAngleForce",
-            "PeriodicTorsionForce",
-            "CustomTorsionForce",
+            # "HarmonicBondedForce",
+            # "HarmonicAngleForce",
+            # "PeriodicTorsionForce",
+            # "CustomTorsionForce",
             "DrudeForce",
         ]
 
@@ -45,6 +46,7 @@ class NaiveMCUpdate(Update):
             raise RuntimeError(f"Energy is {initial_e}")
 
         logger.info("Start changing states ...")
+        assert nr_of_steps > 1
         for lamb in np.linspace(0, 1, nr_of_steps):
             for candidate in candidates:
                 # retrive residue instances
@@ -53,35 +55,23 @@ class NaiveMCUpdate(Update):
                 )
 
                 print(
-                    f"candiadate_1: {candidate1_residue.current_name}; charge:{candidate1_residue.current_charge}: candiadate_2: {candidate2_residue.current_name}; charge:{candidate2_residue.current_charge}"
+                    f"{lamb}: candiadate_1: {candidate1_residue.current_name}; charge:{candidate1_residue.current_charge}: candiadate_2: {candidate2_residue.current_name}; charge:{candidate2_residue.current_charge}"
                 )
 
-                ######################
-                # candidate1
-                # nonbonded and bonded parameters
-                ######################
-                candidate1_residue.update("NonbondedForce", lamb)
-                # candidate1_residue.update("HarmonicBondedForce", lamb)
-                # candidate1_residue.update("HarmonicAngleForce", lamb)
-                # candidate1_residue.update("PeriodicTorsionForce", lamb)
-                # candidate1_residue.update("CustomTorsionForce", lamb)
-                # candidate1_residue.update("DrudeForce", lamb)
+                for force_to_be_updated in self.allowed_forces:
+                    ######################
+                    # candidate1
+                    ######################
+                    candidate1_residue.update(force_to_be_updated, lamb)
 
-                ######################
-                # candidate2
-                # nonbonded and bonded parameters
-                ######################
-                candidate2_residue.update("NonbondedForce", lamb)
-                # candidate2_residue.update("HarmonicBondedForce", lamb)
-                # candidate2_residue.update("HarmonicAngleForce", lamb)
-                # candidate2_residue.update("PeriodicTorsionForce", lamb)
-                # candidate2_residue.update("CustomTorsionForce", lamb)
-                # candidate2_residue.update("DrudeForce", lamb)
+                    ######################
+                    # candidate2
+                    ######################
+                    candidate2_residue.update(force_to_be_updated, lamb)
 
             # update the context to include the new parameters
-            for force in self.ionic_liquid.system.getForces():
-                if type(force).__name__ in self.allowed_forces:
-                    self.ionic_liquid.update_context(type(force).__name__)
+            for force_to_be_updated in self.allowed_forces:
+                self.ionic_liquid.update_context(force_to_be_updated)
 
             # get new energy
             state = self.ionic_liquid.simulation.context.getState(getEnergy=True)
@@ -257,8 +247,8 @@ class StateUpdate:
                 if r > self.ionic_liquid.templates.overall_max_distance:
                     break
                 elif r <= r_max:  # and energy criterion
-                    charge_candidate_idx1 = residue1.current_charge
-                    charge_candidate_idx2 = residue2.current_charge
+                    charge_candidate_idx1 = residue1.endstate_charge
+                    charge_candidate_idx2 = residue2.endstate_charge
 
                     logger.debug(
                         f"{residue1.original_name}:{residue1.current_name}:{residue1.residue.id}:{charge_candidate_idx1}-{residue2.original_name}:{residue2.current_name}:{residue2.residue.id}:{charge_candidate_idx2} pair suggested ..."
@@ -362,8 +352,8 @@ class StateUpdate:
                 if r > self.ionic_liquid.templates.overall_max_distance:
                     break
                 elif r <= r_max:  # and energy criterion
-                    charge_candidate_idx1 = residue1.current_charge
-                    charge_candidate_idx2 = residue2.current_charge
+                    charge_candidate_idx1 = residue1.endstate_charge
+                    charge_candidate_idx2 = residue2.endstate_charge
 
                     logger.debug(
                         f"{residue1.original_name}:{residue1.current_name}:{residue1.residue.id}:{charge_candidate_idx1}-{residue2.original_name}:{residue2.current_name}:{residue2.residue.id}:{charge_candidate_idx2} pair suggested ..."
