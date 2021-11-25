@@ -5,8 +5,11 @@ from sys import stdout
 import pytest
 
 from ..system import IonicLiquidSystem, IonicLiquidTemplates
-from ..testsystems import (IM1H_IM1_chelpg, OAC_HOAC_chelpg,
-                           generate_im1h_oac_system_chelpg)
+from ..testsystems import (
+    IM1H_IM1_chelpg,
+    OAC_HOAC_chelpg,
+    generate_im1h_oac_system_chelpg,
+)
 from ..update import NaiveMCUpdate, StateUpdate
 
 
@@ -62,7 +65,7 @@ def test_outline_chelpg():
     )
 
     n_steps = 10
-    update_steps = 1
+    update_steps = 2
     sim_steps = 1000
     print(
         f"Simulation {n_steps} proton transfers with {update_steps} update steps and {sim_steps} simulation steps."

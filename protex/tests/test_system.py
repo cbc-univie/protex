@@ -5,9 +5,13 @@ from sys import stdout
 import pytest
 
 from ..system import IonicLiquidSystem, IonicLiquidTemplates
+
 # from ..testsystems import generate_im1h_oac_system
-from ..testsystems import (IM1H_IM1_chelpg, OAC_HOAC_chelpg,
-                           generate_im1h_oac_system_chelpg)
+from ..testsystems import (
+    IM1H_IM1_chelpg,
+    OAC_HOAC_chelpg,
+    generate_im1h_oac_system_chelpg,
+)
 
 
 def test_setup_simulation():
@@ -549,7 +553,7 @@ def test_create_IonicLiquid_residue():
     assert len(ionic_liquid.residues) == 1000
 
     residue = ionic_liquid.residues[0]
-    charge = residue.current_charge
+    charge = residue.endstate_charge
 
     assert charge == 1
     print(residue.atom_names)
