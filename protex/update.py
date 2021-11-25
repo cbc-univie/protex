@@ -46,8 +46,8 @@ class NaiveMCUpdate(Update):
             raise RuntimeError(f"Energy is {initial_e}")
 
         logger.info("Start changing states ...")
-        assert nr_of_steps > 1
-        for lamb in reversed(np.linspace(1, 0, nr_of_steps, endpoints=False)):
+        #assert nr_of_steps > 1
+        for lamb in reversed(np.linspace(1, 0, nr_of_steps, endpoint=False)):
             for candidate in candidates:
                 # retrive residue instances
                 candidate1_residue, candidate2_residue = sorted(
