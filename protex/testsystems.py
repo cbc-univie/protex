@@ -94,7 +94,7 @@ def generate_im1h_oac_system_chelpg(coll_freq=10, drude_coll_freq=120):
         )  # tested with 20, 40, 80, 100, 120, 140, 160: 20,40 bad; 80 - 120 good; 140, 160 crashed
         integrator.setMaxDrudeDistance(0.25 * angstroms)
         platform = Platform.getPlatformByName("CUDA")
-        prop = dict(CudaPrecision="mixed")
+        prop = dict(CudaPrecision="double")
 
         simulation = Simulation(
             psf.topology, system, integrator, platform=platform, platformProperties=prop
