@@ -606,7 +606,7 @@ def test_single_update():
         )
     ]
     ###### update
-    state_update.updateMethod._update(candidate_pairs, 2)
+    state_update.updateMethod._update(candidate_pairs, 11)
 
     assert state_update.ionic_liquid.residues[idx1].current_name == "IM1"
     assert state_update.ionic_liquid.residues[idx1].original_name == "IM1H"
@@ -619,7 +619,7 @@ def test_single_update():
     assert state_update.ionic_liquid.residues[idx2].current_charge == 0.00
 
     ###### update
-    state_update.updateMethod._update(candidate_pairs, 2)
+    state_update.updateMethod._update(candidate_pairs, 11)
 
     assert state_update.ionic_liquid.residues[idx1].current_name == "IM1H"
     assert state_update.ionic_liquid.residues[idx1].original_name == "IM1H"
