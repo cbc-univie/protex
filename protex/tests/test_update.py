@@ -736,7 +736,7 @@ def test_transfer_with_distance_matrix():
     ###### FIRST UPDATE
     ##############################
 
-    candidate_pairs1 = state_update.update(2)
+    candidate_pairs1 = state_update.update()
     par_after_first_update = state_update.get_charges()
     res_dict = state_update.get_num_residues()
 
@@ -756,7 +756,7 @@ def test_transfer_with_distance_matrix():
     ##############################
     ###### SECOND UPDATE
     #############################
-    candidate_pairs2 = state_update.update(2)
+    candidate_pairs2 = state_update.update()
     par_after_second_update = state_update.get_charges()
     res_dict = state_update.get_num_residues()
 
@@ -799,7 +799,7 @@ def test_transfer_with_distance_matrix():
     assert np.isclose(total_charge_second, 0.0)
 
     for _ in range(100):
-        state_update.update(11)
+        state_update.update()
 
 
 @pytest.mark.skipif(

@@ -270,8 +270,8 @@ class Residue:
         for parm_old, parm_new in zip(nonbonded_parm_old, nonbonded_parm_new):
             charge_old, sigma_old, epsilon_old = parm_old
             charge_new, sigma_new, epsilon_new = parm_new
-            print(f'{charge_old=}, {sigma_old=}, {epsilon_old=}')
-            print(f'{charge_new=}, {sigma_new=}, {epsilon_new=}')
+            # print(f'{charge_old=}, {sigma_old=}, {epsilon_old=}')
+            # print(f'{charge_new=}, {sigma_new=}, {epsilon_new=}')
             charge_interpolated = (1 - lamb) * charge_old + lamb * charge_new
             sigma_interpolated = (1 - lamb) * sigma_old + lamb * sigma_new
             epsilon_interpolated = (1 - lamb) * epsilon_old + lamb * epsilon_new
@@ -659,9 +659,6 @@ class IonicLiquidSystem:
         self.residues = self._set_initial_states()
 
     def update_context(self, name: str):
-        for force in self.system.getForces():
-            print(type(force).__name__)
-        print("#####")
         for force in self.system.getForces():
             if type(force).__name__ == name:
                 force.updateParametersInContext(self.simulation.context)
