@@ -96,6 +96,15 @@ def test_get_and_interpolate_forces():
         int_force_0[0][0][1]._value * 0.9 + int_force_1[0][0][1]._value * 0.1
         == int_force_01[0][0][1]._value
     )
+    # exceptions
+    assert (
+        int_force_0[1][0][0]._value * 0.9 + int_force_1[1][0][0]._value * 0.1
+        == int_force_01[1][0][0]._value
+    )
+    assert (
+        int_force_0[1][0][1]._value * 0.9 + int_force_1[1][0][1]._value * 0.1
+        == int_force_01[1][0][1]._value
+    )
 
     int_force_0 = ionic_liquid.residues[0]._get_HarmonicBondForce_parameters_at_lambda(
         0.0
