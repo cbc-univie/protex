@@ -65,7 +65,7 @@ def test_outline_chelpg():
     )
 
     n_steps = 10
-    update_steps = 101
+    update_steps = 2
     sim_steps = 1000
     print(
         f"Simulation {n_steps} proton transfers with {update_steps} update steps and {sim_steps} simulation steps."

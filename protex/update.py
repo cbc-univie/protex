@@ -28,7 +28,7 @@ class NaiveMCUpdate(Update):
     def __init__(self, ionic_liquid: IonicLiquidSystem) -> None:
         super().__init__(ionic_liquid)
         self.allowed_forces = [
-            "NonbondedForce",
+            "NonbondedForce",  # BUG: Charge stored in the DrudeForce does NOT get updated, probably you want to allow DrudeForce as well!
             # "HarmonicBondedForce",
             # "HarmonicAngleForce",
             # "PeriodicTorsionForce",
@@ -46,8 +46,9 @@ class NaiveMCUpdate(Update):
             raise RuntimeError(f"Energy is {initial_e}")
 
         logger.info("Start changing states ...")
-        assert nr_of_steps > 1
+        assert nr_of_steps > 1, "Use an update step number of at least 2."
         for lamb in np.linspace(0, 1, nr_of_steps):
+            # for lamb in reversed(np.linspace(1, 0, nr_of_steps, endpoint=False)):
             for candidate in candidates:
                 # retrive residue instances
                 candidate1_residue, candidate2_residue = sorted(
@@ -68,6 +69,37 @@ class NaiveMCUpdate(Update):
                     # candidate2
                     ######################
                     candidate2_residue.update(force_to_be_updated, lamb)
+
+                # # reset drude positions to parent atom positions, maybe put it outside lambda loop?
+                # drude_idxs = [
+                #     atom.index
+                #     for atom in self.ionic_liquid.topology.atoms()
+                #     if atom.name.startswith("D")
+                # ]
+                # print(f"{len(drude_idxs)=}")
+                # all_pos = self.ionic_liquid.simulation.context.getState(
+                #     getPositions=True
+                # ).getPositions(asNumpy=True)
+                # import copy
+
+                # all_pos_init = copy.deepcopy(all_pos)
+                # print(all_pos[0])
+                # print(all_pos[1])
+                # # print(f"{drude_idxs=}")
+                # print(f"{len(all_pos)=}")
+                # for i in range(len(all_pos)):
+                #     if i in drude_idxs:
+                #         # print("D", i, all_pos[i], all_pos[i - 1])
+                #         all_pos[i] = all_pos[
+                #             i - 1
+                #         ]  # set drude position to parent atom position
+
+                # # update all the positions in the context
+                # # assert not np.array_equal(all_pos_init, all_pos)
+                # # print(all_pos[0])
+                # # print(all_pos[1])
+                # # self.ionic_liquid.simulation.context.setPositions(all_pos)
+                # # maybe reset also k's?
 
             # update the context to include the new parameters
             for force_to_be_updated in self.allowed_forces:
@@ -218,6 +250,7 @@ class StateUpdate:
         distance_pbc = cdist(
             distance_dict[canonical_names[0]], distance_dict[canonical_names[1]], rPBC
         )
+        # print(f"{distance=}, {distance_pbc=}")
         # get a list of indices for elements in the distance matrix sorted by increasing distance
         # NOTE: This always accepts a move!
         shape = distance.shape
@@ -346,8 +379,10 @@ class StateUpdate:
                 delta_e = self.ionic_liquid.templates.allowed_updates[
                     frozenset([residue1.current_name, residue2.current_name])
                 ]["delta_e"]
-                # print(f"{r_max=}, {delta_e=}")
+
                 r = distance[candidate_idx1, candidate_idx2]
+                # print(f"{r_max=}, {delta_e=}, {r=}")
+                print(f"{residue1.current_name=}, {residue2.current_name=}, {r=}")
                 # break for loop if no pair can fulfill distance condition
                 if r > self.ionic_liquid.templates.overall_max_distance:
                     break

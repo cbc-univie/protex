@@ -134,11 +134,25 @@ class Residue:
             self._set_DrudeForce_parameters(parms)
 
     def _set_NonbondedForce_parameters(self, parms):
+        parms_nonb = deque(parms[0])
+        parms_exceptions = deque(parms[1])
+        # if int(self.residue.id) == 14 and self.residue.name == "IM1":
+        #     print(f"{self.residue.id=}, {parms=}")
         for force in self.system.getForces():
             if type(force).__name__ == "NonbondedForce":
-                for parms, idx in zip(parms, self.atom_idxs):
-                    charge, sigma, epsiolon = parms
-                    force.setParticleParameters(idx, charge, sigma, epsiolon)
+                for parms_nonbonded, idx in zip(parms_nonb, self.atom_idxs):
+                    charge, sigma, epsilon = parms_nonbonded
+                    force.setParticleParameters(idx, charge, sigma, epsilon)
+
+                for exc_idx in range(force.getNumExceptions()):
+                    f = force.getExceptionParameters(exc_idx)
+                    idx1 = f[0]
+                    idx2 = f[1]
+                    if idx1 in self.atom_idxs and idx2 in self.atom_idxs:
+                        chargeprod, sigma, epsilon = parms_exceptions.popleft()
+                        force.setExceptionParameters(
+                            exc_idx, idx1, idx2, chargeprod, sigma, epsilon
+                        )
 
     def _set_HarmonicBondForce_parameters(self, parms):
 
@@ -252,7 +266,9 @@ class Residue:
                         thole = parms_thole.popleft()
                         force.setScreenedPairParameters(drude_idx, idx1, idx2, thole)
 
-    def _get_NonbondedForce_parameters_at_lambda(self, lamb: float):
+    def _get_NonbondedForce_parameters_at_lambda(
+        self, lamb: float
+    ) -> list[list[int], list[int]]:
         # returns interpolated sorted nonbonded Forces.
         assert lamb >= 0 and lamb <= 1
         current_name = self.current_name
@@ -276,11 +292,62 @@ class Residue:
             sigma_interpolated = (1 - lamb) * sigma_old + lamb * sigma_new
             epsilon_interpolated = (1 - lamb) * epsilon_old + lamb * epsilon_new
 
+            # test only charge transfer, no sigma, epsilon:
+            # sigma_interpolated = sigma_old
+            # epsilon_interpolated = epsilon_old
+            # charge_interpolated = charge_old
+
             parm_interpolated.append(
                 [charge_interpolated, sigma_interpolated, epsilon_interpolated]
             )
 
-        return parm_interpolated
+        # Exceptions
+        # get the names of new and current state
+        # old_name = self.current_name
+        # new_name = self.alternativ_name
+        force_name = "NonbondedForceExceptions"
+        new_parms_offset = self._get_offset(new_name)
+        old_parms_offset = self._get_offset(current_name)
+        print(f"{current_name=}, {new_name=}")
+        print(f"{new_parms_offset=}, {old_parms_offset=}")
+        print(f"{self.parameters[current_name][force_name]=}")
+        print(f"{self.parameters[new_name][force_name]=}")
+
+        # match parameters
+        parms_old = []
+        parms_new = []
+        for old_idx, old_parm in enumerate(self.parameters[current_name][force_name]):
+            idx1, idx2 = old_parm[0], old_parm[1]
+            for new_idx, new_parm in enumerate(self.parameters[new_name][force_name]):
+                if set(
+                    [new_parm[0] - new_parms_offset, new_parm[1] - new_parms_offset]
+                ) == set([idx1 - old_parms_offset, idx2 - old_parms_offset]):
+                    if old_idx != new_idx:
+                        raise RuntimeError(
+                            "Odering of Nonbonded Exception parameters is different between the two topologies."
+                        )
+                    parms_old.append(old_parm)
+                    parms_new.append(new_parm)
+                    break
+            else:
+                raise RuntimeError()
+
+        # interpolate parameters
+        exceptions_interpolated = []
+        for parm_old_i, parm_new_i in zip(parms_old, parms_new):
+            chargeprod_old, sigma_old, epsilon_old = parm_old_i[-3:]
+            chargeprod_new, sigma_new, epsilon_new = parm_new_i[-3:]
+            chargeprod_interpolated = (
+                1 - lamb
+            ) * chargeprod_old + lamb * chargeprod_new
+            sigma_interpolated = (1 - lamb) * sigma_old + lamb * sigma_new
+            epsilon_interpolated = (1 - lamb) * epsilon_old + lamb * epsilon_new
+
+            exceptions_interpolated.append(
+                [chargeprod_interpolated, sigma_interpolated, epsilon_interpolated]
+            )
+
+        return [parm_interpolated, exceptions_interpolated]
 
     def _get_offset(self, name):
         # get offset for atom idx
@@ -703,6 +770,15 @@ class IonicLiquidSystem:
                         forces_dict[type(force).__name__] = [
                             force.getParticleParameters(idx) for idx in atom_idxs
                         ]
+                        # Also add exceptions
+                        for exc_id in range(force.getNumExceptions()):
+                            f = force.getExceptionParameters(exc_id)
+                            idx1 = f[0]
+                            idx2 = f[1]
+                            if idx1 in atom_idxs and idx2 in atom_idxs:
+                                forces_dict[type(force).__name__ + "Exceptions"].append(
+                                    f
+                                )
 
                     if type(force).__name__ == "HarmonicBondForce":
                         for bond_id in range(force.getNumBonds()):

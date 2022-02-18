@@ -1,6 +1,7 @@
 import logging
 import os
 
+from collections import deque
 import numpy as np
 import pytest
 from scipy.spatial import distance_matrix
@@ -10,6 +11,7 @@ from ..testsystems import (
     IM1H_IM1_chelpg,
     OAC_HOAC_chelpg,
     generate_im1h_oac_system_chelpg,
+    generate_single_im1h_oac_system,
 )
 from ..update import NaiveMCUpdate, StateUpdate
 
@@ -87,12 +89,12 @@ def test_get_and_interpolate_forces():
         0.1
     )
     assert (
-        int_force_0[0][0]._value * 0.9 + int_force_1[0][0]._value * 0.1
-        == int_force_01[0][0]._value
+        int_force_0[0][0][0]._value * 0.9 + int_force_1[0][0][0]._value * 0.1
+        == int_force_01[0][0][0]._value
     )
     assert (
-        int_force_0[0][1]._value * 0.9 + int_force_1[0][1]._value * 0.1
-        == int_force_01[0][1]._value
+        int_force_0[0][0][1]._value * 0.9 + int_force_1[0][0][1]._value * 0.1
+        == int_force_01[0][0][1]._value
     )
 
     int_force_0 = ionic_liquid.residues[0]._get_HarmonicBondForce_parameters_at_lambda(
@@ -606,7 +608,7 @@ def test_single_update():
         )
     ]
     ###### update
-    state_update.updateMethod._update(candidate_pairs, 11)
+    state_update.updateMethod._update(candidate_pairs, 2)
 
     assert state_update.ionic_liquid.residues[idx1].current_name == "IM1"
     assert state_update.ionic_liquid.residues[idx1].original_name == "IM1H"
@@ -619,7 +621,7 @@ def test_single_update():
     assert state_update.ionic_liquid.residues[idx2].current_charge == 0.00
 
     ###### update
-    state_update.updateMethod._update(candidate_pairs, 11)
+    state_update.updateMethod._update(candidate_pairs, 2)
 
     assert state_update.ionic_liquid.residues[idx1].current_name == "IM1H"
     assert state_update.ionic_liquid.residues[idx1].original_name == "IM1H"
@@ -799,7 +801,7 @@ def test_transfer_with_distance_matrix():
     assert np.isclose(total_charge_second, 0.0)
 
     for _ in range(100):
-        state_update.update()
+        state_update.update(2)
 
 
 @pytest.mark.skipif(
@@ -836,7 +838,7 @@ def test_updates(caplog):
     for _ in range(5):
         ionic_liquid.simulation.step(2000)
         pars.append(state_update.get_charges())
-        candidate_pairs = state_update.update(1001)
+        candidate_pairs = state_update.update(2)
         print(candidate_pairs)
 
 
@@ -880,3 +882,432 @@ def test_dry_updates(caplog):
         print(f"{candidate_pairs=}, {len(candidate_pairs)=}")
         state_update._print_stop()
         pars.append(state_update.get_charges())
+
+
+@pytest.mark.skipif(
+    os.getenv("CI") == "true",
+    reason="Will fail sporadicaly.",
+)
+def test_parameters_after_update():
+    from simtk.openmm.app import StateDataReporter, DCDReporter
+
+    simulation = generate_im1h_oac_system_chelpg()
+    # get ionic liquid templates
+    allowed_updates = {}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "delta_e": 2.33}
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "delta_e": -2.33}
+
+    templates = IonicLiquidTemplates(
+        [OAC_HOAC_chelpg, IM1H_IM1_chelpg], (allowed_updates)
+    )
+    # wrap system in IonicLiquidSystem
+    ionic_liquid = IonicLiquidSystem(simulation, templates)
+    ionic_liquid.simulation.reporters.append(DCDReporter(f"test_transfer.dcd", 1))
+    ionic_liquid.simulation.reporters.append(
+        StateDataReporter(
+            f"test_transfer.out",
+            1,
+            step=True,
+            time=True,
+            potentialEnergy=True,
+            kineticEnergy=True,
+            totalEnergy=True,
+            temperature=True,
+            volume=True,
+            density=True,
+        )
+    )
+    # ionic_liquid.simulation.minimizeEnergy(maxIterations=500)
+    ionic_liquid.simulation.step(50)
+
+    update = NaiveMCUpdate(ionic_liquid)
+    # initialize state update class
+    state_update = StateUpdate(update)
+    pos = state_update.ionic_liquid.simulation.context.getState(
+        getPositions=True
+    ).getPositions(asNumpy=True)
+    # check that we have all atoms
+    assert len(pos) == 18000
+    # check properties of residue that will be tested
+    idx1 = (
+        150 + 150 + 14 - 1
+    )  # soll IM1 mit residue.id=14 sein, da in residue list 0 based -> -1
+    idx2 = 150 + 150 + 350 + 63 - 1  # HOAC 61
+    assert state_update.ionic_liquid.residues[idx1].current_name == "IM1"
+    assert state_update.ionic_liquid.residues[idx1].original_name == "IM1"
+    assert state_update.ionic_liquid.residues[idx1].current_charge == 0.00
+    assert state_update.ionic_liquid.residues[idx1].endstate_charge == 0
+
+    assert state_update.ionic_liquid.residues[idx2].current_name == "HOAC"
+    assert state_update.ionic_liquid.residues[idx2].original_name == "HOAC"
+    assert state_update.ionic_liquid.residues[idx2].current_charge == 0.00
+    assert state_update.ionic_liquid.residues[idx2].endstate_charge == 0
+
+    # candidate_pairs = [
+    #     (
+    #         state_update.ionic_liquid.residues[idx1],
+    #         state_update.ionic_liquid.residues[idx2],
+    #     )
+    # ]
+    ###### update
+    # state_update.updateMethod._update(candidate_pairs, 2)
+
+    current_name = state_update.ionic_liquid.residues[idx1].current_name
+    print("BEFORE START")
+    print(f"{current_name=}")
+    imp_before_list = []
+    drude_before_list = []
+    thole_before_list = []
+    for force in ionic_liquid.system.getForces():
+        if type(force).__name__ == "NonbondedForce":
+            before_list = [
+                force.getParticleParameters(idx)
+                for idx in ionic_liquid.residues[idx1].atom_idxs
+            ]
+
+        #### Drude before ####
+        if type(force).__name__ == "DrudeForce":
+            for drude_id in range(force.getNumParticles()):
+                f = force.getParticleParameters(drude_id)
+                idx11 = f[0]  # drude
+                idx22 = f[1]  # parentatom
+                if (
+                    idx11 in ionic_liquid.residues[idx1].atom_idxs
+                    and idx22 in ionic_liquid.residues[idx1].atom_idxs
+                ):
+                    drude_before_list.append(f)
+            assert (
+                len(ionic_liquid.residues[idx1].pair_12_13_list)
+                == force.getNumScreenedPairs()
+            )
+            for drude_id in range(force.getNumScreenedPairs()):
+                f = force.getScreenedPairParameters(drude_id)
+                # idx1 = f[0]
+                # idx2 = f[1]
+                parent1, parent2 = ionic_liquid.residues[idx1].pair_12_13_list[drude_id]
+                drude1, drude2 = parent1 + 1, parent2 + 1
+                if (
+                    drude1 in ionic_liquid.residues[idx1].atom_idxs
+                    and drude2 in ionic_liquid.residues[idx1].atom_idxs
+                ):
+                    thole_before_list.append(f)
+
+        ## IMPROPERS Before##
+        if type(force).__name__ == "CustomTorsionForce":
+            for torsion_id in range(force.getNumTorsions()):
+                f = force.getTorsionParameters(torsion_id)
+
+                if (
+                    f[0] in ionic_liquid.residues[idx1].atom_idxs
+                    and f[1] in ionic_liquid.residues[idx1].atom_idxs
+                    and f[2] in ionic_liquid.residues[idx1].atom_idxs
+                    and f[3] in ionic_liquid.residues[idx1].atom_idxs
+                ):
+                    imp_before_list.append(f)
+    print("BEFORE END")
+
+    state_update.update(2)
+    ionic_liquid.simulation.step(500)
+
+    print("AFTER START")
+    print(f"{current_name=}")
+    current_name = state_update.ionic_liquid.residues[idx1].current_name
+
+    imp_after_list = []
+    drude_after_list = []
+    thole_after_list = []
+    for force in ionic_liquid.system.getForces():
+        if type(force).__name__ == "NonbondedForce":
+            after_list = [
+                force.getParticleParameters(idx)
+                for idx in ionic_liquid.residues[idx1].atom_idxs
+            ]
+
+        #### Drude after ####
+        if type(force).__name__ == "DrudeForce":
+            for drude_id in range(force.getNumParticles()):
+                f = force.getParticleParameters(drude_id)
+                idx11 = f[0]  # drude
+                idx22 = f[1]  # parentatom
+                if (
+                    idx11 in ionic_liquid.residues[idx1].atom_idxs
+                    and idx22 in ionic_liquid.residues[idx1].atom_idxs
+                ):
+                    drude_after_list.append(f)
+            assert (
+                len(ionic_liquid.residues[idx1].pair_12_13_list)
+                == force.getNumScreenedPairs()
+            )
+            for drude_id in range(force.getNumScreenedPairs()):
+                f = force.getScreenedPairParameters(drude_id)
+                # idx1 = f[0]
+                # idx2 = f[1]
+                parent1, parent2 = ionic_liquid.residues[idx1].pair_12_13_list[drude_id]
+                drude1, drude2 = parent1 + 1, parent2 + 1
+                if (
+                    drude1 in ionic_liquid.residues[idx1].atom_idxs
+                    and drude2 in ionic_liquid.residues[idx1].atom_idxs
+                ):
+                    thole_after_list.append(f)
+
+        ## IMPROPERS AFTER ##
+        if type(force).__name__ == "CustomTorsionForce":
+            for torsion_id in range(force.getNumTorsions()):
+                f = force.getTorsionParameters(torsion_id)
+
+                if (
+                    f[0] in ionic_liquid.residues[idx1].atom_idxs
+                    and f[1] in ionic_liquid.residues[idx1].atom_idxs
+                    and f[2] in ionic_liquid.residues[idx1].atom_idxs
+                    and f[3] in ionic_liquid.residues[idx1].atom_idxs
+                ):
+                    imp_after_list.append(f)
+    print("AFTER END")
+    # for residue in ionic_liquid.topology.residues():
+    #     # if residue.id == 14:
+    #     print(residue, residue.id)
+    for (
+        pos1,
+        ((b_charge, b_epsilon, b_sigma), (a_charge, a_epsilon, a_sigma)),
+    ) in enumerate(zip(before_list, after_list)):
+        if b_charge != a_charge:
+            print(f"Charge changed: {pos1=}, {b_charge=}, {a_charge=}")
+        # if b_epsilon != a_epsilon:
+        #     print(f"Epsilon changed: {pos1=}, {b_epsilon=}, {a_epsilon=}")
+        # if b_sigma != a_sigma:
+        #     print(f"Sigma changed: {pos1=}, {b_sigma=}, {a_sigma=}")
+
+    print(f"{imp_before_list=}, {imp_after_list=}")
+
+    for pos, (
+        (b_drude, b_parent, _, _, _, b_charge, b_pol, _, _),
+        (a_drude, a_parent, _, _, _, a_charge, a_pol, _, _),
+    ) in enumerate(zip(drude_before_list, drude_after_list)):
+        if b_charge != a_charge:
+            print(f"Charge changed: {pos=}, {b_charge=}, {a_charge=}")
+        else:
+            print(f"Charge NOT changed: {pos=}, {b_charge=}, {a_charge=}")
+        # if b_pol != a_pol:
+        #     print(f"Polarizability changed: {pos=}, {b_pol=}, {a_pol=}")
+    for pos, ((b_1, b_2, b_thole), (a_1, a_2, a_thole)) in enumerate(
+        zip(thole_before_list, thole_after_list)
+    ):
+        if b_thole != a_thole:
+            print(f"Thole changed: {pos=}, {b_thole=}, {a_thole=}")
+    for pos, (
+        (b1, b2, b3, b4, (b_k, b_psi0)),
+        (a1, a2, a3, a4, (a_k, a_psi0)),
+    ) in enumerate(zip(imp_before_list, imp_after_list)):
+        if b_k != a_k:
+            print(f"k changed: {pos=}, {b_k=}, {a_k=}")
+        if b_psi0 != a_psi0:
+            print(f"psi0 changed: {pos=}, {b_psi0=}, {a_psi0=}")
+
+    assert state_update.ionic_liquid.residues[idx1].current_name == "IM1H"
+    assert state_update.ionic_liquid.residues[idx1].original_name == "IM1"
+    assert state_update.ionic_liquid.residues[idx1].endstate_charge == 1
+    assert state_update.ionic_liquid.residues[idx1].current_charge == 1.00
+
+    assert state_update.ionic_liquid.residues[idx2].current_name == "OAC"
+    assert state_update.ionic_liquid.residues[idx2].original_name == "HOAC"
+    assert state_update.ionic_liquid.residues[idx2].endstate_charge == -1
+    assert state_update.ionic_liquid.residues[idx2].current_charge == -1.00
+
+    ###### update
+    # state_update.updateMethod._update(candidate_pairs, 2)
+    # state_update.update(2)
+
+    # assert state_update.ionic_liquid.residues[idx1].current_name == "IM1H"
+    # assert state_update.ionic_liquid.residues[idx1].original_name == "IM1H"
+    # assert state_update.ionic_liquid.residues[idx1].endstate_charge == 1
+    # assert state_update.ionic_liquid.residues[idx1].current_charge == 1
+
+    # assert state_update.ionic_liquid.residues[idx2].current_name == "OAC"
+    # assert state_update.ionic_liquid.residues[idx2].original_name == "OAC"
+    # assert state_update.ionic_liquid.residues[idx2].endstate_charge == -1
+    # assert state_update.ionic_liquid.residues[idx2].current_charge == -1
+
+
+@pytest.mark.skipif(
+    os.getenv("CI") == "true",
+    reason="Will fail sporadicaly.",
+)
+def test_forces():
+    from simtk.openmm.app import StateDataReporter, DCDReporter
+
+    simulation = generate_im1h_oac_system_chelpg()
+    # get ionic liquid templates
+    allowed_updates = {}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "delta_e": 2.33}
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "delta_e": -2.33}
+
+    templates = IonicLiquidTemplates(
+        [OAC_HOAC_chelpg, IM1H_IM1_chelpg], (allowed_updates)
+    )
+    # wrap system in IonicLiquidSystem
+    ionic_liquid = IonicLiquidSystem(simulation, templates)
+    ionic_liquid.simulation.reporters.append(DCDReporter(f"test_transfer.dcd", 1))
+    ionic_liquid.simulation.reporters.append(
+        StateDataReporter(
+            f"test_transfer.out",
+            1,
+            step=True,
+            time=True,
+            potentialEnergy=True,
+            kineticEnergy=True,
+            totalEnergy=True,
+            temperature=True,
+            volume=True,
+            density=True,
+        )
+    )
+    # ionic_liquid.simulation.minimizeEnergy(maxIterations=500)
+    # ionic_liquid.simulation.step(50)
+
+    update = NaiveMCUpdate(ionic_liquid)
+    # initialize state update class
+    state_update = StateUpdate(update)
+    # pos = state_update.ionic_liquid.simulation.context.getState(
+    #     getPositions=True
+    # ).getPositions(asNumpy=True)
+
+    for force in ionic_liquid.system.getForces():
+        if type(force).__name__ == "NonbondedForce":
+            print(force.getNumParticles())
+            print(force.getNumExceptions())
+
+
+@pytest.mark.skipif(
+    os.getenv("CI") == "true",
+    reason="Will fail sporadicaly.",
+)
+def test_single_im1h_oac():
+    from simtk.openmm.app import StateDataReporter, DCDReporter
+
+    simulation = generate_single_im1h_oac_system()
+    # get ionic liquid templates
+    allowed_updates = {}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {
+        "r_max": 0.2,
+        "delta_e": 2.33,
+    }  # distance is about 1.23
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {
+        "r_max": 0.2,
+        "delta_e": -2.33,
+    }  # distance is about 0.18 -> verformt sich total
+
+    templates = IonicLiquidTemplates(
+        [OAC_HOAC_chelpg, IM1H_IM1_chelpg], (allowed_updates)
+    )
+    # wrap system in IonicLiquidSystem
+    ionic_liquid = IonicLiquidSystem(simulation, templates)
+    ionic_liquid.simulation.reporters.append(
+        DCDReporter(f"test_single_im1h_oac.dcd", 10)
+    )
+    ionic_liquid.simulation.reporters.append(
+        StateDataReporter(
+            f"test_single_im1h_oac.out",
+            10,
+            step=True,
+            time=True,
+            potentialEnergy=True,
+            kineticEnergy=True,
+            totalEnergy=True,
+            temperature=True,
+            volume=True,
+            density=True,
+        )
+    )
+    # ionic_liquid.simulation.minimizeEnergy(maxIterations=500)
+    # pos = ionic_liquid.simulation.context.getState(getPositions=True).getPositions(
+    #     asNumpy=True
+    # )
+    # print(pos)
+    # ionic_liquid.simulation.step(50)
+
+    update = NaiveMCUpdate(ionic_liquid)
+    # initialize state update class
+    state_update = StateUpdate(update)
+    pos = state_update.ionic_liquid.simulation.context.getState(
+        getPositions=True
+    ).getPositions(asNumpy=True)
+    # check that we have all atoms
+    assert len(pos) == 72
+
+    ionic_liquid.simulation.step(100)
+
+    state_update.update(2)
+
+    ionic_liquid.simulation.step(10000)
+
+    for force in ionic_liquid.system.getForces():
+        if type(force).__name__ == "NonbondedForce":
+            print(force.getNumParticles())
+            print(force.getNumExceptions())
+            for exc_idx in range(force.getNumExceptions()):
+                # print(force.getExceptionParameters(exc_idx))
+                (
+                    index1,
+                    index2,
+                    chargeprod,
+                    sigma,
+                    epsilon,
+                ) = force.getExceptionParameters(exc_idx)
+                # IM1H
+                # print(ionic_liquid.residues[0].original_name)
+                if (
+                    index1 in ionic_liquid.residues[0].atom_idxs
+                    and index2 in ionic_liquid.residues[0].atom_idxs
+                ):
+                    print(
+                        ionic_liquid.residues[0].original_name,
+                        index1,
+                        index2,
+                        chargeprod,
+                        sigma,
+                        epsilon,
+                    )
+                # OAC
+                # print(ionic_liquid.residues[1].original_name)
+                elif (
+                    index1 in ionic_liquid.residues[1].atom_idxs
+                    and index2 in ionic_liquid.residues[1].atom_idxs
+                ):
+                    print(
+                        ionic_liquid.residues[1].original_name,
+                        index1,
+                        index2,
+                        chargeprod,
+                        sigma,
+                        epsilon,
+                    )
+                # IM1
+                # print(ionic_liquid.residues[2].original_name)
+                elif (
+                    index1 in ionic_liquid.residues[2].atom_idxs
+                    and index2 in ionic_liquid.residues[2].atom_idxs
+                ):
+                    print(
+                        ionic_liquid.residues[2].original_name,
+                        index1,
+                        index2,
+                        chargeprod,
+                        sigma,
+                        epsilon,
+                    )
+                # HOAC
+                # print(ionic_liquid.residues[3].original_name)
+                elif (
+                    index1 in ionic_liquid.residues[3].atom_idxs
+                    and index2 in ionic_liquid.residues[3].atom_idxs
+                ):
+                    print(
+                        ionic_liquid.residues[3].original_name,
+                        index1,
+                        index2,
+                        chargeprod,
+                        sigma,
+                        epsilon,
+                    )
+                else:
+                    print("Problem")
