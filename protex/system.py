@@ -308,10 +308,10 @@ class Residue:
         force_name = "NonbondedForceExceptions"
         new_parms_offset = self._get_offset(new_name)
         old_parms_offset = self._get_offset(current_name)
-        print(f"{current_name=}, {new_name=}")
-        print(f"{new_parms_offset=}, {old_parms_offset=}")
-        print(f"{self.parameters[current_name][force_name]=}")
-        print(f"{self.parameters[new_name][force_name]=}")
+        # print(f"{current_name=}, {new_name=}")
+        # print(f"{new_parms_offset=}, {old_parms_offset=}")
+        # print(f"{self.parameters[current_name][force_name]=}")
+        # print(f"{self.parameters[new_name][force_name]=}")
 
         # match parameters
         parms_old = []

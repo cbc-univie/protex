@@ -369,6 +369,7 @@ class StateUpdate:
             # is this combination allowed?
             if residue1.current_name == residue2.current_name:
                 continue
+            # maybe speedup possible because every second entry in idx is just the opposite IM1H - OAC, then next is the same molecules but OAC - IM1H
             elif (
                 frozenset([residue1.current_name, residue2.current_name])
                 in self.ionic_liquid.templates.allowed_updates.keys()
