@@ -136,8 +136,6 @@ class Residue:
     def _set_NonbondedForce_parameters(self, parms):
         parms_nonb = deque(parms[0])
         parms_exceptions = deque(parms[1])
-        # if int(self.residue.id) == 14 and self.residue.name == "IM1":
-        #     print(f"{self.residue.id=}, {parms=}")
         for force in self.system.getForces():
             if type(force).__name__ == "NonbondedForce":
                 for parms_nonbonded, idx in zip(parms_nonb, self.atom_idxs):
@@ -286,8 +284,7 @@ class Residue:
         for parm_old, parm_new in zip(nonbonded_parm_old, nonbonded_parm_new):
             charge_old, sigma_old, epsilon_old = parm_old
             charge_new, sigma_new, epsilon_new = parm_new
-            # print(f'{charge_old=}, {sigma_old=}, {epsilon_old=}')
-            # print(f'{charge_new=}, {sigma_new=}, {epsilon_new=}')
+
             charge_interpolated = (1 - lamb) * charge_old + lamb * charge_new
             sigma_interpolated = (1 - lamb) * sigma_old + lamb * sigma_new
             epsilon_interpolated = (1 - lamb) * epsilon_old + lamb * epsilon_new
@@ -302,16 +299,9 @@ class Residue:
             )
 
         # Exceptions
-        # get the names of new and current state
-        # old_name = self.current_name
-        # new_name = self.alternativ_name
         force_name = "NonbondedForceExceptions"
         new_parms_offset = self._get_offset(new_name)
         old_parms_offset = self._get_offset(current_name)
-        # print(f"{current_name=}, {new_name=}")
-        # print(f"{new_parms_offset=}, {old_parms_offset=}")
-        # print(f"{self.parameters[current_name][force_name]=}")
-        # print(f"{self.parameters[new_name][force_name]=}")
 
         # match parameters
         parms_old = []
@@ -512,7 +502,6 @@ class Residue:
         # interpolate parameters
         # omm dihedral: [atom1, atom2, atom3, atom4, periodicity, Quantity(value=delta/phase, unit=radian), Quantity(value=Kchi, unit=kilojoule/mole)]
         for parm_old_i, parm_new_i in zip(parms_old, parms_new):
-            # print(f"{parm_old_i=}")
             per_old, phase_old, k_old = parm_old_i[-3:]
             per_new, phase_new, k_new = parm_new_i[-3:]
             k_interpolated = (1 - lamb) * k_old + lamb * k_new
@@ -562,8 +551,6 @@ class Residue:
                         raise RuntimeError(
                             "Odering of improper parameters is different between the two topologies."
                         )
-                    # print("Here with index:")
-                    # print(f"{old_idx=}, {new_idx=}")
                     parms_old.append(old_parm)
                     parms_new.append(new_parm)
                     break
@@ -597,9 +584,6 @@ class Residue:
         force_name = "DrudeForce"
         new_parms_offset = self._get_offset(new_name)
         old_parms_offset = self._get_offset(old_name)
-
-        # print(f"{old_name=}, {new_name=}")
-        # print(f"{new_parms_offset=}, {old_parms_offset=}")
 
         # match parameters
         parms_old = []
