@@ -1,0 +1,41 @@
+HEADER 
+TITLE     Built with Packmol                                             
+REMARK   Packmol generated pdb file 
+REMARK   Home-Page: http://m3g.iqm.unicamp.br/packmol
+REMARK
+ATOM      1  C1  IM1 A   1      -1.468  -1.810  -2.237  1.00  0.00      IM1     
+ATOM      2  DC1 IM1 A   1      -1.463  -1.804  -2.216  1.00  0.00      IM1     
+ATOM      3  H1  IM1 A   1      -1.058  -2.791  -1.910  1.00  0.00      IM1     
+ATOM      4  H2  IM1 A   1      -0.855  -1.394  -3.067  1.00  0.00      IM1     
+ATOM      5  H3  IM1 A   1      -2.530  -1.922  -2.550  1.00  0.00      IM1     
+ATOM      6  N1  IM1 A   1      -1.414  -0.873  -1.108  1.00  0.00      IM1     
+ATOM      7  DN1 IM1 A   1      -1.418  -0.838  -1.084  1.00  0.00      IM1     
+ATOM      8  C2  IM1 A   1      -0.928  -1.201   0.137  1.00  0.00      IM1     
+ATOM      9  DC2 IM1 A   1      -0.943  -1.172   0.117  1.00  0.00      IM1     
+ATOM     10  H4  IM1 A   1      -0.536  -2.170   0.417  1.00  0.00      IM1     
+ATOM     11  C3  IM1 A   1      -1.055  -0.065   0.884  1.00  0.00      IM1     
+ATOM     12  DC3 IM1 A   1      -1.060  -0.073   0.857  1.00  0.00      IM1     
+ATOM     13  H5  IM1 A   1      -0.787   0.099   1.920  1.00  0.00      IM1     
+ATOM     14  C4  IM1 A   1      -1.835   0.396  -1.174  1.00  0.00      IM1     
+ATOM     15  DC4 IM1 A   1      -1.828   0.374  -1.174  1.00  0.00      IM1     
+ATOM     16  H6  IM1 A   1      -2.263   0.910  -2.036  1.00  0.00      IM1     
+ATOM     17  N2  IM1 A   1      -1.614   0.896   0.053  1.00  0.00      IM1     
+ATOM     18  DN2 IM1 A   1      -1.611   0.874   0.042  1.00  0.00      IM1     
+ATOM     19  H7  IM1 A   1      -1.822   1.835   0.339  1.00  0.00      IM1     
+ATOM     20  C1  HOACB   1       0.943   1.459  -2.360  1.00  0.00      HOAC    
+ATOM     21  DC1 HOACB   1       0.949   1.452  -2.363  1.00  0.00      HOAC    
+ATOM     22  C2  HOACB   1       2.408   1.185  -2.380  1.00  0.00      HOAC    
+ATOM     23  DC2 HOACB   1       2.384   1.197  -2.376  1.00  0.00      HOAC    
+ATOM     24  H1  HOACB   1       2.927   1.970  -2.969  1.00  0.00      HOAC    
+ATOM     25  H2  HOACB   1       2.611   0.195  -2.840  1.00  0.00      HOAC    
+ATOM     26  H3  HOACB   1       2.804   1.190  -1.342  1.00  0.00      HOAC    
+ATOM     27  O1  HOACB   1       0.065   0.719  -2.781  1.00  0.00      HOAC    
+ATOM     28  DO1 HOACB   1       0.058   0.754  -2.765  1.00  0.00      HOAC    
+ATOM     29  O2  HOACB   1       0.678   2.672  -1.798  1.00  0.00      HOAC    
+ATOM     30  DO2 HOACB   1       0.696   2.669  -1.798  1.00  0.00      HOAC    
+ATOM     31  H   HOACB   1      -0.289   2.788  -1.816  1.00  0.00      HOAC    
+ATOM     32 LPO1 HOACB   1      -0.147   0.916  -2.702  1.00  0.00      HOAC    
+ATOM     33 LPO1 HOACB   1       0.269   0.514  -2.864  1.00  0.00      HOAC    
+ATOM     34 LPO2 HOACB   1       0.637   2.643  -1.451  1.00  0.00      HOAC    
+ATOM     35 LPO2 HOACB   1       0.682   2.926  -2.039  1.00  0.00      HOAC    
+END

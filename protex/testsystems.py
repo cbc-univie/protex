@@ -2,7 +2,7 @@ import protex
 import os
 
 
-def generate_im1h_oac_system_chelpg(coll_freq=10, drude_coll_freq=120):
+def generate_im1h_oac_system(coll_freq=10, drude_coll_freq=120):
     """
     Sets up a solvated and paraterized system for IM1H/OAC
     """
@@ -17,13 +17,13 @@ def generate_im1h_oac_system_chelpg(coll_freq=10, drude_coll_freq=120):
         # Loading CHARMM files
         print("Loading CHARMM files...")
         PARA_FILES = [
-            "toppar_drude_master_protein_2013f_lj02.str",
+            "toppar_drude_master_protein_2013f_lj025.str",
             "hoac_d.str",
-            "im1h_d_fm_lj_chelpg.str",
-            "im1_d_fm_lj_chelpg_withlp.str",
-            "oac_d_lj.str",
+            "im1h_d.str",
+            "im1_d.str",
+            "oac_d.str",
         ]
-        base = f"{protex.__path__[0]}/chelpg_charges"  # NOTE: this points now to the installed files!
+        base = f"{protex.__path__[0]}/forcefield"  # NOTE: this points now to the installed files!
         params = CharmmParameterSet(
             *[f"{base}/toppar/{para_files}" for para_files in PARA_FILES]
         )
@@ -103,25 +103,18 @@ def generate_im1h_oac_system_chelpg(coll_freq=10, drude_coll_freq=120):
             platform=platform,  # platformProperties=prop
         )
         simulation.context.setPositions(crd.positions)
-        # Try with positinos from equilibrated system:
-        base = f"{protex.__path__[0]}/chelpg_charges"
-        if os.path.exists(f"{base}/traj/im1h_oac_150_im1_hoac_350_npt_4.rst"):
-            with open(f"{base}/traj/im1h_oac_150_im1_hoac_350_npt_4.rst") as f:
+        # Try with positions from equilibrated system:
+        base = f"{protex.__path__[0]}/forcefield"
+        if os.path.exists(f"{base}/traj/im1h_oac_150_im1_hoac_350_npt_7.rst"):
+            with open(f"{base}/traj/im1h_oac_150_im1_hoac_350_npt_7.rst") as f:
                 print(f"Opening restart file {f}")
                 simulation.context.setState(XmlSerializer.deserialize(f.read()))
             simulation.context.computeVirtualSites()
         else:
+            print(f"No restart file found. Using initial coordinate file.")
             simulation.context.computeVirtualSites()
             simulation.context.setVelocitiesToTemperature(300 * kelvin)
 
-        # print(simulation.context.getIntegrator())
-        # print(simulation.context.getPlatform().getName())
-        # print(
-        #    [
-        #        f"{i}: {simulation.context.getPlatform().getPropertyValue(simulation.context, i)}"
-        #        for i in simulation.context.getPlatform().getPropertyNames()
-        #    ]
-        # )
         return simulation
 
     return setup_simulation()
@@ -129,7 +122,8 @@ def generate_im1h_oac_system_chelpg(coll_freq=10, drude_coll_freq=120):
 
 def generate_single_im1h_oac_system(coll_freq=10, drude_coll_freq=120):
     """
-    Sets up a solvated and paraterized system for IM1H/OAC
+    Sets up a system with 1 IM1H, 1OAC, 1IM1 and 1 HOAC
+    Was for testing the deformation of the imidazole ring -> solved by adding the nonbonded exception to the updates
     """
 
     def load_charmm_files():
@@ -148,16 +142,16 @@ def generate_single_im1h_oac_system(coll_freq=10, drude_coll_freq=120):
             "im1_d_fm_lj_chelpg_withlp.str",
             "oac_d_lj.str",
         ]
-        base = f"{protex.__path__[0]}/chelpg_charges"  # NOTE: this points now to the installed files!
+        base = f"{protex.__path__[0]}/single_pairs"  # NOTE: this points now to the installed files!
         params = CharmmParameterSet(
             *[f"{base}/toppar/{para_files}" for para_files in PARA_FILES]
         )
 
-        psf = CharmmPsfFile(f"{base}/single_pairs/im1h_oac_im1_hoac_1_secondtry.psf")
+        psf = CharmmPsfFile(f"{base}/im1h_oac_im1_hoac_1_secondtry.psf")
         xtl = 15.0 * angstroms
         psf.setBox(xtl, xtl, xtl)
         # cooridnates can be provieded by CharmmCrdFile, CharmmRstFile or PDBFile classes
-        crd = CharmmCrdFile(f"{base}/single_pairs/im1h_oac_im1_hoac_1_secondtry.crd")
+        crd = CharmmCrdFile(f"{base}/im1h_oac_im1_hoac_1_secondtry.crd")
         return psf, crd, params
 
     def setup_system():
@@ -178,7 +172,6 @@ def generate_single_im1h_oac_system(coll_freq=10, drude_coll_freq=120):
     def setup_simulation():
         from simtk.openmm import (
             Platform,
-            DrudeLangevinIntegrator,
             DrudeNoseHooverIntegrator,
             XmlSerializer,
         )
@@ -187,9 +180,6 @@ def generate_single_im1h_oac_system(coll_freq=10, drude_coll_freq=120):
 
         # plugin
         # https://github.com/z-gong/openmm-velocityVerlet
-
-        # coll_freq = 10
-        # drude_coll_freq = 80
 
         try:
             from velocityverletplugin import VVIntegrator
@@ -228,14 +218,6 @@ def generate_single_im1h_oac_system(coll_freq=10, drude_coll_freq=120):
             platform=platform,  # platformProperties=prop
         )
         simulation.context.setPositions(crd.positions)
-        # Try with positinos from equilibrated system:
-        # base = f"{protex.__path__[0]}/chelpg_charges"
-        # if os.path.exists(f"{base}/traj/im1h_oac_150_im1_hoac_350_npt_4.rst"):
-        #     with open(f"{base}/traj/im1h_oac_150_im1_hoac_350_npt_4.rst") as f:
-        #         print(f"Opening restart file {f}")
-        #         simulation.context.setState(XmlSerializer.deserialize(f.read()))
-        #     simulation.context.computeVirtualSites()
-        # else:
         simulation.context.computeVirtualSites()
         # simulation.context.setVelocitiesToTemperature(300 * kelvin)
 
@@ -252,7 +234,7 @@ def generate_single_im1h_oac_system(coll_freq=10, drude_coll_freq=120):
     return setup_simulation()
 
 
-IM1H_IM1_chelpg = {
+IM1H_IM1 = {
     "IM1H": {
         "atom_name": "H7",
         "canonical_name": "IM1",
@@ -263,7 +245,7 @@ IM1H_IM1_chelpg = {
     },
 }
 
-OAC_HOAC_chelpg = {
+OAC_HOAC = {
     "OAC": {
         "atom_name": "O1",
         "canonical_name": "OAC",

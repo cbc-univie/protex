@@ -6,16 +6,15 @@ import pytest
 
 from ..system import IonicLiquidSystem, IonicLiquidTemplates
 
-# from ..testsystems import generate_im1h_oac_system
 from ..testsystems import (
-    IM1H_IM1_chelpg,
-    OAC_HOAC_chelpg,
-    generate_im1h_oac_system_chelpg,
+    IM1H_IM1,
+    OAC_HOAC,
+    generate_im1h_oac_system,
 )
 
 
 def test_setup_simulation():
-    simulation = generate_im1h_oac_system_chelpg()
+    simulation = generate_im1h_oac_system()
     print("Minimizing...")
     simulation.minimizeEnergy(maxIterations=100)
     system = simulation.system
@@ -27,7 +26,7 @@ def test_setup_simulation():
 def test_run_simulation():
     from simtk.openmm.app import DCDReporter, PDBReporter, StateDataReporter
 
-    simulation = generate_im1h_oac_system_chelpg()
+    simulation = generate_im1h_oac_system()
     print("Minimizing...")
     simulation.minimizeEnergy(maxIterations=50)
     simulation.reporters.append(PDBReporter("output.pdb", 50))
@@ -47,7 +46,7 @@ def test_run_simulation():
     )
     print("Running dynmamics...")
     simulation.step(200)
-    # If simulation aborts with Nan error, try smaller timestep (e.g. 0.0001 ps) and then extract new crd from dcd using "protex/charmm_ff/crdfromdcd.inp"
+    # If simulation aborts with Nan error, try smaller timestep (e.g. 0.0001 ps) and then extract new crd from dcd using "protex/forcefield/crdfromdcd.inp"
 
 
 def test_create_IonicLiquidTemplate():
@@ -55,9 +54,7 @@ def test_create_IonicLiquidTemplate():
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "delta_e": 2.33}
     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "delta_e": -2.33}
 
-    templates = IonicLiquidTemplates(
-        [OAC_HOAC_chelpg, IM1H_IM1_chelpg], (allowed_updates)
-    )
+    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
 
     r = templates.get_residue_name_for_coupled_state("OAC")
     assert r == "HOAC"
@@ -79,14 +76,12 @@ def test_create_IonicLiquidTemplate():
 def test_create_IonicLiquid():
     from collections import defaultdict
 
-    simulation = generate_im1h_oac_system_chelpg()
+    simulation = generate_im1h_oac_system()
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "delta_e": 2.33}
     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "delta_e": -2.33}
 
-    templates = IonicLiquidTemplates(
-        [OAC_HOAC_chelpg, IM1H_IM1_chelpg], (allowed_updates)
-    )
+    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
 
     count = defaultdict(int)
     ionic_liquid = IonicLiquidSystem(simulation, templates)
@@ -103,7 +98,7 @@ def test_create_IonicLiquid():
 
 
 def test_residues():
-    simulation = generate_im1h_oac_system_chelpg()
+    simulation = generate_im1h_oac_system()
     topology = simulation.topology
     for idx, r in enumerate(topology.residues()):
         if r.name == "IM1H" and idx == 0:
@@ -203,7 +198,7 @@ def test_residues():
 def test_forces():
     from collections import defaultdict
 
-    simulation = generate_im1h_oac_system_chelpg()
+    simulation = generate_im1h_oac_system()
     system = simulation.system
     topology = simulation.topology
     force_state = defaultdict(list)  # store bond force
@@ -272,7 +267,7 @@ def test_forces():
 def test_torsion_forces():
     from collections import defaultdict
 
-    simulation = generate_im1h_oac_system_chelpg()
+    simulation = generate_im1h_oac_system()
     system = simulation.system
     topology = simulation.topology
     force_state = defaultdict(list)  # store bond force
@@ -430,14 +425,12 @@ def test_drude_forces():
 
     import simtk.openmm as mm
 
-    simulation = generate_im1h_oac_system_chelpg()
+    simulation = generate_im1h_oac_system()
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "delta_e": 2.33}
     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "delta_e": -2.33}
 
-    templates = IonicLiquidTemplates(
-        [OAC_HOAC_chelpg, IM1H_IM1_chelpg], (allowed_updates)
-    )
+    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
 
     ionic_liquid = IonicLiquidSystem(simulation, templates)
     system = simulation.system
@@ -540,14 +533,12 @@ def test_drude_forces():
 
 
 def test_create_IonicLiquid_residue():
-    simulation = generate_im1h_oac_system_chelpg()
+    simulation = generate_im1h_oac_system()
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "delta_e": 2.33}
     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "delta_e": -2.33}
 
-    templates = IonicLiquidTemplates(
-        [OAC_HOAC_chelpg, IM1H_IM1_chelpg], (allowed_updates)
-    )
+    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
 
     ionic_liquid = IonicLiquidSystem(simulation, templates)
     assert len(ionic_liquid.residues) == 1000
@@ -578,15 +569,13 @@ def test_report_charge_changes():
     from ..update import NaiveMCUpdate, StateUpdate
 
     # obtain simulation object
-    simulation = generate_im1h_oac_system_chelpg()
+    simulation = generate_im1h_oac_system()
     # get ionic liquid templates
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "delta_e": 2.33}
     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "delta_e": -2.33}
 
-    templates = IonicLiquidTemplates(
-        [OAC_HOAC_chelpg, IM1H_IM1_chelpg], (allowed_updates)
-    )
+    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
     # wrap system in IonicLiquidSystem
     ionic_liquid = IonicLiquidSystem(simulation, templates)
     # initialize update method
@@ -596,15 +585,13 @@ def test_report_charge_changes():
 
     n_steps = 2
     ionic_liquid.report_charge_changes(
-        filename="test_charge_changes.dat", step=0, n_steps=n_steps
+        filename="test_charge_changes.dat", step=0, tot_steps=n_steps
     )
+    ionic_liquid.simulation.step(100)
     state_update.update()
-    ionic_liquid.simulation.step(1000)
     ionic_liquid.report_charge_changes(
-        filename="test_charge_changes.dat", step=1, n_steps=n_steps
+        filename="test_charge_changes.dat", step=1, tot_steps=n_steps
     )
-
-    # ionic_liquid.charge_changes_to_json("test.json", append=False)
 
     with open("test_charge_changes.dat", "r") as json_file:
         data = json.load(json_file)

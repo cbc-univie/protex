@@ -1,31 +1,30 @@
 import logging
 import os
 
-from collections import deque
+from collections import defaultdict, deque
 import numpy as np
 import pytest
 from scipy.spatial import distance_matrix
 
+import protex
 from ..system import IonicLiquidSystem, IonicLiquidTemplates
 from ..testsystems import (
-    IM1H_IM1_chelpg,
-    OAC_HOAC_chelpg,
-    generate_im1h_oac_system_chelpg,
+    IM1H_IM1,
+    OAC_HOAC,
+    generate_im1h_oac_system,
     generate_single_im1h_oac_system,
 )
 from ..update import NaiveMCUpdate, StateUpdate
 
 
 def test_distance_calculation():
-    simulation = generate_im1h_oac_system_chelpg()
+    simulation = generate_im1h_oac_system()
     # get ionic liquid templates
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "delta_e": 2.33}
     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "delta_e": -2.33}
 
-    templates = IonicLiquidTemplates(
-        [OAC_HOAC_chelpg, IM1H_IM1_chelpg], (allowed_updates)
-    )
+    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
     # wrap system in IonicLiquidSystem
     ionic_liquid = IonicLiquidSystem(simulation, templates)
 
@@ -70,15 +69,13 @@ def test_distance_calculation():
 
 def test_get_and_interpolate_forces():
 
-    simulation = generate_im1h_oac_system_chelpg()
+    simulation = generate_im1h_oac_system()
     # get ionic liquid templates
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "delta_e": 2.33}
     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "delta_e": -2.33}
 
-    templates = IonicLiquidTemplates(
-        [OAC_HOAC_chelpg, IM1H_IM1_chelpg], (allowed_updates)
-    )
+    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
     # wrap system in IonicLiquidSystem
     ionic_liquid = IonicLiquidSystem(simulation, templates)
 
@@ -163,7 +160,7 @@ def test_get_and_interpolate_forces():
 
 def test_setting_forces():
 
-    simulation = generate_im1h_oac_system_chelpg()
+    simulation = generate_im1h_oac_system()
     allowed_updates = {}
     # allowed updates according to simple protonation scheme
     allowed_updates[frozenset(["IM1H", "OAC"])] = {
@@ -175,7 +172,7 @@ def test_setting_forces():
     allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.16, "delta_e": 0.68}
     # get ionic liquid templates
     templates = IonicLiquidTemplates(
-        [OAC_HOAC_chelpg, IM1H_IM1_chelpg],
+        [OAC_HOAC, IM1H_IM1],
         (allowed_updates),
     )
     # wrap system in IonicLiquidSystem
@@ -575,15 +572,13 @@ def test_setting_forces():
 )
 def test_single_update():
 
-    simulation = generate_im1h_oac_system_chelpg()
+    simulation = generate_im1h_oac_system()
     # get ionic liquid templates
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "delta_e": 2.33}
     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "delta_e": -2.33}
 
-    templates = IonicLiquidTemplates(
-        [OAC_HOAC_chelpg, IM1H_IM1_chelpg], (allowed_updates)
-    )
+    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
     # wrap system in IonicLiquidSystem
     ionic_liquid = IonicLiquidSystem(simulation, templates)
     ionic_liquid.simulation.minimizeEnergy(maxIterations=500)
@@ -650,15 +645,13 @@ def test_single_update():
 def test_check_updated_charges(caplog):
     caplog.set_level(logging.DEBUG)
 
-    simulation = generate_im1h_oac_system_chelpg()
+    simulation = generate_im1h_oac_system()
     # get ionic liquid templates
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "delta_e": 2.33}
     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "delta_e": -2.33}
 
-    templates = IonicLiquidTemplates(
-        [OAC_HOAC_chelpg, IM1H_IM1_chelpg], (allowed_updates)
-    )
+    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
     # wrap system in IonicLiquidSystem
     ionic_liquid = IonicLiquidSystem(simulation, templates)
 
@@ -715,15 +708,13 @@ def test_transfer_with_distance_matrix():
 
     import numpy as np
 
-    simulation = generate_im1h_oac_system_chelpg()
+    simulation = generate_im1h_oac_system()
     # get ionic liquid templates
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "delta_e": 2.33}
     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "delta_e": -2.33}
 
-    templates = IonicLiquidTemplates(
-        [OAC_HOAC_chelpg, IM1H_IM1_chelpg], (allowed_updates)
-    )
+    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
     # wrap system in IonicLiquidSystem
     ionic_liquid = IonicLiquidSystem(simulation, templates)
 
@@ -809,7 +800,7 @@ def test_transfer_with_distance_matrix():
     assert np.isclose(total_charge_first, 0.0)
     assert np.isclose(total_charge_second, 0.0)
 
-    for _ in range(100):
+    for _ in range(10):
         state_update.update(2)
 
 
@@ -820,7 +811,7 @@ def test_transfer_with_distance_matrix():
 def test_updates(caplog):
     caplog.set_level(logging.DEBUG)
 
-    simulation = generate_im1h_oac_system_chelpg()
+    simulation = generate_im1h_oac_system()
     allowed_updates = {}
     # allowed updates according to simple protonation scheme
     allowed_updates[frozenset(["IM1H", "OAC"])] = {
@@ -832,9 +823,7 @@ def test_updates(caplog):
     allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.16, "delta_e": 0.68}
     print(allowed_updates.keys())
     # get ionic liquid templates
-    templates = IonicLiquidTemplates(
-        [OAC_HOAC_chelpg, IM1H_IM1_chelpg], (allowed_updates)
-    )
+    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
     # wrap system in IonicLiquidSystem
     ionic_liquid = IonicLiquidSystem(simulation, templates)
     pars = []
@@ -842,10 +831,10 @@ def test_updates(caplog):
     # initialize state update class
     state_update = StateUpdate(update)
     # ionic_liquid.simulation.minimizeEnergy(maxIterations=200)
-    ionic_liquid.simulation.step(500)
+    ionic_liquid.simulation.step(50)
 
     for _ in range(5):
-        ionic_liquid.simulation.step(2000)
+        ionic_liquid.simulation.step(100)
         pars.append(state_update.get_charges())
         candidate_pairs = state_update.update(2)
         print(candidate_pairs)
@@ -854,7 +843,7 @@ def test_updates(caplog):
 def test_dry_updates(caplog):
     caplog.set_level(logging.DEBUG)
 
-    simulation = generate_im1h_oac_system_chelpg()
+    simulation = generate_im1h_oac_system()
     # get ionic liquid templates
     allowed_updates = {}
     # allowed updates according to simple protonation scheme
@@ -868,7 +857,7 @@ def test_dry_updates(caplog):
     print(allowed_updates.keys())
     templates = IonicLiquidTemplates(
         # [OAC_HOAC_chelpg, IM1H_IM1_chelpg], (set(["IM1H", "OAC"]), set(["IM1", "HOAC"]))
-        [OAC_HOAC_chelpg, IM1H_IM1_chelpg],
+        [OAC_HOAC, IM1H_IM1],
         (allowed_updates),
     )
     # wrap system in IonicLiquidSystem
@@ -878,7 +867,7 @@ def test_dry_updates(caplog):
     # initialize state update class
     state_update = StateUpdate(update)
     ionic_liquid.simulation.minimizeEnergy(maxIterations=200)
-    ionic_liquid.simulation.step(500)
+    ionic_liquid.simulation.step(200)
 
     for _ in range(1):
         ionic_liquid.simulation.step(200)
@@ -900,15 +889,13 @@ def test_dry_updates(caplog):
 def test_parameters_after_update():
     from simtk.openmm.app import StateDataReporter, DCDReporter
 
-    simulation = generate_im1h_oac_system_chelpg()
+    simulation = generate_im1h_oac_system()
     # get ionic liquid templates
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "delta_e": 2.33}
     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "delta_e": -2.33}
 
-    templates = IonicLiquidTemplates(
-        [OAC_HOAC_chelpg, IM1H_IM1_chelpg], (allowed_updates)
-    )
+    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
     # wrap system in IonicLiquidSystem
     ionic_liquid = IonicLiquidSystem(simulation, templates)
     ionic_liquid.simulation.reporters.append(DCDReporter(f"test_transfer.dcd", 1))
@@ -939,9 +926,9 @@ def test_parameters_after_update():
     assert len(pos) == 18000
     # check properties of residue that will be tested
     idx1 = (
-        150 + 150 + 14 - 1
-    )  # soll IM1 mit residue.id=14 sein, da in residue list 0 based -> -1
-    idx2 = 150 + 150 + 350 + 63 - 1  # HOAC 61
+        150 + 150 + 89 - 1
+    )  # soll IM1 mit residue.id=89 sein, da in residue list 0 based -> -1
+    idx2 = 150 + 150 + 350 + 139 - 1  # HOAC 139
     assert state_update.ionic_liquid.residues[idx1].current_name == "IM1"
     assert state_update.ionic_liquid.residues[idx1].original_name == "IM1"
     assert state_update.ionic_liquid.residues[idx1].current_charge == 0.00
@@ -1016,7 +1003,7 @@ def test_parameters_after_update():
     print("BEFORE END")
 
     state_update.update(2)
-    ionic_liquid.simulation.step(500)
+    ionic_liquid.simulation.step(100)
 
     print("AFTER START")
     print(f"{current_name=}")
@@ -1141,63 +1128,18 @@ def test_parameters_after_update():
     os.getenv("CI") == "true",
     reason="Will fail sporadicaly.",
 )
-def test_forces():
-    from simtk.openmm.app import StateDataReporter, DCDReporter
-
-    simulation = generate_im1h_oac_system_chelpg()
-    # get ionic liquid templates
-    allowed_updates = {}
-    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "delta_e": 2.33}
-    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "delta_e": -2.33}
-
-    templates = IonicLiquidTemplates(
-        [OAC_HOAC_chelpg, IM1H_IM1_chelpg], (allowed_updates)
-    )
-    # wrap system in IonicLiquidSystem
-    ionic_liquid = IonicLiquidSystem(simulation, templates)
-    ionic_liquid.simulation.reporters.append(DCDReporter(f"test_transfer.dcd", 1))
-    ionic_liquid.simulation.reporters.append(
-        StateDataReporter(
-            f"test_transfer.out",
-            1,
-            step=True,
-            time=True,
-            potentialEnergy=True,
-            kineticEnergy=True,
-            totalEnergy=True,
-            temperature=True,
-            volume=True,
-            density=True,
-        )
-    )
-    # ionic_liquid.simulation.minimizeEnergy(maxIterations=500)
-    # ionic_liquid.simulation.step(50)
-
-    update = NaiveMCUpdate(ionic_liquid)
-    # initialize state update class
-    state_update = StateUpdate(update)
-    # pos = state_update.ionic_liquid.simulation.context.getState(
-    #     getPositions=True
-    # ).getPositions(asNumpy=True)
-
-    for force in ionic_liquid.system.getForces():
-        if type(force).__name__ == "NonbondedForce":
-            print(force.getNumParticles())
-            print(force.getNumExceptions())
-
-
-@pytest.mark.skipif(
-    os.getenv("CI") == "true",
-    reason="Will fail sporadicaly.",
-)
 def test_single_im1h_oac():
     from simtk.openmm.app import StateDataReporter, DCDReporter
+
+    base = f"{protex.__path__[0]}/single_pairs"
 
     simulation = generate_single_im1h_oac_system()
     # get ionic liquid templates
     allowed_updates = {}
+    # set distance criterion in order to have both possible transfers
+    # -> then in the end it is checked that the new residue has the same exception parameters than the old one
     allowed_updates[frozenset(["IM1H", "OAC"])] = {
-        "r_max": 0.2,
+        "r_max": 1.3,
         "delta_e": 2.33,
     }  # distance is about 1.23
     allowed_updates[frozenset(["IM1", "HOAC"])] = {
@@ -1205,17 +1147,15 @@ def test_single_im1h_oac():
         "delta_e": -2.33,
     }  # distance is about 0.18 -> verformt sich total
 
-    templates = IonicLiquidTemplates(
-        [OAC_HOAC_chelpg, IM1H_IM1_chelpg], (allowed_updates)
-    )
+    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
     # wrap system in IonicLiquidSystem
     ionic_liquid = IonicLiquidSystem(simulation, templates)
     ionic_liquid.simulation.reporters.append(
-        DCDReporter(f"test_single_im1h_oac.dcd", 10)
+        DCDReporter(f"{base}/test_single_im1h_oac.dcd", 10)
     )
     ionic_liquid.simulation.reporters.append(
         StateDataReporter(
-            f"test_single_im1h_oac.out",
+            f"{base}/test_single_im1h_oac.out",
             10,
             step=True,
             time=True,
@@ -1227,12 +1167,6 @@ def test_single_im1h_oac():
             density=True,
         )
     )
-    # ionic_liquid.simulation.minimizeEnergy(maxIterations=500)
-    # pos = ionic_liquid.simulation.context.getState(getPositions=True).getPositions(
-    #     asNumpy=True
-    # )
-    # print(pos)
-    # ionic_liquid.simulation.step(50)
 
     update = NaiveMCUpdate(ionic_liquid)
     # initialize state update class
@@ -1243,16 +1177,11 @@ def test_single_im1h_oac():
     # check that we have all atoms
     assert len(pos) == 72
 
-    ionic_liquid.simulation.step(100)
-
-    state_update.update(2)
-
-    ionic_liquid.simulation.step(10000)
-
+    exceptions_before = {}
     for force in ionic_liquid.system.getForces():
         if type(force).__name__ == "NonbondedForce":
-            print(force.getNumParticles())
-            print(force.getNumExceptions())
+            print(f"{force.getNumParticles()=}")
+            print(f"{force.getNumExceptions()=}")
             for exc_idx in range(force.getNumExceptions()):
                 # print(force.getExceptionParameters(exc_idx))
                 (
@@ -1262,61 +1191,62 @@ def test_single_im1h_oac():
                     sigma,
                     epsilon,
                 ) = force.getExceptionParameters(exc_idx)
-                # IM1H
-                # print(ionic_liquid.residues[0].original_name)
-                if (
-                    index1 in ionic_liquid.residues[0].atom_idxs
-                    and index2 in ionic_liquid.residues[0].atom_idxs
-                ):
-                    print(
-                        ionic_liquid.residues[0].original_name,
-                        index1,
-                        index2,
-                        chargeprod,
-                        sigma,
-                        epsilon,
-                    )
-                # OAC
-                # print(ionic_liquid.residues[1].original_name)
-                elif (
-                    index1 in ionic_liquid.residues[1].atom_idxs
-                    and index2 in ionic_liquid.residues[1].atom_idxs
-                ):
-                    print(
-                        ionic_liquid.residues[1].original_name,
-                        index1,
-                        index2,
-                        chargeprod,
-                        sigma,
-                        epsilon,
-                    )
-                # IM1
-                # print(ionic_liquid.residues[2].original_name)
-                elif (
-                    index1 in ionic_liquid.residues[2].atom_idxs
-                    and index2 in ionic_liquid.residues[2].atom_idxs
-                ):
-                    print(
-                        ionic_liquid.residues[2].original_name,
-                        index1,
-                        index2,
-                        chargeprod,
-                        sigma,
-                        epsilon,
-                    )
-                # HOAC
-                # print(ionic_liquid.residues[3].original_name)
-                elif (
-                    index1 in ionic_liquid.residues[3].atom_idxs
-                    and index2 in ionic_liquid.residues[3].atom_idxs
-                ):
-                    print(
-                        ionic_liquid.residues[3].original_name,
-                        index1,
-                        index2,
-                        chargeprod,
-                        sigma,
-                        epsilon,
-                    )
-                else:
-                    print("Problem")
+                for i in range(4):  # 0: IM1H, 1: OAC, 2: IM1, 3: HOAC
+                    if (
+                        index1 in ionic_liquid.residues[i].atom_idxs
+                        and index2 in ionic_liquid.residues[i].atom_idxs
+                    ):
+                        if (
+                            not ionic_liquid.residues[i].original_name
+                            in exceptions_before.keys()
+                        ):
+                            exceptions_before[
+                                ionic_liquid.residues[i].original_name
+                            ] = [
+                                index1,
+                                index2,
+                                chargeprod,
+                                sigma,
+                                epsilon,
+                            ]
+                if ["IM1H", "OAC", "IM1", "HOAC"] == list(exceptions_before.keys()):
+                    break
+
+    ionic_liquid.simulation.step(100)
+
+    state_update.update(2)
+
+    ionic_liquid.simulation.step(1000)
+
+    exceptions_after = {}
+    for force in ionic_liquid.system.getForces():
+        if type(force).__name__ == "NonbondedForce":
+            print(f"{force.getNumParticles()=}")
+            print(f"{force.getNumExceptions()=}")
+            for exc_idx in range(force.getNumExceptions()):
+                (
+                    index1,
+                    index2,
+                    chargeprod,
+                    sigma,
+                    epsilon,
+                ) = force.getExceptionParameters(exc_idx)
+                for i in range(4):  # 0: IM1H, 1: OAC, 2: IM1, 3: HOAC
+                    if (
+                        index1 in ionic_liquid.residues[i].atom_idxs
+                        and index2 in ionic_liquid.residues[i].atom_idxs
+                    ):
+                        if (
+                            not ionic_liquid.residues[i].current_name
+                            in exceptions_after.keys()
+                        ):
+                            exceptions_after[ionic_liquid.residues[i].current_name] = [
+                                index1,
+                                index2,
+                                chargeprod,
+                                sigma,
+                                epsilon,
+                            ]
+                if ["IM1H", "OAC", "IM1", "HOAC"] == list(exceptions_after.keys()):
+                    break
+    assert sorted(exceptions_before) == sorted(exceptions_after)

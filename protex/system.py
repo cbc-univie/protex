@@ -918,13 +918,18 @@ class IonicLiquidSystem:
         """
         pass
 
-    def report_charge_changes(self, filename: str, step=0, n_steps=None):
+    def report_charge_changes(self, filename: str, step: int, tot_steps: int) -> None:
         """
         call for each round, before first update to have step 0 as initial step saved
         report_charge_changes reports the current charges after each update step in a dictionary format:
         {"step": [residue_charges]}
         additional header data is the dcd save frequency needed for later reconstruction of the charges at different steps
+        Parameters:
+        filename: str
+        step: int, current update step
+        tot_step: int, number of total update steps
         """
+        # TODO: use json module or something similar, right now not very usefull with this tot_step thing to match the brackets
         if step == 0:
             mode = "w"
         else:
@@ -934,11 +939,11 @@ class IonicLiquidSystem:
             if mode == "w":
                 f.write('{"dcd_save_freq": 100,\n')  # TODO: fetch automatically!
                 f.write('"charges_at_step": {\n')
-            if step != n_steps - 1:
+            if step != tot_steps - 1:
                 f.write(
                     f'"{step}": {[residue.endstate_charge for residue in self.residues]},\n'
                 )
-            elif step == n_steps - 1:
+            elif step == tot_steps - 1:
                 f.write(
                     f'"{step}": {[residue.endstate_charge for residue in self.residues]}}}}}\n'
                 )

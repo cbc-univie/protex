@@ -70,37 +70,6 @@ class NaiveMCUpdate(Update):
                     ######################
                     candidate2_residue.update(force_to_be_updated, lamb)
 
-                # # reset drude positions to parent atom positions, maybe put it outside lambda loop?
-                # drude_idxs = [
-                #     atom.index
-                #     for atom in self.ionic_liquid.topology.atoms()
-                #     if atom.name.startswith("D")
-                # ]
-                # print(f"{len(drude_idxs)=}")
-                # all_pos = self.ionic_liquid.simulation.context.getState(
-                #     getPositions=True
-                # ).getPositions(asNumpy=True)
-                # import copy
-
-                # all_pos_init = copy.deepcopy(all_pos)
-                # print(all_pos[0])
-                # print(all_pos[1])
-                # # print(f"{drude_idxs=}")
-                # print(f"{len(all_pos)=}")
-                # for i in range(len(all_pos)):
-                #     if i in drude_idxs:
-                #         # print("D", i, all_pos[i], all_pos[i - 1])
-                #         all_pos[i] = all_pos[
-                #             i - 1
-                #         ]  # set drude position to parent atom position
-
-                # # update all the positions in the context
-                # # assert not np.array_equal(all_pos_init, all_pos)
-                # # print(all_pos[0])
-                # # print(all_pos[1])
-                # # self.ionic_liquid.simulation.context.setPositions(all_pos)
-                # # maybe reset also k's?
-
             # update the context to include the new parameters
             for force_to_be_updated in self.allowed_forces:
                 self.ionic_liquid.update_context(force_to_be_updated)

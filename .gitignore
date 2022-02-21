@@ -106,5 +106,5 @@ ENV/
 *profraw
 
 # user defined (flo)
-protex/charmm-ff/out/
-protex/charmm-ff/traj/
+#protex/charmm-ff/out/
+#protex/charmm-ff/traj/
