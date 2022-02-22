@@ -1,7 +1,7 @@
 import itertools
 import logging
 from collections import ChainMap, defaultdict, deque
-from typing import Dict
+from typing import Dict, List
 
 import numpy as np
 
@@ -267,7 +267,7 @@ class Residue:
 
     def _get_NonbondedForce_parameters_at_lambda(
         self, lamb: float
-    ) -> list[list[int], list[int]]:
+    ) -> List[List[int], List[int]]:
         # returns interpolated sorted nonbonded Forces.
         assert lamb >= 0 and lamb <= 1
         current_name = self.current_name
