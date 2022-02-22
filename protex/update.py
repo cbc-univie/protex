@@ -167,10 +167,10 @@ class StateUpdate:
         updates the current state using the method defined in the UpdateMethod class
         """
         # calculate the distance betwen updateable residues
-        pos_list, res_list = self._get_positions_for_mutation_sites_new()
+        pos_list, res_list = self._get_positions_for_mutation_sites()
         # propose the update candidates based on distances
         self._print_start()
-        candidate_pairs = self._propose_candidate_pair_new(pos_list, res_list)
+        candidate_pairs = self._propose_candidate_pair(pos_list, res_list)
         print(f"{len(candidate_pairs)=}")
 
         if len(candidate_pairs) == 0:
@@ -184,28 +184,21 @@ class StateUpdate:
         return candidate_pairs
 
     def _propose_candidate_pair(
-        self, distance_dict: dict, res_dict: dict
-    ) -> List[Tuple]:
+        self, pos_dict: dict, res_dict: dict, use_pbc: bool = True
+    ) -> list[tuple]:
+        """
+        Takes the return value of _get_positions_of_mutation_sites
+
+        """
 
         canonical_names = list(
             set([residue.canonical_name for residue in self.ionic_liquid.residues])
         )
         logger.debug(canonical_names)
-        # calculate distance matrix between the two molecules
-        distance = distance_matrix(
-            distance_dict[canonical_names[0]], distance_dict[canonical_names[1]]
-        )
-        # TODO: PBC need to be enforced
-        # -> what about:
+
         from scipy.spatial.distance import cdist
 
-        boxl = (
-            self.ionic_liquid.simulation.context.getState()
-            .getPeriodicBoxVectors()[0][0]
-            ._value
-        )  # move to place where it is checked only once -> NVT, same boxl the whole time
-
-        def rPBC(coor1, coor2, boxl=boxl):
+        def _rPBC(coor1, coor2, boxl=self.ionic_liquid.boxlength):
             dx = abs(coor1[0] - coor2[0])
             if dx > boxl / 2:
                 dx = boxl - dx
@@ -217,9 +210,18 @@ class StateUpdate:
                 dz = boxl - dz
             return np.sqrt(dx * dx + dy * dy + dz * dz)
 
-        distance_pbc = cdist(
-            distance_dict[canonical_names[0]], distance_dict[canonical_names[1]], rPBC
-        )
+        # calculate distance matrix between the two molecules
+        if use_pbc:
+            logger.debug("Using PBC correction for distance calculation")
+            distance = cdist(
+                pos_dict[canonical_names[0]], pos_dict[canonical_names[1]], _rPBC
+            )
+        else:
+            logger.debug("No PBC correction for distance calculation")
+            distance = distance_matrix(
+                pos_dict[canonical_names[0]], pos_dict[canonical_names[1]]
+            )
+
         # print(f"{distance=}, {distance_pbc=}")
         # get a list of indices for elements in the distance matrix sorted by increasing distance
         # NOTE: This always accepts a move!
@@ -293,23 +295,26 @@ class StateUpdate:
             getPositions=True
         ).getPositions(asNumpy=True)
 
-        # fill in the positions
+        # fill in the positions for each species
         pos_dict = defaultdict(list)
         res_dict = defaultdict(list)
 
         # loop over all residues and add the positions of the atoms that can be updated to the pos_dict
         for residue in self.ionic_liquid.residues:
             assert residue.current_name in self.ionic_liquid.templates.names
-            pos_dict[residue.canonical_name].append(
+            # get the position of the atom (Hydrogen or the possible acceptor)
+            pos_dict[residue.canonical_name].append(  # here maybe current name
                 pos[
                     residue.get_idx_for_atom_name(
                         self.ionic_liquid.templates.states[residue.original_name][
                             "atom_name"
                         ]
                     )  # this needs the atom idx to be the same for both topologies
+                    # TODO: maybe get rid of this caveat
+                    # maybe some mapping between possible residue states and corresponding atom positions
                 ]
             )
-            res_dict[residue.canonical_name].append(residue)
+            res_dict[residue.canonical_name].append(residue)  # here maybe current name
 
         return pos_dict, res_dict
 

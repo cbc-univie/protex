@@ -706,8 +706,6 @@ def test_check_updated_charges(caplog):
 
 def test_transfer_with_distance_matrix():
 
-    import numpy as np
-
     simulation = generate_im1h_oac_system()
     # get ionic liquid templates
     allowed_updates = {}
@@ -724,7 +722,7 @@ def test_transfer_with_distance_matrix():
     state_update.write_charges("output_initial.txt")
     par_initial = state_update.get_charges()
     res_dict = state_update.get_num_residues()
-    print(res_dict)
+    # print(res_dict)
     for residue in ionic_liquid.residues:
         current_charge = 0
         for idx in residue.atom_idxs:
@@ -745,12 +743,12 @@ def test_transfer_with_distance_matrix():
     for residue in ionic_liquid.residues:
         current_charge = 0
         atoms = []
-        print(f"{residue.current_name=}")
+        # print(f"{residue.current_name=}")
         for idx in residue.atom_idxs:
             current_charge += par_after_first_update[idx][2]._value
             atoms.append(par_after_first_update[idx][1])
         if not np.round(current_charge) == residue.current_charge:
-            print(atoms)
+            # print(atoms)
             raise RuntimeError(
                 f"{residue.residue.id=},{residue.current_name=},{residue.original_name=},{current_charge=},{residue.current_charge=}"
             )
@@ -780,7 +778,7 @@ def test_transfer_with_distance_matrix():
     )
     # check that total charge remains constant
     total_charge_init, total_charge_first, total_charge_second = 0.0, 0.0, 0.0
-    print(candidate_pairs1)
+    # print(candidate_pairs1)
     r1, r2 = candidate_pairs1[0]
     print(r1.current_name)
     print(r2.current_name)
@@ -800,7 +798,7 @@ def test_transfer_with_distance_matrix():
     assert np.isclose(total_charge_first, 0.0)
     assert np.isclose(total_charge_second, 0.0)
 
-    for _ in range(10):
+    for _ in range(5):
         state_update.update(2)
 
 
@@ -871,12 +869,10 @@ def test_dry_updates(caplog):
 
     for _ in range(1):
         ionic_liquid.simulation.step(200)
-        distance_dict, res_dict = state_update._get_positions_for_mutation_sites_new()
+        distance_dict, res_dict = state_update._get_positions_for_mutation_sites()
         # propose the update candidates based on distances
         state_update._print_start()
-        candidate_pairs = state_update._propose_candidate_pair_new(
-            distance_dict, res_dict
-        )
+        candidate_pairs = state_update._propose_candidate_pair(distance_dict, res_dict)
         print(f"{candidate_pairs=}, {len(candidate_pairs)=}")
         state_update._print_stop()
         pars.append(state_update.get_charges())
@@ -1122,6 +1118,66 @@ def test_parameters_after_update():
     # assert state_update.ionic_liquid.residues[idx2].original_name == "OAC"
     # assert state_update.ionic_liquid.residues[idx2].endstate_charge == -1
     # assert state_update.ionic_liquid.residues[idx2].current_charge == -1
+
+
+@pytest.mark.skipif(
+    os.getenv("CI") == "true",
+    reason="Will fail sporadicaly.",
+)
+def test_pbc():
+
+    simulation = generate_im1h_oac_system()
+    # get ionic liquid templates
+    allowed_updates = {}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "delta_e": 2.33}
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "delta_e": -2.33}
+    # allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "delta_e": 1.78}
+    # allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.16, "delta_e": 0.68}
+
+    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+    # wrap system in IonicLiquidSystem
+    ionic_liquid = IonicLiquidSystem(simulation, templates)
+
+    boxl = ionic_liquid.boxlength
+    print(f"{boxl=}")
+
+    update = NaiveMCUpdate(ionic_liquid)
+    # initialize state update class
+    state_update = StateUpdate(update)
+
+    pos_dict, res_dict = state_update._get_positions_for_mutation_sites()
+
+    canonical_names = list(
+        set([residue.canonical_name for residue in ionic_liquid.residues])
+    )
+    # calculate distance matrix between the two molecules
+    distance = distance_matrix(
+        pos_dict[canonical_names[0]], pos_dict[canonical_names[1]]
+    )
+    # print(f"{distance[0]=}")
+
+    from scipy.spatial.distance import cdist
+
+    def _rPBC(coor1, coor2, boxl=boxl):
+        dx = abs(coor1[0] - coor2[0])
+        if dx > boxl / 2:
+            dx = boxl - dx
+        dy = abs(coor1[1] - coor2[1])
+        if dy > boxl / 2:
+            dy = boxl - dy
+        dz = abs(coor1[2] - coor2[2])
+        if dz > boxl / 2:
+            dz = boxl - dz
+        return np.sqrt(dx * dx + dy * dy + dz * dz)
+
+    distance_pbc = cdist(
+        pos_dict[canonical_names[0]], pos_dict[canonical_names[1]], _rPBC
+    )
+    # print(f"{distance_pbc[0]=}")
+    # print(f"{distance_pbc[distance_pbc>boxl]=}")
+    assert (
+        len(distance_pbc[distance_pbc > boxl]) == 0
+    ), "After correcting for PBC no distance should be larger than the boxlength"
 
 
 @pytest.mark.skipif(

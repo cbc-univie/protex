@@ -9,7 +9,9 @@ logger = logging.getLogger(__name__)
 
 
 class IonicLiquidTemplates:
-    def __init__(self, states: list, allowed_updates: Dict[frozenset, Dict[str, float]]) -> None:
+    def __init__(
+        self, states: list, allowed_updates: Dict[frozenset, Dict[str, float]]
+    ) -> None:
 
         self.pairs = [list(i.keys()) for i in states]
         self.states = dict(ChainMap(*states))
@@ -265,9 +267,7 @@ class Residue:
                         thole = parms_thole.popleft()
                         force.setScreenedPairParameters(drude_idx, idx1, idx2, thole)
 
-    def _get_NonbondedForce_parameters_at_lambda(
-        self, lamb: float
-    ) -> List[List[int]]:
+    def _get_NonbondedForce_parameters_at_lambda(self, lamb: float) -> List[List[int]]:
         # returns interpolated sorted nonbonded Forces.
         assert lamb >= 0 and lamb <= 1
         current_name = self.current_name
@@ -662,7 +662,7 @@ class Residue:
         return [parm_interpolated, parm_interpolated_thole]
 
     # NOTE: this is a bug!
-    def get_idx_for_atom_name(self, query_atom_name: str):
+    def get_idx_for_atom_name(self, query_atom_name: str) -> int:
         for idx, atom_name in zip(self.atom_idxs, self.atom_names):
             if query_atom_name == atom_name:
                 return idx
@@ -709,6 +709,9 @@ class IonicLiquidSystem:
         self.simulation = simulation
         self.templates = templates
         self.residues = self._set_initial_states()
+        self.boxlength = (
+            simulation.context.getState().getPeriodicBoxVectors()[0][0]._value
+        )  # NOTE: supports only cubic boxes
 
     def update_context(self, name: str):
         for force in self.system.getForces():
