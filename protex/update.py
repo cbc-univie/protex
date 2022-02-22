@@ -1,9 +1,10 @@
+import logging
 from collections import defaultdict
 
-from scipy.spatial import distance_matrix
-from protex.system import IonicLiquidSystem
-import logging
 import numpy as np
+from scipy.spatial import distance_matrix
+
+from protex.system import IonicLiquidSystem
 from simtk import unit
 
 logger = logging.getLogger(__name__)
@@ -26,6 +27,14 @@ class NaiveMCUpdate(Update):
 
     def __init__(self, ionic_liquid: IonicLiquidSystem) -> None:
         super().__init__(ionic_liquid)
+        self.allowed_forces = [
+            "NonbondedForce",  # BUG: Charge stored in the DrudeForce does NOT get updated, probably you want to allow DrudeForce as well!
+            # "HarmonicBondedForce",
+            # "HarmonicAngleForce",
+            # "PeriodicTorsionForce",
+            # "CustomTorsionForce",
+            "DrudeForce",
+        ]
 
     def _update(self, candidates: list[tuple], nr_of_steps: int):
         logger.info("called _update")
@@ -33,43 +42,43 @@ class NaiveMCUpdate(Update):
         state = self.ionic_liquid.simulation.context.getState(getEnergy=True)
         # get initial energy
         initial_e = state.getPotentialEnergy()
+        if np.isnan(initial_e._value):
+            raise RuntimeError(f"Energy is {initial_e}")
 
         logger.info("Start changing states ...")
+        assert nr_of_steps > 1, "Use an update step number of at least 2."
         for lamb in np.linspace(0, 1, nr_of_steps):
+            # for lamb in reversed(np.linspace(1, 0, nr_of_steps, endpoint=False)):
             for candidate in candidates:
                 # retrive residue instances
-                candidate1_residue, candidate2_residue = candidate
+                candidate1_residue, candidate2_residue = sorted(
+                    candidate, key=lambda candidate: candidate.current_name
+                )
 
                 print(
-                    f"candiadate_1: {candidate1_residue.current_name}; charge:{candidate1_residue.current_charge}"
-                )
-                print(
-                    f"candiadate_2: {candidate2_residue.current_name}; charge:{candidate2_residue.current_charge}"
+                    f"{lamb}: candiadate_1: {candidate1_residue.current_name}; charge:{candidate1_residue.current_charge}: candiadate_2: {candidate2_residue.current_name}; charge:{candidate2_residue.current_charge}"
                 )
 
-                ######################
-                # nonbonded parameters
-                ######################
-                candidate1_residue.update(
-                    "NonbondedForce", self.ionic_liquid.simulation.context, lamb
-                )
-                candidate1_residue.update(
-                    "HarmonicBondedForce", self.ionic_liquid.simulation.context, lamb
-                )
-                candidate1_residue.update(
-                    "HarmonicAngleForce", self.ionic_liquid.simulation.context, lamb
-                )
-                candidate1_residue.update(
-                    "DrudeForce", self.ionic_liquid.simulation.context, lamb
-                )
+                for force_to_be_updated in self.allowed_forces:
+                    ######################
+                    # candidate1
+                    ######################
+                    candidate1_residue.update(force_to_be_updated, lamb)
 
-                # update the context to include the new parameters
-                # self.ionic_liquid.nonbonded_force.updateParametersInContext(
-                #     self.ionic_liquid.simulation.context
-                # )
+                    ######################
+                    # candidate2
+                    ######################
+                    candidate2_residue.update(force_to_be_updated, lamb)
+
+            # update the context to include the new parameters
+            for force_to_be_updated in self.allowed_forces:
+                self.ionic_liquid.update_context(force_to_be_updated)
+
             # get new energy
             state = self.ionic_liquid.simulation.context.getState(getEnergy=True)
             new_e = state.getPotentialEnergy()
+            if np.isnan(new_e._value):
+                raise RuntimeError(f"Energy is {new_e}")
 
             self.ionic_liquid.simulation.step(1)
 
@@ -78,10 +87,15 @@ class NaiveMCUpdate(Update):
             # after the update is finished the current_name attribute is updated (and since alternative_name depends on current_name it too is updated)
             candidate1_residue.current_name = candidate1_residue.alternativ_name
             candidate2_residue.current_name = candidate2_residue.alternativ_name
+
+            assert candidate1_residue.current_name != candidate1_residue.alternativ_name
+            assert candidate2_residue.current_name != candidate2_residue.alternativ_name
+
         # get new energy
         state = self.ionic_liquid.simulation.context.getState(getEnergy=True)
         new_e = state.getPotentialEnergy()
         logger.info(f"Energy before/after state change:{initial_e}/{new_e}")
+
         # self.ionic_liquid.simulation.context.setVelocitiesToTemperature(
         #    300.0 * unit.kelvin
         # )
@@ -109,15 +123,22 @@ class StateUpdate:
                 )
 
     def get_charges(self) -> list:
+
         par = []
         for force in self.ionic_liquid.system.getForces():
             if type(force).__name__ == "NonbondedForce":
                 for idx, atom in zip(
                     range(force.getNumParticles()), self.ionic_liquid.topology.atoms()
                 ):
-                    charge, sigma, epsiolon = force.getParticleParameters(idx)
+                    charge, _, _ = force.getParticleParameters(idx)
                     par.append((idx, atom, charge))
                 return par
+
+    def get_num_residues(self) -> dict:
+        res_dict = {"IM1H": 0, "OAC": 0, "IM1": 0, "HOAC": 0}
+        for residue in self.ionic_liquid.residues:
+            res_dict[residue.current_name] += 1
+        return res_dict
 
     def _print_start(self):
         print(
@@ -145,30 +166,25 @@ class StateUpdate:
         updates the current state using the method defined in the UpdateMethod class
         """
         # calculate the distance betwen updateable residues
-        # distance_dict, res_dict = self._get_positions_for_mutation_sites()
         pos_list, res_list = self._get_positions_for_mutation_sites_new()
         # propose the update candidates based on distances
         self._print_start()
-        # candidate_pairs = self._propose_candidate_pair(distance_dict, res_dict)
         candidate_pairs = self._propose_candidate_pair_new(pos_list, res_list)
-        # print(f"{candidate_pairs=}")
         print(f"{len(candidate_pairs)=}")
 
-        # assert len(candidate_pairs) == 2
-        # add candidate pairs to history
-        # self.history.append(set(candidate_pairs)) -> moved inside _propose_candidate_pair
         if len(candidate_pairs) == 0:
             print("No transfers this time")
         elif len(candidate_pairs) > 0:
-            # print details
-            # update
             self.updateMethod._update(candidate_pairs, nr_of_steps)
+
         self.update_trial += 1
         self._print_stop()
 
         return candidate_pairs
 
-    def _propose_candidate_pair(self, distance_dict: dict, res_dict: dict) -> tuple:
+    def _propose_candidate_pair(
+        self, distance_dict: dict, res_dict: dict
+    ) -> list[tuple]:
 
         canonical_names = list(
             set([residue.canonical_name for residue in self.ionic_liquid.residues])
@@ -203,6 +219,7 @@ class StateUpdate:
         distance_pbc = cdist(
             distance_dict[canonical_names[0]], distance_dict[canonical_names[1]], rPBC
         )
+        # print(f"{distance=}, {distance_pbc=}")
         # get a list of indices for elements in the distance matrix sorted by increasing distance
         # NOTE: This always accepts a move!
         shape = distance.shape
@@ -232,26 +249,26 @@ class StateUpdate:
                 if r > self.ionic_liquid.templates.overall_max_distance:
                     break
                 elif r <= r_max:  # and energy criterion
-                    charge_candidate_idx1 = residue1.current_charge
-                    charge_candidate_idx2 = residue2.current_charge
+                    charge_candidate_idx1 = residue1.endstate_charge
+                    charge_candidate_idx2 = residue2.endstate_charge
 
-                    print(
+                    logger.debug(
                         f"{residue1.original_name}:{residue1.current_name}:{residue1.residue.id}:{charge_candidate_idx1}-{residue2.original_name}:{residue2.current_name}:{residue2.residue.id}:{charge_candidate_idx2} pair suggested ..."
                     )
-                    print(
+                    logger.debug(
                         f"Distance between pairs: {distance[candidate_idx1,candidate_idx2]}"
                     )
                     proposed_candidate_pair = (residue1, residue2)
                     # reject if already used in this transfer call
                     # print(f"{residue1=}, {residue2=}")
                     if residue1 in used_residues or residue2 in used_residues:
-                        print(
+                        logger.debug(
                             f"{residue1.current_name}:{residue1.residue.id}:{charge_candidate_idx1}-{residue2.current_name}:{residue2.residue.id}:{charge_candidate_idx2} pair rejected, bc used this transfer call ..."
                         )
                         continue
                     # reject if already in last 10 updates
                     if set(proposed_candidate_pair) in self.history[-10:]:
-                        print(
+                        logger.debug(
                             f"{residue1.current_name}:{residue1.residue.id}:{charge_candidate_idx1}-{residue2.current_name}:{residue2.residue.id}:{charge_candidate_idx2} pair rejected, bc in history ..."
                         )
 
@@ -309,32 +326,8 @@ class StateUpdate:
         # -> what about:
         # from scipy.spatial.distance import cdist
 
-        # boxl = (
-        #     self.ionic_liquid.simulation.context.getState()
-        #     .getPeriodicBoxVectors()[0][0]
-        #     ._value
-        # )  # move to place where it is checked only once -> NVT, same boxl the whole time
-
-        # def rPBC(coor1, coor2, boxl=boxl):
-        #     dx = abs(coor1[0] - coor2[0])
-        #     if dx > boxl / 2:
-        #         dx = boxl - dx
-        #     dy = abs(coor1[1] - coor2[1])
-        #     if dy > boxl / 2:
-        #         dy = boxl - dy
-        #     dz = abs(coor1[2] - coor2[2])
-        #     if dz > boxl / 2:
-        #         dz = boxl - dz
-        #     return np.sqrt(dx * dx + dy * dy + dz * dz)
-
-        # distance_pbc = cdist(
-        #     distance_dict[canonical_names[0]], distance_dict[canonical_names[1]], rPBC
-        # )
-        # get a list of indices for elements in the distance matrix sorted by increasing distance
-        # NOTE: This always accepts a move!
         shape = distance.shape
         idx = np.dstack(np.unravel_index(np.argsort(distance.ravel()), shape))[0]
-        # print(f"{idx=}")
 
         proposed_candidate_pairs = []
         used_residues = []
@@ -343,7 +336,10 @@ class StateUpdate:
             residue1 = res_list[candidate_idx1]
             residue2 = res_list[candidate_idx2]
             # is this combination allowed?
-            if (
+            if residue1.current_name == residue2.current_name:
+                continue
+            # maybe speedup possible because every second entry in idx is just the opposite IM1H - OAC, then next is the same molecules but OAC - IM1H
+            elif (
                 frozenset([residue1.current_name, residue2.current_name])
                 in self.ionic_liquid.templates.allowed_updates.keys()
             ):
@@ -353,32 +349,34 @@ class StateUpdate:
                 delta_e = self.ionic_liquid.templates.allowed_updates[
                     frozenset([residue1.current_name, residue2.current_name])
                 ]["delta_e"]
-                # print(f"{r_max=}, {delta_e=}")
+
                 r = distance[candidate_idx1, candidate_idx2]
+                # print(f"{r_max=}, {delta_e=}, {r=}")
+                print(f"{residue1.current_name=}, {residue2.current_name=}, {r=}")
                 # break for loop if no pair can fulfill distance condition
                 if r > self.ionic_liquid.templates.overall_max_distance:
                     break
                 elif r <= r_max:  # and energy criterion
-                    charge_candidate_idx1 = residue1.current_charge
-                    charge_candidate_idx2 = residue2.current_charge
+                    charge_candidate_idx1 = residue1.endstate_charge
+                    charge_candidate_idx2 = residue2.endstate_charge
 
-                    print(
+                    logger.debug(
                         f"{residue1.original_name}:{residue1.current_name}:{residue1.residue.id}:{charge_candidate_idx1}-{residue2.original_name}:{residue2.current_name}:{residue2.residue.id}:{charge_candidate_idx2} pair suggested ..."
                     )
-                    print(
+                    logger.debug(
                         f"Distance between pairs: {distance[candidate_idx1,candidate_idx2]}"
                     )
-                    proposed_candidate_pair = (residue1, residue2)
-                    # reject if already used in this transfer call
+                    proposed_candidate_pair = frozenset([residue1, residue2])
+                    # reject if already used in this transfer callused_residues
                     # print(f"{residue1=}, {residue2=}")
                     if residue1 in used_residues or residue2 in used_residues:
-                        print(
+                        logger.debug(
                             f"{residue1.current_name}:{residue1.residue.id}:{charge_candidate_idx1}-{residue2.current_name}:{residue2.residue.id}:{charge_candidate_idx2} pair rejected, bc used this transfer call ..."
                         )
                         continue
                     # reject if already in last 10 updates
-                    if set(proposed_candidate_pair) in self.history[-10:]:
-                        print(
+                    if proposed_candidate_pair in self.history[-10:]:
+                        logger.debug(
                             f"{residue1.current_name}:{residue1.residue.id}:{charge_candidate_idx1}-{residue2.current_name}:{residue2.residue.id}:{charge_candidate_idx2} pair rejected, bc in history ..."
                         )
 
@@ -387,7 +385,7 @@ class StateUpdate:
                     proposed_candidate_pairs.append(proposed_candidate_pair)
                     used_residues.append(residue1)
                     used_residues.append(residue2)
-                    self.history.append(set(proposed_candidate_pair))
+                    self.history.append(proposed_candidate_pair)
                     print(
                         f"{residue1.current_name}:{residue1.residue.id}:{charge_candidate_idx1}-{residue2.current_name}:{residue2.residue.id}:{charge_candidate_idx2} pair accepted ..."
                     )

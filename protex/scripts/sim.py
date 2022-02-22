@@ -40,7 +40,7 @@ def test_outline():
     for _ in range(n_steps):
         print(_)
         ionic_liquid.report_charge_changes(
-            "charge_changes.json", step=_, n_steps=n_steps
+            "charge_changes.json", step=_, tot_steps=n_steps
         )
         ionic_liquid.simulation.step(10000)
         state_update.update(101)

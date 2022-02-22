@@ -106,5 +106,7 @@ ENV/
 *profraw
 
 # user defined (flo)
-protex/charmm-ff/out/
-protex/charmm-ff/traj/
+*.dcd
+*.out
+*.dat
+charge_changes.json

@@ -1,62 +1,29 @@
-from ..testsystems import generate_im1h_oac_system, OAC_HOAC, IM1H_IM1
-from ..testsystems import (
-    generate_im1h_oac_system_chelpg,
-    OAC_HOAC_chelpg,
-    IM1H_IM1_chelpg,
-)
-from ..system import IonicLiquidSystem, IonicLiquidTemplates
-from ..update import NaiveMCUpdate, StateUpdate
+# from ..testsystems import generate_im1h_oac_system, OAC_HOAC, IM1H_IM1
+import os
 from sys import stdout
-import logging
+
+import pytest
+
+from ..system import IonicLiquidSystem, IonicLiquidTemplates
+from ..testsystems import (
+    IM1H_IM1,
+    OAC_HOAC,
+    generate_im1h_oac_system,
+)
+from ..update import NaiveMCUpdate, StateUpdate
 
 
-def test_outline(caplog):
-    from simtk.openmm.app import StateDataReporter, PDBReporter, DCDReporter
+@pytest.mark.skipif(
+    os.getenv("CI") == "true",
+    reason="Skipping tests that cannot pass in github actions",
+)
+def test_outline():
+    from simtk.openmm.app import DCDReporter, StateDataReporter
 
-    caplog.set_level(logging.DEBUG)
-
-    # obtain simulation object
-    simulation = generate_im1h_oac_system()
-    # get ionic liquid templates
-    templates = IonicLiquidTemplates(
-        [OAC_HOAC, IM1H_IM1], (set(["IM1H", "OAC"]), set(["IM1", "HOAC"]))
-    )
-    # wrap system in IonicLiquidSystem
-    ionic_liquid = IonicLiquidSystem(simulation, templates)
-    ionic_liquid.report_states()
-    # initialize update method
-    update = NaiveMCUpdate(ionic_liquid)
-    # initialize state update class
-    state_update = StateUpdate(update)
-    # ionic_liquid.simulation.minimizeEnergy(maxIterations=200)
-    # adding reporter
-    ionic_liquid.simulation.reporters.append(PDBReporter("output.pdb", 100))
-
-    ionic_liquid.simulation.reporters.append(
-        StateDataReporter(
-            stdout,
-            100,
-            step=True,
-            potentialEnergy=True,
-            temperature=True,
-            time=False,
-            volume=True,
-            density=False,
-        )
-    )
-    for _ in range(10):
-        print(_)
-        ionic_liquid.simulation.step(1000)
-        state_update.update(1)
-        ionic_liquid.report_states()
-
-
-def test_outline_chelpg():
-    from simtk.openmm.app import StateDataReporter, PDBReporter, DCDReporter
     from ..scripts.ommhelper import DrudeTemperatureReporter
 
     # obtain simulation object
-    simulation = generate_im1h_oac_system_chelpg(coll_freq=10, drude_coll_freq=120)
+    simulation = generate_im1h_oac_system(coll_freq=10, drude_coll_freq=120)
     allowed_updates = {}
     # allowed updates according to simple protonation scheme
     allowed_updates[frozenset(["IM1H", "OAC"])] = {
@@ -67,9 +34,7 @@ def test_outline_chelpg():
     # allowed_updates[set(["IM1H", "IM1"])] = {"r_max": 0.2, "delta_e": 1.78}
     # allowed_updates[set(["HOAC", "OAC"])] = {"r_max": 0.2, "delta_e": 0.68}
     # get ionic liquid templates
-    templates = IonicLiquidTemplates(
-        [OAC_HOAC_chelpg, IM1H_IM1_chelpg], (allowed_updates)
-    )
+    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
     # wrap system in IonicLiquidSystem
     ionic_liquid = IonicLiquidSystem(simulation, templates)
     ionic_liquid.report_states()
@@ -79,7 +44,7 @@ def test_outline_chelpg():
     state_update = StateUpdate(update)
     # ionic_liquid.simulation.minimizeEnergy(maxIterations=200)
     # adding reporter
-    ionic_liquid.simulation.reporters.append(DCDReporter("outline_chelpg.dcd", 500))
+    ionic_liquid.simulation.reporters.append(DCDReporter("outline.dcd", 500))
 
     ionic_liquid.simulation.reporters.append(
         StateDataReporter(
@@ -98,7 +63,7 @@ def test_outline_chelpg():
     )
 
     n_steps = 10
-    update_steps = 1
+    update_steps = 2
     sim_steps = 1000
     print(
         f"Simulation {n_steps} proton transfers with {update_steps} update steps and {sim_steps} simulation steps."
@@ -106,7 +71,7 @@ def test_outline_chelpg():
     for _ in range(n_steps):
         print(_)
         ionic_liquid.report_charge_changes(
-            "charge_changes_chelpg.json", step=_, n_steps=n_steps
+            "charge_changes.json", step=_, tot_steps=n_steps
         )
         ionic_liquid.simulation.step(sim_steps)
         state_update.update(update_steps)

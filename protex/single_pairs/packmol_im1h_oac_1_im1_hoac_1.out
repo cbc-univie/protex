@@ -1,0 +1,321 @@
+
+################################################################################
+
+ PACKMOL - Packing optimization for the automated generation of
+ starting configurations for molecular dynamics simulations.
+ 
+                                                              Version 20.010 
+
+################################################################################
+
+  Packmol must be run with: packmol < inputfile.inp 
+
+  Userguide at: http://m3g.iqm.unicamp.br/packmol 
+
+  Reading input file... (Control-C aborts)
+  Seed for random number generator:        16131
+  Output file: im1h_oac_1_im1_hoac_1_init.pdb
+  Reading coordinate file: ../toppar/im1h_min.pdb
+  Reading coordinate file: ../toppar/oac_min.pdb
+  Reading coordinate file: ../toppar/im1_min.pdb
+  Reading coordinate file: ../toppar/hoac_min.pdb
+  Number of independent structures:            4
+  The structures are: 
+  Structure            1 :../toppar/im1h_min.pdb(          19  atoms)
+  Structure            2 :../toppar/oac_min.pdb(          16  atoms)
+  Structure            3 :../toppar/im1_min.pdb(          19  atoms)
+  Structure            4 :../toppar/hoac_min.pdb(          16  atoms)
+  Maximum number of GENCAN loops for all molecule packing:          800
+  Total number of restrictions:            4
+  Distance tolerance:    2.0000000000000000     
+  Warning: Type of residue numbering not set for structure            1
+  Residue numbering set for structure            1 :           0
+  Swap chains of molecules of structure            1 : F
+  Warning: Type of residue numbering not set for structure            2
+  Residue numbering set for structure            2 :           0
+  Swap chains of molecules of structure            2 : F
+  Warning: Type of residue numbering not set for structure            3
+  Residue numbering set for structure            3 :           0
+  Swap chains of molecules of structure            3 : F
+  Warning: Type of residue numbering not set for structure            4
+  Residue numbering set for structure            4 :           0
+  Swap chains of molecules of structure            4 : F
+  Number of molecules of type            1 :            1
+  Number of molecules of type            2 :            1
+  Number of molecules of type            3 :            1
+  Number of molecules of type            4 :            1
+  Total number of atoms:           70
+  Total number of molecules:            4
+  Number of fixed molecules:            0
+  Number of free molecules:            4
+  Number of variables:           24
+  Total number of fixed atoms:            0
+  Maximum internal distance of type            1 :    5.2066761950403642     
+  Maximum internal distance of type            2 :    4.0230497138365067     
+  Maximum internal distance of type            3 :    5.2066761950403642     
+  Maximum internal distance of type            4 :    4.0230497138365067     
+  All atoms must be within these coordinates: 
+   x: [   -1000.0000000000000      ,    1000.0000000000000       ] 
+   y: [   -1000.0000000000000      ,    1000.0000000000000       ] 
+   z: [   -1000.0000000000000      ,    1000.0000000000000       ] 
+  If the system is larger than this, increase the sidemax parameter. 
+
+################################################################################
+
+  Building initial approximation ... 
+
+################################################################################
+
+  Adjusting initial point to fit the constraints 
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+
+  Molecules of type:            1
+
+  Packing:|0                                                             100%|
+          |*************************************************
+
+  Restraint-only function value:    0.0000000000000000     
+  Maximum violation of the restraints:    0.0000000000000000     
+
+--------------------------------------------------------------------------------
+
+  Molecules of type:            2
+
+  Packing:|0                                                             100%|
+          |***********************************
+
+  Restraint-only function value:    4.1287972911029524E-005
+  Maximum violation of the restraints:    4.1287972911029524E-005
+
+--------------------------------------------------------------------------------
+
+  Molecules of type:            3
+
+  Packing:|0                                                             100%|
+          |***********************************
+
+  Restraint-only function value:    8.7595991356022329E-004
+  Maximum violation of the restraints:    8.7595991356022329E-004
+
+--------------------------------------------------------------------------------
+
+  Molecules of type:            4
+
+  Packing:|0                                                             100%|
+          |****************************
+
+  Restraint-only function value:    4.5200709747105503E-003
+  Maximum violation of the restraints:    4.5200709747105503E-003
+
+--------------------------------------------------------------------------------
+
+  Rescaling maximum and minimum coordinates... 
+  Computing size of patches... 
+  Add fixed molecules to permanent arrays... 
+  Reseting center of mass... 
+
+--------------------------------------------------------------------------------
+
+  Setting initial trial coordinates ... 
+
+--------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
+
+  Molecules of type:            1
+  Adjusting random positions to fit the constraints. 
+  Packing:|0                                                             100%|
+          |*******
+  Restraint-only function value:    1.2159875422662181E-004
+  Maximum violation of the restraints:    1.2159875422662181E-004
+
+--------------------------------------------------------------------------------
+
+  Molecules of type:            2
+  Adjusting random positions to fit the constraints. 
+  Packing:|0                                                             100%|
+          |
+  Restraint-only function value:    0.0000000000000000     
+  Maximum violation of the restraints:    0.0000000000000000     
+
+--------------------------------------------------------------------------------
+
+  Molecules of type:            3
+  Adjusting random positions to fit the constraints. 
+  Packing:|0                                                             100%|
+          |*******
+  Restraint-only function value:    0.0000000000000000     
+  Maximum violation of the restraints:    0.0000000000000000     
+
+--------------------------------------------------------------------------------
+
+  Molecules of type:            4
+  Adjusting random positions to fit the constraints. 
+  Packing:|0                                                             100%|
+          |*******
+  Restraint-only function value:    8.8949940491570914E-003
+  Maximum violation of the restraints:    8.8949940491570914E-003
+
+################################################################################
+
+  Objective function at initial point:    1530.6227825340538     
+
+################################################################################
+
+  Packing molecules of type:            1
+
+################################################################################
+
+
+  Initial approximation is a solution. Nothing to do. 
+
+  Current point written to file: im1h_oac_1_im1_hoac_1_init.pdb
+--------------------------------------------------------------------------------
+  Packing solved for molecules of type           1
+  Objective function value:    1.2159875422662181E-004
+  Maximum violation of target distance:    0.0000000000000000     
+  Max. constraint violation:    1.2159875422662181E-004
+--------------------------------------------------------------------------------
+
+################################################################################
+
+  Packing molecules of type:            2
+
+################################################################################
+
+
+  Initial approximation is a solution. Nothing to do. 
+
+  Current point written to file: im1h_oac_1_im1_hoac_1_init.pdb
+--------------------------------------------------------------------------------
+  Packing solved for molecules of type           2
+  Objective function value:    0.0000000000000000     
+  Maximum violation of target distance:    0.0000000000000000     
+  Max. constraint violation:    0.0000000000000000     
+--------------------------------------------------------------------------------
+
+################################################################################
+
+  Packing molecules of type:            3
+
+################################################################################
+
+
+  Initial approximation is a solution. Nothing to do. 
+
+  Current point written to file: im1h_oac_1_im1_hoac_1_init.pdb
+--------------------------------------------------------------------------------
+  Packing solved for molecules of type           3
+  Objective function value:    0.0000000000000000     
+  Maximum violation of target distance:    0.0000000000000000     
+  Max. constraint violation:    0.0000000000000000     
+--------------------------------------------------------------------------------
+
+################################################################################
+
+  Packing molecules of type:            4
+
+################################################################################
+
+
+  Initial approximation is a solution. Nothing to do. 
+
+  Current point written to file: im1h_oac_1_im1_hoac_1_init.pdb
+--------------------------------------------------------------------------------
+  Packing solved for molecules of type           4
+  Objective function value:    8.8949940491570914E-003
+  Maximum violation of target distance:    0.0000000000000000     
+  Max. constraint violation:    8.8949940491570914E-003
+--------------------------------------------------------------------------------
+
+################################################################################
+
+  Packing all molecules together 
+
+################################################################################
+
+
+--------------------------------------------------------------------------------
+
+  Starting GENCAN loop:            0
+  Scaling radii by:    1.1000000000000001     
+
+  Packing:|0                                                             100%|
+          |******************************************************************|
+          |******************************************************************|
+
+  Function value from last GENCAN loop: f = .22158E+01
+  Best function value before: f = .15306E+04
+  Improvement from best function value:    99.86 %
+  Improvement from last loop:    99.86 %
+  Maximum violation of target distance:     0.000000
+  Maximum violation of the constraints: .31517E+00
+
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+
+  Starting GENCAN loop:            1
+  Scaling radii by:    1.1000000000000001     
+
+  Packing:|0                                                             100%|
+          |******************************************************************|
+          |******************************************************************|
+
+  Function value from last GENCAN loop: f = .15570E+00
+  Best function value before: f = .22158E+01
+  Improvement from best function value:    92.97 %
+  Improvement from last loop:    92.97 %
+  Maximum violation of target distance:     0.000000
+  Maximum violation of the constraints: .77700E-01
+
+--------------------------------------------------------------------------------
+
+
+--------------------------------------------------------------------------------
+
+  Starting GENCAN loop:            2
+  Scaling radii by:    1.1000000000000001     
+
+  Packing:|0                                                             100%|
+          |******************************************************************|
+          |********************************************************
+
+  Function value from last GENCAN loop: f = .39036E-01
+  Best function value before: f = .15570E+00
+  Improvement from best function value:    74.93 %
+  Improvement from last loop:    74.93 %
+  Maximum violation of target distance:     0.000000
+  Maximum violation of the constraints: .89544E-02
+
+################################################################################
+
+                                 Success! 
+              Final objective function value: .39036E-01
+              Maximum violation of target distance:   0.000000
+              Maximum violation of the constraints: .89544E-02
+
+--------------------------------------------------------------------------------
+
+              Please cite this work if Packmol was useful: 
+
+           L. Martinez, R. Andrade, E. G. Birgin, J. M. Martinez, 
+         PACKMOL: A package for building initial configurations for
+                   molecular dynamics simulations. 
+          Journal of Computational Chemistry, 30:2157-2164,2009.
+
+################################################################################
+
+  Solution written to file: im1h_oac_1_im1_hoac_1_init.pdb
+
+--------------------------------------------------------------------------------
+
+   Running time:    2.80000009E-02  seconds. 
+
+--------------------------------------------------------------------------------
+
+

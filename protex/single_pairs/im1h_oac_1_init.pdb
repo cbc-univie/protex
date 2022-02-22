@@ -1,0 +1,41 @@
+HEADER 
+TITLE     Built with Packmol                                             
+REMARK   Packmol generated pdb file 
+REMARK   Home-Page: http://m3g.iqm.unicamp.br/packmol
+REMARK
+ATOM      1  C1  IM1HA   1      -0.925  -3.889  -2.873  1.00  0.00      IM1H    
+ATOM      2  DC1 IM1HA   1      -0.937  -3.870  -2.876  1.00  0.00      IM1H    
+ATOM      3  H1  IM1HA   1      -0.256  -3.208  -2.300  1.00  0.00      IM1H    
+ATOM      4  H2  IM1HA   1      -0.371  -4.347  -3.722  1.00  0.00      IM1H    
+ATOM      5  H3  IM1HA   1      -1.340  -4.675  -2.203  1.00  0.00      IM1H    
+ATOM      6  N1  IM1HA   1      -2.043  -3.108  -3.417  1.00  0.00      IM1H    
+ATOM      7  DN1 IM1HA   1      -2.078  -3.096  -3.438  1.00  0.00      IM1H    
+ATOM      8  C2  IM1HA   1      -2.197  -1.754  -3.224  1.00  0.00      IM1H    
+ATOM      9  DC2 IM1HA   1      -2.214  -1.784  -3.241  1.00  0.00      IM1H    
+ATOM     10  H4  IM1HA   1      -1.522  -1.125  -2.658  1.00  0.00      IM1H    
+ATOM     11  C3  IM1HA   1      -3.346  -1.424  -3.884  1.00  0.00      IM1H    
+ATOM     12  DC3 IM1HA   1      -3.330  -1.448  -3.880  1.00  0.00      IM1H    
+ATOM     13  H5  IM1HA   1      -3.820  -0.455  -3.978  1.00  0.00      IM1H    
+ATOM     14  C4  IM1HA   1      -3.027  -3.633  -4.157  1.00  0.00      IM1H    
+ATOM     15  DC4 IM1HA   1      -3.009  -3.625  -4.145  1.00  0.00      IM1H    
+ATOM     16  H6  IM1HA   1      -3.148  -4.675  -4.459  1.00  0.00      IM1H    
+ATOM     17  N2  IM1HA   1      -3.831  -2.596  -4.446  1.00  0.00      IM1H    
+ATOM     18  DN2 IM1HA   1      -3.809  -2.600  -4.434  1.00  0.00      IM1H    
+ATOM     19  H7  IM1HA   1      -4.670  -2.654  -4.993  1.00  0.00      IM1H    
+ATOM     20  C1  OAC B   1      -3.544   3.625  -4.129  1.00  0.00      OAC     
+ATOM     21  DC1 OAC B   1      -3.537   3.631  -4.131  1.00  0.00      OAC     
+ATOM     22  C2  OAC B   1      -2.142   4.022  -3.812  1.00  0.00      OAC     
+ATOM     23  DC2 OAC B   1      -2.167   4.008  -3.813  1.00  0.00      OAC     
+ATOM     24  H1  OAC B   1      -2.050   4.232  -2.727  1.00  0.00      OAC     
+ATOM     25  H2  OAC B   1      -1.858   4.931  -4.382  1.00  0.00      OAC     
+ATOM     26  H3  OAC B   1      -1.450   3.195  -4.081  1.00  0.00      OAC     
+ATOM     27  O1  OAC B   1      -4.299   4.198  -4.902  1.00  0.00      OAC     
+ATOM     28  DO1 OAC B   1      -4.309   4.166  -4.881  1.00  0.00      OAC     
+ATOM     29  O2  OAC B   1      -3.907   2.508  -3.436  1.00  0.00      OAC     
+ATOM     30  DO2 OAC B   1      -3.890   2.513  -3.433  1.00  0.00      OAC     
+ATOM     31  H   OAC B   1      -4.826   2.305  -3.687  1.00  0.00      OAC     
+ATOM     32 LPO1 OAC B   1      -4.516   3.999  -4.846  1.00  0.00      OAC     
+ATOM     33 LPO1 OAC B   1      -4.088   4.403  -4.965  1.00  0.00      OAC     
+ATOM     34 LPO2 OAC B   1      -3.826   2.218  -3.615  1.00  0.00      OAC     
+ATOM     35 LPO2 OAC B   1      -4.043   2.593  -3.125  1.00  0.00      OAC     
+END
