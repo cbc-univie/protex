@@ -1,5 +1,6 @@
 import logging
 from collections import defaultdict
+from typing import List, Tuple
 
 import numpy as np
 from scipy.spatial import distance_matrix
@@ -36,7 +37,7 @@ class NaiveMCUpdate(Update):
             "DrudeForce",
         ]
 
-    def _update(self, candidates: list[tuple], nr_of_steps: int):
+    def _update(self, candidates: List[Tuple], nr_of_steps: int):
         logger.info("called _update")
         # get current state
         state = self.ionic_liquid.simulation.context.getState(getEnergy=True)
@@ -215,7 +216,7 @@ class StateUpdate:
 
     def _propose_candidate_pair(
         self, distance_dict: dict, res_dict: dict
-    ) -> list[tuple]:
+    ) -> List[Tuple]:
 
         canonical_names = list(
             set([residue.canonical_name for residue in self.ionic_liquid.residues])
