@@ -267,7 +267,7 @@ class Residue:
 
     def _get_NonbondedForce_parameters_at_lambda(
         self, lamb: float
-    ) -> List[List[int], List[int]]:
+    ) -> List[List[int]]:
         # returns interpolated sorted nonbonded Forces.
         assert lamb >= 0 and lamb <= 1
         current_name = self.current_name
