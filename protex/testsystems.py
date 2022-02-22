@@ -1,5 +1,6 @@
 import protex
 import os
+from openmm import OpenMMException
 
 
 def generate_im1h_oac_system(coll_freq=10, drude_coll_freq=120):
@@ -8,8 +9,8 @@ def generate_im1h_oac_system(coll_freq=10, drude_coll_freq=120):
     """
 
     def load_charmm_files():
-        from simtk.openmm.app import CharmmCrdFile, CharmmParameterSet, CharmmPsfFile
-        from simtk.unit import angstroms
+        from openmm.app import CharmmCrdFile, CharmmParameterSet, CharmmPsfFile
+        from openmm.unit import angstroms
 
         # =======================================================================
         # Force field
@@ -36,7 +37,7 @@ def generate_im1h_oac_system(coll_freq=10, drude_coll_freq=120):
         return psf, crd, params
 
     def setup_system():
-        from simtk.openmm.app import PME, HBonds
+        from openmm.app import PME, HBonds
         from simtk.unit import angstroms
 
         psf, crd, params = load_charmm_files()
@@ -51,13 +52,13 @@ def generate_im1h_oac_system(coll_freq=10, drude_coll_freq=120):
         return system
 
     def setup_simulation():
-        from simtk.openmm import (
+        from openmm import (
             Platform,
             DrudeLangevinIntegrator,
             DrudeNoseHooverIntegrator,
             XmlSerializer,
         )
-        from simtk.openmm.app import Simulation
+        from openmm.app import Simulation
         from simtk.unit import angstroms, kelvin, picoseconds
 
         # plugin
@@ -93,14 +94,15 @@ def generate_im1h_oac_system(coll_freq=10, drude_coll_freq=120):
             f"{coll_freq=}, {drude_coll_freq=}"
         )  # tested with 20, 40, 80, 100, 120, 140, 160: 20,40 bad; 80 - 120 good; 140, 160 crashed
         integrator.setMaxDrudeDistance(0.25 * angstroms)
-        platform = Platform.getPlatformByName("CUDA")
-        # prop = dict(CudaPrecision="double") # default is single
+        try:
+            platform = Platform.getPlatformByName("CUDA")
+        except OpenMMException:
+            platform = Platform.getPlatformByName("CPU")
+
+        prop = dict(CudaPrecision="double")  # default is single
 
         simulation = Simulation(
-            psf.topology,
-            system,
-            integrator,
-            platform=platform,  # platformProperties=prop
+            psf.topology, system, integrator, platform=platform, platformProperties=prop
         )
         simulation.context.setPositions(crd.positions)
         # Try with positions from equilibrated system:
@@ -127,7 +129,7 @@ def generate_single_im1h_oac_system(coll_freq=10, drude_coll_freq=120):
     """
 
     def load_charmm_files():
-        from simtk.openmm.app import CharmmCrdFile, CharmmParameterSet, CharmmPsfFile
+        from openmm.app import CharmmCrdFile, CharmmParameterSet, CharmmPsfFile
         from simtk.unit import angstroms
 
         # =======================================================================
@@ -155,7 +157,7 @@ def generate_single_im1h_oac_system(coll_freq=10, drude_coll_freq=120):
         return psf, crd, params
 
     def setup_system():
-        from simtk.openmm.app import PME, HBonds
+        from openmm.app import PME, HBonds
         from simtk.unit import angstroms
 
         psf, crd, params = load_charmm_files()
@@ -170,12 +172,12 @@ def generate_single_im1h_oac_system(coll_freq=10, drude_coll_freq=120):
         return system
 
     def setup_simulation():
-        from simtk.openmm import (
+        from openmm import (
             Platform,
             DrudeNoseHooverIntegrator,
             XmlSerializer,
         )
-        from simtk.openmm.app import Simulation
+        from openmm.app import Simulation
         from simtk.unit import angstroms, kelvin, picoseconds
 
         # plugin

@@ -887,7 +887,7 @@ def test_dry_updates(caplog):
     reason="Will fail sporadicaly.",
 )
 def test_parameters_after_update():
-    from simtk.openmm.app import StateDataReporter, DCDReporter
+    from openmm.app import StateDataReporter, DCDReporter
 
     simulation = generate_im1h_oac_system()
     # get ionic liquid templates
@@ -1129,7 +1129,7 @@ def test_parameters_after_update():
     reason="Will fail sporadicaly.",
 )
 def test_single_im1h_oac():
-    from simtk.openmm.app import StateDataReporter, DCDReporter
+    from openmm.app import StateDataReporter, DCDReporter
 
     base = f"{protex.__path__[0]}/single_pairs"
 

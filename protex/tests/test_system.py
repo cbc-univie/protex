@@ -24,7 +24,7 @@ def test_setup_simulation():
 
 
 def test_run_simulation():
-    from simtk.openmm.app import DCDReporter, PDBReporter, StateDataReporter
+    from openmm.app import DCDReporter, PDBReporter, StateDataReporter
 
     simulation = generate_im1h_oac_system()
     print("Minimizing...")
@@ -423,7 +423,7 @@ def test_torsion_forces():
 def test_drude_forces():
     from collections import defaultdict
 
-    import simtk.openmm as mm
+    import openmm as mm
 
     simulation = generate_im1h_oac_system()
     allowed_updates = {}
