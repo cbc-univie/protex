@@ -1,14 +1,15 @@
 import itertools
-import numpy as np
 import logging
 from collections import ChainMap, defaultdict, deque
-from simtk.openmm import openmm
+from typing import Dict
+
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
 
 class IonicLiquidTemplates:
-    def __init__(self, states: list, allowed_updates: dict[frozenset]) -> None:
+    def __init__(self, states: list, allowed_updates: Dict[frozenset]) -> None:
 
         self.pairs = [list(i.keys()) for i in states]
         self.states = dict(ChainMap(*states))
