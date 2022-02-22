@@ -1,14 +1,15 @@
 import itertools
-import numpy as np
 import logging
 from collections import ChainMap, defaultdict, deque
-from simtk.openmm import openmm
+from typing import Dict, List
+
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
 
 class IonicLiquidTemplates:
-    def __init__(self, states: list, allowed_updates: dict[frozenset]) -> None:
+    def __init__(self, states: list, allowed_updates: Dict[frozenset, Dict[str, float]]) -> None:
 
         self.pairs = [list(i.keys()) for i in states]
         self.states = dict(ChainMap(*states))
@@ -266,7 +267,7 @@ class Residue:
 
     def _get_NonbondedForce_parameters_at_lambda(
         self, lamb: float
-    ) -> list[list[int], list[int]]:
+    ) -> List[List[int]]:
         # returns interpolated sorted nonbonded Forces.
         assert lamb >= 0 and lamb <= 1
         current_name = self.current_name
