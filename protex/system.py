@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 class IonicLiquidTemplates:
-    def __init__(self, states: list, allowed_updates: Dict[frozenset]) -> None:
+    def __init__(self, states: list, allowed_updates: Dict[frozenset, Dict[str, float]]) -> None:
 
         self.pairs = [list(i.keys()) for i in states]
         self.states = dict(ChainMap(*states))
