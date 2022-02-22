@@ -99,7 +99,7 @@ def generate_im1h_oac_system(coll_freq=10, drude_coll_freq=120):
         except OpenMMException:
             platform = Platform.getPlatformByName("CPU")
 
-        prop = dict(CudaPrecision="double")  # default is single
+        prop = dict(CudaPrecision="single")  # default is single
 
         simulation = Simulation(
             psf.topology, system, integrator, platform=platform, platformProperties=prop
