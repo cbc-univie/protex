@@ -422,9 +422,11 @@ def test_torsion_forces():
 
 def test_drude_forces():
     from collections import defaultdict
-
-    import openmm as mm
-
+    try:
+        import openmm as mm
+    except ImportError:
+        import stimk.openmm as mm
+        
     simulation = generate_im1h_oac_system()
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "delta_e": 2.33}

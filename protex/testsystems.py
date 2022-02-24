@@ -1,6 +1,10 @@
 import protex
 import os
-from openmm import OpenMMException
+
+try:
+    from openmm import OpenMMException
+except ImportError:
+    from simtk.openmm import OpenMMException
 
 
 def generate_im1h_oac_system(coll_freq=10, drude_coll_freq=120):
