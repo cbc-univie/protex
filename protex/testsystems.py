@@ -100,10 +100,10 @@ def generate_im1h_oac_system(coll_freq=10, drude_coll_freq=120):
         integrator.setMaxDrudeDistance(0.25 * angstroms)
         try:
             platform = Platform.getPlatformByName("CUDA")
+            prop = dict(CudaPrecision="single")  # default is single
         except OpenMMException:
             platform = Platform.getPlatformByName("CPU")
-
-        prop = dict(CudaPrecision="single")  # default is single
+            prop = dict()
 
         simulation = Simulation(
             psf.topology, system, integrator, platform=platform, platformProperties=prop
@@ -216,9 +216,10 @@ def generate_single_im1h_oac_system(coll_freq=10, drude_coll_freq=120):
         integrator.setMaxDrudeDistance(0.25 * angstroms)
         try:
             platform = Platform.getPlatformByName("CUDA")
+            prop = dict(CudaPrecision="single")  # default is single
         except OpenMMException:
             platform = Platform.getPlatformByName("CPU")
-        prop = dict(CudaPrecision="single") # default is single
+            prop = dict()
 
         simulation = Simulation(
             psf.topology,
