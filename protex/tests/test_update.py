@@ -840,6 +840,10 @@ def test_updates(caplog):
         print(candidate_pairs)
 
 
+@pytest.mark.skipif(
+    os.getenv("CI") == "true",
+    reason="Skipping tests that cannot pass in github actions",
+)
 def test_dry_updates(caplog):
     caplog.set_level(logging.DEBUG)
 
