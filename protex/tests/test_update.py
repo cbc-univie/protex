@@ -704,6 +704,10 @@ def test_check_updated_charges(caplog):
     assert par_initial == par_after_second_update
 
 
+@pytest.mark.skipif(
+    os.getenv("CI") == "true",
+    reason="Takes too long for github actions",
+)
 def test_transfer_with_distance_matrix():
 
     import numpy as np
