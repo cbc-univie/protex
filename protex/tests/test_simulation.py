@@ -18,7 +18,7 @@ from ..update import NaiveMCUpdate, StateUpdate
     reason="Skipping tests that cannot pass in github actions",
 )
 def test_outline():
-    from simtk.openmm.app import DCDReporter, StateDataReporter
+    from openmm.app import DCDReporter, StateDataReporter
 
     from ..scripts.ommhelper import DrudeTemperatureReporter
 

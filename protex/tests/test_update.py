@@ -704,6 +704,10 @@ def test_check_updated_charges(caplog):
     assert par_initial == par_after_second_update
 
 
+@pytest.mark.skipif(
+    os.getenv("CI") == "true",
+    reason="Takes too long for github actions",
+)
 def test_transfer_with_distance_matrix():
 
     simulation = generate_im1h_oac_system()
@@ -838,6 +842,10 @@ def test_updates(caplog):
         print(candidate_pairs)
 
 
+@pytest.mark.skipif(
+    os.getenv("CI") == "true",
+    reason="Skipping tests that cannot pass in github actions",
+)
 def test_dry_updates(caplog):
     caplog.set_level(logging.DEBUG)
 
@@ -883,7 +891,10 @@ def test_dry_updates(caplog):
     reason="Will fail sporadicaly.",
 )
 def test_parameters_after_update():
-    from simtk.openmm.app import StateDataReporter, DCDReporter
+    try:
+        from openmm.app import StateDataReporter, DCDReporter
+    except ImportError:
+        from simtk.openmm.app import StateDataReporter, DCDReporter
 
     simulation = generate_im1h_oac_system()
     # get ionic liquid templates
@@ -1185,7 +1196,10 @@ def test_pbc():
     reason="Will fail sporadicaly.",
 )
 def test_single_im1h_oac():
-    from simtk.openmm.app import StateDataReporter, DCDReporter
+    try:
+        from openmm.app import StateDataReporter, DCDReporter
+    except ImportError:
+        from simtk.openmm.app import StateDataReporter, DCDReporter
 
     base = f"{protex.__path__[0]}/single_pairs"
 
