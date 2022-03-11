@@ -1,10 +1,30 @@
 import protex
 import os
 
-try:
-    from openmm import OpenMMException
+try:  # Syntax changed in OpenMM 7.6
+    from openmm import (
+        OpenMMException,
+        Platform,
+        DrudeLangevinIntegrator,
+        DrudeNoseHooverIntegrator,
+        XmlSerializer,
+    )
+    from openmm.app import CharmmCrdFile, CharmmParameterSet, CharmmPsfFile
+    from openmm.app import PME, HBonds
+    from openmm.app import Simulation
+    from openmm.unit import angstroms, kelvin, picoseconds
 except ImportError:
-    from simtk.openmm import OpenMMException
+    from simtk.openmm import (
+        OpenMMException,
+        Platform,
+        DrudeLangevinIntegrator,
+        DrudeNoseHooverIntegrator,
+        XmlSerializer,
+    )
+    from simtk.openmm.app import CharmmCrdFile, CharmmParameterSet, CharmmPsfFile
+    from simtk.openmm.app import PME, HBonds
+    from simtk.openmm.app import Simulation
+    from simtk.unit import angstroms, kelvin, picoseconds
 
 
 def generate_im1h_oac_system(coll_freq=10, drude_coll_freq=120):
@@ -13,9 +33,6 @@ def generate_im1h_oac_system(coll_freq=10, drude_coll_freq=120):
     """
 
     def load_charmm_files():
-        from openmm.app import CharmmCrdFile, CharmmParameterSet, CharmmPsfFile
-        from openmm.unit import angstroms
-
         # =======================================================================
         # Force field
         # =======================================================================
@@ -41,9 +58,6 @@ def generate_im1h_oac_system(coll_freq=10, drude_coll_freq=120):
         return psf, crd, params
 
     def setup_system():
-        from openmm.app import PME, HBonds
-        from simtk.unit import angstroms
-
         psf, crd, params = load_charmm_files()
         system = psf.createSystem(
             params,
@@ -56,15 +70,6 @@ def generate_im1h_oac_system(coll_freq=10, drude_coll_freq=120):
         return system
 
     def setup_simulation():
-        from openmm import (
-            Platform,
-            DrudeLangevinIntegrator,
-            DrudeNoseHooverIntegrator,
-            XmlSerializer,
-        )
-        from openmm.app import Simulation
-        from simtk.unit import angstroms, kelvin, picoseconds
-
         # plugin
         # https://github.com/z-gong/openmm-velocityVerlet
 
@@ -133,9 +138,6 @@ def generate_single_im1h_oac_system(coll_freq=10, drude_coll_freq=120):
     """
 
     def load_charmm_files():
-        from openmm.app import CharmmCrdFile, CharmmParameterSet, CharmmPsfFile
-        from simtk.unit import angstroms
-
         # =======================================================================
         # Force field
         # =======================================================================
@@ -161,9 +163,6 @@ def generate_single_im1h_oac_system(coll_freq=10, drude_coll_freq=120):
         return psf, crd, params
 
     def setup_system():
-        from openmm.app import PME, HBonds
-        from simtk.unit import angstroms
-
         psf, crd, params = load_charmm_files()
         system = psf.createSystem(
             params,
@@ -176,14 +175,6 @@ def generate_single_im1h_oac_system(coll_freq=10, drude_coll_freq=120):
         return system
 
     def setup_simulation():
-        from openmm import (
-            Platform,
-            DrudeNoseHooverIntegrator,
-            XmlSerializer,
-        )
-        from openmm.app import Simulation
-        from simtk.unit import angstroms, kelvin, picoseconds
-
         # plugin
         # https://github.com/z-gong/openmm-velocityVerlet
 

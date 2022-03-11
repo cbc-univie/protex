@@ -1,10 +1,21 @@
 # Import package, test suite, and other packages as needed
+from ast import Import
 import os
 from sys import stdout
+from collections import defaultdict
+import json
+
+try:
+    import openmm as mm
+    from openmm.app import DCDReporter, PDBReporter, StateDataReporter
+except ImportError:
+    import simtk.openmm as mm
+    from simtk.openmm.app import DCDReporter, PDBReporter, StateDataReporter
 
 import pytest
 
 from ..system import IonicLiquidSystem, IonicLiquidTemplates
+from ..update import NaiveMCUpdate, StateUpdate
 
 from ..testsystems import (
     IM1H_IM1,
@@ -24,7 +35,6 @@ def test_setup_simulation():
 
 
 def test_run_simulation():
-    from openmm.app import DCDReporter, PDBReporter, StateDataReporter
 
     simulation = generate_im1h_oac_system()
     print("Minimizing...")
@@ -74,7 +84,6 @@ def test_create_IonicLiquidTemplate():
 
 
 def test_create_IonicLiquid():
-    from collections import defaultdict
 
     simulation = generate_im1h_oac_system()
     allowed_updates = {}
@@ -196,7 +205,6 @@ def test_residues():
 
 
 def test_forces():
-    from collections import defaultdict
 
     simulation = generate_im1h_oac_system()
     system = simulation.system
@@ -265,7 +273,6 @@ def test_forces():
 
 
 def test_torsion_forces():
-    from collections import defaultdict
 
     simulation = generate_im1h_oac_system()
     system = simulation.system
@@ -421,12 +428,7 @@ def test_torsion_forces():
 
 
 def test_drude_forces():
-    from collections import defaultdict
-    try:
-        import openmm as mm
-    except ImportError:
-        import stimk.openmm as mm
-        
+
     simulation = generate_im1h_oac_system()
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "delta_e": 2.33}
@@ -566,9 +568,6 @@ def test_create_IonicLiquid_residue():
     reason="Skipping tests that cannot pass in github actions",
 )
 def test_report_charge_changes():
-    import json
-
-    from ..update import NaiveMCUpdate, StateUpdate
 
     # obtain simulation object
     simulation = generate_im1h_oac_system()

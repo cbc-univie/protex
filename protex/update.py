@@ -6,7 +6,11 @@ import numpy as np
 from scipy.spatial import distance_matrix
 
 from protex.system import IonicLiquidSystem
-from simtk import unit
+
+# try:
+#     from openmm import unit
+# except ImportError:
+#     from simtk import unit
 
 logger = logging.getLogger(__name__)
 
