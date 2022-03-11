@@ -1,8 +1,16 @@
-from simtk import unit
-from simtk.unit import kelvin, bar, dalton, volt
-from simtk.unit import picosecond, elementary_charge
-from simtk.unit import nanometer, angstrom, meter
-from simtk.unit import kilojoule_per_mole, kilocalorie_per_mole
+try:
+    from openmm import unit
+    from openmm.unit import kelvin, bar, dalton, volt
+    from openmm.unit import picosecond, elementary_charge
+    from openmm.unit import nanometer, angstrom, meter
+    from openmm.unit import kilojoule_per_mole, kilocalorie_per_mole
+
+except ImportError:
+    from simtk import unit
+    from simtk.unit import kelvin, bar, dalton, volt
+    from simtk.unit import picosecond, elementary_charge
+    from simtk.unit import nanometer, angstrom, meter
+    from simtk.unit import kilojoule_per_mole, kilocalorie_per_mole
 
 ps = picosecond
 nm = nanometer
