@@ -5,6 +5,7 @@ try:  # Syntax changed in OpenMM 7.6
     from openmm import (
         OpenMMException,
         Platform,
+        Context,
         DrudeLangevinIntegrator,
         DrudeNoseHooverIntegrator,
         XmlSerializer,
@@ -17,6 +18,7 @@ except ImportError:
     from simtk.openmm import (
         OpenMMException,
         Platform,
+        Context,
         DrudeLangevinIntegrator,
         DrudeNoseHooverIntegrator,
         XmlSerializer,
@@ -70,15 +72,19 @@ def generate_im1h_oac_system(coll_freq=10, drude_coll_freq=120):
         return system
 
     def setup_simulation():
-        # plugin
-        # https://github.com/z-gong/openmm-velocityVerlet
+
+        psf, crd, params = load_charmm_files()
+        system = setup_system()
 
         # coll_freq = 10
         # drude_coll_freq = 80
 
         try:
+            # plugin
+            # https://github.com/z-gong/openmm-velocityVerlet
             from velocityverletplugin import VVIntegrator
 
+            # temperature grouped nose hoover thermostat
             integrator = VVIntegrator(
                 300 * kelvin,
                 coll_freq / picoseconds,
@@ -86,8 +92,11 @@ def generate_im1h_oac_system(coll_freq=10, drude_coll_freq=120):
                 drude_coll_freq / picoseconds,
                 0.0005 * picoseconds,
             )
+            # test if platform and integrator are compatible -> VVIntegrator only works on cuda
+            context = Context(system, integrator)
+            del context
 
-        except ModuleNotFoundError:
+        except (ModuleNotFoundError, OpenMMException):
             integrator = DrudeNoseHooverIntegrator(
                 300 * kelvin,
                 coll_freq / picoseconds,
@@ -95,10 +104,7 @@ def generate_im1h_oac_system(coll_freq=10, drude_coll_freq=120):
                 drude_coll_freq / picoseconds,
                 0.0005 * picoseconds,
             )
-            # temperature grouped nose hoover thermostat
 
-        psf, crd, params = load_charmm_files()
-        system = setup_system()
         print(
             f"{coll_freq=}, {drude_coll_freq=}"
         )  # tested with 20, 40, 80, 100, 120, 140, 160: 20,40 bad; 80 - 120 good; 140, 160 crashed
@@ -106,13 +112,27 @@ def generate_im1h_oac_system(coll_freq=10, drude_coll_freq=120):
         try:
             platform = Platform.getPlatformByName("CUDA")
             prop = dict(CudaPrecision="single")  # default is single
+            # Moved creating the simulation object inside the try...except block, because i.e.
+            # Error loading CUDA module: CUDA_ERROR_INVALID_PTX (218)
+            # message was only thrown during simulation creation not by specifying the platform
+            simulation = Simulation(
+                psf.topology,
+                system,
+                integrator,
+                platform=platform,
+                platformProperties=prop,
+            )
         except OpenMMException:
             platform = Platform.getPlatformByName("CPU")
             prop = dict()
+            simulation = Simulation(
+                psf.topology,
+                system,
+                integrator,
+                platform=platform,
+                platformProperties=prop,
+            )
 
-        simulation = Simulation(
-            psf.topology, system, integrator, platform=platform, platformProperties=prop
-        )
         simulation.context.setPositions(crd.positions)
         # Try with positions from equilibrated system:
         base = f"{protex.__path__[0]}/forcefield"

@@ -4,15 +4,40 @@ from sys import stdout
 from collections import defaultdict
 import json
 
-try:
+try:  # Syntax changed in OpenMM 7.6
     import openmm as mm
+    from openmm import (
+        OpenMMException,
+        Platform,
+        Context,
+        DrudeLangevinIntegrator,
+        DrudeNoseHooverIntegrator,
+        XmlSerializer,
+    )
     from openmm.app import DCDReporter, PDBReporter, StateDataReporter
+    from openmm.app import CharmmCrdFile, CharmmParameterSet, CharmmPsfFile
+    from openmm.app import PME, HBonds
+    from openmm.app import Simulation
+    from openmm.unit import angstroms, kelvin, picoseconds
 except ImportError:
     import simtk.openmm as mm
+    from simtk.openmm import (
+        OpenMMException,
+        Platform,
+        Context,
+        DrudeLangevinIntegrator,
+        DrudeNoseHooverIntegrator,
+        XmlSerializer,
+    )
     from simtk.openmm.app import DCDReporter, PDBReporter, StateDataReporter
+    from simtk.openmm.app import CharmmCrdFile, CharmmParameterSet, CharmmPsfFile
+    from simtk.openmm.app import PME, HBonds
+    from simtk.openmm.app import Simulation
+    from simtk.unit import angstroms, kelvin, picoseconds
 
 import pytest
 
+import protex
 from ..system import IonicLiquidSystem, IonicLiquidTemplates
 from ..update import NaiveMCUpdate, StateUpdate
 
@@ -21,6 +46,101 @@ from ..testsystems import (
     OAC_HOAC,
     generate_im1h_oac_system,
 )
+
+
+def test_available_platforms():
+    # =======================================================================
+    # Force field
+    # =======================================================================
+    # Loading CHARMM files
+    print("Loading CHARMM files...")
+    PARA_FILES = [
+        "toppar_drude_master_protein_2013f_lj025.str",
+        "hoac_d.str",
+        "im1h_d.str",
+        "im1_d.str",
+        "oac_d.str",
+    ]
+    base = f"{protex.__path__[0]}/forcefield"  # NOTE: this points now to the installed files!
+    params = CharmmParameterSet(
+        *[f"{base}/toppar/{para_files}" for para_files in PARA_FILES]
+    )
+
+    psf = CharmmPsfFile(f"{base}/im1h_oac_150_im1_hoac_350.psf")
+    xtl = 48.0 * angstroms
+    psf.setBox(xtl, xtl, xtl)
+    # cooridnates can be provieded by CharmmCrdFile, CharmmRstFile or PDBFile classes
+    crd = CharmmCrdFile(f"{base}/im1h_oac_150_im1_hoac_350.crd")
+
+    system = psf.createSystem(
+        params,
+        nonbondedMethod=PME,
+        nonbondedCutoff=11.0 * angstroms,
+        switchDistance=10 * angstroms,
+        constraints=HBonds,
+    )
+
+    # plugin
+    # https://github.com/z-gong/openmm-velocityVerlet
+
+    coll_freq = 10
+    drude_coll_freq = 80
+    from velocityverletplugin import VVIntegrator
+
+    try:
+        from velocityverletplugin import VVIntegrator
+
+        # temperature grouped nose hoover thermostat
+        integrator = VVIntegrator(
+            300 * kelvin,
+            coll_freq / picoseconds,
+            1 * kelvin,
+            drude_coll_freq / picoseconds,
+            0.0005 * picoseconds,
+        )
+        # test if platform and integrator are compatible -> VVIntegrator only works on cuda
+        context = Context(system, integrator)
+        del context
+    except (ModuleNotFoundError, OpenMMException):
+        integrator = DrudeNoseHooverIntegrator(
+            300 * kelvin,
+            coll_freq / picoseconds,
+            1 * kelvin,
+            drude_coll_freq / picoseconds,
+            0.0005 * picoseconds,
+        )
+
+    print(
+        f"{coll_freq=}, {drude_coll_freq=}"
+    )  # tested with 20, 40, 80, 100, 120, 140, 160: 20,40 bad; 80 - 120 good; 140, 160 crashed
+    integrator.setMaxDrudeDistance(0.25 * angstroms)
+    try:
+        platform = Platform.getPlatformByName("CUDA")
+        prop = dict(CudaPrecision="single")  # default is single
+
+        simulation = Simulation(
+            psf.topology, system, integrator, platform=platform, platformProperties=prop
+        )
+    except mm.OpenMMException:
+        platform = Platform.getPlatformByName("CPU")
+        prop = dict()
+        simulation = Simulation(
+            psf.topology, system, integrator, platform=platform, platformProperties=prop
+        )
+    print(platform.getName())
+
+    simulation.context.setPositions(crd.positions)
+    # Try with positions from equilibrated system:
+    base = f"{protex.__path__[0]}/forcefield"
+    if os.path.exists(f"{base}/traj/im1h_oac_150_im1_hoac_350_npt_7.rst"):
+        with open(f"{base}/traj/im1h_oac_150_im1_hoac_350_npt_7.rst") as f:
+            print(f"Opening restart file {f}")
+            simulation.context.setState(XmlSerializer.deserialize(f.read()))
+        simulation.context.computeVirtualSites()
+    else:
+        print(f"No restart file found. Using initial coordinate file.")
+        simulation.context.computeVirtualSites()
+        simulation.context.setVelocitiesToTemperature(300 * kelvin)
 
 
 def test_setup_simulation():
