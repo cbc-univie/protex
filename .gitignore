@@ -109,4 +109,7 @@ ENV/
 *.dcd
 *.out
 *.dat
+*.pdb
 charge_changes.json
+protex/single_pairs/test_single_im1h_oac.dcd
+protex/single_pairs/test_single_im1h_oac.out
