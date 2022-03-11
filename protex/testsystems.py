@@ -209,7 +209,7 @@ def generate_single_im1h_oac_system(coll_freq=10, drude_coll_freq=120):
                 0.0005 * picoseconds,
             )
 
-        except ModuleNotFoundError:
+        except (ModuleNotFoundError, OpenMMException):
             integrator = DrudeNoseHooverIntegrator(
                 300 * kelvin,
                 coll_freq / picoseconds,
@@ -228,16 +228,22 @@ def generate_single_im1h_oac_system(coll_freq=10, drude_coll_freq=120):
         try:
             platform = Platform.getPlatformByName("CUDA")
             prop = dict(CudaPrecision="single")  # default is single
+            simulation = Simulation(
+                psf.topology,
+                system,
+                integrator,
+                platform=platform,  # platformProperties=prop
+            )
         except OpenMMException:
             platform = Platform.getPlatformByName("CPU")
             prop = dict()
+            simulation = Simulation(
+                psf.topology,
+                system,
+                integrator,
+                platform=platform,  # platformProperties=prop
+            )
 
-        simulation = Simulation(
-            psf.topology,
-            system,
-            integrator,
-            platform=platform,  # platformProperties=prop
-        )
         simulation.context.setPositions(crd.positions)
         simulation.context.computeVirtualSites()
         # simulation.context.setVelocitiesToTemperature(300 * kelvin)
