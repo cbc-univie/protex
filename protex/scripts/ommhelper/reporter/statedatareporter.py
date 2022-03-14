@@ -48,14 +48,18 @@ try:
 except:
     have_gzip = False
 
-import simtk.openmm as mm
-import simtk.unit as unit
+try:
+    import openmm as mm
+    import openmm.unit as unit
+except ImportError:
+    import simtk.openmm as mm
+    import simtk.unit as unit
 import math
 import time
 
 
 class StateDataReporter(object):
-    '''
+    """
     StateDataReporter outputs information about a simulation, such as energy and temperature, to a file.
 
     This reporter is modified from the StateDataReporter shipped with OpenMM python API.
@@ -117,22 +121,42 @@ class StateDataReporter(object):
         and defines how many steps will indicate 100% completion.
     cvs : list=[]
         Collective variables defined by CustomCVForce
-    '''
+    """
 
-    def __init__(self, file, reportInterval, step=True, time=True, potentialEnergy=True,
-                 kineticEnergy=False, totalEnergy=False, temperature=True, volume=False, box=True,
-                 density=True, progress=False, remainingTime=False, speed=True, elapsedTime=True,
-                 separator='\t', systemMass=None, totalSteps=None, append=False, cvs=[]):
+    def __init__(
+        self,
+        file,
+        reportInterval,
+        step=True,
+        time=True,
+        potentialEnergy=True,
+        kineticEnergy=False,
+        totalEnergy=False,
+        temperature=True,
+        volume=False,
+        box=True,
+        density=True,
+        progress=False,
+        remainingTime=False,
+        speed=True,
+        elapsedTime=True,
+        separator="\t",
+        systemMass=None,
+        totalSteps=None,
+        append=False,
+        cvs=[],
+    ):
         self._reportInterval = reportInterval
         self._openedFile = isinstance(file, str)
         if (progress or remainingTime) and totalSteps is None:
             raise ValueError(
-                'Reporting progress or remaining time requires total steps to be specified')
+                "Reporting progress or remaining time requires total steps to be specified"
+            )
         if self._openedFile:
             if append:
-                self._out = open(file, 'a')
+                self._out = open(file, "a")
             else:
-                self._out = open(file, 'w')
+                self._out = open(file, "w")
         else:
             self._out = file
         self._step = step
@@ -155,7 +179,9 @@ class StateDataReporter(object):
         self._needsPositions = False
         self._needsVelocities = False
         self._needsForces = False
-        self._needEnergy = potentialEnergy or kineticEnergy or totalEnergy or temperature
+        self._needEnergy = (
+            potentialEnergy or kineticEnergy or totalEnergy or temperature
+        )
 
         self._boxSizeList = [[], [], []]
 
@@ -179,7 +205,12 @@ class StateDataReporter(object):
         """
         steps = self._reportInterval - simulation.currentStep % self._reportInterval
         return (
-        steps, self._needsPositions, self._needsVelocities, self._needsForces, self._needEnergy)
+            steps,
+            self._needsPositions,
+            self._needsVelocities,
+            self._needsForces,
+            self._needEnergy,
+        )
 
     def report(self, simulation, state):
         """Generate a report.
@@ -238,50 +269,74 @@ class StateDataReporter(object):
         volume = box[0][0] * box[1][1] * box[2][2]
         clockTime = time.time()
         if self._progress:
-            values.append('%.1f%%' % (100.0 * simulation.currentStep / self._totalSteps))
+            values.append(
+                "%.1f%%" % (100.0 * simulation.currentStep / self._totalSteps)
+            )
         if self._step:
             values.append(simulation.currentStep)
         if self._time:
-            values.append('%.4f' % state.getTime().value_in_unit(unit.picosecond))
+            values.append("%.4f" % state.getTime().value_in_unit(unit.picosecond))
         if self._potentialEnergy:
             values.append(
-                '%.4f' % state.getPotentialEnergy().value_in_unit(unit.kilojoules_per_mole))
+                "%.4f"
+                % state.getPotentialEnergy().value_in_unit(unit.kilojoules_per_mole)
+            )
         if self._kineticEnergy:
-            values.append('%.4f' % state.getKineticEnergy().value_in_unit(unit.kilojoules_per_mole))
+            values.append(
+                "%.4f"
+                % state.getKineticEnergy().value_in_unit(unit.kilojoules_per_mole)
+            )
         if self._totalEnergy:
             values.append(
-                '%.4f' % (state.getKineticEnergy() + state.getPotentialEnergy()).value_in_unit(
-                    unit.kilojoules_per_mole))
+                "%.4f"
+                % (state.getKineticEnergy() + state.getPotentialEnergy()).value_in_unit(
+                    unit.kilojoules_per_mole
+                )
+            )
         if self._temperature:
-            values.append('%.2f' % (2 * state.getKineticEnergy() / (
-                        self._dof * unit.MOLAR_GAS_CONSTANT_R)).value_in_unit(unit.kelvin))
+            values.append(
+                "%.2f"
+                % (
+                    2
+                    * state.getKineticEnergy()
+                    / (self._dof * unit.MOLAR_GAS_CONSTANT_R)
+                ).value_in_unit(unit.kelvin)
+            )
         if self._volume:
-            values.append('%.4f' % volume.value_in_unit(unit.nanometer ** 3))
+            values.append("%.4f" % volume.value_in_unit(unit.nanometer**3))
         if self._box:
-            values.append('%.4f' % box[0][0].value_in_unit(unit.nanometer))
-            values.append('%.4f' % box[1][1].value_in_unit(unit.nanometer))
-            values.append('%.4f' % box[2][2].value_in_unit(unit.nanometer))
+            values.append("%.4f" % box[0][0].value_in_unit(unit.nanometer))
+            values.append("%.4f" % box[1][1].value_in_unit(unit.nanometer))
+            values.append("%.4f" % box[2][2].value_in_unit(unit.nanometer))
         if self._density:
-            values.append('%.4f' % (self._totalMass / volume).value_in_unit(
-                unit.gram / unit.item / unit.milliliter))
+            values.append(
+                "%.4f"
+                % (self._totalMass / volume).value_in_unit(
+                    unit.gram / unit.item / unit.milliliter
+                )
+            )
         if self._speed:
             elapsedDays = (clockTime - self._initialClockTime) / 86400.0
             elapsedNs = (state.getTime() - self._initialSimulationTime).value_in_unit(
-                unit.nanosecond)
+                unit.nanosecond
+            )
             if elapsedDays > 0.0:
-                values.append('%.3g' % (elapsedNs / elapsedDays))
+                values.append("%.3g" % (elapsedNs / elapsedDays))
             else:
-                values.append('--')
+                values.append("--")
         if self._elapsedTime:
-            values.append('%.3g' % ((time.time() - self._initialClockTime) / 3600.0))
+            values.append("%.3g" % ((time.time() - self._initialClockTime) / 3600.0))
         if self._remainingTime:
             elapsedSeconds = clockTime - self._initialClockTime
             elapsedSteps = simulation.currentStep - self._initialSteps
             if elapsedSteps == 0:
-                value = '--'
+                value = "--"
             else:
                 estimatedTotalSeconds = (
-                                                    self._totalSteps - self._initialSteps) * elapsedSeconds / elapsedSteps
+                    (self._totalSteps - self._initialSteps)
+                    * elapsedSeconds
+                    / elapsedSteps
+                )
                 remainingSeconds = int(estimatedTotalSeconds - elapsedSeconds)
                 remainingDays = remainingSeconds // 86400
                 remainingSeconds -= remainingDays * 86400
@@ -291,9 +346,17 @@ class StateDataReporter(object):
                 remainingSeconds -= remainingMinutes * 60
                 if remainingDays > 0:
                     value = "%d:%d:%02d:%02d" % (
-                    remainingDays, remainingHours, remainingMinutes, remainingSeconds)
+                        remainingDays,
+                        remainingHours,
+                        remainingMinutes,
+                        remainingSeconds,
+                    )
                 elif remainingHours > 0:
-                    value = "%d:%02d:%02d" % (remainingHours, remainingMinutes, remainingSeconds)
+                    value = "%d:%02d:%02d" % (
+                        remainingHours,
+                        remainingMinutes,
+                        remainingSeconds,
+                    )
                 elif remainingMinutes > 0:
                     value = "%d:%02d" % (remainingMinutes, remainingSeconds)
                 else:
@@ -322,8 +385,10 @@ class StateDataReporter(object):
                 if system.getParticleMass(i) > 0 * unit.dalton:
                     dof += 3
             dof -= system.getNumConstraints()
-            if any(type(system.getForce(i)) == mm.CMMotionRemover for i in
-                   range(system.getNumForces())):
+            if any(
+                type(system.getForce(i)) == mm.CMMotionRemover
+                for i in range(system.getNumForces())
+            ):
                 dof -= 3
             self._dof = dof
         if self._density:
@@ -342,35 +407,35 @@ class StateDataReporter(object):
         """
         headers = []
         if self._progress:
-            headers.append('Progress')
+            headers.append("Progress")
         if self._step:
-            headers.append('Step')
+            headers.append("Step")
         if self._time:
-            headers.append('Time')
+            headers.append("Time")
         if self._potentialEnergy:
-            headers.append('E_potential')
+            headers.append("E_potential")
         if self._kineticEnergy:
-            headers.append('E_kinetic')
+            headers.append("E_kinetic")
         if self._totalEnergy:
-            headers.append('E_total')
+            headers.append("E_total")
         if self._temperature:
-            headers.append('T')
+            headers.append("T")
         if self._volume:
-            headers.append('Vol')
+            headers.append("Vol")
         if self._box:
-            headers.append('Lx')
-            headers.append('Ly')
-            headers.append('Lz')
+            headers.append("Lx")
+            headers.append("Ly")
+            headers.append("Lz")
         if self._density:
-            headers.append('Density')
+            headers.append("Density")
         if self._speed:
-            headers.append('Speed')
+            headers.append("Speed")
         if self._elapsedTime:
-            headers.append('Elapsed')
+            headers.append("Elapsed")
         if self._remainingTime:
-            headers.append('Remaining')
+            headers.append("Remaining")
         for i, cv in enumerate(self._cvs):
-            headers.append('CV%i' % i)
+            headers.append("CV%i" % i)
         return headers
 
     def _checkForErrors(self, simulation, state):
@@ -381,19 +446,20 @@ class StateDataReporter(object):
          - state (State) The current state of the simulation
         """
         if self._needEnergy:
-            energy = (state.getKineticEnergy() + state.getPotentialEnergy()).value_in_unit(
-                unit.kilojoules_per_mole)
+            energy = (
+                state.getKineticEnergy() + state.getPotentialEnergy()
+            ).value_in_unit(unit.kilojoules_per_mole)
             if math.isnan(energy):
-                raise ValueError('Energy is NaN')
+                raise ValueError("Energy is NaN")
             if math.isinf(energy):
-                raise ValueError('Energy is infinite')
+                raise ValueError("Energy is infinite")
 
     def __del__(self):
         if self._openedFile:
             self._out.close()
 
     def getBoxSizeAverage(self, timeFraction=0.5):
-        '''
+        """
         Get the averaged box size of the simulated system since this reporter was added.
 
         Parameters
@@ -407,7 +473,7 @@ class StateDataReporter(object):
         lx : float
         ly : float
         lz : float
-        '''
+        """
         n = math.ceil(len(self._boxSizeList[0]) * timeFraction)
         lx = sum(self._boxSizeList[0][-n:]) / n
         ly = sum(self._boxSizeList[1][-n:]) / n
