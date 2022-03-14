@@ -85,7 +85,6 @@ def test_available_platforms():
 
     coll_freq = 10
     drude_coll_freq = 80
-    from velocityverletplugin import VVIntegrator
 
     try:
         from velocityverletplugin import VVIntegrator
