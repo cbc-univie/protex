@@ -93,8 +93,18 @@ def generate_im1h_oac_system(coll_freq=10, drude_coll_freq=120):
                 0.0005 * picoseconds,
             )
             # test if platform and integrator are compatible -> VVIntegrator only works on cuda
+            # If we do not create a context it is not tested if there is cuda availabe for the plugin
             context = Context(system, integrator)
             del context
+            # afterwards the integrator is already bound to the context and we need a new one...
+            # is there something like integrator.reset()?
+            integrator = VVIntegrator(
+                300 * kelvin,
+                coll_freq / picoseconds,
+                1 * kelvin,
+                drude_coll_freq / picoseconds,
+                0.0005 * picoseconds,
+            )
 
         except (ModuleNotFoundError, OpenMMException):
             integrator = DrudeNoseHooverIntegrator(
@@ -195,12 +205,24 @@ def generate_single_im1h_oac_system(coll_freq=10, drude_coll_freq=120):
         return system
 
     def setup_simulation():
-        # plugin
-        # https://github.com/z-gong/openmm-velocityVerlet
+        psf, crd, params = load_charmm_files()
+        system = setup_system()
 
         try:
+            # plugin
+            # https://github.com/z-gong/openmm-velocityVerlet
             from velocityverletplugin import VVIntegrator
 
+            integrator = VVIntegrator(
+                300 * kelvin,
+                coll_freq / picoseconds,
+                1 * kelvin,
+                drude_coll_freq / picoseconds,
+                0.0005 * picoseconds,
+            )
+
+            context = Context(system, integrator)
+            del context
             integrator = VVIntegrator(
                 300 * kelvin,
                 coll_freq / picoseconds,
@@ -219,8 +241,6 @@ def generate_single_im1h_oac_system(coll_freq=10, drude_coll_freq=120):
             )
             # temperature grouped nose hoover thermostat
 
-        psf, crd, params = load_charmm_files()
-        system = setup_system()
         print(
             f"{coll_freq=}, {drude_coll_freq=}"
         )  # tested with 20, 40, 80, 100, 120, 140, 160: 20,40 bad; 80 - 120 good; 140, 160 crashed
