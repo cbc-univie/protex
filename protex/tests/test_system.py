@@ -100,6 +100,13 @@ def test_available_platforms():
         # test if platform and integrator are compatible -> VVIntegrator only works on cuda
         context = Context(system, integrator)
         del context
+        integrator = VVIntegrator(
+            300 * kelvin,
+            coll_freq / picoseconds,
+            1 * kelvin,
+            drude_coll_freq / picoseconds,
+            0.0005 * picoseconds,
+        )
     except (ModuleNotFoundError, OpenMMException):
         integrator = DrudeNoseHooverIntegrator(
             300 * kelvin,
