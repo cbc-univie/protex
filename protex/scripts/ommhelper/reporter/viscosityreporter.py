@@ -1,9 +1,12 @@
-from simtk.openmm import app
+try:
+    from openmm import app
+except ImportError:
+    from simtk.openmm import app
 from ..unit import *
 
 
 class ViscosityReporter(object):
-    '''
+    """
     ViscosityReporter report the viscosity using cosine periodic perturbation method.
     A integrator supporting this method is required.
     e.g. the VVIntegrator from https://github.com/z-gong/openmm-velocityVerlet.
@@ -16,14 +19,14 @@ class ViscosityReporter(object):
         The interval (in time steps) at which to write frames
     append : bool
         Whether or not append to the existing file.
-    '''
+    """
 
     def __init__(self, file, reportInterval, append=False):
         self._reportInterval = reportInterval
         if append:
-            self._out = open(file, 'a')
+            self._out = open(file, "a")
         else:
-            self._out = open(file, 'w')
+            self._out = open(file, "w")
         self._hasInitialized = False
 
     def describeNextReport(self, simulation):
@@ -46,7 +49,7 @@ class ViscosityReporter(object):
         try:
             simulation.integrator.getCosAcceleration()
         except AttributeError:
-            raise Exception('This integrator does not calculate viscosity')
+            raise Exception("This integrator does not calculate viscosity")
 
         steps = self._reportInterval - simulation.currentStep % self._reportInterval
         return (steps, False, False, False, False)
@@ -63,15 +66,22 @@ class ViscosityReporter(object):
         """
         if not self._hasInitialized:
             self._hasInitialized = True
-            print('#"Step"\t"Acceleration (nm/ps^2)"\t"VelocityAmplitude (nm/ps)"\t"1/Viscosity (1/Pa.s)"', file=self._out)
+            print(
+                '#"Step"\t"Acceleration (nm/ps^2)"\t"VelocityAmplitude (nm/ps)"\t"1/Viscosity (1/Pa.s)"',
+                file=self._out,
+            )
 
-        acceleration = simulation.integrator.getCosAcceleration().value_in_unit(nm / ps ** 2)
+        acceleration = simulation.integrator.getCosAcceleration().value_in_unit(
+            nm / ps**2
+        )
         vMax, invVis = simulation.integrator.getViscosity()
         vMax = vMax.value_in_unit(nm / ps)
         invVis = invVis.value_in_unit((unit.pascal * unit.second) ** -1)
-        print(simulation.currentStep, acceleration, vMax, invVis, sep='\t', file=self._out)
+        print(
+            simulation.currentStep, acceleration, vMax, invVis, sep="\t", file=self._out
+        )
 
-        if hasattr(self._out, 'flush') and callable(self._out.flush):
+        if hasattr(self._out, "flush") and callable(self._out.flush):
             self._out.flush()
 
     def __del__(self):

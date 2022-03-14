@@ -12,13 +12,17 @@ from ..testsystems import (
 )
 from ..update import NaiveMCUpdate, StateUpdate
 
+try:
+    from openmm.app import DCDReporter, StateDataReporter
+except ImportError:
+    from simtk.openmm.app import DCDReporter, StateDataReporter
+
 
 @pytest.mark.skipif(
     os.getenv("CI") == "true",
     reason="Skipping tests that cannot pass in github actions",
 )
 def test_outline():
-    from openmm.app import DCDReporter, StateDataReporter
 
     from ..scripts.ommhelper import DrudeTemperatureReporter
 

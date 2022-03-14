@@ -6,6 +6,11 @@ import numpy as np
 import pytest
 from scipy.spatial import distance_matrix
 
+try:
+    from openmm.app import StateDataReporter, DCDReporter
+except ImportError:
+    from simtk.openmm.app import StateDataReporter, DCDReporter
+
 import protex
 from ..system import IonicLiquidSystem, IonicLiquidTemplates
 from ..testsystems import (
@@ -891,10 +896,6 @@ def test_dry_updates(caplog):
     reason="Will fail sporadicaly.",
 )
 def test_parameters_after_update():
-    try:
-        from openmm.app import StateDataReporter, DCDReporter
-    except ImportError:
-        from simtk.openmm.app import StateDataReporter, DCDReporter
 
     simulation = generate_im1h_oac_system()
     # get ionic liquid templates
@@ -1196,10 +1197,6 @@ def test_pbc():
     reason="Will fail sporadicaly.",
 )
 def test_single_im1h_oac():
-    try:
-        from openmm.app import StateDataReporter, DCDReporter
-    except ImportError:
-        from simtk.openmm.app import StateDataReporter, DCDReporter
 
     base = f"{protex.__path__[0]}/single_pairs"
 

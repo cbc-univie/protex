@@ -1,10 +1,15 @@
 import sys
-from simtk.openmm.app.gromacsgrofile import GromacsGroFile
-from simtk.unit import nanometer, picosecond, norm, is_quantity
+
+try:
+    from openmm.app.gromacsgrofile import GromacsGroFile
+    from openmm.unit import nanometer, picosecond, norm, is_quantity
+except ImportError:
+    from simtk.openmm.app.gromacsgrofile import GromacsGroFile
+    from simtk.unit import nanometer, picosecond, norm, is_quantity
 
 
 class GroFile(GromacsGroFile):
-    '''
+    """
     GroFile is a parser and writer for Gromacs .gro file.
 
     GroFile extends GromacsGroFile from OpenMM python API by adding writing ability.
@@ -13,11 +18,13 @@ class GroFile(GromacsGroFile):
     ----------
     file : string
         the name of the file to load
-    '''
+    """
 
     @staticmethod
-    def writeFile(topology, positions, vectors, file, time=None, subset=None, velocities=None):
-        '''
+    def writeFile(
+        topology, positions, vectors, file, time=None, subset=None, velocities=None
+    ):
+        """
         Write positions (and optionally velocities) of atoms into a GRO file
 
         It is possible to write a subset of atoms into the GRO file by providing `subset` argument.
@@ -36,9 +43,9 @@ class GroFile(GromacsGroFile):
         velocities array_like of shape (n_atom, 3), optional
             The length of velocities should equal to the number of atoms in the topology, even when subset is provided.
             If not provided, then velocities information will not be written.
-        '''
+        """
         if type(file) is str:
-            _file = open(file, 'w')
+            _file = open(file, "w")
         else:
             _file = file
 
@@ -85,19 +92,21 @@ class GroFile(GromacsGroFile):
 
         atoms = list(topology.atoms())
         if len(atoms) != len(positions):
-            raise ValueError('The number of positions must match the number of atoms')
+            raise ValueError("The number of positions must match the number of atoms")
         if is_quantity(positions):
             positions = positions.value_in_unit(nanometer)
         if velocities is not None:
             if len(atoms) != len(velocities):
-                raise ValueError('The number of velocities must match the number of atoms')
+                raise ValueError(
+                    "The number of velocities must match the number of atoms"
+                )
             if is_quantity(velocities):
                 velocities = velocities.value_in_unit(nanometer / picosecond)
 
         if subset is None:
             subset = list(range(len(atoms)))
 
-        print('%i' % len(subset), file=file)
+        print("%i" % len(subset), file=file)
         for ii, i in enumerate(subset):
             atom = atoms[i]
             residue = atom.residue
@@ -106,13 +115,19 @@ class GroFile(GromacsGroFile):
             if atom.element is not None:
                 name = atom.element.symbol
             else:
-                name = ''.join(i for i in atom.name if not i.isdigit())
-            line = '%5i%5s%5s%5i%8.3f%8.3f%8.3f' % (
-                (residue.index + 1) % 100000, residue.name[:5], name[:5],
-                (atom.index + 1) % 100000, coords[0], coords[1], coords[2])
+                name = "".join(i for i in atom.name if not i.isdigit())
+            line = "%5i%5s%5s%5i%8.3f%8.3f%8.3f" % (
+                (residue.index + 1) % 100000,
+                residue.name[:5],
+                name[:5],
+                (atom.index + 1) % 100000,
+                coords[0],
+                coords[1],
+                coords[2],
+            )
             if velocities is not None:
                 vel = velocities[i]
-                line += '%8.4f%8.4f%8.4f' % (vel[0], vel[1], vel[2])
+                line += "%8.4f%8.4f%8.4f" % (vel[0], vel[1], vel[2])
             print(line, file=file)
 
     @staticmethod
@@ -130,5 +145,8 @@ class GroFile(GromacsGroFile):
         xx, xy, xz = vectors[0]
         yx, yy, yz = vectors[1]
         zx, zy, zz = vectors[2]
-        print(' %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f' % (
-            xx, yy, zz, xy, xz, yx, yz, zx, zy), file=file)
+        print(
+            " %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f %.3f"
+            % (xx, yy, zz, xy, xz, yx, yz, zx, zy),
+            file=file,
+        )
