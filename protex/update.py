@@ -179,6 +179,7 @@ class StateUpdate:
 
         if len(candidate_pairs) == 0:
             print("No transfers this time")
+            self.ionic_liquid.simulation.step(nr_of_steps) # also do the simulation steps if no update occurs, to be consistent in simulation time
         elif len(candidate_pairs) > 0:
             self.updateMethod._update(candidate_pairs, nr_of_steps)
 
