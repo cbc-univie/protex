@@ -955,7 +955,20 @@ class IonicLiquidSystem:
 
 
 class ChargeReporter:
-    """Charge Reporter reports the charges after an update intervals"""
+    """Charge Reporter reports the charges after an update intervals
+    Used to reoprt the charge for each molecule in the system.
+    Ideally call in conjunction with an update and report just when charge changed.
+    i.e.
+    ChargeReporter(file, 10)
+    simulation.step(9)
+    state_update.update(2)
+    simulation.step(8)
+    state_update.update(2)
+    simulation.step(8)
+    simulation.step(1)
+    then the reporter is invoked directyl in the update, after the one step with the previous charge, but before any charge changes take effect.
+
+    """
 
     def __init__(
         self,
