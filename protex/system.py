@@ -9,7 +9,9 @@ logger = logging.getLogger(__name__)
 
 
 class IonicLiquidTemplates:
-    def __init__(self, states: list, allowed_updates: Dict[frozenset, Dict[str, float]]) -> None:
+    def __init__(
+        self, states: list, allowed_updates: Dict[frozenset, Dict[str, float]]
+    ) -> None:
 
         self.pairs = [list(i.keys()) for i in states]
         self.states = dict(ChainMap(*states))
@@ -103,7 +105,7 @@ class Residue:
         self.record_charge_state = []
         self.canonical_name = canonical_name
         self.system = system
-        self.record_charge_state.append(self.endstate_charge)
+        self.record_charge_state.append(self.endstate_charge)  # Not used anywhere?
         self.pair_12_13_list = pair_12_13_exclusion_list
 
     @property
@@ -265,9 +267,7 @@ class Residue:
                         thole = parms_thole.popleft()
                         force.setScreenedPairParameters(drude_idx, idx1, idx2, thole)
 
-    def _get_NonbondedForce_parameters_at_lambda(
-        self, lamb: float
-    ) -> List[List[int]]:
+    def _get_NonbondedForce_parameters_at_lambda(self, lamb: float) -> List[List[int]]:
         # returns interpolated sorted nonbonded Forces.
         assert lamb >= 0 and lamb <= 1
         current_name = self.current_name
@@ -912,6 +912,31 @@ class IonicLiquidSystem:
             else:
                 raise RuntimeError("Found resiude not present in Templates: {r.name}")
         return residues
+
+    def save_current_names(self, file: str) -> None:
+        """
+        Save a file with the current residue names.
+        Can be used with load_current_names to set the residues in the IonicLiquidSystem
+        in the state of these names and also adapt corresponding charges, parameters,...
+        """
+        with open(file, "w") as f:
+            for residue in self.residues:
+                print(residue.current_name, file=f)
+
+    def load_current_names(self, file: str) -> None:
+        """
+        Load the names of the residues (order important!)
+        Update the current_name of all residues to the given one
+        """
+        residue_names = []
+        with open(file, "r") as f:
+            for line in f.readlines():
+                residue_names.append(line.strip())
+        assert (
+            len(residue_names) == self.topology.getNumResidues()
+        ), "Number of residues not matching"
+        for residue, name in zip(self.residues, residue_names):
+            residue.current_name = name
 
     def report_states(self) -> None:
         """
