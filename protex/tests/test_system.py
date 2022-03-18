@@ -3,7 +3,6 @@ import os
 from sys import stdout
 from collections import defaultdict
 import json
-from black import re
 
 try:  # Syntax changed in OpenMM 7.6
     import openmm as mm
