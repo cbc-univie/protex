@@ -744,7 +744,7 @@ def test_reporter_class():
     state_update = StateUpdate(update)
 
     report_interval = 5
-    charge_info = {"dcd_save_freq": 500, "hallo": {"hh": 4}, "1": [1, 2, 3, 4]}
+    charge_info = {"dcd_save_freq": 500}
     charge_reporter = ChargeReporter(stdout, 20, ionic_liquid, header_data=charge_info)
     ionic_liquid.simulation.reporters.append(charge_reporter)
     ionic_liquid.simulation.reporters.append(
