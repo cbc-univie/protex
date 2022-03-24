@@ -714,7 +714,7 @@ def test_report_charge_changes():
         filename="test_charge_changes.dat", step=0, tot_steps=n_steps
     )
     ionic_liquid.simulation.step(100)
-    state_update.update()
+    state_update.update(2)
     ionic_liquid.report_charge_changes(
         filename="test_charge_changes.dat", step=1, tot_steps=n_steps
     )
@@ -726,6 +726,61 @@ def test_report_charge_changes():
     assert len(data["charges_at_step"]["0"]) == 1000
     assert len(data["charges_at_step"]["1"]) == 1000
 
+def test_save_load_residue_names():
+    # obtain simulation object
+    simulation = generate_im1h_oac_system()
+    # get ionic liquid templates
+    allowed_updates = {}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "delta_e": 2.33}
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "delta_e": -2.33}
+
+    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+    # wrap system in IonicLiquidSystem
+    ionic_liquid = IonicLiquidSystem(simulation, templates)
+    # initialize update method
+    update = NaiveMCUpdate(ionic_liquid)
+    # initialize state update class
+    state_update = StateUpdate(update)
+    
+    ionic_liquid.simulation.step(50)
+    state_update.update(2)
+
+    residue_names_1 = [residue.current_name for residue in ionic_liquid.residues]
+    residue_parameters_1 = [residue.parameters for residue in ionic_liquid.residues]
+
+    ionic_liquid.save_current_names("current_names.txt")
+
+    ionic_liquid.load_current_names("current_names.txt")
+
+    residue_names_2 = [residue.current_name for residue in ionic_liquid.residues]
+    residue_parameters_2 = [residue.parameters for residue in ionic_liquid.residues]
+
+    assert (
+        residue_names_1 == residue_names_2
+    ), "Names should have been loaded into ionic_liquid..."
+
+    assert residue_parameters_1 == residue_parameters_2
+    
+    # obtain simulation object
+    simulation = generate_im1h_oac_system()
+    # get ionic liquid templates
+    allowed_updates = {}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "delta_e": 2.33}
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "delta_e": -2.33}
+
+    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+    # wrap system in IonicLiquidSystem
+    ionic_liquid = IonicLiquidSystem(simulation, templates)
+    ionic_liquid.load_current_names("current_names.txt")
+
+    residue_names_2 = [residue.current_name for residue in ionic_liquid.residues]
+    residue_parameters_2 = [residue.parameters for residue in ionic_liquid.residues]
+
+    assert (
+        residue_names_1 == residue_names_2
+    ), "Names should have been loaded into ionic_liquid..."
+
+    assert residue_parameters_1 == residue_parameters_2
 
 @pytest.mark.skipif(
     os.getenv("CI") == "true",
@@ -746,7 +801,7 @@ def test_reporter_class():
     update = NaiveMCUpdate(ionic_liquid)
     # initialize state update class
     state_update = StateUpdate(update)
-
+    
     report_interval = 5
     charge_info = {"dcd_save_freq": 500}
     charge_reporter = ChargeReporter(stdout, 20, ionic_liquid, header_data=charge_info)
