@@ -727,6 +727,10 @@ def test_report_charge_changes():
     assert len(data["charges_at_step"]["1"]) == 1000
 
 
+@pytest.mark.skipif(
+    os.getenv("CI") == "true",
+    reason="Skipping tests that cannot pass in github actions",
+)
 def test_reporter_class():
     # obtain simulation object
     simulation = generate_im1h_oac_system()
