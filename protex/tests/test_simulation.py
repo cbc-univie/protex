@@ -32,11 +32,11 @@ def test_outline():
     # allowed updates according to simple protonation scheme
     allowed_updates[frozenset(["IM1H", "OAC"])] = {
         "r_max": 0.16,
-        "delta_e": 2.33,
-    }  # r_max in nanometer, delta_e in kcal/mol
-    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "delta_e": -2.33}
-    # allowed_updates[set(["IM1H", "IM1"])] = {"r_max": 0.2, "delta_e": 1.78}
-    # allowed_updates[set(["HOAC", "OAC"])] = {"r_max": 0.2, "delta_e": 0.68}
+        "prob": 2.33,
+    }  # r_max in nanometer, prob between 0 and 1
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": -2.33}
+    # allowed_updates[set(["IM1H", "IM1"])] = {"r_max": 0.2, "prob": 1.78}
+    # allowed_updates[set(["HOAC", "OAC"])] = {"r_max": 0.2, "prob": 0.68}
     # get ionic liquid templates
     templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
     # wrap system in IonicLiquidSystem
