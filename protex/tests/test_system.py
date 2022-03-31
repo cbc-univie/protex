@@ -688,45 +688,6 @@ def test_create_IonicLiquid_residue():
     assert ionic_liquid.residues[0].original_name == "IM1H"
 
 
-@pytest.mark.skipif(
-    os.getenv("CI") == "true",
-    reason="Skipping tests that cannot pass in github actions",
-)
-def test_report_charge_changes():
-
-    # obtain simulation object
-    simulation = generate_im1h_oac_system()
-    # get ionic liquid templates
-    allowed_updates = {}
-    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 2.33}
-    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": -2.33}
-
-    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
-    # wrap system in IonicLiquidSystem
-    ionic_liquid = IonicLiquidSystem(simulation, templates)
-    # initialize update method
-    update = NaiveMCUpdate(ionic_liquid)
-    # initialize state update class
-    state_update = StateUpdate(update)
-
-    n_steps = 2
-    ionic_liquid.report_charge_changes(
-        filename="test_charge_changes.dat", step=0, tot_steps=n_steps
-    )
-    ionic_liquid.simulation.step(100)
-    state_update.update(2)
-    ionic_liquid.report_charge_changes(
-        filename="test_charge_changes.dat", step=1, tot_steps=n_steps
-    )
-
-    with open("test_charge_changes.dat", "r") as json_file:
-        data = json.load(json_file)
-    print(data)
-    # test if dict after writing and reading json stays same
-    assert len(data["charges_at_step"]["0"]) == 1000
-    assert len(data["charges_at_step"]["1"]) == 1000
-
-
 def test_save_load_residue_names():
     # obtain simulation object
     simulation = generate_im1h_oac_system()
