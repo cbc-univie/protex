@@ -35,7 +35,7 @@ class NaiveMCUpdate(Update):
         super().__init__(ionic_liquid)
         self.allowed_forces = [
             "NonbondedForce",  # BUG: Charge stored in the DrudeForce does NOT get updated, probably you want to allow DrudeForce as well!
-            # "HarmonicBondedForce",
+            # "HarmonicBondForce",
             # "HarmonicAngleForce",
             # "PeriodicTorsionForce",
             # "CustomTorsionForce",
