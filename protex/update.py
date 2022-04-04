@@ -30,16 +30,23 @@ class NaiveMCUpdate(Update):
         [description]
     """
 
-    def __init__(self, ionic_liquid: IonicLiquidSystem) -> None:
+    def __init__(
+        self, ionic_liquid: IonicLiquidSystem, all_forces: bool = False
+    ) -> None:
         super().__init__(ionic_liquid)
-        self.allowed_forces = [
+        self.allowed_forces = [  # change charges only
             "NonbondedForce",  # BUG: Charge stored in the DrudeForce does NOT get updated, probably you want to allow DrudeForce as well!
-            # "HarmonicBondedForce",
-            # "HarmonicAngleForce",
-            # "PeriodicTorsionForce",
-            # "CustomTorsionForce",
             "DrudeForce",
         ]
+        if all_forces:
+            self.allowed_forces.extend(
+                [
+                    "HarmonicBondForce",
+                    "HarmonicAngleForce",
+                    "PeriodicTorsionForce",
+                    "CustomTorsionForce",
+                ]
+            )
 
     def _update(self, candidates: List[Tuple], nr_of_steps: int):
         logger.info("called _update")
@@ -179,7 +186,9 @@ class StateUpdate:
 
         if len(candidate_pairs) == 0:
             print("No transfers this time")
-            self.ionic_liquid.simulation.step(nr_of_steps) # also do the simulation steps if no update occurs, to be consistent in simulation time
+            self.ionic_liquid.simulation.step(
+                nr_of_steps
+            )  # also do the simulation steps if no update occurs, to be consistent in simulation time
         elif len(candidate_pairs) > 0:
             self.updateMethod._update(candidate_pairs, nr_of_steps)
 
