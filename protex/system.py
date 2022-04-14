@@ -120,7 +120,7 @@ class Residue:
         if force_name == "NonbondedForce":
             parms = self._get_NonbondedForce_parameters_at_lambda(lamb)
             self._set_NonbondedForce_parameters(parms)
-        elif force_name == "HarmonicBondedForce":
+        elif force_name == "HarmonicBondForce":
             parms = self._get_HarmonicBondForce_parameters_at_lambda(lamb)
             self._set_HarmonicBondForce_parameters(parms)
         elif force_name == "HarmonicAngleForce":
