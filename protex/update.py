@@ -1,6 +1,7 @@
 import logging
 from collections import defaultdict
 from typing import List, Tuple
+import random
 
 import numpy as np
 from scipy.spatial import distance_matrix
@@ -257,15 +258,15 @@ class StateUpdate:
                 r_max = self.ionic_liquid.templates.allowed_updates[
                     frozenset([residue1.current_name, residue2.current_name])
                 ]["r_max"]
-                delta_e = self.ionic_liquid.templates.allowed_updates[
+                prob = self.ionic_liquid.templates.allowed_updates[
                     frozenset([residue1.current_name, residue2.current_name])
-                ]["delta_e"]
-                # print(f"{r_max=}, {delta_e=}")
+                ]["prob"]
+                # print(f"{r_max=}, {prob=}")
                 r = distance[candidate_idx1, candidate_idx2]
                 # break for loop if no pair can fulfill distance condition
                 if r > self.ionic_liquid.templates.overall_max_distance:
                     break
-                elif r <= r_max:  # and energy criterion
+                elif r <= r_max and random.random() <= prob:  # random enough?
                     charge_candidate_idx1 = residue1.endstate_charge
                     charge_candidate_idx2 = residue2.endstate_charge
 
