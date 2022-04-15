@@ -589,7 +589,7 @@ def test_single_update():
     ionic_liquid.simulation.minimizeEnergy(maxIterations=500)
     ionic_liquid.simulation.step(500)
 
-    update = NaiveMCUpdate(ionic_liquid)
+    update = NaiveMCUpdate(ionic_liquid, all_forces=True)
     # initialize state update class
     state_update = StateUpdate(update)
     pos = state_update.ionic_liquid.simulation.context.getState(
@@ -1344,3 +1344,39 @@ def test_force_selection():
         "PeriodicTorsionForce",
         "CustomTorsionForce",
     ]
+
+
+@pytest.mark.skipif(
+    os.getenv("CI") == "true",
+    reason="Will fail sporadicaly.",
+)
+def test_update_all_forces(caplog):
+    caplog.set_level(logging.DEBUG)
+
+    simulation = generate_im1h_oac_system()
+    allowed_updates = {}
+    # allowed updates according to simple protonation scheme
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {
+        "r_max": 0.16,
+        "prob": 1,
+    }  # r_max in nanometer, prob between 0 and 1
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.16, "prob": 1}
+    print(allowed_updates.keys())
+    # get ionic liquid templates
+    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+    # wrap system in IonicLiquidSystem
+    ionic_liquid = IonicLiquidSystem(simulation, templates)
+    # pars = []
+    update = NaiveMCUpdate(ionic_liquid, all_forces=True)
+    # initialize state update class
+    state_update = StateUpdate(update)
+    # ionic_liquid.simulation.minimizeEnergy(maxIterations=200)
+    ionic_liquid.simulation.step(50)
+
+    for _ in range(2):
+        ionic_liquid.simulation.step(100)
+        # pars.append(state_update.get_charges())
+        candidate_pairs = state_update.update(2)
+        print(candidate_pairs)
