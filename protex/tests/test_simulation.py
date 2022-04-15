@@ -43,7 +43,7 @@ def test_outline():
     ionic_liquid = IonicLiquidSystem(simulation, templates)
     ionic_liquid.report_states()
     # initialize update method
-    update = NaiveMCUpdate(ionic_liquid)
+    update = NaiveMCUpdate(ionic_liquid, all_forces=True)
     # initialize state update class
     state_update = StateUpdate(update)
     # ionic_liquid.simulation.minimizeEnergy(maxIterations=200)
