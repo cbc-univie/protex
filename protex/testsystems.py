@@ -294,7 +294,7 @@ IM1H_IM1 = {
 
 OAC_HOAC = {
     "OAC": {
-        "atom_name": "O1",
+        "atom_name": "O2",
         "canonical_name": "OAC",
     },
     "HOAC": {

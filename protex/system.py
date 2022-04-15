@@ -384,7 +384,10 @@ class Residue:
                 ) == set([idx1 - old_parms_offset, idx2 - old_parms_offset]):
                     if old_idx != new_idx:
                         raise RuntimeError(
-                            "Odering of bond parameters is different between the two topologies."
+                            "Odering of bond parameters is different between the two topologies.\n"
+                            f"{old_name=}, {old_idx=}, {old_parms_offset=}\n"
+                            f"{new_name=}, {new_idx=}, {new_parms_offset=}\n"
+                            f"{old_parm=}, {new_parm=}\n"
                         )
                     parms_old.append(old_parm)
                     parms_new.append(new_parm)
