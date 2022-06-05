@@ -1200,6 +1200,16 @@ class ChargeReporter:
         return (steps, False, False, False, False)
 
     def report(self, simulation, state):
+        """Report specified information.
+        Parameters
+        ----------
+        simulation : Simulation
+        state : State
+
+        Returns
+        -------
+        None
+        """
         if not self._hasInitialized:
             self._hasInitialized = True
             if isinstance(self.header_data, dict):
