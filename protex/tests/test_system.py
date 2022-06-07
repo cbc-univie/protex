@@ -787,3 +787,151 @@ def test_reporter_class():
     state_update.update(2)
     ionic_liquid.simulation.step(18)
     ionic_liquid.simulation.step(1)
+
+
+def test_save_load_checkpoint():
+    def harmonic_bond_forces(ionic_liquid):
+        bond_forces = []
+        for force in ionic_liquid.system.getForces():
+            if type(force).__name__ == "HarmonicBondForce":
+                for bond_id in range(force.getNumBonds()):
+                    f = force.getBondParameters(bond_id)
+                    bond_forces.append(f)
+        return bond_forces
+
+    # obtain simulation object
+    simulation = generate_im1h_oac_system()
+    # get ionic liquid templates
+    allowed_updates = {}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.17, "prob": 2.33}
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.17, "prob": -2.33}
+
+    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+    # wrap system in IonicLiquidSystem
+    ionic_liquid = IonicLiquidSystem(simulation, templates)
+    # initialize update method
+    update = NaiveMCUpdate(ionic_liquid, all_forces=True)
+    # initialize state update class
+    state_update = StateUpdate(update)
+
+    report_interval = 5
+    charge_info = {"dcd_save_freq": 500}
+    charge_reporter = ChargeReporter(stdout, 20, ionic_liquid, header_data=charge_info)
+    ionic_liquid.simulation.reporters.append(charge_reporter)
+    ionic_liquid.simulation.reporters.append(
+        StateDataReporter(
+            stdout,
+            report_interval,
+            step=True,
+            time=True,
+            totalEnergy=True,
+        )
+    )
+    # obtain forces before update:
+    hbf_1 = harmonic_bond_forces(ionic_liquid)
+    hbf_2 = harmonic_bond_forces(ionic_liquid)
+    assert hbf_1 == hbf_2
+
+    ionic_liquid.simulation.step(19)
+    state_update.update(2)  # Hopefully there is an update!
+    ionic_liquid.simulation.step(18)
+    ionic_liquid.simulation.step(1)
+
+    # after update forces should change
+    hbf_2 = harmonic_bond_forces(ionic_liquid)
+    assert hbf_1 != hbf_2
+
+    ionic_liquid.save_checkpoint("checkpoint.rst")
+    ionic_liquid.save_current_names("names.txt")
+    il_state = ionic_liquid
+    # after reload force should be same as before writing but different than before update
+    hbf_3 = harmonic_bond_forces(ionic_liquid)
+    assert hbf_2 == hbf_3
+    assert hbf_1 != hbf_3
+    ionic_liquid.load_checkpoint("checkpoint.rst")
+    ionic_liquid.load_current_names("names.txt")
+    assert il_state == ionic_liquid  # is this useful?
+
+
+def test_save_load_state():
+    def harmonic_bond_forces(ionic_liquid):
+        bond_forces = []
+        for force in ionic_liquid.system.getForces():
+            if type(force).__name__ == "HarmonicBondForce":
+                for bond_id in range(force.getNumBonds()):
+                    f = force.getBondParameters(bond_id)
+                    idx1 = f[0]
+                    idx2 = f[1]
+                    if (
+                        idx1
+                        in ionic_liquid.residues[
+                            273
+                        ].atom_idxs  # OAC 123 (+1 for 0-indexing and +150 for im1h)
+                        and idx2 in ionic_liquid.residues[273].atom_idxs
+                    ):
+                        bond_forces.append(f)
+        return bond_forces
+
+    # obtain simulation object
+    simulation = generate_im1h_oac_system()
+    # get ionic liquid templates
+    allowed_updates = {}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.17, "prob": 2.33}
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.17, "prob": -2.33}
+
+    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+    # wrap system in IonicLiquidSystem
+    ionic_liquid = IonicLiquidSystem(simulation, templates)
+    # initialize update method
+    update = NaiveMCUpdate(ionic_liquid, all_forces=True)
+    # initialize state update class
+    state_update = StateUpdate(update)
+
+    report_interval = 5
+    charge_info = {"dcd_save_freq": 500}
+    charge_reporter = ChargeReporter(stdout, 20, ionic_liquid, header_data=charge_info)
+    ionic_liquid.simulation.reporters.append(charge_reporter)
+    ionic_liquid.simulation.reporters.append(
+        StateDataReporter(
+            stdout,
+            report_interval,
+            step=True,
+            time=True,
+            totalEnergy=True,
+        )
+    )
+    # obtain forces before update:
+    hbf_1 = harmonic_bond_forces(ionic_liquid)
+    # hbf_2 = harmonic_bond_forces(ionic_liquid)
+    # assert hbf_1 == hbf_2
+    context1 = ionic_liquid.simulation.context.getState(getParameters=True)
+    print(dir(context1.getParameters()))
+    params = context1.getParameters().keys()
+    print(params)
+    for param in params:
+        print(f"{param=}")
+    quit()
+
+    ionic_liquid.simulation.step(19)
+    state_update.update(2)  # Hopefully there is an update!
+    ionic_liquid.simulation.step(18)
+    ionic_liquid.simulation.step(1)
+
+    context2 = ionic_liquid.simulation.context.getState(getParameters=True)
+    assert context1 != context2
+    # after update forces should change
+    hbf_2 = harmonic_bond_forces(ionic_liquid)
+    print(f"{hbf_1=}")
+    print(f"{hbf_2=}")
+    assert hbf_1 != hbf_2
+
+    ionic_liquid.save_state("state.rst")
+    ionic_liquid.save_current_names("names.txt")
+    il_state = ionic_liquid
+    # after reload force should be same as before writing but different than before update
+    hbf_3 = harmonic_bond_forces(ionic_liquid)
+    assert hbf_2 == hbf_3
+    assert hbf_1 != hbf_3
+    ionic_liquid.load_state("state.rst")
+    ionic_liquid.load_current_names("names.txt")
+    assert il_state == ionic_liquid  # is this useful?
