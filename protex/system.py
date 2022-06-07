@@ -1184,6 +1184,7 @@ class ChargeReporter:
 
     def describeNextReport(self, simulation):
         """Get information about the next report this object will generate.
+
         Parameters
         ----------
         simulation : Simulation
@@ -1201,14 +1202,12 @@ class ChargeReporter:
 
     def report(self, simulation, state):
         """Report specified information.
+        
         Parameters
         ----------
         simulation : Simulation
         state : State
 
-        Returns
-        -------
-        None
         """
         if not self._hasInitialized:
             self._hasInitialized = True
