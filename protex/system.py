@@ -163,7 +163,7 @@ class IonicLiquidTemplates:
 class Residue:
     """Residue extends the OpenMM Residue Class by important features needed for the proton transfer
 
-    Parameters:
+    Parameters
     -----------
     residue: openmm.app.topology.Residue
         The residue from  an OpenMM Topology
@@ -180,7 +180,7 @@ class Residue:
     pair_12_13_exclusion_list: list
         1-2 and 1-3 exclusions in the system
 
-    Attributes:
+    Attributes
     -----------
     residue: openmm.app.topology.Residue
         The residue from  an OpenMM Topology
@@ -234,7 +234,7 @@ class Residue:
     def alternativ_name(self):
         """Alternative name for the residue, e.g. the corresponding name for the protonated/deprotonated form
 
-        Returns:
+        Returns
         --------
         str
         """
@@ -247,7 +247,7 @@ class Residue:
     ) -> None:  # we don't need to call update in context since we are doing this in NaiveMCUpdate
         """Update the requested force in that residue
 
-        Parameters:
+        Parameters
         -----------
         force_name: Name of the force to update
         lamb: lambda state at which to get corresponding values (between 0 and 1)
