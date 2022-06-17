@@ -314,9 +314,9 @@ class StateUpdate:
             pos_list.append(
                 pos[
                     residue.get_idx_for_atom_name(
-                        self.ionic_liquid.templates.states[residue.original_name][
+                        self.ionic_liquid.templates.states[residue.current_name][
                             "atom_name"
-                        ]
+                        ]  # BUG: residue.original_name?
                     )
                     # this needs the atom idx to be the same for both topologies
                     # TODO: maybe get rid of this caveat
