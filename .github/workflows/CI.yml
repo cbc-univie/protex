@@ -18,9 +18,6 @@ on:
     #   (from https://help.github.com/en/actions/reference/events-that-trigger-workflows#scheduled-events-schedule)
     - cron: "0 0 * * *"
 
-env:
-  CACHE_NUMBER: 0  # increase to reset cache manually
-
 jobs:
   test:
     name: Test on ${{ matrix.os }}, Python ${{ matrix.python-version }}
@@ -62,24 +59,26 @@ jobs:
         with:
           path: ${{ envs.CONDA }}/envs #${{ matrix.prefix }}
           key: ${{ matrix.os }}-conda-${{ steps.get-date.outputs.today }}-${{ hashFiles('devtools/conda-envs/test_env.yml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
+        env:
+          CACHE_NUMBER: 0  # increase to reset cache manually
         id: cache
 
       - name: Update environment
         run: mamba env update -n test -f dectools/conda-envs/test_env.yml
         if: steps.cache.outputs.cache-hit != 'true'
 
-    - name: Run tests
+      - name: Run tests
 
-      # conda setup requires this special shell
-      shell: bash -l {0}
+        # conda setup requires this special shell
+        shell: bash -l {0}
 
-      run: |
-        pytest -v --cov=protex --cov-report=xml --color=yes protex/tests/
+        run: |
+          pytest -v --cov=protex --cov-report=xml --color=yes protex/tests/
 
-    - name: CodeCov
-      uses: codecov/codecov-action@v1
-      with:
-        file: ./coverage.xml
-        flags: unittests
-        name: codecov-${{ matrix.os }}-py${{ matrix.python-version }}
+      - name: CodeCov
+        uses: codecov/codecov-action@v1
+        with:
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-${{ matrix.os }}-py${{ matrix.python-version }}
 
