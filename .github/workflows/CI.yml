@@ -58,13 +58,13 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ env.CONDA }}/envs #${{ matrix.prefix }}
-          key: ${{ matrix.os }}-conda-${{ steps.get-date.outputs.today }}-${{ hashFiles('devtools/conda-envs/test_env.yml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
+          key: ${{ matrix.os }}-conda-${{ steps.get-date.outputs.today }}-${{ hashFiles('devtools/conda-envs/test_env.yaml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
         env:
           CACHE_NUMBER: 0  # increase to reset cache manually
         id: cache
 
       - name: Update environment
-        run: mamba env update -n test -f devtools/conda-envs/test_env.yml
+        run: mamba env update -n test -f devtools/conda-envs/test_env.yaml
         if: steps.cache.outputs.cache-hit != 'true'
 
       - name: Run tests
