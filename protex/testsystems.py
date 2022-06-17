@@ -282,23 +282,11 @@ def generate_single_im1h_oac_system(coll_freq=10, drude_coll_freq=120):
 
 
 IM1H_IM1 = {
-    "IM1H": {
-        "atom_name": "H7",
-        "canonical_name": "IM1",
-    },
-    "IM1": {
-        "atom_name": "N2",
-        "canonical_name": "IM1",
-    },
+    "IM1H": {"atom_name": "H7", "canonical_name": "IM1", "donor_name": "N2"},
+    "IM1": {"atom_name": "N2", "canonical_name": "IM1", "donor_name": "N2"},
 }
 
 OAC_HOAC = {
-    "OAC": {
-        "atom_name": "O2",
-        "canonical_name": "OAC",
-    },
-    "HOAC": {
-        "atom_name": "H",
-        "canonical_name": "OAC",
-    },
+    "OAC": {"atom_name": "O2", "canonical_name": "OAC", "donor_name": "O2"},
+    "HOAC": {"atom_name": "H", "canonical_name": "OAC", "donor_name": "O2"},
 }

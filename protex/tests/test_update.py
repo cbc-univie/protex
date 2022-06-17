@@ -5,6 +5,7 @@ from collections import defaultdict, deque
 import numpy as np
 import pytest
 from scipy.spatial import distance_matrix
+from scipy.spatial.distance import cdist
 
 try:
     from openmm.app import StateDataReporter, DCDReporter
@@ -36,19 +37,52 @@ def test_distance_calculation():
     update = NaiveMCUpdate(ionic_liquid)
     # initialize state update class
     state_update = StateUpdate(update)
-    distance_list, res_list = state_update._get_positions_for_mutation_sites()
+    pos_list, res_list = state_update._get_positions_for_mutation_sites()
+
+    def _rPBC(coor1, coor2, boxl=ionic_liquid.boxlength):
+        dx = abs(coor1[0] - coor2[0])
+        if dx > boxl / 2:
+            dx = boxl - dx
+        dy = abs(coor1[1] - coor2[1])
+        if dy > boxl / 2:
+            dy = boxl - dy
+        dz = abs(coor1[2] - coor2[2])
+        if dz > boxl / 2:
+            dz = boxl - dz
+        return np.sqrt(dx * dx + dy * dy + dz * dz)
 
     # calculate distance matrix between the two molecules
-    distance = distance_matrix(distance_list, distance_list)
+    use_pbc = True
+    if use_pbc:
+        print("Using PBC correction for distance calculation")
+        distance = cdist(pos_list, pos_list, _rPBC)
+    else:
+        print("No PBC correction for distance calculation")
+        distance = distance_matrix(pos_list, pos_list)
+
+    # shape diagonal to not have self terms between ie same HOAC-HOAC
+    # np.fill_diagonal(distance, np.inf)
+    distance[
+        np.tril_indices_from(distance)
+    ] = np.inf  # its a symmetric qudratic matrix, we do not care about one half
+
     # get a list of indices for elements in the distance matrix sorted by increasing distance
     # NOTE: This always accepts a move!
-    shape = distance.shape
-    idx = np.dstack(np.unravel_index(np.argsort(distance.ravel()), shape))[0]
+    # shape = distance.shape
+    # idx = np.dstack(np.unravel_index(np.argsort(distance.ravel()), shape))[0]
+
+    # new mehtod get indices and shuffle all that are below the cut-off
+    idx = np.argwhere(distance <= ionic_liquid.templates.overall_max_distance)
+    rng = (
+        np.random.default_rng()
+    )  # randomize in case of residues being present more than one time
+    rng.shuffle(idx)
+    print(idx)
     distances = []
     for candidate_idx1, candidate_idx2 in idx:
         residue1 = res_list[candidate_idx1]
         residue2 = res_list[candidate_idx2]
-        # is this combination allowed?
+        # is this combination allowed? -> still needed?
         if (
             frozenset([residue1.current_name, residue2.current_name])
             in state_update.ionic_liquid.templates.allowed_updates
@@ -62,8 +96,13 @@ def test_distance_calculation():
             print(f"Distance between pairs: {distance[candidate_idx1,candidate_idx2]}")
             distances.append(distance[candidate_idx1, candidate_idx2])
 
-    assert np.min(distances) == distances[0]
-    assert np.max(distances) == distances[-1]
+    # assert np.min(distances) == distances[0]
+    # assert np.max(distances) == distances[-1]
+    # distances = np.asarray(distances)
+    assert len(idx) == len(distances)
+    assert all(
+        i < ionic_liquid.templates.overall_max_distance for i in distances
+    )  # check that all elements are below the treshold
 
 
 def test_get_and_interpolate_forces():
@@ -873,10 +912,16 @@ def test_dry_updates(caplog):
 
     for _ in range(1):
         ionic_liquid.simulation.step(200)
-        distance_dict, res_dict = state_update._get_positions_for_mutation_sites()
+        (
+            pos_list,
+            res_list,
+            pos_donor_list,
+        ) = state_update._get_positions_for_mutation_sites()
         # propose the update candidates based on distances
         state_update._print_start()
-        candidate_pairs = state_update._propose_candidate_pair(distance_dict, res_dict)
+        candidate_pairs = state_update._propose_candidate_pair(
+            pos_list, res_list, pos_donor_list
+        )
         print(f"{candidate_pairs=}, {len(candidate_pairs)=}")
         state_update._print_stop()
         pars.append(state_update.get_charges())

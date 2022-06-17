@@ -179,10 +179,12 @@ class StateUpdate:
         updates the current state using the method defined in the UpdateMethod class
         """
         # calculate the distance betwen updateable residues
-        pos_list, res_list = self._get_positions_for_mutation_sites()
+        pos_list, res_list, pos_donor_list = self._get_positions_for_mutation_sites()
         # propose the update candidates based on distances
         self._print_start()
-        candidate_pairs = self._propose_candidate_pair(pos_list, res_list)
+        candidate_pairs = self._propose_candidate_pair(
+            pos_list, res_list, pos_donor_list
+        )
         print(f"{len(candidate_pairs)=}")
 
         if len(candidate_pairs) == 0:
@@ -199,7 +201,7 @@ class StateUpdate:
         return candidate_pairs
 
     def _propose_candidate_pair(
-        self, pos_list: list, res_list: list, use_pbc: bool = True
+        self, pos_list: list, res_list: list, pos_donor_list: list, use_pbc: bool = True
     ) -> list[tuple]:
         """
         Takes the return value of _get_positions_of_mutation_sites
@@ -228,12 +230,21 @@ class StateUpdate:
             logger.debug("No PBC correction for distance calculation")
             distance = distance_matrix(pos_list, pos_list)
         # shape diagonal to not have self terms between ie same HOAC-HOAC
-        np.fill_diagonal(distance, np.inf)
-        # print(f"{distance=}, {distance_pbc=}")
+        # np.fill_diagonal(distance, np.inf)
+        distance[
+            np.tril_indices_from(distance)
+        ] = np.inf  # its a symmetric qudratic matrix, we do not care about one half
+
         # get a list of indices for elements in the distance matrix sorted by increasing distance
         # NOTE: This always accepts a move!
-        shape = distance.shape
-        idx = np.dstack(np.unravel_index(np.argsort(distance.ravel()), shape))[0]
+        # shape = distance.shape
+        # idx = np.dstack(np.unravel_index(np.argsort(distance.ravel()), shape))[0]
+
+        # already get only indices until the max distance-> then randomly probe from them, so that there is no bias that only the clostest transfer and than the latter one are dismissed -> does it make a difference?
+        idx = np.argwhere(distance <= self.ionic_liquid.templates.overall_max_distance)
+        rng = np.random.default_rng()
+        # randomize in case of residues being present more than one time
+        rng.shuffle(idx)
         # print(f"{idx=}")
 
         proposed_candidate_pairs = []
@@ -249,16 +260,101 @@ class StateUpdate:
             ):
                 r_max = self.ionic_liquid.templates.allowed_updates[
                     frozenset([residue1.current_name, residue2.current_name])
-                ]["r_max"]
+                ][
+                    "r_max"
+                ]  # r_max for a spefic transfer can be smaller than the overall r_max
                 prob = self.ionic_liquid.templates.allowed_updates[
                     frozenset([residue1.current_name, residue2.current_name])
                 ]["prob"]
                 # print(f"{r_max=}, {prob=}")
                 r = distance[candidate_idx1, candidate_idx2]
                 # break for loop if no pair can fulfill distance condition
-                if r > self.ionic_liquid.templates.overall_max_distance:
-                    break
-                elif r <= r_max and random.random() <= prob:  # random enough?
+                # if r > self.ionic_liquid.templates.overall_max_distance: # can be ommited (?)
+                #    break
+
+                # TODO: check for angle!
+                # taken from https://github.com/lace/vg/blob/main/vg/core.py
+                def _magnitude(vector):
+                    """
+                    Compute the magnitude of `vector`. For a stacked input, compute the
+                    magnitude of each one.
+                    Args:
+                        vector (np.arraylike): A `(3,)` vector or a `kx3` stack of vectors.
+                    Returns:
+                        object: For a `(3,)` input, a `float` with the magnitude. For a `kx3`
+                            input, a `(k,)` array.
+                    """
+                    if vector.ndim == 1:
+                        return np.linalg.norm(vector)
+                    elif vector.ndim == 2:
+                        return np.linalg.norm(vector, axis=1)
+                    else:
+                        raise RuntimeError(f"Vector Dimension problem, {vector.shape=}")
+
+                def _calc_angle(vec1, vec2, units="deg"):
+                    """
+                    Compute the unsigned angle between two vectors. For a stacked input, the
+                    angle is computed pairwise. The angle is computed in 3-space.
+                    Args:
+                        v1 (np.arraylike): A `(3,)` vector or a `kx3` stack of vectors.
+                        v2 (np.arraylike): A vector or stack of vectors with the same shape as
+                            `v1`.
+                        units (str): `'deg'` to return degrees or `'rad'` to return radians.
+                    Return:
+                        object: For a `(3,)` input, a `float` with the angle. For a `kx3`
+                        input, a `(k,)` array.
+                    """
+                    if units not in ["deg", "rad"]:
+                        raise ValueError(
+                            f"Unrecognized units {units}; expected deg or rad"
+                        )
+
+                    dot_products = np.einsum(
+                        "ij,ij->i", vec1.reshape(-1, 3), vec2.reshape(-1, 3)
+                    )
+
+                    cosines = dot_products / _magnitude(vec1) / _magnitude(vec2)
+
+                    # Clip, because the dot product can slip past 1 or -1 due to rounding and
+                    # we can't compute arccos(-1.00001).
+                    angles = np.arccos(np.clip(cosines, -1.0, 1.0))
+                    if units == "deg":
+                        angles = np.degrees(angles)
+
+                    return angles[0] if vec1.ndim == 1 and vec2.ndim == 1 else angles
+
+                # get coordinates of H, donor acceptor
+                # TODO: this has to be better - right now hard coded for the specific system
+                if residue1.current_name == "IM1H" or residue1.current_name == "HOAC":
+                    pos_donor = pos_donor_list[candidate_idx1]
+                    pos_H = pos_list[candidate_idx1]
+                    pos_acc = pos_list[candidate_idx2]
+                elif residue2.current_name == "IM1H" or residue2.current_name == "HOAC":
+                    pos_donor = pos_donor_list[candidate_idx2]
+                    pos_H = pos_list[candidate_idx2]
+                    pos_acc = pos_list[candidate_idx1]
+                else:
+                    raise RuntimeError("There is a prolem")
+                print(f"{r=}")
+                print(residue1.current_name, residue2.current_name)
+                print(f"{pos_acc=}, {pos_donor=}, {pos_H=}")
+                vec1 = pos_donor - pos_H
+                vec2 = pos_acc - pos_H
+                vec1 = np.asarray(vec1)
+                vec2 = np.asarray(vec2)
+                # print(f"{vec1=}, {vec2=}")
+                angle = _calc_angle(vec1, vec2)
+                # print(f"{angle=}")
+                assert angle <= 180  # deg
+                angle_treshold = 150
+                if angle < angle_treshold:
+                    print(f"Angle ({angle}) smaller than treshold ({angle_treshold}).")
+                    print(
+                        f"Skipping pair {residue1.original_name}:{residue1.current_name}:{residue1.residue.id}:{residue1.endstate_charge}-{residue2.original_name}:{residue2.current_name}:{residue2.residue.id}:{residue1.endstate_charge}."
+                    )
+                    continue
+
+                if r <= r_max and random.random() <= prob:  # random enough?
                     charge_candidate_idx1 = residue1.endstate_charge
                     charge_candidate_idx2 = residue2.endstate_charge
 
@@ -294,7 +390,7 @@ class StateUpdate:
                 # return proposed_candidate_pair
         return proposed_candidate_pairs
 
-    def _get_positions_for_mutation_sites(self) -> tuple[dict, dict]:
+    def _get_positions_for_mutation_sites(self) -> tuple[list, list]:
         """
         _get_positions_for_mutation_sites returns
         """
@@ -304,6 +400,7 @@ class StateUpdate:
 
         # fill in the positions for each species
         pos_list = []
+        pos_donor_list = []
         res_list = []
 
         # loop over all residues and add the positions of the atoms that can be updated to the pos_dict
@@ -314,7 +411,7 @@ class StateUpdate:
             pos_list.append(
                 pos[
                     residue.get_idx_for_atom_name(
-                        self.ionic_liquid.templates.states[residue.original_name][
+                        self.ionic_liquid.templates.states[residue.current_name][
                             "atom_name"
                         ]
                     )
@@ -323,6 +420,19 @@ class StateUpdate:
                     # maybe some mapping between possible residue states and corresponding atom positions
                 ]
             )
+            try:
+                pos_donor_list.append(
+                    pos[
+                        residue.get_idx_for_atom_name(
+                            self.ionic_liquid.templates.states[residue.current_name][
+                                "donor_name"
+                            ]
+                        )
+                    ]
+                )
+            except KeyError:  # atom is not donor
+                pos_donor_list.append(np.nan)
+
             res_list.append(residue)
 
-        return pos_list, res_list
+        return pos_list, res_list, pos_donor_list

@@ -716,6 +716,21 @@ class IonicLiquidSystem:
             simulation.context.getState().getPeriodicBoxVectors()[0][0]._value
         )  # NOTE: supports only cubic boxes
 
+    @property
+    def ionic_part(self):
+        """ionic_part returns the value (between 0 and 1) correpsonding to the part of ionic species in the total system
+        Returns: float
+        """
+        n_molecules = self.topology.getNumResidues()
+        n_charged_molecules = len(
+            [
+                residue.current_charge
+                for residue in self.residues
+                if residue.current_charge != 0
+            ]
+        )
+        return n_charged_molecules / n_molecules
+
     def update_context(self, name: str):
         for force in self.system.getForces():
             if type(force).__name__ == name:
