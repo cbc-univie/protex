@@ -411,7 +411,7 @@ class StateUpdate:
             pos_list.append(
                 pos[
                     residue.get_idx_for_atom_name(
-                        self.ionic_liquid.templates.states[residue.current_name][
+                        self.ionic_liquid.templates.states[residue.original_name][
                             "atom_name"
                         ]
                     )
@@ -424,7 +424,7 @@ class StateUpdate:
                 pos_donor_list.append(
                     pos[
                         residue.get_idx_for_atom_name(
-                            self.ionic_liquid.templates.states[residue.current_name][
+                            self.ionic_liquid.templates.states[residue.original_name][
                                 "donor_name"
                             ]
                         )
