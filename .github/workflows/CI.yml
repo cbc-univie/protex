@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  # GitHub has started calling new repo's first branch "main" https://github.com/github/renaming
+  # Existing codes likely still have "master" as the primary branch
+  # Both are tracked here to keep legacy and new codes working
+  push:
+    branches:
+      - "master"
+      - "main"
+  pull_request:
+    branches:
+      - "master"
+      - "main"
+  schedule:
+    # Nightly tests run on master by default:
+    #   Scheduled workflows run on the latest commit on the default or base branch.
+    #   (from https://help.github.com/en/actions/reference/events-that-trigger-workflows#scheduled-events-schedule)
+    - cron: "0 0 * * *"
+
+env:
+  CACHE_NUMBER: 0  # increase to reset cache manually
+
+jobs:
+  test:
+    name: Test on ${{ matrix.os }}, Python ${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          os: [macOS-latest, ubuntu-latest]
+          python-version: [3.9]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Additional info about the build
+        shell: bash
+        run: |
+          uname -a
+          df -h
+          ulimit -a
+
+
+    # More info on options: https://github.com/conda-incubator/setup-miniconda
+      - name: Setup Mambaforge
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+            python-version: ${{ matrix.python-version }}
+            environment-file: devtools/conda-envs/test_env.yaml
+            miniforge-variant: Mambaforge
+            miniforge-version: latest
+            activate-environment: test
+            use-mamba: true
+
+      - name: Set cache date
+        id: get-date
+        run: echo "DATE=$(date +'%Y%m%d')" >> $GITHUB_ENV
+
+      - name: Cache Conda env
+        uses: actions/cache@v2
+        with:
+          path: ${{ envs.CONDA }}/envs #${{ matrix.prefix }}
+          key: ${{ matrix.os }}-conda-${{ steps.get-date.outputs.today }}-${{ hashFiles('devtools/conda-envs/test_env.yml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
+        id: cache
+
+      - name: Update environment
+        run: mamba env update -n test -f dectools/conda-envs/test_env.yml
+        if: steps.cache.outputs.cache-hit != 'true'
+
+    - name: Run tests
+
+      # conda setup requires this special shell
+      shell: bash -l {0}
+
+      run: |
+        pytest -v --cov=protex --cov-report=xml --color=yes protex/tests/
+
+    - name: CodeCov
+      uses: codecov/codecov-action@v1
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-${{ matrix.os }}-py${{ matrix.python-version }}
+
