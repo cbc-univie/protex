@@ -22,6 +22,10 @@ from ..testsystems import (
 from ..update import NaiveMCUpdate, StateUpdate
 
 
+@pytest.mark.skipif(
+    os.getenv("CI") == "true",
+    reason="Skipping tests that cannot pass in github actions",
+)
 def test_distance_calculation():
     simulation = generate_im1h_oac_system()
     # get ionic liquid templates
