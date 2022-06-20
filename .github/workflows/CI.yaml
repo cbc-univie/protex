@@ -1,6 +1,25 @@
 name: CI
 
 on:
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'     
+        required: true
+        default: 'warning' 
+        type: choice
+        options:
+        - info
+        - warning
+        - debug 
+      tags:
+        description: 'Test scenario tags'
+        required: false 
+        type: boolean
+      environment:
+        description: 'Environment to run tests against'
+        type: environment
+        required: true 
   # GitHub has started calling new repo's first branch "main" https://github.com/github/renaming
   # Existing codes likely still have "master" as the primary branch
   # Both are tracked here to keep legacy and new codes working
@@ -17,6 +36,7 @@ on:
     #   Scheduled workflows run on the latest commit on the default or base branch.
     #   (from https://help.github.com/en/actions/reference/events-that-trigger-workflows#scheduled-events-schedule)
     - cron: "0 0 * * *"
+  
 
 jobs:
   test:
