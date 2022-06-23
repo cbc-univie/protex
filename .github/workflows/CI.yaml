@@ -66,7 +66,7 @@ jobs:
       shell: bash -l {0}
 
       run: |
-        pytest -v --cov=protex --cov-report=xml --color=yes protex/tests/
+        pytest -v --cov=protex --cov-report=xml --color=yes protex/tests/test_update.py::test_get_and_interpolate_forces()
 
     - name: CodeCov
       uses: codecov/codecov-action@v1
