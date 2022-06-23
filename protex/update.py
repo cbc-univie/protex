@@ -228,12 +228,21 @@ class StateUpdate:
             logger.debug("No PBC correction for distance calculation")
             distance = distance_matrix(pos_list, pos_list)
         # shape diagonal to not have self terms between ie same HOAC-HOAC
-        np.fill_diagonal(distance, np.inf)
+        # np.fill_diagonal(distance, np.inf)
+        distance[
+            np.tril_indices_from(distance)
+        ] = np.inf  # its a symmetric qudratic matrix, we do not care about one half
+
         # print(f"{distance=}, {distance_pbc=}")
         # get a list of indices for elements in the distance matrix sorted by increasing distance
         # NOTE: This always accepts a move!
-        shape = distance.shape
-        idx = np.dstack(np.unravel_index(np.argsort(distance.ravel()), shape))[0]
+        # shape = distance.shape
+        # idx = np.dstack(np.unravel_index(np.argsort(distance.ravel()), shape))[0]
+        # already get only indices until the max distance-> then randomly probe from them, so that there is no bias that only the clostest transfer and than the latter one are dismissed -> does it make a difference?
+        idx = np.argwhere(distance <= self.ionic_liquid.templates.overall_max_distance)
+        rng = np.random.default_rng()
+        # randomize in case of residues being present more than one time
+        rng.shuffle(idx)
         # print(f"{idx=}")
 
         proposed_candidate_pairs = []
@@ -294,7 +303,7 @@ class StateUpdate:
                 # return proposed_candidate_pair
         return proposed_candidate_pairs
 
-    def _get_positions_for_mutation_sites(self) -> tuple[dict, dict]:
+    def _get_positions_for_mutation_sites(self) -> tuple[list, listt]:
         """
         _get_positions_for_mutation_sites returns
         """
