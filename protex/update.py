@@ -303,7 +303,7 @@ class StateUpdate:
                 # return proposed_candidate_pair
         return proposed_candidate_pairs
 
-    def _get_positions_for_mutation_sites(self) -> tuple[list, listt]:
+    def _get_positions_for_mutation_sites(self) -> tuple[list, list]:
         """
         _get_positions_for_mutation_sites returns
         """
