@@ -119,12 +119,10 @@ class NaiveMCUpdate(Update):
         Adapt the probability for certain events depending on the current equilibrium, in order to stay close to a given reference
         i.e. prob_neu = prob_orig + k*( x(t) - x(eq) )^3 where x(t) is the current percentage in the system
         """
-        neutral_reference = self.ionic_liquid.INITIAL_NUMBER_OF_EACH_RESIDUE_TYPE[
-            "IM1"
-        ] / (self.ionic_liquid.TOTAL_NUMBER_OF_RESIDUES / 2)
-        ionic_reference = self.ionic_liquid.INITIAL_NUMBER_OF_EACH_RESIDUE_TYPE[
-            "IM1H"
-        ] / (self.ionic_liquid.TOTAL_NUMBER_OF_RESIDUES / 2)
+        ref_im1 = self.ionic_liquid.INITIAL_NUMBER_OF_EACH_RESIDUE_TYPE["IM1"]
+        neutral_reference = ref_im1 / (self.ionic_liquid.TOTAL_NUMBER_OF_RESIDUES / 2)
+        ref_im1h = self.ionic_liquid.INITIAL_NUMBER_OF_EACH_RESIDUE_TYPE["IM1H"]
+        ionic_reference = ref_im1h / (self.ionic_liquid.TOTAL_NUMBER_OF_RESIDUES / 2)
         # ionic_reference = 1 - neutral_reference
 
         n_im1 = self.ionic_liquid.get_current_number_of_each_residue_type()["IM1"]
@@ -136,17 +134,18 @@ class NaiveMCUpdate(Update):
         logger.debug(f"{neutral_reference=}, {neutral_current=}, {n_im1=}")
         logger.debug(f"{ionic_reference=}, {ionic_current=}  {n_im1h=}")
 
-        k = 10000
+        k = 1000
         factor = k * (neutral_current - neutral_reference) ** 3
         factor_ion = k * (ionic_current - ionic_reference) ** 3
+
         logger.debug(f"{factor=}, {factor_ion=}")
-        assert round(factor, 2) == round(factor_ion, 2)
+        # assert round(factor, 2) == round(factor_ion, 2)
 
         new_neutral_prob = (
             self.ionic_liquid.templates.get_update_value_for(
                 frozenset(["IM1", "HOAC"]), "prob"
             )
-            - factor
+            + factor
         )
         if new_neutral_prob > 1:
             logger.info(
@@ -166,7 +165,7 @@ class NaiveMCUpdate(Update):
             self.ionic_liquid.templates.get_update_value_for(
                 frozenset(["IM1H", "OAC"]), "prob"
             )
-            + factor
+            - factor
         )
         if new_ionic_prob > 1:
             logger.info(
@@ -336,7 +335,7 @@ class StateUpdate:
                 prob = self.ionic_liquid.templates.allowed_updates[
                     frozenset([residue1.current_name, residue2.current_name])
                 ]["prob"]
-                # print(f"{r_max=}, {prob=}")
+                logger.debug(f"{r_max=}, {prob=}")
                 r = distance[candidate_idx1, candidate_idx2]
                 # break for loop if no pair can fulfill distance condition
                 if r > self.ionic_liquid.templates.overall_max_distance:
