@@ -573,7 +573,8 @@ def test_setting_forces():
     os.getenv("CI") == "true",
     reason="Will fail sporadicaly.",
 )
-def test_single_update():
+def test_single_update(caplog):
+    # caplog.set_level(logging.DEBUG)
 
     simulation = generate_im1h_oac_system()
     # get ionic liquid templates
