@@ -113,6 +113,78 @@ class NaiveMCUpdate(Update):
         #    300.0 * unit.kelvin
         # )
 
+    def _adapt_probabilities(self):
+        # TODO: Right now more or less hard coded! Adapt in future
+        """
+        Adapt the probability for certain events depending on the current equilibrium, in order to stay close to a given reference
+        i.e. prob_neu = prob_orig + k*( x(t) - x(eq) )^3 where x(t) is the current percentage in the system
+        """
+        neutral_reference = self.ionic_liquid.INITIAL_NUMBER_OF_EACH_RESIDUE_TYPE[
+            "IM1"
+        ] / (self.ionic_liquid.TOTAL_NUMBER_OF_RESIDUES / 2)
+        ionic_reference = self.ionic_liquid.INITIAL_NUMBER_OF_EACH_RESIDUE_TYPE[
+            "IM1H"
+        ] / (self.ionic_liquid.TOTAL_NUMBER_OF_RESIDUES / 2)
+        # ionic_reference = 1 - neutral_reference
+
+        n_im1 = self.ionic_liquid.get_current_number_of_each_residue_type()["IM1"]
+        neutral_current = n_im1 / (self.ionic_liquid.TOTAL_NUMBER_OF_RESIDUES / 2)
+
+        n_im1h = self.ionic_liquid.get_current_number_of_each_residue_type()["IM1H"]
+        ionic_current = n_im1h / (self.ionic_liquid.TOTAL_NUMBER_OF_RESIDUES / 2)
+
+        logger.debug(f"{neutral_reference=}, {neutral_current=}, {n_im1=}")
+        logger.debug(f"{ionic_reference=}, {ionic_current=}  {n_im1h=}")
+
+        k = 10000
+        factor = k * (neutral_current - neutral_reference) ** 3
+        factor_ion = k * (ionic_current - ionic_reference) ** 3
+        logger.debug(f"{factor=}, {factor_ion=}")
+        assert round(factor, 2) == round(factor_ion, 2)
+
+        new_neutral_prob = (
+            self.ionic_liquid.templates.get_update_value_for(
+                frozenset(["IM1", "HOAC"]), "prob"
+            )
+            - factor
+        )
+        if new_neutral_prob > 1:
+            logger.info(
+                f"Probability set to 1, cannot be greater. (Was: {new_neutral_prob})"
+            )
+            new_neutral_prob = 1
+        if new_neutral_prob < 0:
+            logger.info(
+                f"Probability set to 0, cannot be smaller. (Was: {new_neutral_prob})"
+            )
+            new_neutral_prob = 0
+        self.ionic_liquid.templates.set_update_value_for(
+            frozenset(["IM1", "HOAC"]), "prob", new_neutral_prob
+        )
+
+        new_ionic_prob = (
+            self.ionic_liquid.templates.get_update_value_for(
+                frozenset(["IM1H", "OAC"]), "prob"
+            )
+            + factor
+        )
+        if new_ionic_prob > 1:
+            logger.info(
+                f"Probability set to 1, cannot be greater. (Was: {new_ionic_prob})"
+            )
+            new_ionic_prob = 1
+        if new_ionic_prob < 0:
+            logger.info(
+                f"Probability set to 0, cannot be smaller. (Was: {new_ionic_prob})"
+            )
+            new_ionic_prob = 0
+        self.ionic_liquid.templates.set_update_value_for(
+            frozenset(["IM1H", "OAC"]), "prob", new_ionic_prob
+        )
+
+        logger.debug(f"{new_neutral_prob=}, {new_ionic_prob=}")
+        print(f"Probs: {new_neutral_prob=}, {new_ionic_prob=}")
+
 
 class StateUpdate:
     """
@@ -194,6 +266,9 @@ class StateUpdate:
             self.updateMethod._update(candidate_pairs, nr_of_steps)
 
         self.update_trial += 1
+
+        self.updateMethod._adapt_probabilities()
+
         self._print_stop()
 
         return candidate_pairs

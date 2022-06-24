@@ -844,6 +844,7 @@ def test_updates(caplog):
         ionic_liquid.simulation.step(100)
         pars.append(state_update.get_charges())
         candidate_pairs = state_update.update(2)
+
         print(candidate_pairs)
 
 
