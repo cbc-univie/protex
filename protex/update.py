@@ -17,8 +17,11 @@ logger = logging.getLogger(__name__)
 
 
 class Update:
-    def __init__(self, ionic_liquid: IonicLiquidSystem) -> None:
+    def __init__(
+        self, ionic_liquid: IonicLiquidSystem, constant_equilibrium: bool = True
+    ) -> None:
         self.ionic_liquid = ionic_liquid
+        self.constant_equilibrium = constant_equilibrium
 
 
 class NaiveMCUpdate(Update):
@@ -266,7 +269,8 @@ class StateUpdate:
 
         self.update_trial += 1
 
-        self.updateMethod._adapt_probabilities()
+        if self.updateMethod.constant_equilibrium:
+            self.updateMethod._adapt_probabilities()
 
         self._print_stop()
 
