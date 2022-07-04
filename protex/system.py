@@ -2,7 +2,8 @@ import itertools
 import logging
 from collections import ChainMap, defaultdict, deque
 from typing import Dict, List
-from typing_extensions import final
+
+# from typing_extensions import final
 
 import numpy as np
 
@@ -791,14 +792,11 @@ class IonicLiquidSystem:
         self.boxlength: float = (
             simulation.context.getState().getPeriodicBoxVectors()[0][0]._value
         )  # NOTE: supports only cubic boxes
-        self.INITIAL_NUMBER_OF_EACH_RESIDUE_TYPE: final[
-            dict[str, int]
+        self.INITIAL_NUMBER_OF_EACH_RESIDUE_TYPE: dict[
+            str, int
         ] = self._set_initial_number_of_each_residue_type()
-        # self.current_number_of_each_residue_type: dict[
-        #    str, int
-        # ] = self._set_current_number_of_each_residue_type()
 
-        self.TOTAL_NUMBER_OF_RESIDUES: final[int] = simulation.topology.getNumResidues()
+        self.TOTAL_NUMBER_OF_RESIDUES: int = simulation.topology.getNumResidues()
 
     def _set_initial_number_of_each_residue_type(self):
         INITIAL_NUMBER_OF_EACH_RESIDUE_TYPE = defaultdict(int)
