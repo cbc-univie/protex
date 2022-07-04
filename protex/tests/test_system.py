@@ -207,6 +207,11 @@ def test_create_IonicLiquidTemplate():
     print(templates.allowed_updates)
     assert templates.overall_max_distance == 0.16
 
+    neutral_prob = templates.get_update_value_for(frozenset(["IM1", "HOAC"]), "prob")
+    assert neutral_prob == -2.33
+    ionic_prob = templates.get_update_value_for(frozenset(["IM1H", "OAC"]), "prob")
+    assert ionic_prob == 2.33
+
 
 def test_create_IonicLiquid():
 
@@ -229,6 +234,12 @@ def test_create_IonicLiquid():
     assert count["OAC"] == 150
     assert count["IM1"] == 350
     assert count["HOAC"] == 350
+
+    initial_number_of_molecules = ionic_liquid.INITIAL_NUMBER_OF_EACH_RESIDUE_TYPE
+    assert initial_number_of_molecules["IM1H"] == 150
+    assert initial_number_of_molecules["OAC"] == 150
+    assert initial_number_of_molecules["IM1"] == 350
+    assert initial_number_of_molecules["HOAC"] == 350
 
 
 def test_residues():

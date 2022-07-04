@@ -3,6 +3,8 @@ import logging
 from collections import ChainMap, defaultdict, deque
 from typing import Dict, List
 
+# from typing_extensions import final
+
 import numpy as np
 
 logger = logging.getLogger(__name__)
@@ -10,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 class IonicLiquidTemplates:
     def __init__(
-        self, states: list, allowed_updates: Dict[frozenset, Dict[str, float]]
+        self, states: list, allowed_updates: Dict[frozenset[str], Dict[str, float]]
     ) -> None:
 
         self.pairs = [list(i.keys()) for i in states]
@@ -20,6 +22,81 @@ class IonicLiquidTemplates:
         self.overall_max_distance = max(
             [value["r_max"] for value in self.allowed_updates.values()]
         )
+
+    def get_update_value_for(self, residue_set, property):
+        """
+        returns the value in the allowed updates dictionary
+
+        Parameters:
+        -----------
+        residue: frozenset[str]
+            dictionary key for residue_set, i.e ["IM1H", "OAC"]
+        property: str
+            dictionary key for the property defined for the residue key, i.e. prob
+
+        Returns:
+        --------
+        float
+            the value of the property
+
+
+        Raises:
+        -------
+        RuntimeError
+            if keys do not exist
+        """
+        if (
+            residue_set in self.allowed_updates
+            and property in self.allowed_updates[residue_set]
+        ):
+            return self.allowed_updates[residue_set][property]
+        else:
+            raise RuntimeError(
+                "You tried to access a residue_set or property key which is not defined"
+            )
+
+    def set_update_value_for(self, residue_set, property, value):
+        """
+        Updates a value in the allowed updates dictionary
+
+        Parameters:
+        -----------
+        residue: frozenset[str]
+            dictionary key for residue_set, i.e ["IM1H","OAC"]
+        property: str
+            dictionary key for the property defined for the residue key, i.e. prob
+        value: float
+            the value the property should be set to
+
+        Returns:
+        --------
+        None
+
+        Raises:
+        -------
+        RuntimeError
+            is raised if new residue_set or new property is trying to be inserted
+        """
+
+        if (
+            residue_set in self.allowed_updates
+            and property in self.allowed_updates[residue_set]
+        ):
+            self.allowed_updates[residue_set][property] = value
+
+        # should we check for existance or also allow creation of new properties?
+        # if residue in self.allowed_updates:
+        #    self.allowed_updates[residue][property] = value
+
+        else:
+            raise RuntimeError(
+                "You tried to create a new residue_set or property key! This is only allowed at startup!"
+            )
+
+    def set_allowed_updates(
+        self, allowed_updates: Dict[frozenset[str], Dict[str, float]]
+    ):
+        self.allowed_updates = allowed_updates
 
     def get_canonical_name(self, name: str) -> str:
         assert name in self.names
@@ -712,9 +789,26 @@ class IonicLiquidSystem:
         self.simulation = simulation
         self.templates = templates
         self.residues = self._set_initial_states()
-        self.boxlength = (
+        self.boxlength: float = (
             simulation.context.getState().getPeriodicBoxVectors()[0][0]._value
         )  # NOTE: supports only cubic boxes
+        self.INITIAL_NUMBER_OF_EACH_RESIDUE_TYPE: dict[
+            str, int
+        ] = self._set_initial_number_of_each_residue_type()
+
+        self.TOTAL_NUMBER_OF_RESIDUES: int = simulation.topology.getNumResidues()
+
+    def _set_initial_number_of_each_residue_type(self):
+        INITIAL_NUMBER_OF_EACH_RESIDUE_TYPE = defaultdict(int)
+        for residue in self.residues:
+            INITIAL_NUMBER_OF_EACH_RESIDUE_TYPE[residue.original_name] += 1
+        return INITIAL_NUMBER_OF_EACH_RESIDUE_TYPE
+
+    def get_current_number_of_each_residue_type(self):
+        current_number_of_each_residue_type = defaultdict(int)
+        for residue in self.residues:
+            current_number_of_each_residue_type[residue.current_name] += 1
+        return current_number_of_each_residue_type
 
     def update_context(self, name: str):
         for force in self.system.getForces():
