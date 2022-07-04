@@ -235,7 +235,7 @@ def test_create_IonicLiquid():
     assert count["IM1"] == 350
     assert count["HOAC"] == 350
 
-    initial_number_of_molecules = ionic_liquid.INITIAL_NUMBER_OF_MOLECULES
+    initial_number_of_molecules = ionic_liquid.INITIAL_NUMBER_OF_EACH_RESIDUE_TYPE
     assert initial_number_of_molecules["IM1H"] == 150
     assert initial_number_of_molecules["OAC"] == 150
     assert initial_number_of_molecules["IM1"] == 350
