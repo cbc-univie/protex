@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 class Update:
     def __init__(
-        self, ionic_liquid: IonicLiquidSystem, constant_equilibrium: bool = True
+        self, ionic_liquid: IonicLiquidSystem, constant_equilibrium: bool
     ) -> None:
         self.ionic_liquid = ionic_liquid
         self.constant_equilibrium = constant_equilibrium
@@ -35,9 +35,12 @@ class NaiveMCUpdate(Update):
     """
 
     def __init__(
-        self, ionic_liquid: IonicLiquidSystem, all_forces: bool = False
+        self,
+        ionic_liquid: IonicLiquidSystem,
+        all_forces: bool = False,
+        constant_equilibrium: bool = True,
     ) -> None:
-        super().__init__(ionic_liquid)
+        super().__init__(ionic_liquid, constant_equilibrium)
         self.allowed_forces = [  # change charges only
             "NonbondedForce",  # BUG: Charge stored in the DrudeForce does NOT get updated, probably you want to allow DrudeForce as well!
             "DrudeForce",
