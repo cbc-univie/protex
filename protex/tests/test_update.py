@@ -22,6 +22,10 @@ from ..testsystems import (
 from ..update import NaiveMCUpdate, StateUpdate
 
 
+@pytest.mark.skipif(
+    os.getenv("CI") == "true",
+    reason="Skipping tests that cannot pass in github actions",
+)
 def test_distance_calculation():
     simulation = generate_im1h_oac_system()
     # get ionic liquid templates
@@ -36,24 +40,18 @@ def test_distance_calculation():
     update = NaiveMCUpdate(ionic_liquid)
     # initialize state update class
     state_update = StateUpdate(update)
-    distance_dict, res_dict = state_update._get_positions_for_mutation_sites()
-
-    canonical_names = list(
-        set([residue.canonical_name for residue in state_update.ionic_liquid.residues])
-    )
+    distance_list, res_list = state_update._get_positions_for_mutation_sites()
 
     # calculate distance matrix between the two molecules
-    distance = distance_matrix(
-        distance_dict[canonical_names[0]], distance_dict[canonical_names[1]]
-    )
+    distance = distance_matrix(distance_list, distance_list)
     # get a list of indices for elements in the distance matrix sorted by increasing distance
     # NOTE: This always accepts a move!
     shape = distance.shape
     idx = np.dstack(np.unravel_index(np.argsort(distance.ravel()), shape))[0]
     distances = []
     for candidate_idx1, candidate_idx2 in idx:
-        residue1 = res_dict[canonical_names[0]][candidate_idx1]
-        residue2 = res_dict[canonical_names[1]][candidate_idx2]
+        residue1 = res_list[candidate_idx1]
+        residue2 = res_list[candidate_idx2]
         # is this combination allowed?
         if (
             frozenset([residue1.current_name, residue2.current_name])
@@ -575,7 +573,8 @@ def test_setting_forces():
     os.getenv("CI") == "true",
     reason="Will fail sporadicaly.",
 )
-def test_single_update():
+def test_single_update(caplog):
+    # caplog.set_level(logging.DEBUG)
 
     simulation = generate_im1h_oac_system()
     # get ionic liquid templates
@@ -1155,15 +1154,10 @@ def test_pbc():
     # initialize state update class
     state_update = StateUpdate(update)
 
-    pos_dict, res_dict = state_update._get_positions_for_mutation_sites()
+    pos_list, res_list = state_update._get_positions_for_mutation_sites()
 
-    canonical_names = list(
-        set([residue.canonical_name for residue in ionic_liquid.residues])
-    )
     # calculate distance matrix between the two molecules
-    distance = distance_matrix(
-        pos_dict[canonical_names[0]], pos_dict[canonical_names[1]]
-    )
+    distance = distance_matrix(pos_list, pos_list)
     # print(f"{distance[0]=}")
 
     from scipy.spatial.distance import cdist
@@ -1180,9 +1174,7 @@ def test_pbc():
             dz = boxl - dz
         return np.sqrt(dx * dx + dy * dy + dz * dz)
 
-    distance_pbc = cdist(
-        pos_dict[canonical_names[0]], pos_dict[canonical_names[1]], _rPBC
-    )
+    distance_pbc = cdist(pos_list, pos_list, _rPBC)
     # print(f"{distance_pbc[0]=}")
     # print(f"{distance_pbc[distance_pbc>boxl]=}")
     assert (

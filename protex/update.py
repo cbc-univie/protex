@@ -280,17 +280,12 @@ class StateUpdate:
         return candidate_pairs
 
     def _propose_candidate_pair(
-        self, pos_dict: dict, res_dict: dict, use_pbc: bool = True
+        self, pos_list: list, res_list: list, use_pbc: bool = True
     ) -> list[tuple]:
         """
         Takes the return value of _get_positions_of_mutation_sites
 
         """
-
-        canonical_names = list(
-            set([residue.canonical_name for residue in self.ionic_liquid.residues])
-        )
-        logger.debug(canonical_names)
 
         from scipy.spatial.distance import cdist
 
@@ -309,15 +304,12 @@ class StateUpdate:
         # calculate distance matrix between the two molecules
         if use_pbc:
             logger.debug("Using PBC correction for distance calculation")
-            distance = cdist(
-                pos_dict[canonical_names[0]], pos_dict[canonical_names[1]], _rPBC
-            )
+            distance = cdist(pos_list, pos_list, _rPBC)
         else:
             logger.debug("No PBC correction for distance calculation")
-            distance = distance_matrix(
-                pos_dict[canonical_names[0]], pos_dict[canonical_names[1]]
-            )
-
+            distance = distance_matrix(pos_list, pos_list)
+        # shape diagonal to not have self terms between ie same HOAC-HOAC
+        np.fill_diagonal(distance, np.inf)
         # print(f"{distance=}, {distance_pbc=}")
         # get a list of indices for elements in the distance matrix sorted by increasing distance
         # NOTE: This always accepts a move!
@@ -329,8 +321,8 @@ class StateUpdate:
         used_residues = []
         # check if charge transfer is possible
         for candidate_idx1, candidate_idx2 in idx:
-            residue1 = res_dict[canonical_names[0]][candidate_idx1]
-            residue2 = res_dict[canonical_names[1]][candidate_idx2]
+            residue1 = res_list[candidate_idx1]
+            residue2 = res_list[candidate_idx2]
             # is this combination allowed?
             if (
                 frozenset([residue1.current_name, residue2.current_name])
@@ -392,24 +384,26 @@ class StateUpdate:
         ).getPositions(asNumpy=True)
 
         # fill in the positions for each species
-        pos_dict = defaultdict(list)
-        res_dict = defaultdict(list)
+        pos_list = []
+        res_list = []
 
         # loop over all residues and add the positions of the atoms that can be updated to the pos_dict
         for residue in self.ionic_liquid.residues:
             assert residue.current_name in self.ionic_liquid.templates.names
             # get the position of the atom (Hydrogen or the possible acceptor)
-            pos_dict[residue.canonical_name].append(  # here maybe current name
+            # new idea: just make one list with all positions and then calc distances of everything with everything... -> not so fast, but i need i.e. IM1H-IM1
+            pos_list.append(
                 pos[
                     residue.get_idx_for_atom_name(
-                        self.ionic_liquid.templates.states[residue.original_name][
+                        self.ionic_liquid.templates.states[residue.current_name][
                             "atom_name"
-                        ]
-                    )  # this needs the atom idx to be the same for both topologies
+                        ]  # BUG: residue.original_name?
+                    )
+                    # this needs the atom idx to be the same for both topologies
                     # TODO: maybe get rid of this caveat
                     # maybe some mapping between possible residue states and corresponding atom positions
                 ]
             )
-            res_dict[residue.canonical_name].append(residue)  # here maybe current name
+            res_list.append(residue)
 
-        return pos_dict, res_dict
+        return pos_list, res_list
