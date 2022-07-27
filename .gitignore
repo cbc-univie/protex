@@ -111,7 +111,12 @@ ENV/
 *.out
 *.dat
 *.pdb
+!protex/forcefield/pdb/*
 charge_changes.json
 protex/single_pairs/test_single_im1h_oac.dcd
 protex/single_pairs/test_single_im1h_oac.out
 current_names.txt
+checkpoint.rst
+names.txt
+test.psf
+state.rst

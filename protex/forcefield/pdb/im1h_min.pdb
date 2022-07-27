@@ -1,0 +1,23 @@
+REMARK  STRUCTURE OPTIMIZATION                                                        
+REMARK   DATE:     6/14/21     11:47:29      CREATED BY USER: florian                 
+ATOM      1  C1  IM1H    1      -1.782   0.608  -0.089  1.00  0.00      IM1H
+ATOM      2  DC1 IM1H    1      -1.763   0.608  -0.089  1.00  0.00      IM1H
+ATOM      3  H1  IM1H    1      -2.147   1.275  -0.899  1.00  0.00      IM1H
+ATOM      4  H2  IM1H    1      -2.143   0.975   0.896  1.00  0.00      IM1H
+ATOM      5  H3  IM1H    1      -2.150  -0.426  -0.260  1.00  0.00      IM1H
+ATOM      6  N1  IM1H    1      -0.310   0.616  -0.091  1.00  0.00      IM1H
+ATOM      7  DN1 IM1H    1      -0.294   0.615  -0.091  1.00  0.00      IM1H
+ATOM      8  C2  IM1H    1       0.487   1.719   0.092  1.00  0.00      IM1H
+ATOM      9  DC2 IM1H    1       0.480   1.701   0.089  1.00  0.00      IM1H
+ATOM     10  H4  IM1H    1       0.078   2.616   0.243  1.00  0.00      IM1H
+ATOM     11  C3  IM1H    1       1.801   1.314   0.021  1.00  0.00      IM1H
+ATOM     12  DC3 IM1H    1       1.798   1.312   0.021  1.00  0.00      IM1H
+ATOM     13  H5  IM1H    1       2.656   1.827   0.105  1.00  0.00      IM1H
+ATOM     14  C4  IM1H    1       0.497  -0.437  -0.268  1.00  0.00      IM1H
+ATOM     15  DC4 IM1H    1       0.483  -0.424  -0.266  1.00  0.00      IM1H
+ATOM     16  H6  IM1H    1       0.175  -1.375  -0.424  1.00  0.00      IM1H
+ATOM     17  N2  IM1H    1       1.787  -0.041  -0.205  1.00  0.00      IM1H
+ATOM     18  DN2 IM1H    1       1.784  -0.041  -0.205  1.00  0.00      IM1H
+ATOM     19  H7  IM1H    1       2.605  -0.645  -0.308  1.00  0.00      IM1H
+TER      20      IM1H     1
+END

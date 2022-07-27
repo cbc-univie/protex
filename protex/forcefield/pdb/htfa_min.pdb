@@ -1,0 +1,22 @@
+REMARK  STRUCTURE OPTIMIZATION                                                        
+REMARK   DATE:    12/14/21      9:29:57      CREATED BY USER: florian                 
+ATOM      1  C1  HTFA    1       0.460   0.326  -0.029  1.00  0.00      HTFA
+ATOM      2  DC1 HTFA    1       0.447   0.324  -0.029  1.00  0.00      HTFA
+ATOM      3  C2  HTFA    1      -0.815  -0.202   0.022  1.00  0.00      HTFA
+ATOM      4  F1  HTFA    1      -1.003  -1.116   1.581  1.00  0.00      HTFA
+ATOM      5  DF1 HTFA    1      -1.022  -1.127   1.595  1.00  0.00      HTFA
+ATOM      6  F2  HTFA    1      -2.070   1.111  -0.075  1.00  0.00      HTFA
+ATOM      7  DF2 HTFA    1      -2.097   1.112  -0.075  1.00  0.00      HTFA
+ATOM      8  F3  HTFA    1      -1.023  -1.351  -1.370  1.00  0.00      HTFA
+ATOM      9  DF3 HTFA    1      -1.042  -1.365  -1.382  1.00  0.00      HTFA
+ATOM     10  O1  HTFA    1       0.763   1.516  -0.126  1.00  0.00      HTFA
+ATOM     11  DO1 HTFA    1       0.807   1.490  -0.124  1.00  0.00      HTFA
+ATOM     12  O2  HTFA    1       1.496  -0.407   0.022  1.00  0.00      HTFA
+ATOM     13  DO2 HTFA    1       1.506  -0.405   0.022  1.00  0.00      HTFA
+ATOM     14  H   HTFA    1       2.159   0.304  -0.039  1.00  0.00      HTFA
+ATOM     15 LPO1 HTFA    1       0.474   1.712  -0.140  1.00  0.00      HTFA
+ATOM     16 LPO1 HTFA    1       1.112   1.550  -0.131  1.00  0.00      HTFA
+ATOM     17 LPO2 HTFA    1       1.528  -0.496   0.359  1.00  0.00      HTFA
+ATOM     18 LPO2 HTFA    1       1.524  -0.548  -0.296  1.00  0.00      HTFA
+TER      19      HTFA     1
+END
