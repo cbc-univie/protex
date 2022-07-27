@@ -8,7 +8,7 @@ dependencies:
     # Base depends
   - python
   - pip
-  - openmm
+  - openmm=7.6
   - scipy
   - numpy
   - parmed
