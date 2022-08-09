@@ -8,9 +8,10 @@ dependencies:
     # Base depends
   - python
   - pip
-  - openmm
+  - openmm=7.6
   - scipy
   - numpy
+  - parmed
 
     # Testing
   - pytest
@@ -18,6 +19,7 @@ dependencies:
   - codecov
 
     # Pip-only installs
-  #- pip:
+  - pip:
   #  - codecov
+    - git+https://github.com/ParmEd/ParmEd.git
 

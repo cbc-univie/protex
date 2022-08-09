@@ -1,11 +1,13 @@
 import itertools
 import logging
 from collections import ChainMap, defaultdict, deque
+from pdb import pm
 from typing import Dict, List
 
 # from typing_extensions import final
 
 import numpy as np
+import parmed
 
 logger = logging.getLogger(__name__)
 
@@ -1043,6 +1045,106 @@ class IonicLiquidSystem:
         report_states prints out a summary of the current protonation state of the ionic liquid
         """
         pass
+
+    def _adapt_parmed_psf_file(
+        self, psf: parmed.charmm.CharmmPsfFile
+    ) -> parmed.charmm.CharmmPsfFile:
+        """
+        Helper function to adapt the psf
+        """
+        assert len(self.residues) == len(psf.residues)
+
+        # make a dict with parmed representations of each residue, use it to assign the opposite one if a transfer occured
+        pm_unique_residues: dict[str, parmed.Residue] = {}
+        for residue in psf.residues:
+            if residue.name in pm_unique_residues:
+                continue
+            else:
+                pm_unique_residues[residue.name] = residue
+
+        for residue, pm_residue in zip(self.residues, psf.residues):
+            # if the new residue (residue.current_name) is different than the original one from the old psf (pm_residue.name)
+            # a proton transfer occured and we want to change this in the new psf, which means overwriting the parmed residue instance
+            # with the new information
+            if residue.current_name != pm_residue.name:
+                # do changes
+                name = residue.current_name
+                pm_residue.name = name
+                pm_residue.chain = name
+                pm_residue.segid = name
+                for unique_atom, pm_atom in zip(
+                    pm_unique_residues[name].atoms, pm_residue.atoms
+                ):
+                    pm_atom._charge = unique_atom._charge
+                    pm_atom.type = unique_atom.type
+                    pm_atom.props = unique_atom.props
+
+        return psf
+
+    def write_psf(self, old_psf_infname: str, new_psf_outfname: str) -> None:
+        """
+        write a new psf file, which reflects the occured transfer events and changed residues
+        to load the written psf create a new ionic_liquid instance and load the new psf via OpenMM
+        """
+        import parmed
+
+        pm_old_psf = parmed.charmm.CharmmPsfFile(old_psf_infname)
+        pm_new_psf = self._adapt_parmed_psf_file(pm_old_psf)
+        pm_new_psf.write_psf(new_psf_outfname)
+
+    # possibly in future when parmed and openmm drude connection is working
+    # def write_psf_notworking(
+    #     self, fname: str, format=None, overwrite=False, **kwargs
+    # ) -> None:
+    #     """
+    #     Write a psf file from the current topology.
+    #     In principle any file that parmeds struct.save method supports can be written.
+    #     """
+    #     import parmed
+
+    #     struct = parmed.openmm.load_topology(self.topology, self.system)
+    #     struct.save(fname, format=None, overwrite=False, **kwargs)
+
+    def saveCheckpoint(self, file) -> None:
+        """
+        Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object
+        Parameters
+        ----------
+        file: string or file
+            a File-like object to write the checkpoint to, or alternatively a
+            filename
+        """
+        self.simulation.saveCheckpoint(file)
+
+    def loadCheckpoint(self, file) -> None:
+        """Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object
+        Parameters
+        ----------
+        file : string or file
+            a File-like object to load the checkpoint from, or alternatively a
+            filename
+        """
+        self.simulation.loadCheckpoint(file)
+
+    def saveState(self, file) -> None:
+        """Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object
+        Parameters
+        ----------
+        file : string or file
+            a File-like object to write the state to, or alternatively a
+            filename
+        """
+        self.simulation.saveState(file)
+
+    def loadState(self, file) -> None:
+        """Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object
+        Parameters
+        ----------
+        file : string or file
+            a File-like object to load the state from, or alternatively a
+            filename
+        """
+        self.simulation.loadState(file)
 
 
 class ChargeReporter:

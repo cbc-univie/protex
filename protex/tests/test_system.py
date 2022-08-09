@@ -2,7 +2,8 @@
 import os
 from sys import stdout
 from collections import defaultdict
-import json
+#import json
+import copy
 
 try:  # Syntax changed in OpenMM 7.6
     import openmm as mm
@@ -798,3 +799,34 @@ def test_reporter_class():
     state_update.update(2)
     ionic_liquid.simulation.step(18)
     ionic_liquid.simulation.step(1)
+
+
+def test_write_psf_save_load():
+    simulation = generate_im1h_oac_system()
+    # get ionic liquid templates
+    allowed_updates = {}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
+
+    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+    # wrap system in IonicLiquidSystem
+    ionic_liquid = IonicLiquidSystem(simulation, templates)
+    # initialize update method
+    update = NaiveMCUpdate(ionic_liquid)
+    # initialize state update class
+    state_update = StateUpdate(update)
+
+    old_psf_file = f"{protex.__path__[0]}/forcefield/im1h_oac_150_im1_hoac_350.psf"
+    ionic_liquid.write_psf(old_psf_file, "test.psf")
+
+    # ionic_liquid.simulation.step(50)
+    state_update.update(2)
+
+    ionic_liquid.write_psf(old_psf_file, "test.psf")
+    ionic_liquid.saveState("state.rst")
+    ionic_liquid.saveCheckpoint("checkpoint.rst")
+
+    ionic_liquid2 = ionic_liquid #copy.deepcopy(ionic_liquid)
+    ionic_liquid.loadState("state.rst")
+    ionic_liquid2.loadCheckpoint("checkpoint.rst")
+    
