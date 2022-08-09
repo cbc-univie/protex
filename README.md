@@ -2,7 +2,7 @@ protex
 ==============================
 [//]: # (Badges)
 [![GitHub Actions Build Status](https://github.com/wiederm/protex/workflows/CI/badge.svg)](https://github.com/wiederm/protex/actions?query=workflow%3ACI)
-[![codecov](https://codecov.io/gh/wiederm/protex/branch/master/graph/badge.svg)](https://codecov.io/gh/wiederm/protex/branch/master)
+[![codecov](https://codecov.io/gh/florianj77/protex/branch/main/graph/badge.svg?token=ddqu0BzewU)](https://codecov.io/gh/florianj77/protex)
 
 
 Proton exchange using MC and openMM for ionic liquids
