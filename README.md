@@ -1,7 +1,7 @@
 protex
 ==============================
 [//]: # (Badges)
-[![GitHub Actions Build Status](https://github.com/wiederm/protex/workflows/CI/badge.svg)](https://github.com/wiederm/protex/actions?query=workflow%3ACI)
+[![GitHub Actions Build Status](https://github.com/florianj77/protex/workflows/CI/badge.svg)](https://github.com/florianj77/protex/actions?query=workflow%3ACI)
 [![codecov](https://codecov.io/gh/florianj77/protex/branch/main/graph/badge.svg?token=ddqu0BzewU)](https://codecov.io/gh/florianj77/protex)
 
 
