@@ -5,6 +5,11 @@ from pdb import pm
 import numpy as np
 import parmed
 
+try:
+    import openmm
+except ImportError:
+    import simtk.openmm
+
 from protex.residue import Residue
 
 logger = logging.getLogger(__name__)
@@ -162,14 +167,26 @@ class IonicLiquidSystem:
     """
     This class defines the full system, performs the MD steps and offers an
     interface for protonation state updates.
+
+    Parameters:
+    -----------
+    simulation:
+        the OpenMM simulation object
+    templates:
+        An instance of the IonicLiquidTemplates class
+
     """
 
-    def __init__(self, simulation, templates: IonicLiquidTemplates) -> None:
-        self.system = simulation.system
-        self.topology = simulation.topology
-        self.simulation = simulation
-        self.templates = templates
-        self.residues = self._set_initial_states()
+    def __init__(
+        self,
+        simulation: openmm.app.simulation.Simulation,
+        templates: IonicLiquidTemplates,
+    ) -> None:
+        self.system: openmm.openmm.System = simulation.system
+        self.topology: openmm.app.topology.Topology = simulation.topology
+        self.simulation: openmm.app.simulation.Simulation = simulation
+        self.templates: IonicLiquidTemplates = templates
+        self.residues: list[Residue] = self._set_initial_states()
         self.boxlength: float = (
             simulation.context.getState().getPeriodicBoxVectors()[0][0]._value
         )  # NOTE: supports only cubic boxes
