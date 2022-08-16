@@ -372,6 +372,10 @@ class StateUpdate:
                     print(
                         f"{residue1.current_name}:{residue1.residue.id}:{charge_candidate_idx1}-{residue2.current_name}:{residue2.residue.id}:{charge_candidate_idx2} pair accepted ..."
                     )
+                    # residue.index 0-based through whole topology
+                    print(
+                        f"UpdatePair:{residue1.current_name}:{residue1.residue.index}:{charge_candidate_idx1}:{residue2.current_name}:{residue2.residue.index}:{charge_candidate_idx2}"
+                    )
                 # return proposed_candidate_pair
         return proposed_candidate_pairs
 
