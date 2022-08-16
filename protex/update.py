@@ -18,10 +18,11 @@ logger = logging.getLogger(__name__)
 
 class Update:
     def __init__(
-        self, ionic_liquid: IonicLiquidSystem, constant_equilibrium: bool
+        self, ionic_liquid: IonicLiquidSystem, constant_equilibrium: bool, use_pbc: bool = True
     ) -> None:
         self.ionic_liquid = ionic_liquid
         self.constant_equilibrium = constant_equilibrium
+        self.use_pbc = use_pbc
 
 
 class NaiveMCUpdate(Update):
@@ -39,8 +40,9 @@ class NaiveMCUpdate(Update):
         ionic_liquid: IonicLiquidSystem,
         all_forces: bool = False,
         constant_equilibrium: bool = True,
+        use_pbc: bool = True
     ) -> None:
-        super().__init__(ionic_liquid, constant_equilibrium)
+        super().__init__(ionic_liquid, constant_equilibrium, use_pbc)
         self.allowed_forces = [  # change charges only
             "NonbondedForce",  # BUG: Charge stored in the DrudeForce does NOT get updated, probably you want to allow DrudeForce as well!
             "DrudeForce",
@@ -259,7 +261,7 @@ class StateUpdate:
         pos_list, res_list = self._get_positions_for_mutation_sites()
         # propose the update candidates based on distances
         self._print_start()
-        candidate_pairs = self._propose_candidate_pair(pos_list, res_list)
+        candidate_pairs = self._propose_candidate_pair(pos_list, res_list, use_pbc)
         print(f"{len(candidate_pairs)=}")
 
         if len(candidate_pairs) == 0:
@@ -302,7 +304,7 @@ class StateUpdate:
             return np.sqrt(dx * dx + dy * dy + dz * dz)
 
         # calculate distance matrix between the two molecules
-        if use_pbc:
+        if self.updateMethod.use_pbc:
             logger.debug("Using PBC correction for distance calculation")
             distance = cdist(pos_list, pos_list, _rPBC)
         else:
