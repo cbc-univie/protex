@@ -39,8 +39,9 @@ except ImportError:
 import pytest
 
 import protex
-from ..system import ChargeReporter, IonicLiquidSystem, IonicLiquidTemplates
+from ..system import IonicLiquidSystem, IonicLiquidTemplates
 from ..update import NaiveMCUpdate, StateUpdate
+from ..reporter import ChargeReporter
 
 from ..testsystems import (
     IM1H_IM1,

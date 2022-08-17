@@ -3,7 +3,8 @@ from sys import stdout
 
 import pytest
 
-from ..system import IonicLiquidSystem, IonicLiquidTemplates, ChargeReporter
+from ..system import IonicLiquidSystem, IonicLiquidTemplates
+from ..reporter import ChargeReporter
 from ..testsystems import (
     IM1H_IM1,
     OAC_HOAC,
