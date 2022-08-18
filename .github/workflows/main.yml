@@ -18,10 +18,10 @@ jobs:
       with:
         docs-folder: "docs/"
     # Example of using a custom build-command.
-    - uses: ammaraskar/sphinx-action@master
-      with:
-        build-command: "sphinx-build -b html . _build"
-        docs-folder: "docs2/"
+    #- uses: ammaraskar/sphinx-action@master
+    #  with:
+    #    build-command: "sphinx-build -b html . _build"
+    #    docs-folder: "docs2/"
     # Great extra actions to compose with:
     # Create an artifact of the html output.
     - uses: actions/upload-artifact@v1
