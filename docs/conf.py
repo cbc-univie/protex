@@ -23,7 +23,7 @@ import protex
 # -- Project information -----------------------------------------------------
 
 project = 'protex'
-copyright = ("2021, Marcus Wieder. Project structure based on the "
+copyright = ("2022, Florian Joerg & Marcus Wieder. Project structure based on the "
              "Computational Molecular Science Python Cookiecutter version 1.5")
 author = 'Marcus Wieder'
 
@@ -50,12 +50,15 @@ extensions = [
     'sphinx.ext.napoleon',
     'sphinx.ext.intersphinx',
     'sphinx.ext.extlinks',
+    #'sphinx_autodoc_typehints',
 ]
 
+#autodoc_default_options = {"autosummary": True}
 autosummary_generate = True
 napoleon_google_docstring = False
 napoleon_use_param = False
 napoleon_use_ivar = True
+numpydoc_show_class_members=False
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -74,12 +77,12 @@ master_doc = 'index'
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+#language = None
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path .
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store', 'chelpg_charges', 'data', 'forcefield', 'scripts', 'single_pairs', 'tests']
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'default'

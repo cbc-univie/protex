@@ -2,8 +2,50 @@ import numpy as np
 from collections import deque
 import itertools
 
-
 class Residue:
+    """Residue extends the OpenMM Residue Class by important features needed for the proton transfer
+
+    Parameters
+    -----------
+    residue: openmm.app.topology.Residue
+        The residue from  an OpenMM Topology
+    alternativ_name: str
+        The name of the corresponding protonated/deprotonated form (eg. OAC for HOAC)
+    system: openmm.openmm.System
+        The system generated with openMM, where all residues are in
+    initial_parameters: dict[list]
+        The parameters for the residue
+    alternativ_parameters: dict[list]
+        The parameters for the alternativ (protonated/deprotonated) state
+    canonical_name: str
+        A general name for both states (protonated/deprotonated)
+    pair_12_13_exclusion_list: list
+        1-2 and 1-3 exclusions in the system
+
+    Attributes
+    -----------
+    residue: openmm.app.topology.Residue
+        The residue from  an OpenMM Topology
+    original_name: str
+        The name of the residue given by the OpenMM Residue, will not change throughout the simulation(?)
+    current_name: str
+        The current name of the residue, depending on the protonation state
+    atom_idxs: list[int]
+        List of all atom indices belonging to that residue
+    atom_names; list[str]
+        List of all atom names belonging to that residue
+    parameters: dict[str: dict[list]]
+        Dictionary containnig the parameters for ``original_name`` and ``alternativ_name``
+    record_charge_state: list
+        Records the charge state of that residue
+    canonical_name: str
+        A general name for both states (protonated/deprotonated)
+    system: openmm.openmm.System
+        The system generated with openMM, where all residues are in
+    pair_12_13_list: list
+         1-2 and 1-3 exclusions in the system
+    """
+
     def __init__(
         self,
         residue,
@@ -11,7 +53,7 @@ class Residue:
         system,
         inital_parameters,
         alternativ_parameters,
-        canonical_name: str,
+        canonical_name,
         pair_12_13_exclusion_list,
     ) -> None:
 
@@ -32,13 +74,26 @@ class Residue:
 
     @property
     def alternativ_name(self):
+        """Alternative name for the residue, e.g. the corresponding name for the protonated/deprotonated form
+
+        Returns
+        --------
+        str
+        """
         for name in self.parameters.keys():
             if name != self.current_name:
                 return name
 
     def update(
         self, force_name: str, lamb: float
-    ):  # we don't need to call update in context since we are doing this in NaiveMCUpdate
+    ) -> None:  # we don't need to call update in context since we are doing this in NaiveMCUpdate
+        """Update the requested force in that residue
+
+        Parameters
+        -----------
+        force_name: Name of the force to update
+        lamb: lambda state at which to get corresponding values (between 0 and 1)
+        """
         if force_name == "NonbondedForce":
             parms = self._get_NonbondedForce_parameters_at_lambda(lamb)
             self._set_NonbondedForce_parameters(parms)
@@ -596,6 +651,7 @@ class Residue:
 
     @property
     def endstate_charge(self) -> int:
+        """Charge of the residue at the endstate (will be int)"""
         charge = int(
             np.round(
                 sum(
@@ -611,7 +667,7 @@ class Residue:
 
     @property
     def current_charge(self) -> int:
-
+        """Current charge of the residue"""
         charge = 0
         for force in self.system.getForces():
             if type(force).__name__ == "NonbondedForce":
@@ -620,3 +676,7 @@ class Residue:
                     charge += charge_idx._value
 
         return np.round(charge, 3)
+
+
+
+

@@ -10,6 +10,14 @@ logger = logging.getLogger(__name__)
 
 
 class Update:
+    """
+    ABC for implementing different Update Methods
+
+    Parameters
+    ----------
+    ionic_liquid: IonicLiquidSystem
+        Needs the IonicLiquidSystem
+    """
     def __init__(
         self, ionic_liquid: IonicLiquidSystem, constant_equilibrium: bool
     ) -> None:

@@ -16,27 +16,69 @@ logger = logging.getLogger(__name__)
 
 
 class IonicLiquidTemplates:
+    """
+    Creates the basic foundation for the Ionic Liquid System.
+
+    Parameters
+    -----------
+    states:
+        A list of dictionary depicting the residue name and the atom name which should be changed, i.e.:
+        .. code-block::
+        IM1H_IM1 = { "IM1H": {"atom_name": "H7", "canonical_name": "IM1"},
+                     "IM1": {"atom_name": "N2", "canonical_name": "IM1"} }
+        OAC_HOAC = { "OAC": {"atom_name": "O2", "canonical_name": "OAC"},
+                     "HOAC": {"atom_name": "H", "canonical_name": "OAC"} }
+        states = [IM1H_IM1, OAC_HOAC]
+
+    allowed_updates:
+        A dictionary specifiying which updates are possile.
+        Key is a frozenset with the two residue names for the update.
+        The values is a dictionary which specifies the maximum distance ("r_max") and the probability for this update ("prob")
+        r_max is in nanometer and the prob between 0 and 1
+        .. code-block::
+            allowed_updates = {}
+            allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.155, "prob": 1}
+            allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.155, "prob": 1}
+            allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.155, "prob": 0.201}
+            allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.155, "prob": 0.684}
+
+    Attributes
+    -----------
+    pairs:
+        A list with the pairs where the hydrogen can be transfered
+    states:
+        The passed states list as a joined dictionary
+    names:
+        A list with the different residue names
+    allowed_updates:
+        the allowed_updates passed to the class
+    overall_max_distance:
+        the longest allowed distance for a possible transfer between two updates
+    """
+
     def __init__(
-        self, states: list, allowed_updates: dict[frozenset[str], dict[str, float]]
+        self,
+        states: list[dict[str, dict[str, str]]],
+        allowed_updates: dict[frozenset[str], dict[str, float]],
     ) -> None:
 
-        self.pairs = [list(i.keys()) for i in states]
-        self.states = dict(ChainMap(*states))
-        self.names = list(itertools.chain(*self.pairs))
-        self.allowed_updates = allowed_updates
-        self.overall_max_distance = max(
+        self.pairs: list[list[str]] = [list(i.keys()) for i in states]
+        self.states: dict[str, dict[str, str]] = dict(ChainMap(*states))
+        self.names: list[str] = list(itertools.chain(*self.pairs))
+        self.allowed_updates: dict[frozenset[str], dict[str, float]] = allowed_updates
+        self.overall_max_distance: float = max(
             [value["r_max"] for value in self.allowed_updates.values()]
         )
 
-    def get_update_value_for(self, residue_set, property):
+    def get_update_value_for(self, residue_set: frozenset[str], property: str) -> float:
         """
         returns the value in the allowed updates dictionary
 
         Parameters:
         -----------
-        residue: frozenset[str]
+        residue_set:
             dictionary key for residue_set, i.e ["IM1H", "OAC"]
-        property: str
+        property:
             dictionary key for the property defined for the residue key, i.e. prob
 
         Returns:
@@ -60,17 +102,19 @@ class IonicLiquidTemplates:
                 "You tried to access a residue_set or property key which is not defined"
             )
 
-    def set_update_value_for(self, residue_set, property, value):
+    def set_update_value_for(
+        self, residue_set: frozenset[str], property: str, value: float
+    ):
         """
         Updates a value in the allowed updates dictionary
 
         Parameters:
         -----------
-        residue: frozenset[str]
+        residue:
             dictionary key for residue_set, i.e ["IM1H","OAC"]
-        property: str
+        property:
             dictionary key for the property defined for the residue key, i.e. prob
-        value: float
+        value:
             the value the property should be set to
 
         Returns:
@@ -98,9 +142,10 @@ class IonicLiquidTemplates:
                 "You tried to create a new residue_set or property key! This is only allowed at startup!"
             )
 
+    # Not used
     def set_allowed_updates(
         self, allowed_updates: dict[frozenset[str], dict[str, float]]
-    ):
+    ) -> None:
         self.allowed_updates = allowed_updates
 
     def get_canonical_name(self, name: str) -> str:
@@ -139,9 +184,10 @@ class IonicLiquidTemplates:
         else:
             raise RuntimeError("something went wrong")
 
+    # Not used
     def get_charge_template_for(self, name: str):
         """
-        get_template_for returns the charge template for a residue
+        get_charge_template_for returns the charge template for a residue
 
         Parameters
         ----------
@@ -235,6 +281,7 @@ class IonicLiquidSystem:
         self.pair_12_list = list(sorted(pair_12_set))
         self.pair_13_list = list(sorted(pair_13_set - pair_12_set))
         self.pair_12_13_list = self.pair_12_list + self.pair_13_list
+        # change to return the list and set the parameters in the init method?
 
     def _extract_templates(self, query_name: str) -> defaultdict:
         # returns the forces for the residue name
@@ -541,3 +588,4 @@ class IonicLiquidSystem:
             filename
         """
         self.simulation.loadState(file)
+
