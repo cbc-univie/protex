@@ -21,6 +21,8 @@ jobs:
     - uses: ammaraskar/sphinx-action@master
       with:
         docs-folder: "docs/"
+        run: pip install sphinx_rtd_theme
+
     # Example of using a custom build-command.
     - uses: ammaraskar/sphinx-action@master
       with:
