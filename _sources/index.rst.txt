@@ -6,9 +6,6 @@
 Welcome to protex's documentation!
 =========================================================
 
-wir waren hier!
-hier im main sinf wir auch!!!
-
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
