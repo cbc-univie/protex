@@ -1,0 +1,24 @@
+protex.update.Update
+====================
+
+.. currentmodule:: protex.update
+
+.. autoclass:: Update
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+   
+   
+
+   
+   
+   

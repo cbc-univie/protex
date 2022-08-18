@@ -10,8 +10,9 @@ Welcome to protex's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   getting_started
-   api
+   ./documentation_pages/getting_started
+   ./documentation_pages/quickstart
+   ./documentation_pages/api
 
 
 
