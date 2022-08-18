@@ -6,6 +6,8 @@
 Welcome to protex's documentation!
 =========================================================
 
+wir waren hier!
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
