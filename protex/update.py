@@ -1,17 +1,10 @@
 import logging
-from collections import defaultdict
-from typing import List, Tuple
 import random
-
 import numpy as np
 from scipy.spatial import distance_matrix
 
 from protex.system import IonicLiquidSystem
-
-# try:
-#     from openmm import unit
-# except ImportError:
-#     from simtk import unit
+from protex.residue import Residue
 
 logger = logging.getLogger(__name__)
 
@@ -28,8 +21,8 @@ class Update:
     def __init__(
         self, ionic_liquid: IonicLiquidSystem, constant_equilibrium: bool
     ) -> None:
-        self.ionic_liquid = ionic_liquid
-        self.constant_equilibrium = constant_equilibrium
+        self.ionic_liquid: IonicLiquidSystem = ionic_liquid
+        self.constant_equilibrium: bool = constant_equilibrium
 
 
 class NaiveMCUpdate(Update):
@@ -49,7 +42,7 @@ class NaiveMCUpdate(Update):
         constant_equilibrium: bool = True,
     ) -> None:
         super().__init__(ionic_liquid, constant_equilibrium)
-        self.allowed_forces = [  # change charges only
+        self.allowed_forces: list[int] = [  # change charges only
             "NonbondedForce",  # BUG: Charge stored in the DrudeForce does NOT get updated, probably you want to allow DrudeForce as well!
             "DrudeForce",
         ]
@@ -63,7 +56,7 @@ class NaiveMCUpdate(Update):
                 ]
             )
 
-    def _update(self, candidates: List[Tuple], nr_of_steps: int):
+    def _update(self, candidates: list[tuple], nr_of_steps: int):
         logger.info("called _update")
         # get current state
         state = self.ionic_liquid.simulation.context.getState(getEnergy=True)
@@ -205,10 +198,10 @@ class StateUpdate:
     """
 
     def __init__(self, updateMethod: Update) -> None:
-        self.updateMethod = updateMethod
-        self.ionic_liquid = self.updateMethod.ionic_liquid
-        self.history = []
-        self.update_trial = 0
+        self.updateMethod: Update = updateMethod
+        self.ionic_liquid: IonicLiquidSystem = self.updateMethod.ionic_liquid
+        self.history: list = []
+        self.update_trial: int = 0
 
     def write_charges(self, filename: str):
 
@@ -241,12 +234,12 @@ class StateUpdate:
     def _print_start(self):
         print(
             f"""
-##############################
-##############################
---- Update trial: {self.update_trial} ---
-##############################
-##############################
-"""
+            ##############################
+            ##############################
+            --- Update trial: {self.update_trial} ---
+            ##############################
+            ##############################
+            """
         )
         # --- Nr of charged residues: ---
         # --- Nr of uncharged residues: ---
@@ -254,12 +247,12 @@ class StateUpdate:
     def _print_stop(self):
         print(
             f"""
-##############################
-##############################
-"""
+            ##############################
+            ##############################
+            """
         )
 
-    def update(self, nr_of_steps: int = 101) -> tuple:
+    def update(self, nr_of_steps: int = 2) -> tuple:
         """
         updates the current state using the method defined in the UpdateMethod class
         """
@@ -289,7 +282,7 @@ class StateUpdate:
 
     def _propose_candidate_pair(
         self, pos_list: list, res_list: list, use_pbc: bool = True
-    ) -> list[tuple]:
+    ) -> list[tuple[Residue]]:
         """
         Takes the return value of _get_positions_of_mutation_sites
 
@@ -320,7 +313,9 @@ class StateUpdate:
         np.fill_diagonal(distance, np.inf)
         # print(f"{distance=}, {distance_pbc=}")
         # get a list of indices for elements in the distance matrix sorted by increasing distance
-        # NOTE: This always accepts a move!
+        # also combinations which are not psossible are in list
+        # -> the selecion is then done with the check if both residues
+        # corresponiding to the distance index are an allowed update
         shape = distance.shape
         idx = np.dstack(np.unravel_index(np.argsort(distance.ravel()), shape))[0]
         # print(f"{idx=}")
@@ -379,6 +374,10 @@ class StateUpdate:
                     self.history.append(set(proposed_candidate_pair))
                     print(
                         f"{residue1.current_name}:{residue1.residue.id}:{charge_candidate_idx1}-{residue2.current_name}:{residue2.residue.id}:{charge_candidate_idx2} pair accepted ..."
+                    )
+                    # residue.index 0-based through whole topology
+                    print(
+                        f"UpdatePair:{residue1.current_name}:{residue1.residue.index}:{charge_candidate_idx1}:{residue2.current_name}:{residue2.residue.index}:{charge_candidate_idx2}"
                     )
                 # return proposed_candidate_pair
         return proposed_candidate_pairs

@@ -1,10 +1,10 @@
-# from ..testsystems import generate_im1h_oac_system, OAC_HOAC, IM1H_IM1
 import os
 from sys import stdout
 
 import pytest
 
-from ..system import IonicLiquidSystem, IonicLiquidTemplates, ChargeReporter
+from ..system import IonicLiquidSystem, IonicLiquidTemplates
+from ..reporter import ChargeReporter
 from ..testsystems import (
     IM1H_IM1,
     OAC_HOAC,
