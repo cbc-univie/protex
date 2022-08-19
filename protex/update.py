@@ -22,11 +22,10 @@ class Update:
 
     def __init__(
         self,
-        ionic_liquid: IonicLiquidSystem,  # constant_equilibrium: bool,
+        ionic_liquid: IonicLiquidSystem,
         to_adapt=None,
     ) -> None:
         self.ionic_liquid: IonicLiquidSystem = ionic_liquid
-        # self.constant_equilibrium: bool = constant_equilibrium
         self.to_adapt: list[tuple[str, int, frozenset[str]]] = to_adapt
 
 
@@ -44,7 +43,6 @@ class NaiveMCUpdate(Update):
         self,
         ionic_liquid: IonicLiquidSystem,
         all_forces: bool = False,
-        # constant_equilibrium: bool = True,
         to_adapt: list[tuple[str, int, frozenset[str]]] = None,
     ) -> None:
         super().__init__(ionic_liquid, to_adapt)
