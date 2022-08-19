@@ -236,17 +236,6 @@ class IonicLiquidSystem:
         self.boxlength: float = (
             simulation.context.getState().getPeriodicBoxVectors()[0][0]._value
         )  # NOTE: supports only cubic boxes
-        # self.INITIAL_NUMBER_OF_EACH_RESIDUE_TYPE: dict[
-        #    str, int
-        # ] = self._set_initial_number_of_each_residue_type()
-
-        # self.TOTAL_NUMBER_OF_RESIDUES: int = simulation.topology.getNumResidues()
-
-    # def _set_initial_number_of_each_residue_type(self):
-    #    INITIAL_NUMBER_OF_EACH_RESIDUE_TYPE = defaultdict(int)
-    #    for residue in self.residues:
-    #        INITIAL_NUMBER_OF_EACH_RESIDUE_TYPE[residue.original_name] += 1
-    #    return INITIAL_NUMBER_OF_EACH_RESIDUE_TYPE
 
     def get_current_number_of_each_residue_type(self) -> dict[str, int]:
         current_number_of_each_residue_type = defaultdict(int)
