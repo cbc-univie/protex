@@ -302,3 +302,5 @@ OAC_HOAC = {
         "canonical_name": "OAC",
     },
 }
+
+HPTSH_HPTS = {}
