@@ -847,6 +847,49 @@ def test_updates(caplog):
         print(candidate_pairs)
 
 
+def test_adapt_probabilities(caplog):
+    simulation = generate_im1h_oac_system()
+    allowed_updates = {}
+    # allowed updates according to simple protonation scheme
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {
+        "r_max": 0.16,
+        "prob": 1,
+    }  # r_max in nanometer, prob between 0 and 1
+    # allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
+    # get ionic liquid templates
+    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+    # wrap system in IonicLiquidSystem
+    ionic_liquid = IonicLiquidSystem(simulation, templates)
+    caplog.set_level(logging.DEBUG)
+    # check that residue and frozeset match
+    try:
+        to_adapt = [("OAC", 150, frozenset(["IM1H", "HOAC"]))]
+        update = NaiveMCUpdate(ionic_liquid, to_adapt)
+        update._adapt_probabilities(to_adapt)
+    except AssertionError as e:
+        print("Check 1")
+        print(e)
+    # check that not duplicate sets
+    try:
+        to_adapt = [
+            ("OAC", 150, frozenset(["IM1H", "OAC"])),
+            ("OAC", 140, frozenset(["IM1H", "OAC"])),
+        ]
+        update = NaiveMCUpdate(ionic_liquid, to_adapt)
+        update._adapt_probabilities(to_adapt)
+    except AssertionError as e:
+        print("Check 2")
+        print(e)
+    # check that set is an allowed update set
+    try:
+        to_adapt = [("HOAC", 350, frozenset(["IM1", "HOAC"]))]
+        update = NaiveMCUpdate(ionic_liquid, to_adapt)
+        update._adapt_probabilities(to_adapt)
+    except RuntimeError as e:
+        print("Check 3")
+        print(e)
+
+
 @pytest.mark.skipif(
     os.getenv("CI") == "true",
     reason="Skipping tests that cannot pass in github actions",
