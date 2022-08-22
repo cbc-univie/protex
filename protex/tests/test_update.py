@@ -674,7 +674,8 @@ def test_check_updated_charges(caplog):
         )
     ]
 
-    state_update.write_charges("output_initial.txt")
+    state_update.write_charges("output_initial1.txt")
+    os.remove("output_initial1.txt")
     par_initial = state_update.get_charges()
     state_update.updateMethod._update(candidate_pairs, 21)
     par_after_first_update = state_update.get_charges()
@@ -728,6 +729,7 @@ def test_transfer_with_distance_matrix():
     # initialize state update class
     state_update = StateUpdate(update)
     state_update.write_charges("output_initial.txt")
+    os.remove("output_initial.txt")
     par_initial = state_update.get_charges()
     res_dict = state_update.get_num_residues()
     # print(res_dict)
