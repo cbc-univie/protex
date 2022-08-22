@@ -10,6 +10,7 @@ dependencies:
   - scipy
   - numpy
   - parmed
+  - pyyaml
 
     # Testing
   - pytest
