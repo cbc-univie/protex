@@ -143,7 +143,7 @@ class NaiveMCUpdate(Update):
             len([e for e, c in counts.items() if c > 1]) == 0
         ), "No duplicates for the transfer reactions allowed!"
 
-        K = 200
+        K = 300
         current_numbers: dict[
             str, int
         ] = self.ionic_liquid.get_current_number_of_each_residue_type()
