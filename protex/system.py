@@ -4,6 +4,7 @@ from collections import ChainMap, defaultdict, deque
 from pdb import pm
 import numpy as np
 import parmed
+import yaml, json
 
 try:
     import openmm
@@ -577,3 +578,39 @@ class IonicLiquidSystem:
             filename
         """
         self.simulation.loadState(file)
+
+    def save_updates(self, file) -> None:
+        """
+        Save the current update values into a yaml file. Used to have the current probability values.
+        Parameters
+        ----------
+        file: string or file
+        """
+        # TODO
+        # there should be a better way to get the frozen set into and back from a yaml file...
+        data = {
+            str(key): value for key, value in self.templates.allowed_updates.items()
+        }
+        with open(file, "w") as f:
+            yaml.dump(data, f, default_flow_style=False)
+
+    def load_updates(self, file) -> None:
+        """
+        Load the current update values from a yaml file, which was generated using "save_updates".
+        Parameters
+        ----------
+        file: string or file
+        """
+        with open(file, "r") as f:
+            try:
+                data = yaml.safe_load(f)
+            except yaml.YAMLError as exc:
+                print("Error")
+                print(exc)
+        # TODO
+        # bad coding here, to get the frozenset back from the yaml
+        final_data = {}
+        for key, value in data.items():
+            key = key.split("'")
+            final_data[frozenset([key[1], key[3]])] = value
+        self.templates.allowed_updates = final_data

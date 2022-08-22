@@ -1,4 +1,5 @@
 # Import package, test suite, and other packages as needed
+import io
 import os
 from sys import stdout
 from collections import defaultdict
@@ -237,11 +238,24 @@ def test_create_IonicLiquid():
     assert count["IM1"] == 350
     assert count["HOAC"] == 350
 
-    #initial_number_of_molecules = ionic_liquid.INITIAL_NUMBER_OF_EACH_RESIDUE_TYPE
-    #assert initial_number_of_molecules["IM1H"] == 150
-    #assert initial_number_of_molecules["OAC"] == 150
-    #assert initial_number_of_molecules["IM1"] == 350
-    #assert initial_number_of_molecules["HOAC"] == 350
+def test_save_load_allowedupdates():
+
+    simulation = generate_im1h_oac_system()
+    allowed_updates = {}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 0.9}
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 0.3}
+
+    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+    ionic_liquid = IonicLiquidSystem(simulation, templates)
+
+    assert allowed_updates == ionic_liquid.templates.allowed_updates
+
+    ionic_liquid.save_updates("updates.yaml")
+    ionic_liquid.load_updates("updates.yaml")
+
+    print(ionic_liquid.templates.allowed_updates)
+
+    assert allowed_updates == ionic_liquid.templates.allowed_updates
 
 
 def test_residues():
