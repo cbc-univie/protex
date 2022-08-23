@@ -1,12 +1,27 @@
 name: docs
 channels:
+  - conda-forge
+  - defaults
 dependencies:
     # Base depends
   - python
   - pip
+  - openmm=7.6
+  - scipy
+  - numpy
+  - parmed
+  - pyyaml
+  # Documentation
+  - sphinx
+  - sphinx_rtd_theme
 
-
+    # Testing
+  #- pytest
+  #- pytest-cov
+  #- codecov
 
     # Pip-only installs
-  #- pip:
-
+  - pip:
+  #  - codecov
+    - git+https://github.com/ParmEd/ParmEd.git
+    
