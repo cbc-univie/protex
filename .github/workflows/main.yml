@@ -34,7 +34,8 @@ jobs:
         with:
             miniforge-variant: Mambaforge
             miniforge-version: latest
-            activate-environment: my-env
+            activate-environment: docs
+            auto-activate-base: false
             use-mamba: true
       - name: Set cache date
         run: echo "DATE=$(date +'%Y%m%d')" >> $GITHUB_ENV
