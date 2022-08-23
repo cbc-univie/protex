@@ -11,9 +11,6 @@ dependencies:
   - numpy
   - parmed
   - pyyaml
-  # Documentation
-  - sphinx
-  - sphinx_rtd_theme
 
     # Testing
   #- pytest
