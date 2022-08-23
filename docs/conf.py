@@ -25,7 +25,7 @@ import protex
 project = 'protex'
 copyright = ("2022, Florian Joerg & Marcus Wieder. Project structure based on the "
              "Computational Molecular Science Python Cookiecutter version 1.5")
-author = 'Marcus Wieder'
+author = 'Florian Joerg & Marcus Wieder'
 
 # The short X.Y version
 version = ''
