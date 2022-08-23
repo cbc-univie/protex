@@ -42,9 +42,9 @@ jobs:
           auto-activate-base: false
           show-channel-urls: true
       - name: run sphinx
-        run: |
+        run: |  
+          pip install sphinx==5.1.1 sphinx_rtd_theme
           sphinx-build docs docs/_build/html/
-        #  pip install -r docs/requirements.txt
       # Example of using a custom build-command.
       #- uses: ammaraskar/sphinx-action@master
       #  with:
