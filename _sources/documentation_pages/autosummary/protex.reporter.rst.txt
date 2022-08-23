@@ -1,7 +1,7 @@
-﻿protex.system
-=============
+﻿protex.reporter
+===============
 
-.. automodule:: protex.system
+.. automodule:: protex.reporter
 
    
    
@@ -20,8 +20,7 @@
       :template: custom-class-template.rst
       :nosignatures:
    
-      IonicLiquidSystem
-      IonicLiquidTemplates
+      ChargeReporter
    
    
 

@@ -19,6 +19,9 @@ protex.system.IonicLiquidTemplates
       ~IonicLiquidTemplates.get_canonical_name
       ~IonicLiquidTemplates.get_charge_template_for
       ~IonicLiquidTemplates.get_residue_name_for_coupled_state
+      ~IonicLiquidTemplates.get_update_value_for
+      ~IonicLiquidTemplates.set_allowed_updates
+      ~IonicLiquidTemplates.set_update_value_for
    
    
 

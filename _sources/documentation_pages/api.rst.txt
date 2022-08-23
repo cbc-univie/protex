@@ -9,4 +9,6 @@ API Documentation
    protex.system
    protex.update
    protex.testsystems
+   protex.reporter
+   protex.residue
 
