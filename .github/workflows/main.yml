@@ -29,9 +29,22 @@ jobs:
       #- name: Trick sphinx-action into reading our requirements.txt
       #  run: cp requirements.txt docs/
       - name: directly build sphinx
+          # More info on options: https://github.com/conda-incubator/setup-miniconda 
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+          environment-file: docs/requirements.yaml
+
+          channels: conda-forge,defaults
+
+          activate-environment: docs
+          auto-update-conda: false
+          auto-activate-base: false
+          show-channel-urls: true
+      - name: run sphinx
         run: |
-          pip install -r docs/requirements.txt
           sphinx-build docs docs/_build/html/
+        #  pip install -r docs/requirements.txt
       # Example of using a custom build-command.
       #- uses: ammaraskar/sphinx-action@master
       #  with:
