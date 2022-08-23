@@ -1,6 +1,6 @@
 sphinx_rtd_theme
 Sphinx==5.1.1
-openmm=7.6
+openmm==7.6
 scipy
 numpy
 parmed
