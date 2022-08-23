@@ -4,6 +4,7 @@ from collections import ChainMap, defaultdict, deque
 from pdb import pm
 import numpy as np
 import parmed
+import yaml, json
 
 try:
     import openmm
@@ -236,19 +237,8 @@ class IonicLiquidSystem:
         self.boxlength: float = (
             simulation.context.getState().getPeriodicBoxVectors()[0][0]._value
         )  # NOTE: supports only cubic boxes
-        self.INITIAL_NUMBER_OF_EACH_RESIDUE_TYPE: dict[
-            str, int
-        ] = self._set_initial_number_of_each_residue_type()
 
-        self.TOTAL_NUMBER_OF_RESIDUES: int = simulation.topology.getNumResidues()
-
-    def _set_initial_number_of_each_residue_type(self):
-        INITIAL_NUMBER_OF_EACH_RESIDUE_TYPE = defaultdict(int)
-        for residue in self.residues:
-            INITIAL_NUMBER_OF_EACH_RESIDUE_TYPE[residue.original_name] += 1
-        return INITIAL_NUMBER_OF_EACH_RESIDUE_TYPE
-
-    def get_current_number_of_each_residue_type(self):
+    def get_current_number_of_each_residue_type(self) -> dict[str, int]:
         current_number_of_each_residue_type = defaultdict(int)
         for residue in self.residues:
             current_number_of_each_residue_type[residue.current_name] += 1
@@ -458,30 +448,30 @@ class IonicLiquidSystem:
                 raise RuntimeError("Found resiude not present in Templates: {r.name}")
         return residues
 
-    def save_current_names(self, file: str) -> None:
-        """
-        Save a file with the current residue names.
-        Can be used with load_current_names to set the residues in the IonicLiquidSystem
-        in the state of these names and also adapt corresponding charges, parameters,...
-        """
-        with open(file, "w") as f:
-            for residue in self.residues:
-                print(residue.current_name, file=f)
+    # def save_current_names(self, file: str) -> None:
+    #     """
+    #     Save a file with the current residue names.
+    #     Can be used with load_current_names to set the residues in the IonicLiquidSystem
+    #     in the state of these names and also adapt corresponding charges, parameters,...
+    #     """
+    #     with open(file, "w") as f:
+    #         for residue in self.residues:
+    #             print(residue.current_name, file=f)
 
-    def load_current_names(self, file: str) -> None:
-        """
-        Load the names of the residues (order important!)
-        Update the current_name of all residues to the given one
-        """
-        residue_names = []
-        with open(file, "r") as f:
-            for line in f.readlines():
-                residue_names.append(line.strip())
-        assert (
-            len(residue_names) == self.topology.getNumResidues()
-        ), "Number of residues not matching"
-        for residue, name in zip(self.residues, residue_names):
-            residue.current_name = name
+    # def load_current_names(self, file: str) -> None:
+    #     """
+    #     Load the names of the residues (order important!)
+    #     Update the current_name of all residues to the given one
+    #     """
+    #     residue_names = []
+    #     with open(file, "r") as f:
+    #         for line in f.readlines():
+    #             residue_names.append(line.strip())
+    #     assert (
+    #         len(residue_names) == self.topology.getNumResidues()
+    #     ), "Number of residues not matching"
+    #     for residue, name in zip(self.residues, residue_names):
+    #         residue.current_name = name
 
     def report_states(self) -> None:
         """
@@ -589,3 +579,38 @@ class IonicLiquidSystem:
         """
         self.simulation.loadState(file)
 
+    def save_updates(self, file) -> None:
+        """
+        Save the current update values into a yaml file. Used to have the current probability values.
+        Parameters
+        ----------
+        file: string or file
+        """
+        # TODO
+        # there should be a better way to get the frozen set into and back from a yaml file...
+        data = {
+            str(key): value for key, value in self.templates.allowed_updates.items()
+        }
+        with open(file, "w") as f:
+            yaml.dump(data, f, default_flow_style=False)
+
+    def load_updates(self, file) -> None:
+        """
+        Load the current update values from a yaml file, which was generated using "save_updates".
+        Parameters
+        ----------
+        file: string or file
+        """
+        with open(file, "r") as f:
+            try:
+                data = yaml.safe_load(f)
+            except yaml.YAMLError as exc:
+                print("Error")
+                print(exc)
+        # TODO
+        # bad coding here, to get the frozenset back from the yaml
+        final_data = {}
+        for key, value in data.items():
+            key = key.split("'")
+            final_data[frozenset([key[1], key[3]])] = value
+        self.templates.allowed_updates = final_data

@@ -674,7 +674,8 @@ def test_check_updated_charges(caplog):
         )
     ]
 
-    state_update.write_charges("output_initial.txt")
+    state_update.write_charges("output_initial1.txt")
+    os.remove("output_initial1.txt")
     par_initial = state_update.get_charges()
     state_update.updateMethod._update(candidate_pairs, 21)
     par_after_first_update = state_update.get_charges()
@@ -728,6 +729,7 @@ def test_transfer_with_distance_matrix():
     # initialize state update class
     state_update = StateUpdate(update)
     state_update.write_charges("output_initial.txt")
+    os.remove("output_initial.txt")
     par_initial = state_update.get_charges()
     res_dict = state_update.get_num_residues()
     # print(res_dict)
@@ -845,6 +847,49 @@ def test_updates(caplog):
         candidate_pairs = state_update.update(2)
 
         print(candidate_pairs)
+
+
+def test_adapt_probabilities(caplog):
+    simulation = generate_im1h_oac_system()
+    allowed_updates = {}
+    # allowed updates according to simple protonation scheme
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {
+        "r_max": 0.16,
+        "prob": 1,
+    }  # r_max in nanometer, prob between 0 and 1
+    # allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
+    # get ionic liquid templates
+    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+    # wrap system in IonicLiquidSystem
+    ionic_liquid = IonicLiquidSystem(simulation, templates)
+    caplog.set_level(logging.DEBUG)
+    # check that residue and frozeset match
+    try:
+        to_adapt = [("OAC", 150, frozenset(["IM1H", "HOAC"]))]
+        update = NaiveMCUpdate(ionic_liquid, to_adapt)
+        update._adapt_probabilities(to_adapt)
+    except AssertionError as e:
+        print("Check 1")
+        print(e)
+    # check that not duplicate sets
+    try:
+        to_adapt = [
+            ("OAC", 150, frozenset(["IM1H", "OAC"])),
+            ("OAC", 140, frozenset(["IM1H", "OAC"])),
+        ]
+        update = NaiveMCUpdate(ionic_liquid, to_adapt)
+        update._adapt_probabilities(to_adapt)
+    except AssertionError as e:
+        print("Check 2")
+        print(e)
+    # check that set is an allowed update set
+    try:
+        to_adapt = [("HOAC", 350, frozenset(["IM1", "HOAC"]))]
+        update = NaiveMCUpdate(ionic_liquid, to_adapt)
+        update._adapt_probabilities(to_adapt)
+    except RuntimeError as e:
+        print("Check 3")
+        print(e)
 
 
 @pytest.mark.skipif(
