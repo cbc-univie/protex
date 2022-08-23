@@ -42,6 +42,7 @@ jobs:
           auto-activate-base: false
           show-channel-urls: true
       - name: run sphinx
+        shell: bash -l {0}
         run: |  
           pip install sphinx==5.1.1 sphinx_rtd_theme
           sphinx-build docs docs/_build/html/
