@@ -19,6 +19,16 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       
+      - name: Cache conda
+        uses: actions/cache@v2
+        env:
+          # Increase this value to reset cache if etc/example-environment.yml has not changed
+          CACHE_NUMBER: 0
+        with:
+          path: ~/conda_pkgs_dir
+          key:
+            ${{ runner.os }}-conda-${{ env.CACHE_NUMBER }}-${{
+            hashFiles('docs/requirements.yaml') }}
       - name: Create conda env
           # More info on options: https://github.com/conda-incubator/setup-miniconda 
         uses: conda-incubator/setup-miniconda@v2
