@@ -30,7 +30,7 @@ jobs:
       #  run: cp requirements.txt docs/
       - name: directly build sphinx
         run: |
-          pip install -r requirements.txt
+          pip install -r docs/requirements.txt
           sphinx-build docs docs/_build/html/
       # Example of using a custom build-command.
       #- uses: ammaraskar/sphinx-action@master
