@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>protex.system &mdash; protex  documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../index.html" class="icon icon-home"> protex
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../documentation_pages/getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../documentation_pages/quickstart.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../documentation_pages/api.html">API Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">protex</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      <li>protex.system</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for protex.system</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">ChainMap</span><span class="p">,</span> <span class="n">defaultdict</span><span class="p">,</span> <span class="n">deque</span>
+<span class="kn">from</span> <span class="nn">pdb</span> <span class="kn">import</span> <span class="n">pm</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">parmed</span>
+<span class="kn">import</span> <span class="nn">yaml</span><span class="o">,</span> <span class="nn">json</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">openmm</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">simtk.openmm</span>
+
+<span class="kn">from</span> <span class="nn">protex.residue</span> <span class="kn">import</span> <span class="n">Residue</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="IonicLiquidTemplates"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.IonicLiquidTemplates.html#protex.system.IonicLiquidTemplates">[docs]</a><span class="k">class</span> <span class="nc">IonicLiquidTemplates</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates the basic foundation for the Ionic Liquid System.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    -----------</span>
+<span class="sd">    states:</span>
+<span class="sd">        A list of dictionary depicting the residue name and the atom name which should be changed, i.e.:</span>
+<span class="sd">        .. code-block::</span>
+<span class="sd">        IM1H_IM1 = { &quot;IM1H&quot;: {&quot;atom_name&quot;: &quot;H7&quot;, &quot;canonical_name&quot;: &quot;IM1&quot;},</span>
+<span class="sd">                     &quot;IM1&quot;: {&quot;atom_name&quot;: &quot;N2&quot;, &quot;canonical_name&quot;: &quot;IM1&quot;} }</span>
+<span class="sd">        OAC_HOAC = { &quot;OAC&quot;: {&quot;atom_name&quot;: &quot;O2&quot;, &quot;canonical_name&quot;: &quot;OAC&quot;},</span>
+<span class="sd">                     &quot;HOAC&quot;: {&quot;atom_name&quot;: &quot;H&quot;, &quot;canonical_name&quot;: &quot;OAC&quot;} }</span>
+<span class="sd">        states = [IM1H_IM1, OAC_HOAC]</span>
+
+<span class="sd">    allowed_updates:</span>
+<span class="sd">        A dictionary specifiying which updates are possile.</span>
+<span class="sd">        Key is a frozenset with the two residue names for the update.</span>
+<span class="sd">        The values is a dictionary which specifies the maximum distance (&quot;r_max&quot;) and the probability for this update (&quot;prob&quot;)</span>
+<span class="sd">        r_max is in nanometer and the prob between 0 and 1</span>
+<span class="sd">        .. code-block::</span>
+<span class="sd">            allowed_updates = {}</span>
+<span class="sd">            allowed_updates[frozenset([&quot;IM1H&quot;, &quot;OAC&quot;])] = {&quot;r_max&quot;: 0.155, &quot;prob&quot;: 1}</span>
+<span class="sd">            allowed_updates[frozenset([&quot;IM1&quot;, &quot;HOAC&quot;])] = {&quot;r_max&quot;: 0.155, &quot;prob&quot;: 1}</span>
+<span class="sd">            allowed_updates[frozenset([&quot;IM1H&quot;, &quot;IM1&quot;])] = {&quot;r_max&quot;: 0.155, &quot;prob&quot;: 0.201}</span>
+<span class="sd">            allowed_updates[frozenset([&quot;HOAC&quot;, &quot;OAC&quot;])] = {&quot;r_max&quot;: 0.155, &quot;prob&quot;: 0.684}</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    -----------</span>
+<span class="sd">    pairs:</span>
+<span class="sd">        A list with the pairs where the hydrogen can be transfered</span>
+<span class="sd">    states:</span>
+<span class="sd">        The passed states list as a joined dictionary</span>
+<span class="sd">    names:</span>
+<span class="sd">        A list with the different residue names</span>
+<span class="sd">    allowed_updates:</span>
+<span class="sd">        the allowed_updates passed to the class</span>
+<span class="sd">    overall_max_distance:</span>
+<span class="sd">        the longest allowed distance for a possible transfer between two updates</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">states</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]],</span>
+        <span class="n">allowed_updates</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">pairs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">states</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">ChainMap</span><span class="p">(</span><span class="o">*</span><span class="n">states</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">pairs</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">allowed_updates</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="n">allowed_updates</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">overall_max_distance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">value</span><span class="p">[</span><span class="s2">&quot;r_max&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">allowed_updates</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="IonicLiquidTemplates.get_update_value_for"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.IonicLiquidTemplates.html#protex.system.IonicLiquidTemplates.get_update_value_for">[docs]</a>    <span class="k">def</span> <span class="nf">get_update_value_for</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">residue_set</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">property</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        returns the value in the allowed updates dictionary</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">        -----------</span>
+<span class="sd">        residue_set:</span>
+<span class="sd">            dictionary key for residue_set, i.e [&quot;IM1H&quot;, &quot;OAC&quot;]</span>
+<span class="sd">        property:</span>
+<span class="sd">            dictionary key for the property defined for the residue key, i.e. prob</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        float</span>
+<span class="sd">            the value of the property</span>
+
+
+<span class="sd">        Raises:</span>
+<span class="sd">        -------</span>
+<span class="sd">        RuntimeError</span>
+<span class="sd">            if keys do not exist</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">residue_set</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">allowed_updates</span>
+            <span class="ow">and</span> <span class="nb">property</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">allowed_updates</span><span class="p">[</span><span class="n">residue_set</span><span class="p">]</span>
+        <span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">allowed_updates</span><span class="p">[</span><span class="n">residue_set</span><span class="p">][</span><span class="nb">property</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="s2">&quot;You tried to access a residue_set or property key which is not defined&quot;</span>
+            <span class="p">)</span></div>
+
+<div class="viewcode-block" id="IonicLiquidTemplates.set_update_value_for"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.IonicLiquidTemplates.html#protex.system.IonicLiquidTemplates.set_update_value_for">[docs]</a>    <span class="k">def</span> <span class="nf">set_update_value_for</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">residue_set</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">property</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Updates a value in the allowed updates dictionary</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">        -----------</span>
+<span class="sd">        residue:</span>
+<span class="sd">            dictionary key for residue_set, i.e [&quot;IM1H&quot;,&quot;OAC&quot;]</span>
+<span class="sd">        property:</span>
+<span class="sd">            dictionary key for the property defined for the residue key, i.e. prob</span>
+<span class="sd">        value:</span>
+<span class="sd">            the value the property should be set to</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">        -------</span>
+<span class="sd">        RuntimeError</span>
+<span class="sd">            is raised if new residue_set or new property is trying to be inserted</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">residue_set</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">allowed_updates</span>
+            <span class="ow">and</span> <span class="nb">property</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">allowed_updates</span><span class="p">[</span><span class="n">residue_set</span><span class="p">]</span>
+        <span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">allowed_updates</span><span class="p">[</span><span class="n">residue_set</span><span class="p">][</span><span class="nb">property</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+
+        <span class="c1"># should we check for existance or also allow creation of new properties?</span>
+        <span class="c1"># if residue in self.allowed_updates:</span>
+        <span class="c1">#    self.allowed_updates[residue][property] = value</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="s2">&quot;You tried to create a new residue_set or property key! This is only allowed at startup!&quot;</span>
+            <span class="p">)</span></div>
+
+    <span class="c1"># Not used</span>
+    <span class="k">def</span> <span class="nf">set_allowed_updates</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">allowed_updates</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">allowed_updates</span> <span class="o">=</span> <span class="n">allowed_updates</span>
+
+    <span class="k">def</span> <span class="nf">get_canonical_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">names</span>
+        <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">state</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s2">&quot;canonical_name&quot;</span><span class="p">]</span>
+
+<div class="viewcode-block" id="IonicLiquidTemplates.get_residue_name_for_coupled_state"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.IonicLiquidTemplates.html#protex.system.IonicLiquidTemplates.get_residue_name_for_coupled_state">[docs]</a>    <span class="k">def</span> <span class="nf">get_residue_name_for_coupled_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        get_residue_name_of_paired_ion returns the paired residue name given a reisue name</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        name : str</span>
+<span class="sd">            residue name</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        RuntimeError</span>
+<span class="sd">            is raised if no paired residue name can be found</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">names</span>
+
+        <span class="k">for</span> <span class="n">pair</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pairs</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">pair</span><span class="p">:</span>
+                <span class="n">state_1</span><span class="p">,</span> <span class="n">state_2</span> <span class="o">=</span> <span class="n">pair</span>
+                <span class="k">if</span> <span class="n">state_1</span> <span class="o">==</span> <span class="n">name</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">state_2</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">state_1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;something went wrong&quot;</span><span class="p">)</span></div>
+
+    <span class="c1"># Not used</span>
+<div class="viewcode-block" id="IonicLiquidTemplates.get_charge_template_for"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.IonicLiquidTemplates.html#protex.system.IonicLiquidTemplates.get_charge_template_for">[docs]</a>    <span class="k">def</span> <span class="nf">get_charge_template_for</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        get_charge_template_for returns the charge template for a residue</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        name : str</span>
+<span class="sd">            Name of the residue</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list</span>
+<span class="sd">            charge state of residue</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        RuntimeError</span>
+<span class="sd">            [description]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">names</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s2">&quot;charge&quot;</span><span class="p">]</span></div></div>
+
+
+<div class="viewcode-block" id="IonicLiquidSystem"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.IonicLiquidSystem.html#protex.system.IonicLiquidSystem">[docs]</a><span class="k">class</span> <span class="nc">IonicLiquidSystem</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class defines the full system, performs the MD steps and offers an</span>
+<span class="sd">    interface for protonation state updates.</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">    -----------</span>
+<span class="sd">    simulation:</span>
+<span class="sd">        the OpenMM simulation object</span>
+<span class="sd">    templates:</span>
+<span class="sd">        An instance of the IonicLiquidTemplates class</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">simulation</span><span class="p">:</span> <span class="n">openmm</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">Simulation</span><span class="p">,</span>
+        <span class="n">templates</span><span class="p">:</span> <span class="n">IonicLiquidTemplates</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="p">:</span> <span class="n">openmm</span><span class="o">.</span><span class="n">openmm</span><span class="o">.</span><span class="n">System</span> <span class="o">=</span> <span class="n">simulation</span><span class="o">.</span><span class="n">system</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">topology</span><span class="p">:</span> <span class="n">openmm</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">topology</span><span class="o">.</span><span class="n">Topology</span> <span class="o">=</span> <span class="n">simulation</span><span class="o">.</span><span class="n">topology</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">simulation</span><span class="p">:</span> <span class="n">openmm</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">Simulation</span> <span class="o">=</span> <span class="n">simulation</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">templates</span><span class="p">:</span> <span class="n">IonicLiquidTemplates</span> <span class="o">=</span> <span class="n">templates</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">residues</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Residue</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set_initial_states</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">boxlength</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">simulation</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">getState</span><span class="p">()</span><span class="o">.</span><span class="n">getPeriodicBoxVectors</span><span class="p">()[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">_value</span>
+        <span class="p">)</span>  <span class="c1"># NOTE: supports only cubic boxes</span>
+
+    <span class="k">def</span> <span class="nf">get_current_number_of_each_residue_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+        <span class="n">current_number_of_each_residue_type</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">residue</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">residues</span><span class="p">:</span>
+            <span class="n">current_number_of_each_residue_type</span><span class="p">[</span><span class="n">residue</span><span class="o">.</span><span class="n">current_name</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">current_number_of_each_residue_type</span>
+
+    <span class="k">def</span> <span class="nf">update_context</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">force</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">getForces</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">force</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="n">name</span><span class="p">:</span>
+                <span class="n">force</span><span class="o">.</span><span class="n">updateParametersInContext</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">context</span><span class="p">)</span>
+                <span class="k">break</span>
+
+    <span class="k">def</span> <span class="nf">_build_exclusion_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">pair_12_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="n">pair_13_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">bond</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">topology</span><span class="o">.</span><span class="n">bonds</span><span class="p">():</span>
+            <span class="n">a1</span><span class="p">,</span> <span class="n">a2</span> <span class="o">=</span> <span class="n">bond</span><span class="o">.</span><span class="n">atom1</span><span class="p">,</span> <span class="n">bond</span><span class="o">.</span><span class="n">atom2</span>
+            <span class="k">if</span> <span class="s2">&quot;H&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">a1</span><span class="o">.</span><span class="n">name</span> <span class="ow">and</span> <span class="s2">&quot;H&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">a2</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+                <span class="n">pair</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="nb">min</span><span class="p">(</span><span class="n">a1</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">a2</span><span class="o">.</span><span class="n">index</span><span class="p">),</span>
+                    <span class="nb">max</span><span class="p">(</span><span class="n">a1</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">a2</span><span class="o">.</span><span class="n">index</span><span class="p">),</span>
+                <span class="p">)</span>
+                <span class="n">pair_12_set</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">pair</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">pair_12_set</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">pair_12_set</span><span class="p">:</span>
+                <span class="n">shared</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">a</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">b</span><span class="p">))</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">shared</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">pair</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">b</span><span class="p">))</span> <span class="o">-</span> <span class="n">shared</span><span class="p">)</span>
+                    <span class="n">pair_13_set</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">pair</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">pair_12_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">pair_12_set</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pair_13_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">pair_13_set</span> <span class="o">-</span> <span class="n">pair_12_set</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pair_12_13_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pair_12_list</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">pair_13_list</span>
+        <span class="c1"># change to return the list and set the parameters in the init method?</span>
+
+    <span class="k">def</span> <span class="nf">_extract_templates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">defaultdict</span><span class="p">:</span>
+        <span class="c1"># returns the forces for the residue name</span>
+        <span class="n">forces_dict</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">residue</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">topology</span><span class="o">.</span><span class="n">residues</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">query_name</span> <span class="o">==</span> <span class="n">residue</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+                <span class="n">atom_idxs</span> <span class="o">=</span> <span class="p">[</span><span class="n">atom</span><span class="o">.</span><span class="n">index</span> <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">residue</span><span class="o">.</span><span class="n">atoms</span><span class="p">()]</span>
+                <span class="n">atom_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">atom</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">residue</span><span class="o">.</span><span class="n">atoms</span><span class="p">()]</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">atom_idxs</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">atom_names</span><span class="p">)</span>
+
+                <span class="k">for</span> <span class="n">force</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">getForces</span><span class="p">():</span>
+                    <span class="c1"># print(type(force).__name__)</span>
+                    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">force</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;NonbondedForce&quot;</span><span class="p">:</span>
+                        <span class="n">forces_dict</span><span class="p">[</span><span class="nb">type</span><span class="p">(</span><span class="n">force</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+                            <span class="n">force</span><span class="o">.</span><span class="n">getParticleParameters</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">atom_idxs</span>
+                        <span class="p">]</span>
+                        <span class="c1"># Also add exceptions</span>
+                        <span class="k">for</span> <span class="n">exc_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">force</span><span class="o">.</span><span class="n">getNumExceptions</span><span class="p">()):</span>
+                            <span class="n">f</span> <span class="o">=</span> <span class="n">force</span><span class="o">.</span><span class="n">getExceptionParameters</span><span class="p">(</span><span class="n">exc_id</span><span class="p">)</span>
+                            <span class="n">idx1</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                            <span class="n">idx2</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                            <span class="k">if</span> <span class="n">idx1</span> <span class="ow">in</span> <span class="n">atom_idxs</span> <span class="ow">and</span> <span class="n">idx2</span> <span class="ow">in</span> <span class="n">atom_idxs</span><span class="p">:</span>
+                                <span class="n">forces_dict</span><span class="p">[</span><span class="nb">type</span><span class="p">(</span><span class="n">force</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">+</span> <span class="s2">&quot;Exceptions&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                                    <span class="n">f</span>
+                                <span class="p">)</span>
+
+                    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">force</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;HarmonicBondForce&quot;</span><span class="p">:</span>
+                        <span class="k">for</span> <span class="n">bond_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">force</span><span class="o">.</span><span class="n">getNumBonds</span><span class="p">()):</span>
+                            <span class="n">f</span> <span class="o">=</span> <span class="n">force</span><span class="o">.</span><span class="n">getBondParameters</span><span class="p">(</span><span class="n">bond_id</span><span class="p">)</span>
+                            <span class="n">idx1</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                            <span class="n">idx2</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                            <span class="k">if</span> <span class="n">idx1</span> <span class="ow">in</span> <span class="n">atom_idxs</span> <span class="ow">and</span> <span class="n">idx2</span> <span class="ow">in</span> <span class="n">atom_idxs</span><span class="p">:</span>
+                                <span class="n">forces_dict</span><span class="p">[</span><span class="nb">type</span><span class="p">(</span><span class="n">force</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+                    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">force</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;HarmonicAngleForce&quot;</span><span class="p">:</span>
+                        <span class="k">for</span> <span class="n">angle_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">force</span><span class="o">.</span><span class="n">getNumAngles</span><span class="p">()):</span>
+                            <span class="n">f</span> <span class="o">=</span> <span class="n">force</span><span class="o">.</span><span class="n">getAngleParameters</span><span class="p">(</span><span class="n">angle_id</span><span class="p">)</span>
+                            <span class="k">if</span> <span class="p">(</span>
+                                <span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="n">atom_idxs</span>
+                                <span class="ow">and</span> <span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">atom_idxs</span>
+                                <span class="ow">and</span> <span class="n">f</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="ow">in</span> <span class="n">atom_idxs</span>
+                            <span class="p">):</span>
+                                <span class="n">forces_dict</span><span class="p">[</span><span class="nb">type</span><span class="p">(</span><span class="n">force</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+                    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">force</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;PeriodicTorsionForce&quot;</span><span class="p">:</span>
+                        <span class="k">for</span> <span class="n">torsion_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">force</span><span class="o">.</span><span class="n">getNumTorsions</span><span class="p">()):</span>
+                            <span class="n">f</span> <span class="o">=</span> <span class="n">force</span><span class="o">.</span><span class="n">getTorsionParameters</span><span class="p">(</span><span class="n">torsion_id</span><span class="p">)</span>
+                            <span class="k">if</span> <span class="p">(</span>
+                                <span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="n">atom_idxs</span>
+                                <span class="ow">and</span> <span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">atom_idxs</span>
+                                <span class="ow">and</span> <span class="n">f</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="ow">in</span> <span class="n">atom_idxs</span>
+                                <span class="ow">and</span> <span class="n">f</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="ow">in</span> <span class="n">atom_idxs</span>
+                            <span class="p">):</span>
+                                <span class="n">forces_dict</span><span class="p">[</span><span class="nb">type</span><span class="p">(</span><span class="n">force</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+                    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">force</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;CustomTorsionForce&quot;</span><span class="p">:</span>
+                        <span class="k">for</span> <span class="n">torsion_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">force</span><span class="o">.</span><span class="n">getNumTorsions</span><span class="p">()):</span>
+                            <span class="n">f</span> <span class="o">=</span> <span class="n">force</span><span class="o">.</span><span class="n">getTorsionParameters</span><span class="p">(</span><span class="n">torsion_id</span><span class="p">)</span>
+
+                            <span class="k">if</span> <span class="p">(</span>
+                                <span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="n">atom_idxs</span>
+                                <span class="ow">and</span> <span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">atom_idxs</span>
+                                <span class="ow">and</span> <span class="n">f</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="ow">in</span> <span class="n">atom_idxs</span>
+                                <span class="ow">and</span> <span class="n">f</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="ow">in</span> <span class="n">atom_idxs</span>
+                            <span class="p">):</span>
+                                <span class="n">forces_dict</span><span class="p">[</span><span class="nb">type</span><span class="p">(</span><span class="n">force</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+                    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">force</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;CMAPTorsionForce&quot;</span><span class="p">:</span>
+                        <span class="k">pass</span>
+
+                    <span class="c1"># DrudeForce stores charge and polarizability in ParticleParameters and Thole values in ScreenedPairParameters</span>
+                    <span class="c1"># Number of these two is not the same -&gt; i did two loops, and called the thole parameters DrudeForceThole.</span>
+                    <span class="c1"># Not ideal but i could not think of anything better, pay attention to the set and get methods for drudes.</span>
+                    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">force</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;DrudeForce&quot;</span><span class="p">:</span>
+                        <span class="k">for</span> <span class="n">drude_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">force</span><span class="o">.</span><span class="n">getNumParticles</span><span class="p">()):</span>
+                            <span class="n">f</span> <span class="o">=</span> <span class="n">force</span><span class="o">.</span><span class="n">getParticleParameters</span><span class="p">(</span><span class="n">drude_id</span><span class="p">)</span>
+                            <span class="n">idx1</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># drude</span>
+                            <span class="n">idx2</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>  <span class="c1"># parentatom</span>
+                            <span class="k">if</span> <span class="n">idx1</span> <span class="ow">in</span> <span class="n">atom_idxs</span> <span class="ow">and</span> <span class="n">idx2</span> <span class="ow">in</span> <span class="n">atom_idxs</span><span class="p">:</span>
+                                <span class="n">forces_dict</span><span class="p">[</span><span class="nb">type</span><span class="p">(</span><span class="n">force</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+                        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pair_12_13_list</span><span class="p">)</span> <span class="o">==</span> <span class="n">force</span><span class="o">.</span><span class="n">getNumScreenedPairs</span><span class="p">()</span>
+                        <span class="k">for</span> <span class="n">drude_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">force</span><span class="o">.</span><span class="n">getNumScreenedPairs</span><span class="p">()):</span>
+                            <span class="n">f</span> <span class="o">=</span> <span class="n">force</span><span class="o">.</span><span class="n">getScreenedPairParameters</span><span class="p">(</span><span class="n">drude_id</span><span class="p">)</span>
+                            <span class="c1"># idx1 = f[0]</span>
+                            <span class="c1"># idx2 = f[1]</span>
+                            <span class="n">parent1</span><span class="p">,</span> <span class="n">parent2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pair_12_13_list</span><span class="p">[</span><span class="n">drude_id</span><span class="p">]</span>
+                            <span class="n">drude1</span><span class="p">,</span> <span class="n">drude2</span> <span class="o">=</span> <span class="n">parent1</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">parent2</span> <span class="o">+</span> <span class="mi">1</span>
+                            <span class="c1"># print(f&quot;thole {idx1=}, {idx2=}&quot;)</span>
+                            <span class="c1"># print(f&quot;{drude_id=}, {f=}&quot;)</span>
+                            <span class="k">if</span> <span class="n">drude1</span> <span class="ow">in</span> <span class="n">atom_idxs</span> <span class="ow">and</span> <span class="n">drude2</span> <span class="ow">in</span> <span class="n">atom_idxs</span><span class="p">:</span>
+                                <span class="c1"># print(f&quot;Thole {query_name=}&quot;)</span>
+                                <span class="c1"># print(f&quot;{drude1=}, {drude2=}&quot;)</span>
+                                <span class="n">forces_dict</span><span class="p">[</span><span class="nb">type</span><span class="p">(</span><span class="n">force</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">+</span> <span class="s2">&quot;Thole&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+                <span class="k">break</span>  <span class="c1"># do this only for the relevant amino acid once</span>
+        <span class="k">return</span> <span class="n">forces_dict</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_check_nr_of_forces</span><span class="p">(</span><span class="n">forces_state1</span><span class="p">,</span> <span class="n">forces_state2</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">name_of_paired_ion</span><span class="p">):</span>
+        <span class="c1"># check if two forces lists have the same number of forces</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">forces_state1</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">forces_state2</span><span class="p">)</span>  <span class="c1"># check the number of forces</span>
+        <span class="k">for</span> <span class="n">force_name</span> <span class="ow">in</span> <span class="n">forces_state1</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">forces_state1</span><span class="p">[</span><span class="n">force_name</span><span class="p">])</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span>
+                <span class="n">forces_state2</span><span class="p">[</span><span class="n">force_name</span><span class="p">]</span>  <span class="c1"># check the number of entries in the forces</span>
+            <span class="p">):</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="n">force_name</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">forces_state1</span><span class="p">[</span><span class="n">force_name</span><span class="p">]))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">forces_state2</span><span class="p">[</span><span class="n">force_name</span><span class="p">]))</span>
+
+                <span class="k">for</span> <span class="n">b1</span><span class="p">,</span> <span class="n">b2</span><span class="p">,</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+                    <span class="n">forces_state1</span><span class="p">[</span><span class="n">force_name</span><span class="p">],</span>
+                    <span class="n">forces_state2</span><span class="p">[</span><span class="n">force_name</span><span class="p">],</span>
+                <span class="p">):</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">b1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name_of_paired_ion</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">b2</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+                <span class="n">logger</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">forces_state1</span><span class="p">[</span><span class="n">force_name</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name_of_paired_ion</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">forces_state2</span><span class="p">[</span><span class="n">force_name</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+                <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">&quot;ohoh&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_set_initial_states</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        set_initial_states For each ionic liquid residue in the system the protonation state</span>
+<span class="sd">        is interfered from the provided openMM system object and the protonation site is defined.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_build_exclusion_list</span><span class="p">()</span>
+
+        <span class="n">residues</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">templates</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+
+        <span class="c1"># for each residue type get forces</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">topology</span><span class="o">.</span><span class="n">residues</span><span class="p">():</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">name</span>
+            <span class="n">name_of_paired_ion</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">templates</span><span class="o">.</span><span class="n">get_residue_name_for_coupled_state</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">templates</span> <span class="ow">or</span> <span class="n">name_of_paired_ion</span> <span class="ow">in</span> <span class="n">templates</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="n">templates</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extract_templates</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="n">templates</span><span class="p">[</span><span class="n">name_of_paired_ion</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extract_templates</span><span class="p">(</span><span class="n">name_of_paired_ion</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">topology</span><span class="o">.</span><span class="n">residues</span><span class="p">():</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">name</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">templates</span><span class="o">.</span><span class="n">names</span><span class="p">:</span>
+                <span class="n">name_of_paired_ion</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">templates</span><span class="o">.</span><span class="n">get_residue_name_for_coupled_state</span><span class="p">(</span>
+                    <span class="n">name</span>
+                <span class="p">)</span>
+
+                <span class="n">parameters_state1</span> <span class="o">=</span> <span class="n">templates</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+                <span class="n">parameters_state2</span> <span class="o">=</span> <span class="n">templates</span><span class="p">[</span><span class="n">name_of_paired_ion</span><span class="p">]</span>
+                <span class="c1"># check that we have the same number of parameters</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_check_nr_of_forces</span><span class="p">(</span>
+                    <span class="n">parameters_state1</span><span class="p">,</span> <span class="n">parameters_state2</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">name_of_paired_ion</span>
+                <span class="p">)</span>
+
+                <span class="n">residues</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="n">Residue</span><span class="p">(</span>
+                        <span class="n">r</span><span class="p">,</span>
+                        <span class="n">name_of_paired_ion</span><span class="p">,</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="p">,</span>
+                        <span class="n">parameters_state1</span><span class="p">,</span>
+                        <span class="n">parameters_state2</span><span class="p">,</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">templates</span><span class="o">.</span><span class="n">get_canonical_name</span><span class="p">(</span><span class="n">name</span><span class="p">),</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">pair_12_13_list</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+                <span class="n">residues</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">current_name</span> <span class="o">=</span> <span class="n">name</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Found resiude not present in Templates: </span><span class="si">{r.name}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">residues</span>
+
+    <span class="c1"># def save_current_names(self, file: str) -&gt; None:</span>
+    <span class="c1">#     &quot;&quot;&quot;</span>
+    <span class="c1">#     Save a file with the current residue names.</span>
+    <span class="c1">#     Can be used with load_current_names to set the residues in the IonicLiquidSystem</span>
+    <span class="c1">#     in the state of these names and also adapt corresponding charges, parameters,...</span>
+    <span class="c1">#     &quot;&quot;&quot;</span>
+    <span class="c1">#     with open(file, &quot;w&quot;) as f:</span>
+    <span class="c1">#         for residue in self.residues:</span>
+    <span class="c1">#             print(residue.current_name, file=f)</span>
+
+    <span class="c1"># def load_current_names(self, file: str) -&gt; None:</span>
+    <span class="c1">#     &quot;&quot;&quot;</span>
+    <span class="c1">#     Load the names of the residues (order important!)</span>
+    <span class="c1">#     Update the current_name of all residues to the given one</span>
+    <span class="c1">#     &quot;&quot;&quot;</span>
+    <span class="c1">#     residue_names = []</span>
+    <span class="c1">#     with open(file, &quot;r&quot;) as f:</span>
+    <span class="c1">#         for line in f.readlines():</span>
+    <span class="c1">#             residue_names.append(line.strip())</span>
+    <span class="c1">#     assert (</span>
+    <span class="c1">#         len(residue_names) == self.topology.getNumResidues()</span>
+    <span class="c1">#     ), &quot;Number of residues not matching&quot;</span>
+    <span class="c1">#     for residue, name in zip(self.residues, residue_names):</span>
+    <span class="c1">#         residue.current_name = name</span>
+
+<div class="viewcode-block" id="IonicLiquidSystem.report_states"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.IonicLiquidSystem.html#protex.system.IonicLiquidSystem.report_states">[docs]</a>    <span class="k">def</span> <span class="nf">report_states</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        report_states prints out a summary of the current protonation state of the ionic liquid</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+    <span class="k">def</span> <span class="nf">_adapt_parmed_psf_file</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">psf</span><span class="p">:</span> <span class="n">parmed</span><span class="o">.</span><span class="n">charmm</span><span class="o">.</span><span class="n">CharmmPsfFile</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">parmed</span><span class="o">.</span><span class="n">charmm</span><span class="o">.</span><span class="n">CharmmPsfFile</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Helper function to adapt the psf</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">residues</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">psf</span><span class="o">.</span><span class="n">residues</span><span class="p">)</span>
+
+        <span class="c1"># make a dict with parmed representations of each residue, use it to assign the opposite one if a transfer occured</span>
+        <span class="n">pm_unique_residues</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">parmed</span><span class="o">.</span><span class="n">Residue</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">residue</span> <span class="ow">in</span> <span class="n">psf</span><span class="o">.</span><span class="n">residues</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">residue</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">pm_unique_residues</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">pm_unique_residues</span><span class="p">[</span><span class="n">residue</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">residue</span>
+
+        <span class="k">for</span> <span class="n">residue</span><span class="p">,</span> <span class="n">pm_residue</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">residues</span><span class="p">,</span> <span class="n">psf</span><span class="o">.</span><span class="n">residues</span><span class="p">):</span>
+            <span class="c1"># if the new residue (residue.current_name) is different than the original one from the old psf (pm_residue.name)</span>
+            <span class="c1"># a proton transfer occured and we want to change this in the new psf, which means overwriting the parmed residue instance</span>
+            <span class="c1"># with the new information</span>
+            <span class="k">if</span> <span class="n">residue</span><span class="o">.</span><span class="n">current_name</span> <span class="o">!=</span> <span class="n">pm_residue</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+                <span class="c1"># do changes</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="n">residue</span><span class="o">.</span><span class="n">current_name</span>
+                <span class="n">pm_residue</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+                <span class="n">pm_residue</span><span class="o">.</span><span class="n">chain</span> <span class="o">=</span> <span class="n">name</span>
+                <span class="n">pm_residue</span><span class="o">.</span><span class="n">segid</span> <span class="o">=</span> <span class="n">name</span>
+                <span class="k">for</span> <span class="n">unique_atom</span><span class="p">,</span> <span class="n">pm_atom</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+                    <span class="n">pm_unique_residues</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">atoms</span><span class="p">,</span> <span class="n">pm_residue</span><span class="o">.</span><span class="n">atoms</span>
+                <span class="p">):</span>
+                    <span class="n">pm_atom</span><span class="o">.</span><span class="n">_charge</span> <span class="o">=</span> <span class="n">unique_atom</span><span class="o">.</span><span class="n">_charge</span>
+                    <span class="n">pm_atom</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">unique_atom</span><span class="o">.</span><span class="n">type</span>
+                    <span class="n">pm_atom</span><span class="o">.</span><span class="n">props</span> <span class="o">=</span> <span class="n">unique_atom</span><span class="o">.</span><span class="n">props</span>
+
+        <span class="k">return</span> <span class="n">psf</span>
+
+<div class="viewcode-block" id="IonicLiquidSystem.write_psf"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.IonicLiquidSystem.html#protex.system.IonicLiquidSystem.write_psf">[docs]</a>    <span class="k">def</span> <span class="nf">write_psf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">old_psf_infname</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">new_psf_outfname</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        write a new psf file, which reflects the occured transfer events and changed residues</span>
+<span class="sd">        to load the written psf create a new ionic_liquid instance and load the new psf via OpenMM</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">parmed</span>
+
+        <span class="n">pm_old_psf</span> <span class="o">=</span> <span class="n">parmed</span><span class="o">.</span><span class="n">charmm</span><span class="o">.</span><span class="n">CharmmPsfFile</span><span class="p">(</span><span class="n">old_psf_infname</span><span class="p">)</span>
+        <span class="n">pm_new_psf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_adapt_parmed_psf_file</span><span class="p">(</span><span class="n">pm_old_psf</span><span class="p">)</span>
+        <span class="n">pm_new_psf</span><span class="o">.</span><span class="n">write_psf</span><span class="p">(</span><span class="n">new_psf_outfname</span><span class="p">)</span></div>
+
+    <span class="c1"># possibly in future when parmed and openmm drude connection is working</span>
+    <span class="c1"># def write_psf_notworking(</span>
+    <span class="c1">#     self, fname: str, format=None, overwrite=False, **kwargs</span>
+    <span class="c1"># ) -&gt; None:</span>
+    <span class="c1">#     &quot;&quot;&quot;</span>
+    <span class="c1">#     Write a psf file from the current topology.</span>
+    <span class="c1">#     In principle any file that parmeds struct.save method supports can be written.</span>
+    <span class="c1">#     &quot;&quot;&quot;</span>
+    <span class="c1">#     import parmed</span>
+
+    <span class="c1">#     struct = parmed.openmm.load_topology(self.topology, self.system)</span>
+    <span class="c1">#     struct.save(fname, format=None, overwrite=False, **kwargs)</span>
+
+<div class="viewcode-block" id="IonicLiquidSystem.saveCheckpoint"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.IonicLiquidSystem.html#protex.system.IonicLiquidSystem.saveCheckpoint">[docs]</a>    <span class="k">def</span> <span class="nf">saveCheckpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        file: string or file</span>
+<span class="sd">            a File-like object to write the checkpoint to, or alternatively a</span>
+<span class="sd">            filename</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">saveCheckpoint</span><span class="p">(</span><span class="n">file</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="IonicLiquidSystem.loadCheckpoint"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.IonicLiquidSystem.html#protex.system.IonicLiquidSystem.loadCheckpoint">[docs]</a>    <span class="k">def</span> <span class="nf">loadCheckpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        file : string or file</span>
+<span class="sd">            a File-like object to load the checkpoint from, or alternatively a</span>
+<span class="sd">            filename</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">loadCheckpoint</span><span class="p">(</span><span class="n">file</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="IonicLiquidSystem.saveState"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.IonicLiquidSystem.html#protex.system.IonicLiquidSystem.saveState">[docs]</a>    <span class="k">def</span> <span class="nf">saveState</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        file : string or file</span>
+<span class="sd">            a File-like object to write the state to, or alternatively a</span>
+<span class="sd">            filename</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">saveState</span><span class="p">(</span><span class="n">file</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="IonicLiquidSystem.loadState"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.IonicLiquidSystem.html#protex.system.IonicLiquidSystem.loadState">[docs]</a>    <span class="k">def</span> <span class="nf">loadState</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        file : string or file</span>
+<span class="sd">            a File-like object to load the state from, or alternatively a</span>
+<span class="sd">            filename</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">loadState</span><span class="p">(</span><span class="n">file</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="IonicLiquidSystem.save_updates"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.IonicLiquidSystem.html#protex.system.IonicLiquidSystem.save_updates">[docs]</a>    <span class="k">def</span> <span class="nf">save_updates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Save the current update values into a yaml file. Used to have the current probability values.</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        file: string or file</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># TODO</span>
+        <span class="c1"># there should be a better way to get the frozen set into and back from a yaml file...</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">):</span> <span class="n">value</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">templates</span><span class="o">.</span><span class="n">allowed_updates</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="p">}</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">yaml</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">default_flow_style</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="IonicLiquidSystem.load_updates"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.IonicLiquidSystem.html#protex.system.IonicLiquidSystem.load_updates">[docs]</a>    <span class="k">def</span> <span class="nf">load_updates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Load the current update values from a yaml file, which was generated using &quot;save_updates&quot;.</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        file: string or file</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">yaml</span><span class="o">.</span><span class="n">YAMLError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">exc</span><span class="p">)</span>
+        <span class="c1"># TODO</span>
+        <span class="c1"># bad coding here, to get the frozenset back from the yaml</span>
+        <span class="n">final_data</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="n">key</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">)</span>
+            <span class="n">final_data</span><span class="p">[</span><span class="nb">frozenset</span><span class="p">([</span><span class="n">key</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">key</span><span class="p">[</span><span class="mi">3</span><span class="p">]])]</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">templates</span><span class="o">.</span><span class="n">allowed_updates</span> <span class="o">=</span> <span class="n">final_data</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Florian Joerg &amp; Marcus Wieder. Project structure based on the Computational Molecular Science Python Cookiecutter version 1.5.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

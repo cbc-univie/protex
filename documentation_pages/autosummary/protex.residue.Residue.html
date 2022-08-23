@@ -1,21 +1,25 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>protex.residue.Residue &mdash; protex  documentation</title><link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <title>protex.residue.Residue &mdash; protex  documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
-  <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/language_data.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
-    <link rel="search" title="Search" href="../../search.html" /> 
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="prev" title="protex.residue" href="protex.residue.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -33,11 +37,21 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption"><span class="caption-text">Contents:</span></p>
-<ul>
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quick Start Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../api.html">API Documentation</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">API Documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="protex.system.html">protex.system</a></li>
+<li class="toctree-l2"><a class="reference internal" href="protex.update.html">protex.update</a></li>
+<li class="toctree-l2"><a class="reference internal" href="protex.testsystems.html">protex.testsystems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="protex.reporter.html">protex.reporter</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="protex.residue.html">protex.residue</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">protex.residue.Residue</a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 
         </div>
@@ -54,6 +68,8 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../api.html">API Documentation</a> &raquo;</li>
+          <li><a href="protex.residue.html">protex.residue</a> &raquo;</li>
       <li>protex.residue.Residue</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../../_sources/documentation_pages/autosummary/protex.residue.Residue.rst.txt" rel="nofollow"> View page source</a>
@@ -64,14 +80,120 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <div class="section" id="protex-residue-residue">
-<h1>protex.residue.Residue<a class="headerlink" href="#protex-residue-residue" title="Permalink to this headline">¶</a></h1>
-</div>
+  <section id="protex-residue-residue">
+<h1>protex.residue.Residue<a class="headerlink" href="#protex-residue-residue" title="Permalink to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="protex.residue.Residue">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">protex.residue.</span></span><span class="sig-name descname"><span class="pre">Residue</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">residue</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alternativ_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">system</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inital_parameters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alternativ_parameters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">canonical_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pair_12_13_exclusion_list</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/protex/residue.html#Residue"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#protex.residue.Residue" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Residue extends the OpenMM Residue Class by important features needed for the proton transfer</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>residue</strong> (<em>openmm.app.topology.Residue</em>) – The residue from  an OpenMM Topology</p></li>
+<li><p><strong>alternativ_name</strong> (<em>str</em>) – The name of the corresponding protonated/deprotonated form (eg. OAC for HOAC)</p></li>
+<li><p><strong>system</strong> (<em>openmm.openmm.System</em>) – The system generated with openMM, where all residues are in</p></li>
+<li><p><strong>initial_parameters</strong> (<em>dict[list]</em>) – The parameters for the residue</p></li>
+<li><p><strong>alternativ_parameters</strong> (<em>dict[list]</em>) – The parameters for the alternativ (protonated/deprotonated) state</p></li>
+<li><p><strong>canonical_name</strong> (<em>str</em>) – A general name for both states (protonated/deprotonated)</p></li>
+<li><p><strong>pair_12_13_exclusion_list</strong> (<em>list</em>) – 1-2 and 1-3 exclusions in the system</p></li>
+</ul>
+</dd>
+<dt class="field-even">Variables</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>residue</strong> (<em>openmm.app.topology.Residue</em>) – The residue from  an OpenMM Topology</p></li>
+<li><p><strong>original_name</strong> (<em>str</em>) – The name of the residue given by the OpenMM Residue, will not change throughout the simulation(?)</p></li>
+<li><p><strong>current_name</strong> (<em>str</em>) – The current name of the residue, depending on the protonation state</p></li>
+<li><p><strong>atom_idxs</strong> (<em>list</em><em>[</em><em>int</em><em>]</em>) – List of all atom indices belonging to that residue</p></li>
+<li><p><strong>list</strong><strong>[</strong><strong>str</strong><strong>]</strong> (<em>atom_names;</em>) – List of all atom names belonging to that residue</p></li>
+<li><p><strong>parameters</strong> (<em>dict</em><em>[</em><em>str: dict</em><em>[</em><em>list</em><em>]</em><em>]</em>) – Dictionary containnig the parameters for <code class="docutils literal notranslate"><span class="pre">original_name</span></code> and <code class="docutils literal notranslate"><span class="pre">alternativ_name</span></code></p></li>
+<li><p><strong>record_charge_state</strong> (<em>list</em>) – Records the charge state of that residue</p></li>
+<li><p><strong>canonical_name</strong> (<em>str</em>) – A general name for both states (protonated/deprotonated)</p></li>
+<li><p><strong>system</strong> (<em>openmm.openmm.System</em>) – The system generated with openMM, where all residues are in</p></li>
+<li><p><strong>pair_12_13_list</strong> (<em>list</em>) – 1-2 and 1-3 exclusions in the system</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_idx_for_atom_name</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#protex.residue.Residue.update" title="protex.residue.Residue.update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update</span></code></a></p></td>
+<td><p>Update the requested force in that residue</p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes</p>
+<table class="autosummary longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#protex.residue.Residue.alternativ_name" title="protex.residue.Residue.alternativ_name"><code class="xref py py-obj docutils literal notranslate"><span class="pre">alternativ_name</span></code></a></p></td>
+<td><p>Alternative name for the residue, e.g.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#protex.residue.Residue.current_charge" title="protex.residue.Residue.current_charge"><code class="xref py py-obj docutils literal notranslate"><span class="pre">current_charge</span></code></a></p></td>
+<td><p>Current charge of the residue</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#protex.residue.Residue.endstate_charge" title="protex.residue.Residue.endstate_charge"><code class="xref py py-obj docutils literal notranslate"><span class="pre">endstate_charge</span></code></a></p></td>
+<td><p>Charge of the residue at the endstate (will be int)</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py property">
+<dt class="sig sig-object py" id="protex.residue.Residue.alternativ_name">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">alternativ_name</span></span><a class="headerlink" href="#protex.residue.Residue.alternativ_name" title="Permalink to this definition"></a></dt>
+<dd><p>Alternative name for the residue, e.g. the corresponding name for the protonated/deprotonated form</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="protex.residue.Residue.current_charge">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">current_charge</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#protex.residue.Residue.current_charge" title="Permalink to this definition"></a></dt>
+<dd><p>Current charge of the residue</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="protex.residue.Residue.endstate_charge">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">endstate_charge</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#protex.residue.Residue.endstate_charge" title="Permalink to this definition"></a></dt>
+<dd><p>Charge of the residue at the endstate (will be int)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="protex.residue.Residue.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">force_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lamb</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/protex/residue.html#Residue.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#protex.residue.Residue.update" title="Permalink to this definition"></a></dt>
+<dd><p>Update the requested force in that residue</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>force_name</strong> (<em>Name of the force to update</em>)</p></li>
+<li><p><strong>lamb</strong> (<em>lambda state at which to get corresponding values (between 0 and 1)</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
 
 
            </div>
           </div>
-          <footer>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="protex.residue.html" class="btn btn-neutral float-left" title="protex.residue" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
 
   <hr/>
 

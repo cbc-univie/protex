@@ -1,21 +1,26 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>protex.reporter.ChargeReporter &mdash; protex  documentation</title><link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <title>protex.reporter.ChargeReporter &mdash; protex  documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
-  <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/language_data.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
-    <link rel="search" title="Search" href="../../search.html" /> 
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="protex.residue" href="protex.residue.html" />
+    <link rel="prev" title="protex.reporter" href="protex.reporter.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -33,11 +38,21 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption"><span class="caption-text">Contents:</span></p>
-<ul>
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quick Start Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../api.html">API Documentation</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">API Documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="protex.system.html">protex.system</a></li>
+<li class="toctree-l2"><a class="reference internal" href="protex.update.html">protex.update</a></li>
+<li class="toctree-l2"><a class="reference internal" href="protex.testsystems.html">protex.testsystems</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="protex.reporter.html">protex.reporter</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">protex.reporter.ChargeReporter</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="protex.residue.html">protex.residue</a></li>
+</ul>
+</li>
 </ul>
 
         </div>
@@ -54,6 +69,8 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../api.html">API Documentation</a> &raquo;</li>
+          <li><a href="protex.reporter.html">protex.reporter</a> &raquo;</li>
       <li>protex.reporter.ChargeReporter</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../../_sources/documentation_pages/autosummary/protex.reporter.ChargeReporter.rst.txt" rel="nofollow"> View page source</a>
@@ -64,14 +81,68 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <div class="section" id="protex-reporter-chargereporter">
-<h1>protex.reporter.ChargeReporter<a class="headerlink" href="#protex-reporter-chargereporter" title="Permalink to this headline">¶</a></h1>
-</div>
+  <section id="protex-reporter-chargereporter">
+<h1>protex.reporter.ChargeReporter<a class="headerlink" href="#protex-reporter-chargereporter" title="Permalink to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="protex.reporter.ChargeReporter">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">protex.reporter.</span></span><span class="sig-name descname"><span class="pre">ChargeReporter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reportInterval</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ionic_liquid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="protex.system.IonicLiquidSystem.html#protex.system.IonicLiquidSystem" title="protex.system.IonicLiquidSystem"><span class="pre">IonicLiquidSystem</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">append</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/protex/reporter.html#ChargeReporter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#protex.reporter.ChargeReporter" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Charge Reporter reports the charges after an update intervals
+Used to reoprt the charge for each molecule in the system.
+Ideally call in conjunction with an update and report just when charge changed.
+i.e.
+ChargeReporter(file, 10)
+simulation.step(9)
+state_update.update(2)
+simulation.step(8)
+state_update.update(2)
+simulation.step(8)
+simulation.step(1)
+then the reporter is invoked directyl in the update, after the one step with the previous charge, but before any charge changes take effect.</p>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#protex.reporter.ChargeReporter.describeNextReport" title="protex.reporter.ChargeReporter.describeNextReport"><code class="xref py py-obj docutils literal notranslate"><span class="pre">describeNextReport</span></code></a></p></td>
+<td><p>Get information about the next report this object will generate.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">report</span></code></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="protex.reporter.ChargeReporter.describeNextReport">
+<span class="sig-name descname"><span class="pre">describeNextReport</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">simulation</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/protex/reporter.html#ChargeReporter.describeNextReport"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#protex.reporter.ChargeReporter.describeNextReport" title="Permalink to this definition"></a></dt>
+<dd><p>Get information about the next report this object will generate.
+:Parameters: <strong>simulation</strong> (<em>Simulation</em>) – The Simulation to generate a report for</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A five element tuple. The first element is the number of steps
+until the next report. The remaining elements specify whether
+that report will require positions, velocities, forces, and
+energies respectively.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
 
 
            </div>
           </div>
-          <footer>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="protex.reporter.html" class="btn btn-neutral float-left" title="protex.reporter" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="protex.residue.html" class="btn btn-neutral float-right" title="protex.residue" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
 
   <hr/>
 
