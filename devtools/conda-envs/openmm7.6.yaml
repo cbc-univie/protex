@@ -1,4 +1,4 @@
-name: test
+name: openmm7.6
 channels:
   - conda-forge
   - defaults
