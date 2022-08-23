@@ -40,6 +40,7 @@ jobs:
           auto-update-conda: false
           auto-activate-base: false
           show-channel-urls: true
+          use-only-tar-bz2: true # IMPORTANT: This needs to be set for caching to work properly!
       - name: Run sphinx
         shell: bash -l {0}
         run: |  
