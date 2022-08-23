@@ -105,8 +105,8 @@ system = psf.createSystem(params, nonbondedMethod=inputs.coulomb,
 #    if isinstance(force, CustomNonbondedForce) and force.getNumTabulatedFunctions() == 2:
 #        force.setUseLongRangeCorrection(True)
 
-if 1 < int(args.counter) <= 2 and inputs.ensemble == "NPT":
-    inputs.temp = 500*kelvin
+if 1 < int(args.counter) <= 3 and inputs.ensemble == "NPT":
+    inputs.temp = 500
 
 #isotropoic barostat type (ist sowohl bei equil als auch production aktiviert)
 if inputs.pcouple == "yes":
@@ -187,11 +187,11 @@ if inputs.gen_vel == 'yes':
 # save every step for IR spectrum calculation
 #if int(args.counter) == 101 and inputs.ensemble == "NVT":
 #    inputs.nstdcd = 1
-if int(args.counter) == 4 and inputs.ensemble == "NPT":
+if int(args.counter) == 7 and inputs.ensemble == "NPT":
     #make file with npt box lengths
     os.system('python analysis/get_boxl.py')
     #extract mean from step 18000 to end
-    xtl,_,_,_,_ = read_data("analysis/boxl.dat", ['-x', '1400'])
+    xtl,_,_,_,_ = read_data("analysis/boxl.dat", ['-x', '18000'])
     #xtl = inputs.avg_boxl/10
     xtl_low = (xtl - xtl*0.0005)
     xtl_high = (xtl + xtl*0.0005)

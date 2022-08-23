@@ -33,7 +33,7 @@ def get_volume(lines):
 base = str(pathlib.Path(__file__).parent.absolute().parent) + "/out/npt_"
 total_volume = []
 total_boxl = []
-for i in range(1,4):
+for i in range(1,7):
     f = base + str(i) + ".out"
     lines = read_outfile(f)
     volume, boxl = get_volume(lines)
