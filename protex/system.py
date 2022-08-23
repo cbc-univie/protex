@@ -364,7 +364,7 @@ class IonicLiquidSystem:
                             idx2 = f[1]  # parentatom
                             if idx1 in atom_idxs and idx2 in atom_idxs:
                                 forces_dict[type(force).__name__].append(f)
-                        assert len(self.pair_12_13_list) == force.getNumScreenedPairs()
+                        assert len(self.pair_12_13_list) == force.getNumScreenedPairs(), f"{len(self.pair_12_13_list)=}, {force.getNumScreenedPairs()=}"
                         for drude_id in range(force.getNumScreenedPairs()):
                             f = force.getScreenedPairParameters(drude_id)
                             # idx1 = f[0]
