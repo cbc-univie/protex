@@ -1,7 +1,7 @@
-protex.system.Residue
-=====================
+protex.residue.Residue
+======================
 
-.. currentmodule:: protex.system
+.. currentmodule:: protex.residue
 
 .. autoclass:: Residue
    :members:
