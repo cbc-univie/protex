@@ -18,6 +18,9 @@ on:
     #   (from https://help.github.com/en/actions/reference/events-that-trigger-workflows#scheduled-events-schedule)
     - cron: "0 0 * * *"
 
+env:
+  CACHE_NUMBER: 0 # Increase this reset cache manually
+
 jobs:
   test:
     name: Test on ${{ matrix.os }}, Python ${{ matrix.python-version }}
@@ -26,6 +29,13 @@ jobs:
       matrix:
         os: [macOS-latest, ubuntu-latest]
         python-version: [3.9]
+        include:
+          - os: ubuntu-latest
+            label: linux-64
+            prefix: /usr/share/miniconda3/envs/openmm7.6 
+          - os: macos-latest
+            label: osx-64
+            prefix: /Users/runner/miniconda3/envs/openmm7.6
 
     steps:
     - uses: actions/checkout@v1
@@ -42,15 +52,27 @@ jobs:
     - uses: conda-incubator/setup-miniconda@v2
       with:
         python-version: ${{ matrix.python-version }}
-        environment-file: devtools/conda-envs/openmm7.6.yaml
-
-        channels: conda-forge,defaults
-
-        activate-environment: test
-        auto-update-conda: false
+        #environment-file: devtools/conda-envs/openmm7.6.yaml
+        #channels: conda-forge,defaults
+        activate-environment: openmm7.6
+        #auto-update-conda: false
         auto-activate-base: false
-        show-channel-urls: true
-
+        #show-channel-urls: true
+        use-only-tar-bz2: true # IMPORTANT: This needs to be set for caching to work properly!
+        
+    - name: Set cache date
+      run: echo "DATE=$(date +'%Y%m%d')" >> $GITHUB_ENV
+      
+    - uses: actions/cache@v2
+      with:
+        path: ${{ matrix.prefix }}
+        key: ${{ matrix.label }}-conda-${{ hashFiles('devtools/conda-envs/openmm7.6.yaml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
+      id: cache
+      
+    - name: Update environment
+      run: conda env update -n openmm7.6 -f devtools/conda-envs/openmm7.6.yaml
+      if: steps.cache.outputs.cache-hit != 'true'
+        
     - name: Install package
 
       # conda setup requires this special shell
@@ -58,7 +80,7 @@ jobs:
       run: |
         python -m pip install . --no-deps
         conda list
-
+    
 
     - name: Run tests
 
