@@ -82,13 +82,13 @@ jobs:
         conda list
     
 
-    #- name: Run tests
+    - name: Run tests
 
       # conda setup requires this special shell
-   #   shell: bash -l {0}
+      shell: bash -l {0}
 
-    #  run: |
-     #   pytest -v --cov=protex --cov-report=xml --color=yes protex/tests/
+      run: |
+        pytest -v --cov=protex --cov-report=xml --color=yes protex/tests/
 
     - name: CodeCov
       uses: codecov/codecov-action@v1
