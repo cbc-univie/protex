@@ -147,9 +147,9 @@ def generate_im1h_oac_system(
                 0.0005 * picoseconds,
             )
 
-        print(
-            f"{coll_freq=}, {drude_coll_freq=}"
-        )  # tested with 20, 40, 80, 100, 120, 140, 160: 20,40 bad; 80 - 120 good; 140, 160 crashed
+        # print(
+        #    f"{coll_freq=}, {drude_coll_freq=}"
+        # )  # tested with 20, 40, 80, 100, 120, 140, 160: 20,40 bad; 80 - 120 good; 140, 160 crashed
         integrator.setMaxDrudeDistance(0.25 * angstroms)
         try:
             platform = Platform.getPlatformByName("CUDA")
