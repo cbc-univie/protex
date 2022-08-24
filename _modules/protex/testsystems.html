@@ -98,49 +98,81 @@
     <span class="kn">from</span> <span class="nn">simtk.unit</span> <span class="kn">import</span> <span class="n">angstroms</span><span class="p">,</span> <span class="n">kelvin</span><span class="p">,</span> <span class="n">picoseconds</span>
 
 
-<div class="viewcode-block" id="generate_im1h_oac_system"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.testsystems.generate_im1h_oac_system.html#protex.testsystems.generate_im1h_oac_system">[docs]</a><span class="k">def</span> <span class="nf">generate_im1h_oac_system</span><span class="p">(</span><span class="n">coll_freq</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">drude_coll_freq</span><span class="o">=</span><span class="mi">120</span><span class="p">):</span>
+<div class="viewcode-block" id="generate_im1h_oac_system"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.testsystems.generate_im1h_oac_system.html#protex.testsystems.generate_im1h_oac_system">[docs]</a><span class="k">def</span> <span class="nf">generate_im1h_oac_system</span><span class="p">(</span>
+    <span class="n">psf_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">crd_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">restart_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">constraints</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">boxl</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">48.0</span><span class="p">,</span>
+    <span class="n">para_files</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">coll_freq</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+    <span class="n">drude_coll_freq</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+<span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Sets up a solvated and paraterized system for IM1H/OAC</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">load_charmm_files</span><span class="p">():</span>
+    <span class="k">def</span> <span class="nf">load_charmm_files</span><span class="p">(</span>
+        <span class="n">psf_file</span><span class="o">=</span><span class="n">psf_file</span><span class="p">,</span> <span class="n">crd_file</span><span class="o">=</span><span class="n">crd_file</span><span class="p">,</span> <span class="n">boxl</span><span class="o">=</span><span class="n">boxl</span><span class="p">,</span> <span class="n">para_files</span><span class="o">=</span><span class="n">para_files</span>
+    <span class="p">):</span>
         <span class="c1"># =======================================================================</span>
         <span class="c1"># Force field</span>
         <span class="c1"># =======================================================================</span>
         <span class="c1"># Loading CHARMM files</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Loading CHARMM files...&quot;</span><span class="p">)</span>
-        <span class="n">PARA_FILES</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="s2">&quot;toppar_drude_master_protein_2013f_lj025.str&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;hoac_d.str&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;im1h_d.str&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;im1_d.str&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;oac_d.str&quot;</span><span class="p">,</span>
-        <span class="p">]</span>
-        <span class="n">base</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">protex</span><span class="o">.</span><span class="n">__path__</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">/forcefield&quot;</span>  <span class="c1"># NOTE: this points now to the installed files!</span>
-        <span class="n">params</span> <span class="o">=</span> <span class="n">CharmmParameterSet</span><span class="p">(</span>
-            <span class="o">*</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">base</span><span class="si">}</span><span class="s2">/toppar/</span><span class="si">{</span><span class="n">para_files</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">para_files</span> <span class="ow">in</span> <span class="n">PARA_FILES</span><span class="p">]</span>
-        <span class="p">)</span>
-
-        <span class="n">psf</span> <span class="o">=</span> <span class="n">CharmmPsfFile</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">base</span><span class="si">}</span><span class="s2">/im1h_oac_150_im1_hoac_350.psf&quot;</span><span class="p">)</span>
-        <span class="n">xtl</span> <span class="o">=</span> <span class="mf">48.0</span> <span class="o">*</span> <span class="n">angstroms</span>
+        <span class="k">if</span> <span class="n">para_files</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Using user supplied parameter files. Whole path must be given&quot;</span><span class="p">)</span>
+            <span class="n">params</span> <span class="o">=</span> <span class="n">CharmmParameterSet</span><span class="p">(</span><span class="o">*</span><span class="n">para_files</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">PARA_FILES</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="s2">&quot;toppar_drude_master_protein_2013f_lj025.str&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;hoac_d.str&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;im1h_d.str&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;im1_d.str&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;oac_d.str&quot;</span><span class="p">,</span>
+            <span class="p">]</span>
+            <span class="n">base</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">protex</span><span class="o">.</span><span class="n">__path__</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">/forcefield&quot;</span>  <span class="c1"># NOTE: this points now to the installed files!</span>
+            <span class="n">params</span> <span class="o">=</span> <span class="n">CharmmParameterSet</span><span class="p">(</span>
+                <span class="o">*</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">base</span><span class="si">}</span><span class="s2">/toppar/</span><span class="si">{</span><span class="n">para_files</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">para_files</span> <span class="ow">in</span> <span class="n">PARA_FILES</span><span class="p">]</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">psf_file</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">psf_file</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">base</span><span class="si">}</span><span class="s2">/im1h_oac_150_im1_hoac_350.psf&quot;</span>
+        <span class="n">psf</span> <span class="o">=</span> <span class="n">CharmmPsfFile</span><span class="p">(</span><span class="n">psf_file</span><span class="p">)</span>
+        <span class="n">xtl</span> <span class="o">=</span> <span class="n">boxl</span> <span class="o">*</span> <span class="n">angstroms</span>
         <span class="n">psf</span><span class="o">.</span><span class="n">setBox</span><span class="p">(</span><span class="n">xtl</span><span class="p">,</span> <span class="n">xtl</span><span class="p">,</span> <span class="n">xtl</span><span class="p">)</span>
         <span class="c1"># cooridnates can be provieded by CharmmCrdFile, CharmmRstFile or PDBFile classes</span>
-        <span class="n">crd</span> <span class="o">=</span> <span class="n">CharmmCrdFile</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">base</span><span class="si">}</span><span class="s2">/im1h_oac_150_im1_hoac_350.crd&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">crd_file</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">crd_file</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">base</span><span class="si">}</span><span class="s2">/im1h_oac_150_im1_hoac_350.crd&quot;</span>
+        <span class="n">crd</span> <span class="o">=</span> <span class="n">CharmmCrdFile</span><span class="p">(</span><span class="n">crd_file</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">psf</span><span class="p">,</span> <span class="n">crd</span><span class="p">,</span> <span class="n">params</span>
 
-    <span class="k">def</span> <span class="nf">setup_system</span><span class="p">():</span>
+    <span class="k">def</span> <span class="nf">setup_system</span><span class="p">(</span><span class="n">constraints</span><span class="o">=</span><span class="n">constraints</span><span class="p">):</span>
         <span class="n">psf</span><span class="p">,</span> <span class="n">crd</span><span class="p">,</span> <span class="n">params</span> <span class="o">=</span> <span class="n">load_charmm_files</span><span class="p">()</span>
-        <span class="n">system</span> <span class="o">=</span> <span class="n">psf</span><span class="o">.</span><span class="n">createSystem</span><span class="p">(</span>
-            <span class="n">params</span><span class="p">,</span>
-            <span class="n">nonbondedMethod</span><span class="o">=</span><span class="n">PME</span><span class="p">,</span>
-            <span class="n">nonbondedCutoff</span><span class="o">=</span><span class="mf">11.0</span> <span class="o">*</span> <span class="n">angstroms</span><span class="p">,</span>
-            <span class="n">switchDistance</span><span class="o">=</span><span class="mi">10</span> <span class="o">*</span> <span class="n">angstroms</span><span class="p">,</span>
-            <span class="n">constraints</span><span class="o">=</span><span class="n">HBonds</span><span class="p">,</span>
-        <span class="p">)</span>
-
+        <span class="k">if</span> <span class="n">constraints</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">system</span> <span class="o">=</span> <span class="n">psf</span><span class="o">.</span><span class="n">createSystem</span><span class="p">(</span>
+                <span class="n">params</span><span class="p">,</span>
+                <span class="n">nonbondedMethod</span><span class="o">=</span><span class="n">PME</span><span class="p">,</span>
+                <span class="n">nonbondedCutoff</span><span class="o">=</span><span class="mf">11.0</span> <span class="o">*</span> <span class="n">angstroms</span><span class="p">,</span>
+                <span class="n">switchDistance</span><span class="o">=</span><span class="mi">10</span> <span class="o">*</span> <span class="n">angstroms</span><span class="p">,</span>
+                <span class="n">constraints</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">constraints</span> <span class="o">==</span> <span class="s2">&quot;HBonds&quot;</span><span class="p">:</span>
+            <span class="n">system</span> <span class="o">=</span> <span class="n">psf</span><span class="o">.</span><span class="n">createSystem</span><span class="p">(</span>
+                <span class="n">params</span><span class="p">,</span>
+                <span class="n">nonbondedMethod</span><span class="o">=</span><span class="n">PME</span><span class="p">,</span>
+                <span class="n">nonbondedCutoff</span><span class="o">=</span><span class="mf">11.0</span> <span class="o">*</span> <span class="n">angstroms</span><span class="p">,</span>
+                <span class="n">switchDistance</span><span class="o">=</span><span class="mi">10</span> <span class="o">*</span> <span class="n">angstroms</span><span class="p">,</span>
+                <span class="n">constraints</span><span class="o">=</span><span class="n">HBonds</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="s2">&quot;Only contraints=None or constraints=HBonds (given as string in function call) implemented&quot;</span>
+            <span class="p">)</span>
         <span class="k">return</span> <span class="n">system</span>
 
-    <span class="k">def</span> <span class="nf">setup_simulation</span><span class="p">():</span>
+    <span class="k">def</span> <span class="nf">setup_simulation</span><span class="p">(</span>
+        <span class="n">restart_file</span><span class="o">=</span><span class="n">restart_file</span><span class="p">,</span> <span class="n">coll_freq</span><span class="o">=</span><span class="n">coll_freq</span><span class="p">,</span> <span class="n">drude_coll_freq</span><span class="o">=</span><span class="n">drude_coll_freq</span>
+    <span class="p">):</span>
 
         <span class="n">psf</span><span class="p">,</span> <span class="n">crd</span><span class="p">,</span> <span class="n">params</span> <span class="o">=</span> <span class="n">load_charmm_files</span><span class="p">()</span>
         <span class="n">system</span> <span class="o">=</span> <span class="n">setup_system</span><span class="p">()</span>
@@ -214,8 +246,10 @@
 
         <span class="n">simulation</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">setPositions</span><span class="p">(</span><span class="n">crd</span><span class="o">.</span><span class="n">positions</span><span class="p">)</span>
         <span class="c1"># Try with positions from equilibrated system:</span>
-        <span class="n">base</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">protex</span><span class="o">.</span><span class="n">__path__</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">/forcefield&quot;</span>
-        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">base</span><span class="si">}</span><span class="s2">/traj/im1h_oac_150_im1_hoac_350_npt_7.rst&quot;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">restart_file</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">base</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">protex</span><span class="o">.</span><span class="n">__path__</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">/forcefield&quot;</span>
+            <span class="n">restart_file</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">base</span><span class="si">}</span><span class="s2">/traj/im1h_oac_150_im1_hoac_350_npt_7.rst&quot;</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">restart_file</span><span class="p">):</span>
             <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">base</span><span class="si">}</span><span class="s2">/traj/im1h_oac_150_im1_hoac_350_npt_7.rst&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
                 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Opening restart file </span><span class="si">{</span><span class="n">f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
                 <span class="n">simulation</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">setState</span><span class="p">(</span><span class="n">XmlSerializer</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()))</span>
@@ -230,7 +264,7 @@
     <span class="k">return</span> <span class="n">setup_simulation</span><span class="p">()</span></div>
 
 
-<div class="viewcode-block" id="generate_single_im1h_oac_system"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.testsystems.generate_single_im1h_oac_system.html#protex.testsystems.generate_single_im1h_oac_system">[docs]</a><span class="k">def</span> <span class="nf">generate_single_im1h_oac_system</span><span class="p">(</span><span class="n">coll_freq</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">drude_coll_freq</span><span class="o">=</span><span class="mi">120</span><span class="p">):</span>
+<div class="viewcode-block" id="generate_single_im1h_oac_system"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.testsystems.generate_single_im1h_oac_system.html#protex.testsystems.generate_single_im1h_oac_system">[docs]</a><span class="k">def</span> <span class="nf">generate_single_im1h_oac_system</span><span class="p">(</span><span class="n">coll_freq</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">drude_coll_freq</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Sets up a system with 1 IM1H, 1OAC, 1IM1 and 1 HOAC</span>
 <span class="sd">    Was for testing the deformation of the imidazole ring -&gt; solved by adding the nonbonded exception to the updates</span>
