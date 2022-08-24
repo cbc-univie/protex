@@ -66,7 +66,7 @@ jobs:
       
     - uses: actions/cache@v2
       with:
-        path: ${{ matrix.prefix }}
+        path: ~/conda_pkgs_dir # ${{ matrix.prefix }}
         key: ${{ matrix.label }}-conda-${{ hashFiles('devtools/conda-envs/openmm7.6.yaml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
       id: cache
       
@@ -83,13 +83,13 @@ jobs:
         conda list
     
 
-    - name: Run tests
+    #- name: Run tests
 
       # conda setup requires this special shell
-      shell: bash -l {0}
+   #   shell: bash -l {0}
 
-      run: |
-        pytest -v --cov=protex --cov-report=xml --color=yes protex/tests/
+    #  run: |
+     #   pytest -v --cov=protex --cov-report=xml --color=yes protex/tests/
 
     - name: CodeCov
       uses: codecov/codecov-action@v1
