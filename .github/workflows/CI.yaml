@@ -88,6 +88,7 @@ jobs:
       shell: bash -l {0}
 
       run: |
+        conda activate openmm7.6
         pytest -v --cov=protex --cov-report=xml --color=yes protex/tests/
 
     - name: CodeCov
