@@ -90,7 +90,7 @@ jobs:
     
 
     - name: Run tests
-      if: ${{ inputs.run_tests }}
+      if: ${{ inputs.RUN_TESTS }}
 
       # conda setup requires this special shell
       shell: bash -l {0}
