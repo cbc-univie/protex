@@ -71,7 +71,7 @@ jobs:
       
     - name: Update environment
       run: conda env update -n openmm7.6 -f devtools/conda-envs/openmm7.6.yaml
-      if: steps.cache.outputs.cache-hit != 'true'
+      # if: steps.cache.outputs.cache-hit != 'true'
         
     - name: Install package
 
