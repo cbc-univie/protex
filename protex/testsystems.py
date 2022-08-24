@@ -181,7 +181,7 @@ def generate_im1h_oac_system(
             base = f"{protex.__path__[0]}/forcefield"
             restart_file = f"{base}/traj/im1h_oac_150_im1_hoac_350_npt_7.rst"
         if os.path.exists(restart_file):
-            with open(f"{base}/traj/im1h_oac_150_im1_hoac_350_npt_7.rst") as f:
+            with open(restart_file) as f:
                 print(f"Opening restart file {f}")
                 simulation.context.setState(XmlSerializer.deserialize(f.read()))
             simulation.context.computeVirtualSites()
