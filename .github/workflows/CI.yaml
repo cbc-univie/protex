@@ -18,9 +18,16 @@ on:
     #   (from https://help.github.com/en/actions/reference/events-that-trigger-workflows#scheduled-events-schedule)
     - cron: "0 0 * * *"
   workflow_dispatch:
+    inputs:
+      CACHE_NUMBER:
+        type: number
+        default: 0
+      RUN_TESTS:
+        type: boolean
+        default: true
   
 env:
-  CACHE_NUMBER: 0 # Increase this reset cache manually
+  CACHE_NUMBER: ${{ inputs.CACHE_NUMBER }} # Increase this reset cache manually
 
 jobs:
   test:
@@ -83,6 +90,7 @@ jobs:
     
 
     - name: Run tests
+      if: ${{ inputs.run_tests }}
 
       # conda setup requires this special shell
       shell: bash -l {0}
