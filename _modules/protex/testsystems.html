@@ -216,9 +216,9 @@
                 <span class="mf">0.0005</span> <span class="o">*</span> <span class="n">picoseconds</span><span class="p">,</span>
             <span class="p">)</span>
 
-        <span class="nb">print</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">coll_freq</span><span class="si">=}</span><span class="s2">, </span><span class="si">{</span><span class="n">drude_coll_freq</span><span class="si">=}</span><span class="s2">&quot;</span>
-        <span class="p">)</span>  <span class="c1"># tested with 20, 40, 80, 100, 120, 140, 160: 20,40 bad; 80 - 120 good; 140, 160 crashed</span>
+        <span class="c1"># print(</span>
+        <span class="c1">#    f&quot;{coll_freq=}, {drude_coll_freq=}&quot;</span>
+        <span class="c1"># )  # tested with 20, 40, 80, 100, 120, 140, 160: 20,40 bad; 80 - 120 good; 140, 160 crashed</span>
         <span class="n">integrator</span><span class="o">.</span><span class="n">setMaxDrudeDistance</span><span class="p">(</span><span class="mf">0.25</span> <span class="o">*</span> <span class="n">angstroms</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">platform</span> <span class="o">=</span> <span class="n">Platform</span><span class="o">.</span><span class="n">getPlatformByName</span><span class="p">(</span><span class="s2">&quot;CUDA&quot;</span><span class="p">)</span>
