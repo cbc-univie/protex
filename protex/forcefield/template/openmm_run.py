@@ -20,8 +20,9 @@ from omm_readparams import *
 from velocityverletplugin import VVIntegrator
 
 #extra stuff from VVplugin repo
-sys.path.append("/home/florian/software/openmm-velocityVerlet/examples/")
-from ommhelper import DrudeTemperatureReporter, ViscosityReporter
+#sys.path.append("/home/florian/software/openmm-velocityVerlet/examples/")
+#from ommhelper import DrudeTemperatureReporter, ViscosityReporter
+from protex.scripts.ommhelper.reporter.drudetemperaturereporter import DrudeTemperatureReporter
 
 # user specified
 sys.path.append("/home/florian/pythonfiles")
