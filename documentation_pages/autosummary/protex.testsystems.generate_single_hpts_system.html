@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>protex.update &mdash; protex  documentation</title>
+  <title>protex.testsystems.generate_single_hpts_system &mdash; protex  documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -19,8 +19,8 @@
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="protex.update.NaiveMCUpdate" href="protex.update.NaiveMCUpdate.html" />
-    <link rel="prev" title="protex.system.IonicLiquidTemplates" href="protex.system.IonicLiquidTemplates.html" /> 
+    <link rel="next" title="protex.testsystems.generate_single_im1h_oac_system" href="protex.testsystems.generate_single_im1h_oac_system.html" />
+    <link rel="prev" title="protex.testsystems.generate_im1h_oac_system" href="protex.testsystems.generate_im1h_oac_system.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -44,13 +44,14 @@
 <li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quick Start Guide</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../api.html">API Documentation</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="protex.system.html">protex.system</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">protex.update</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="protex.update.NaiveMCUpdate.html">protex.update.NaiveMCUpdate</a></li>
-<li class="toctree-l3"><a class="reference internal" href="protex.update.StateUpdate.html">protex.update.StateUpdate</a></li>
-<li class="toctree-l3"><a class="reference internal" href="protex.update.Update.html">protex.update.Update</a></li>
+<li class="toctree-l2"><a class="reference internal" href="protex.update.html">protex.update</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="protex.testsystems.html">protex.testsystems</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="protex.testsystems.generate_hpts_system.html">protex.testsystems.generate_hpts_system</a></li>
+<li class="toctree-l3"><a class="reference internal" href="protex.testsystems.generate_im1h_oac_system.html">protex.testsystems.generate_im1h_oac_system</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">protex.testsystems.generate_single_hpts_system</a></li>
+<li class="toctree-l3"><a class="reference internal" href="protex.testsystems.generate_single_im1h_oac_system.html">protex.testsystems.generate_single_im1h_oac_system</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="protex.testsystems.html">protex.testsystems</a></li>
 <li class="toctree-l2"><a class="reference internal" href="protex.reporter.html">protex.reporter</a></li>
 <li class="toctree-l2"><a class="reference internal" href="protex.residue.html">protex.residue</a></li>
 </ul>
@@ -72,9 +73,10 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
           <li><a href="../api.html">API Documentation</a> &raquo;</li>
-      <li>protex.update</li>
+          <li><a href="protex.testsystems.html">protex.testsystems</a> &raquo;</li>
+      <li>protex.testsystems.generate_single_hpts_system</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../../_sources/documentation_pages/autosummary/protex.update.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../../_sources/documentation_pages/autosummary/protex.testsystems.generate_single_hpts_system.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -82,34 +84,23 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="module-protex.update">
-<span id="protex-update"></span><h1>protex.update<a class="headerlink" href="#module-protex.update" title="Permalink to this heading"></a></h1>
-<p class="rubric">Classes</p>
-<table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="protex.update.NaiveMCUpdate.html#protex.update.NaiveMCUpdate" title="protex.update.NaiveMCUpdate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NaiveMCUpdate</span></code></a></p></td>
-<td><p>NaiveMCUpdate Performs naive MC update on molecule pairs in close proximity</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="protex.update.StateUpdate.html#protex.update.StateUpdate" title="protex.update.StateUpdate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">StateUpdate</span></code></a></p></td>
-<td><p>Controls the update sheme and proposes the residues that need an update</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="protex.update.Update.html#protex.update.Update" title="protex.update.Update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Update</span></code></a></p></td>
-<td><p>ABC for implementing different Update Methods</p></td>
-</tr>
-</tbody>
-</table>
+  <section id="protex-testsystems-generate-single-hpts-system">
+<h1>protex.testsystems.generate_single_hpts_system<a class="headerlink" href="#protex-testsystems-generate-single-hpts-system" title="Permalink to this heading"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="protex.testsystems.generate_single_hpts_system">
+<span class="sig-prename descclassname"><span class="pre">protex.testsystems.</span></span><span class="sig-name descname"><span class="pre">generate_single_hpts_system</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coll_freq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drude_coll_freq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">120</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/protex/testsystems.html#generate_single_hpts_system"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#protex.testsystems.generate_single_hpts_system" title="Permalink to this definition"></a></dt>
+<dd><p>Sets up a system with 1 IM1H, 1OAC, 1IM1, 1 HOAC, 1 HPTS and 1 HPTSH
+Was for testing the deformation of the imidazole ring -&gt; solved by adding the nonbonded exception to the updates</p>
+</dd></dl>
+
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="protex.system.IonicLiquidTemplates.html" class="btn btn-neutral float-left" title="protex.system.IonicLiquidTemplates" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="protex.update.NaiveMCUpdate.html" class="btn btn-neutral float-right" title="protex.update.NaiveMCUpdate" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="protex.testsystems.generate_im1h_oac_system.html" class="btn btn-neutral float-left" title="protex.testsystems.generate_im1h_oac_system" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="protex.testsystems.generate_single_im1h_oac_system.html" class="btn btn-neutral float-right" title="protex.testsystems.generate_single_im1h_oac_system" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
