@@ -163,7 +163,7 @@ def generate_im1h_oac_system(coll_freq=10, drude_coll_freq=120):
 
 ### new generate
 def generate_hpts_system(
-    psf_file: str = None,
+    psf_file: str =None,
     crd_file: str = None,
     restart_file: str = None,
     constraints: str = None,
@@ -316,7 +316,7 @@ def generate_hpts_system(
             base = f"{protex.__path__[0]}/forcefield"
             restart_file = f"{base}/traj/hpts_npt_7.rst"
         if os.path.exists(restart_file):
-            with open(f"{base}/traj/hpts_npt_7.rst") as f:
+            with open(restart_file) as f:
                 print(f"Opening restart file {f}")
                 simulation.context.setState(XmlSerializer.deserialize(f.read()))
             simulation.context.computeVirtualSites()
