@@ -24,19 +24,23 @@ class IonicLiquidTemplates:
     -----------
     states:
         A list of dictionary depicting the residue name and the atom name which should be changed, i.e.:
-        .. code-block::
-        IM1H_IM1 = { "IM1H": {"atom_name": "H7", "canonical_name": "IM1"},
-                     "IM1": {"atom_name": "N2", "canonical_name": "IM1"} }
-        OAC_HOAC = { "OAC": {"atom_name": "O2", "canonical_name": "OAC"},
-                     "HOAC": {"atom_name": "H", "canonical_name": "OAC"} }
-        states = [IM1H_IM1, OAC_HOAC]
+
+        .. code-block:: python
+
+            IM1H_IM1 = { "IM1H": {"atom_name": "H7", "canonical_name": "IM1"},
+                        "IM1": {"atom_name": "N2", "canonical_name": "IM1"} }
+            OAC_HOAC = { "OAC": {"atom_name": "O2", "canonical_name": "OAC"},
+                        "HOAC": {"atom_name": "H", "canonical_name": "OAC"} }
+            states = [IM1H_IM1, OAC_HOAC]
 
     allowed_updates:
         A dictionary specifiying which updates are possile.
         Key is a frozenset with the two residue names for the update.
         The values is a dictionary which specifies the maximum distance ("r_max") and the probability for this update ("prob")
         r_max is in nanometer and the prob between 0 and 1
-        .. code-block::
+
+        .. code-block:: python
+
             allowed_updates = {}
             allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.155, "prob": 1}
             allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.155, "prob": 1}
@@ -75,21 +79,20 @@ class IonicLiquidTemplates:
         """
         returns the value in the allowed updates dictionary
 
-        Parameters:
-        -----------
+        Parameters
+        ----------
         residue_set:
             dictionary key for residue_set, i.e ["IM1H", "OAC"]
         property:
             dictionary key for the property defined for the residue key, i.e. prob
 
-        Returns:
-        --------
+        Returns
+        -------
         float
             the value of the property
 
-
-        Raises:
-        -------
+        Raises
+        ------
         RuntimeError
             if keys do not exist
         """
@@ -109,8 +112,8 @@ class IonicLiquidTemplates:
         """
         Updates a value in the allowed updates dictionary
 
-        Parameters:
-        -----------
+        Parameters
+        ----------
         residue:
             dictionary key for residue_set, i.e ["IM1H","OAC"]
         property:
@@ -118,12 +121,12 @@ class IonicLiquidTemplates:
         value:
             the value the property should be set to
 
-        Returns:
-        --------
+        Returns
+        -------
         None
 
-        Raises:
-        -------
+        Raises
+        ------
         RuntimeError
             is raised if new residue_set or new property is trying to be inserted
         """
@@ -215,8 +218,8 @@ class IonicLiquidSystem:
     This class defines the full system, performs the MD steps and offers an
     interface for protonation state updates.
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     simulation:
         the OpenMM simulation object
     templates:
@@ -541,6 +544,7 @@ class IonicLiquidSystem:
     def saveCheckpoint(self, file) -> None:
         """
         Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object
+
         Parameters
         ----------
         file: string or file
@@ -551,6 +555,7 @@ class IonicLiquidSystem:
 
     def loadCheckpoint(self, file) -> None:
         """Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object
+
         Parameters
         ----------
         file : string or file
@@ -561,6 +566,7 @@ class IonicLiquidSystem:
 
     def saveState(self, file) -> None:
         """Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object
+
         Parameters
         ----------
         file : string or file
@@ -571,6 +577,7 @@ class IonicLiquidSystem:
 
     def loadState(self, file) -> None:
         """Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object
+
         Parameters
         ----------
         file : string or file
@@ -582,6 +589,7 @@ class IonicLiquidSystem:
     def save_updates(self, file) -> None:
         """
         Save the current update values into a yaml file. Used to have the current probability values.
+
         Parameters
         ----------
         file: string or file
@@ -597,6 +605,7 @@ class IonicLiquidSystem:
     def load_updates(self, file) -> None:
         """
         Load the current update values from a yaml file, which was generated using "save_updates".
+
         Parameters
         ----------
         file: string or file
