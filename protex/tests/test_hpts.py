@@ -1,6 +1,8 @@
 # Import package, test suite, and other packages as needed
 import os
+import logging
 from sys import stdout
+import numpy as np
 from collections import defaultdict
 #import json
 import copy
@@ -37,6 +39,7 @@ except ImportError:
     from simtk.unit import angstroms, kelvin, picoseconds
 
 import pytest
+from scipy.spatial import distance_matrix
 
 import protex
 from ..system import IonicLiquidSystem, IonicLiquidTemplates
@@ -48,8 +51,15 @@ from ..testsystems import (
     OAC_HOAC,
     HPTSH_HPTS,
     generate_hpts_system,
-    generate_single_hpts_system
+    generate_single_hpts_system,
 )
+
+from ..update import NaiveMCUpdate, StateUpdate
+
+
+############################
+# TEST SYSTEM
+############################
 
 def test_available_platforms():
     # =======================================================================
@@ -161,7 +171,7 @@ def test_setup_simulation():
     system = simulation.system
 
     nr_of_particles = system.getNumParticles()
-    assert nr_of_particles == 17653  
+    assert nr_of_particles == 18310  
 
 
 def test_run_simulation():
@@ -226,6 +236,8 @@ def test_create_IonicLiquidTemplate():
     assert neutral_prob == 1
     ionic_prob = templates.get_update_value_for(frozenset(["IM1H", "OAC"]), "prob")
     assert ionic_prob == 1
+    hpts_prob = templates.get_update_value_for(frozenset(["HPTSH", "IM1"]), "prob")
+    assert hpts_prob == 1
 
 
 def test_create_IonicLiquid():
@@ -258,7 +270,7 @@ def test_create_IonicLiquid():
     assert count["IM1"] == 350
     assert count["HOAC"] == 350
     assert count["HPTS"] == 1
-    assert count["HOAC"] == 1
+    assert count["HPTSH"] == 1
 
     initial_number_of_molecules = ionic_liquid.INITIAL_NUMBER_OF_EACH_RESIDUE_TYPE
     assert initial_number_of_molecules["IM1H"] == 157
@@ -275,8 +287,8 @@ def test_create_single_IonicLiquid():
 
     simulation = generate_single_hpts_system()
     allowed_updates = {}
-    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 2.33}
-    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": -2.33}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
    # allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.15, "prob": 0.098} #1+4
     allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 0.201} # 1+2
     allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 0.684} # 3+4
@@ -342,6 +354,7 @@ def test_residues():
                 16,
                 17,
                 18,
+                19,
             ]
             assert atom_names == [
                 "C1",
@@ -363,100 +376,100 @@ def test_residues():
                 "N2",
                 "DN2",
                 "H7",
+                "LPN21"
             ]
         if r.name == "HPTSH" and idx == 1008:
-            atom_idxs = [atom.index+1 for atom in r.atoms()] # didn't want to change atom index list from the psf, there it starts with 1 instead of 0
+            atom_idxs = [atom.index for atom in r.atoms()]
             atom_names = [atom.name for atom in r.atoms()]
             print(atom_idxs)
             print(atom_names)
             print(idx)
             assert atom_idxs == [
-        
-                17569,
-                17570,
-                17571,
-                17572,
-                17573,
-                17574,
-                17575,
-                17576,
-                17577,
-                17578,
-                17579,
-                17580,
-                17581,
-                17582,
-                17583,
-                17584,
-                17585,
-                17586,
-                17587,
-                17588,
-                17589,
-                17590,
-                17591,
-                17592,
-                17593,
-                17594,
-                17595,
-                17596,
-                17597,
-                17598,
-                17599,
-                17600,
-                17601,
-                17602,
-                17603,
-                17604,
-                17605,
-                17606,
-                17607,
-                17608,
-                17609,
-                17610,
-                17611,
-                17612,
-                17613,
-                17614,
-                17615,
-                17616,
-                17617,
-                17618,
-                17619,
-                17620,
-                17621,
-                17622,
-                17623,
-                17624,
-                17625,
-                17626,
-                17627,
-                17628,
-                17629,
-                17630,
-                17631,
-                17632,
-                17633,
-                17634,
-                17635,
-                17636,
-                17637,
-                17638,
-                17639,
-                17640,
-                17641,
-                17642,
-                17643,
-                17644,
-                17645,
-                17646,
-                17647,
-                17648,
-                17649,
-                17650,
-                17651,
-                17652,
-                17653,
+                18225,
+                18226,
+                18227,
+                18228,
+                18229,
+                18230,
+                18231,
+                18232,
+                18233,
+                18234,
+                18235,
+                18236,
+                18237,
+                18238,
+                18239,
+                18240,
+                18241,
+                18242,
+                18243,
+                18244,
+                18245,
+                18246,
+                18247,
+                18248,
+                18249,
+                18250,
+                18251,
+                18252,
+                18253,
+                18254,
+                18255,
+                18256,
+                18257,
+                18258,
+                18259,
+                18260,
+                18261,
+                18262,
+                18263,
+                18264,
+                18265,
+                18266,
+                18267,
+                18268,
+                18269,
+                18270,
+                18271,
+                18272,
+                18273,
+                18274,
+                18275,
+                18276,
+                18277,
+                18278,
+                18279,
+                18280,
+                18281,
+                18282,
+                18283,
+                18284,
+                18285,
+                18286,
+                18287,
+                18288,
+                18289,
+                18290,
+                18291,
+                18292,
+                18293,
+                18294,
+                18295,
+                18296,
+                18297,
+                18298,
+                18299,
+                18300,
+                18301,
+                18302,
+                18303,
+                18304,
+                18305,
+                18306,
+                18307,
+                18308,
+                18309,
             ]
 
             assert atom_names == [
@@ -775,8 +788,8 @@ def test_drude_forces():
 
     simulation = generate_hpts_system()
     allowed_updates = {}
-    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 2.33}
-    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": -2.33}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
     allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 0.201} # 1+2
     allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 0.684} # 3+4
     allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000} 
@@ -887,11 +900,12 @@ def test_drude_forces():
         raise AssertionError("ohoh")
 
 
+
 def test_create_IonicLiquid_residue():
     simulation = generate_hpts_system()
     allowed_updates = {}
-    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 2.33}
-    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": -2.33}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
     allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 0.201} # 1+2
     allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 0.684} # 3+4
     allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000} 
@@ -903,7 +917,7 @@ def test_create_IonicLiquid_residue():
     templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1, HPTSH_HPTS], (allowed_updates))
 
     ionic_liquid = IonicLiquidSystem(simulation, templates)
-    assert len(ionic_liquid.residues) == 1007
+    assert len(ionic_liquid.residues) == 1009
 
     residue = ionic_liquid.residues[0]
     charge = residue.endstate_charge
@@ -916,18 +930,23 @@ def test_create_IonicLiquid_residue():
 
     assert (residue.get_idx_for_atom_name("H7")) == 38
 
+    residue = ionic_liquid.residues[1008]
+
+    assert (residue.get_idx_for_atom_name("H7")) == 18289
+
     # check name of first residue
     assert ionic_liquid.residues[0].current_name == "IM1H"
     assert ionic_liquid.residues[0].original_name == "IM1H"
 
+    
 
 def test_save_load_residue_names():
     # obtain simulation object
     simulation = generate_hpts_system()
     # get ionic liquid templates
     allowed_updates = {}
-    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 2.33}
-    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": -2.33}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
     allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 0.201} # 1+2
     allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 0.684} # 3+4
     allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000} 
@@ -967,8 +986,8 @@ def test_save_load_residue_names():
     simulation = generate_hpts_system()
     # get ionic liquid templates
     allowed_updates = {}
-    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 2.33}
-    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": -2.33}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
     allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 0.201} # 1+2
     allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 0.684} # 3+4
     allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000} 
@@ -998,11 +1017,11 @@ def test_save_load_residue_names():
 )
 def test_reporter_class():
     # obtain simulation object
-    simulation = generate_im1h_oac_system()
+    simulation = generate_hpts_system()
     # get ionic liquid templates
     allowed_updates = {}
-    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 2.33}
-    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": -2.33}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
     allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 0.201} # 1+2
     allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 0.684} # 3+4
     allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000} 
@@ -1011,7 +1030,7 @@ def test_reporter_class():
     allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000} 
     allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000} 
 
-    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], HPTSH_HPTS, (allowed_updates))
+    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1, HPTSH_HPTS], (allowed_updates))
     # wrap system in IonicLiquidSystem
     ionic_liquid = IonicLiquidSystem(simulation, templates)
     # initialize update method
@@ -1057,7 +1076,7 @@ def test_write_psf_save_load():
     allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000} 
     allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000} 
 
-    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], HPTSH_HPTS, (allowed_updates))
+    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1, HPTSH_HPTS], (allowed_updates))
     # wrap system in IonicLiquidSystem
     ionic_liquid = IonicLiquidSystem(simulation, templates)
     # initialize update method
@@ -1078,4 +1097,108 @@ def test_write_psf_save_load():
     ionic_liquid2 = ionic_liquid #copy.deepcopy(ionic_liquid)
     ionic_liquid.loadState("state.rst")
     ionic_liquid2.loadCheckpoint("checkpoint.rst")
+
+
+#####################
+# TEST UODATE
+#######################
+
+@pytest.mark.skipif(
+    os.getenv("CI") == "true",
+    reason="Will fail sporadicaly.",
+)
+def test_updates(caplog):
+    caplog.set_level(logging.DEBUG)
+
+    simulation = generate_hpts_system()
+    allowed_updates = {}
+    # allowed updates according to simple protonation scheme
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.15, "prob": 1}
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.15, "prob": 1}
+    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.15, "prob": 1} # 1+2
+    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 1} # 3+4
+    allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000} 
+    allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.15, "prob":1.000} 
+    allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000} 
+    allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000} 
+    allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000} 
+
+    print(allowed_updates.keys())
+    # get ionic liquid templates
+    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1, HPTSH_HPTS], (allowed_updates))
+    # wrap system in IonicLiquidSystem
+    ionic_liquid = IonicLiquidSystem(simulation, templates)
+    pars = []
+    update = NaiveMCUpdate(ionic_liquid)
+    # initialize state update class
+    state_update = StateUpdate(update)
+    # ionic_liquid.simulation.minimizeEnergy(maxIterations=200)
+    ionic_liquid.simulation.step(50)
+
+    for _ in range(5):
+        ionic_liquid.simulation.step(100)
+        pars.append(state_update.get_charges())
+        candidate_pairs = state_update.update(2)
+
+        print(candidate_pairs)
     
+    # test whether the update changed the psf
+    old_psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
+    ionic_liquid.write_psf(old_psf_file, "protex/forcefield/hpts_new.psf")
+
+@pytest.mark.skipif(
+    os.getenv("CI") == "true",
+    reason="Will fail sporadicaly.",
+)
+def test_pbc():
+
+    simulation = generate_hpts_system()
+    # get ionic liquid templates
+    allowed_updates = {}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 1} # 1+2
+    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 1} # 3+4
+    allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000} 
+    allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.15, "prob":1.000} 
+    allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000} 
+    allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000} 
+    allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000} 
+
+    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1, HPTSH_HPTS], (allowed_updates))
+    # wrap system in IonicLiquidSystem
+    ionic_liquid = IonicLiquidSystem(simulation, templates)
+
+    boxl = ionic_liquid.boxlength
+    print(f"{boxl=}")
+
+    update = NaiveMCUpdate(ionic_liquid)
+    # initialize state update class
+    state_update = StateUpdate(update)
+
+    pos_list, res_list = state_update._get_positions_for_mutation_sites()
+
+    # calculate distance matrix between the two molecules
+    distance = distance_matrix(pos_list, pos_list)
+    # print(f"{distance[0]=}")
+
+    from scipy.spatial.distance import cdist
+
+    def _rPBC(coor1, coor2, boxl=boxl):
+        dx = abs(coor1[0] - coor2[0])
+        if dx > boxl / 2:
+            dx = boxl - dx
+        dy = abs(coor1[1] - coor2[1])
+        if dy > boxl / 2:
+            dy = boxl - dy
+        dz = abs(coor1[2] - coor2[2])
+        if dz > boxl / 2:
+            dz = boxl - dz
+        return np.sqrt(dx * dx + dy * dy + dz * dz)
+
+    distance_pbc = cdist(pos_list, pos_list, _rPBC)
+    # print(f"{distance_pbc[0]=}")
+    # print(f"{distance_pbc[distance_pbc>boxl]=}")
+    assert (
+        len(distance_pbc[distance_pbc > boxl]) == 0
+    ), "After correcting for PBC no distance should be larger than the boxlength"

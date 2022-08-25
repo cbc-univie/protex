@@ -275,8 +275,9 @@ class IonicLiquidSystem:
             for b in pair_12_set:
                 shared = set(a).intersection(set(b))
                 if len(shared) == 1:
-                    pair = tuple(set(list(a) + list(b)) - shared)
+                    pair = tuple(sorted(set(list(a) + list(b)) - shared)) 
                     pair_13_set.add(pair)
+                    # there were duplicates in pair_13_set, e.q. (1,3) and (3,1), needs to be sorted
 
         self.pair_12_list = list(sorted(pair_12_set))
         self.pair_13_list = list(sorted(pair_13_set - pair_12_set))
@@ -364,6 +365,7 @@ class IonicLiquidSystem:
                             idx2 = f[1]  # parentatom
                             if idx1 in atom_idxs and idx2 in atom_idxs:
                                 forces_dict[type(force).__name__].append(f)
+                        #print(self.pair_12_13_list)
                         assert len(self.pair_12_13_list) == force.getNumScreenedPairs(), f"{len(self.pair_12_13_list)=}, {force.getNumScreenedPairs()=}"
                         for drude_id in range(force.getNumScreenedPairs()):
                             f = force.getScreenedPairParameters(drude_id)
