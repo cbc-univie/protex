@@ -16,10 +16,16 @@ protex.system.IonicLiquidSystem
    .. autosummary::
       :nosignatures:
    
-      ~IonicLiquidSystem.load_current_names
+      ~IonicLiquidSystem.get_current_number_of_each_residue_type
+      ~IonicLiquidSystem.loadCheckpoint
+      ~IonicLiquidSystem.loadState
+      ~IonicLiquidSystem.load_updates
       ~IonicLiquidSystem.report_states
-      ~IonicLiquidSystem.save_current_names
+      ~IonicLiquidSystem.saveCheckpoint
+      ~IonicLiquidSystem.saveState
+      ~IonicLiquidSystem.save_updates
       ~IonicLiquidSystem.update_context
+      ~IonicLiquidSystem.write_psf
    
    
 

@@ -1,7 +1,7 @@
-protex.system.ChargeReporter
-============================
+protex.reporter.ChargeReporter
+==============================
 
-.. currentmodule:: protex.system
+.. currentmodule:: protex.reporter
 
 .. autoclass:: ChargeReporter
    :members:

@@ -1,7 +1,7 @@
-﻿protex.system
-=============
+﻿protex.residue
+==============
 
-.. automodule:: protex.system
+.. automodule:: protex.residue
 
    
    
@@ -20,8 +20,7 @@
       :template: custom-class-template.rst
       :nosignatures:
    
-      IonicLiquidSystem
-      IonicLiquidTemplates
+      Residue
    
    
 

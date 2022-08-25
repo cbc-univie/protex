@@ -1,6 +1,7 @@
 import logging
 import random
 import numpy as np
+from collections import Counter
 from scipy.spatial import distance_matrix
 
 from protex.system import IonicLiquidSystem
@@ -18,11 +19,14 @@ class Update:
     ionic_liquid: IonicLiquidSystem
         Needs the IonicLiquidSystem
     """
+
     def __init__(
-        self, ionic_liquid: IonicLiquidSystem, constant_equilibrium: bool
+        self,
+        ionic_liquid: IonicLiquidSystem,
+        to_adapt=None,
     ) -> None:
         self.ionic_liquid: IonicLiquidSystem = ionic_liquid
-        self.constant_equilibrium: bool = constant_equilibrium
+        self.to_adapt: list[tuple[str, int, frozenset[str]]] = to_adapt
 
 
 class NaiveMCUpdate(Update):
@@ -39,9 +43,9 @@ class NaiveMCUpdate(Update):
         self,
         ionic_liquid: IonicLiquidSystem,
         all_forces: bool = False,
-        constant_equilibrium: bool = True,
+        to_adapt: list[tuple[str, int, frozenset[str]]] = None,
     ) -> None:
-        super().__init__(ionic_liquid, constant_equilibrium)
+        super().__init__(ionic_liquid, to_adapt)
         self.allowed_forces: list[int] = [  # change charges only
             "NonbondedForce",  # BUG: Charge stored in the DrudeForce does NOT get updated, probably you want to allow DrudeForce as well!
             "DrudeForce",
@@ -120,76 +124,67 @@ class NaiveMCUpdate(Update):
         #    300.0 * unit.kelvin
         # )
 
-    def _adapt_probabilities(self):
-        # TODO: Right now more or less hard coded! Adapt in future
+    def _adapt_probabilities(
+        self, to_adapt=list[tuple[str, int, frozenset[str]]]
+    ) -> None:
         """
         Adapt the probability for certain events depending on the current equilibrium, in order to stay close to a given reference
-        i.e. prob_neu = prob_orig + k*( x(t) - x(eq) )^3 where x(t) is the current percentage in the system
+        i.e. prob_neu = prob_orig + K*( x(t) - x(eq) )^3 where x(t) is the current percentage in the system of one species
+
+        Parameters:
+        -----------
+        to_adapt: List of tuples with first the residue name of the species,
+            the number of residues of this species in the system
+            and the specific reaction in which this species occurs and the probability should be updated
         """
-        ref_im1 = self.ionic_liquid.INITIAL_NUMBER_OF_EACH_RESIDUE_TYPE["IM1"]
-        neutral_reference = ref_im1 / (self.ionic_liquid.TOTAL_NUMBER_OF_RESIDUES / 2)
-        ref_im1h = self.ionic_liquid.INITIAL_NUMBER_OF_EACH_RESIDUE_TYPE["IM1H"]
-        ionic_reference = ref_im1h / (self.ionic_liquid.TOTAL_NUMBER_OF_RESIDUES / 2)
-        # ionic_reference = 1 - neutral_reference
+        # check that there are not duplicate frozen sets
+        counts = Counter(s[2] for s in to_adapt)
+        assert (
+            len([e for e, c in counts.items() if c > 1]) == 0
+        ), "No duplicates for the transfer reactions allowed!"
 
-        n_im1 = self.ionic_liquid.get_current_number_of_each_residue_type()["IM1"]
-        neutral_current = n_im1 / (self.ionic_liquid.TOTAL_NUMBER_OF_RESIDUES / 2)
-
-        n_im1h = self.ionic_liquid.get_current_number_of_each_residue_type()["IM1H"]
-        ionic_current = n_im1h / (self.ionic_liquid.TOTAL_NUMBER_OF_RESIDUES / 2)
-
-        logger.debug(f"{neutral_reference=}, {neutral_current=}, {n_im1=}")
-        logger.debug(f"{ionic_reference=}, {ionic_current=}  {n_im1h=}")
-
-        k = 1000
-        factor = k * (neutral_current - neutral_reference) ** 3
-        factor_ion = k * (ionic_current - ionic_reference) ** 3
-
-        logger.debug(f"{factor=}, {factor_ion=}")
-        # assert round(factor, 2) == round(factor_ion, 2)
-
-        new_neutral_prob = (
-            self.ionic_liquid.templates.get_update_value_for(
-                frozenset(["IM1", "HOAC"]), "prob"
+        K = 300
+        current_numbers: dict[
+            str, int
+        ] = self.ionic_liquid.get_current_number_of_each_residue_type()
+        for entry_tuple in to_adapt:
+            res_name, initial_number, update_set = (
+                entry_tuple[0],
+                entry_tuple[1],
+                entry_tuple[2],
             )
-            + factor
-        )
-        if new_neutral_prob > 1:
-            logger.info(
-                f"Probability set to 1, cannot be greater. (Was: {new_neutral_prob})"
+            assert res_name in update_set, "Resname not in update set"
+            try:
+                current_number = current_numbers[res_name]
+            except KeyError as e:
+                print(
+                    "The given name is not a valid residue name. Is it present in the psf file? Typo?"
+                )
+                print(e)
+            logger.debug(
+                f"{res_name=}, {initial_number=}, {current_number=}, {update_set=}"
             )
-            new_neutral_prob = 1
-        if new_neutral_prob < 0:
-            logger.info(
-                f"Probability set to 0, cannot be smaller. (Was: {new_neutral_prob})"
+            perc_change = current_number / initial_number
+            factor = K * (perc_change - 1) ** 3
+            logger.debug(f"{perc_change=}, {factor=}")
+            new_prob = (
+                self.ionic_liquid.templates.get_update_value_for(update_set, "prob")
+                + factor
             )
-            new_neutral_prob = 0
-        self.ionic_liquid.templates.set_update_value_for(
-            frozenset(["IM1", "HOAC"]), "prob", new_neutral_prob
-        )
-
-        new_ionic_prob = (
-            self.ionic_liquid.templates.get_update_value_for(
-                frozenset(["IM1H", "OAC"]), "prob"
+            if new_prob > 1:
+                logger.info(
+                    f"Probability set to 1, cannot be greater. (Was: {new_prob})"
+                )
+                new_prob = 1
+            if new_prob < 0:
+                logger.info(
+                    f"Probability set to 0, cannot be smaller. (Was: {new_prob})"
+                )
+                new_prob = 0
+            self.ionic_liquid.templates.set_update_value_for(
+                update_set, "prob", new_prob
             )
-            - factor
-        )
-        if new_ionic_prob > 1:
-            logger.info(
-                f"Probability set to 1, cannot be greater. (Was: {new_ionic_prob})"
-            )
-            new_ionic_prob = 1
-        if new_ionic_prob < 0:
-            logger.info(
-                f"Probability set to 0, cannot be smaller. (Was: {new_ionic_prob})"
-            )
-            new_ionic_prob = 0
-        self.ionic_liquid.templates.set_update_value_for(
-            frozenset(["IM1H", "OAC"]), "prob", new_ionic_prob
-        )
-
-        logger.debug(f"{new_neutral_prob=}, {new_ionic_prob=}")
-        print(f"Probs: {new_neutral_prob=}, {new_ionic_prob=}")
+            print(f"New Prob for {update_set}: {new_prob}")
 
 
 class StateUpdate:
@@ -273,8 +268,8 @@ class StateUpdate:
 
         self.update_trial += 1
 
-        if self.updateMethod.constant_equilibrium:
-            self.updateMethod._adapt_probabilities()
+        if self.updateMethod.to_adapt is not None:
+            self.updateMethod._adapt_probabilities(self.updateMethod.to_adapt)
 
         self._print_stop()
 

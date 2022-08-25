@@ -6,7 +6,7 @@ mini_Tol         = 10.0                             # Minimization energy tolera
 pre_nstep        = 200000                            # Number of steps to run
 pre_dt           = 0.0001                            # Time-step (ps)
 
-nstep            = 500000                            # Number of steps to run
+nstep            = 2000000                            # Number of steps to run
 dt               = 0.0005                            # Time-step (ps)
 
 nstout           = 500                              # Writing output frequency (steps)

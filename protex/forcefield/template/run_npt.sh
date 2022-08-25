@@ -2,7 +2,7 @@
 #SBATCH --gres=gpu
 #SBATCH -p lgpu
 
-source /home/florian/anaconda3/bin/activate openmm_equil
+source /home/florian/anaconda3/bin/activate openmm7.6
 
 
 inp_file="openmm_run.py"
@@ -12,7 +12,7 @@ crd=${file_name}".crd"
 toppar="../toppar/toppar.str"
 
 job_name="npt"
-last_npt=4   #first one is only 20ps with dt 0.1fs
+last_npt=7   #first one is only 20ps with dt 0.1fs
 params="npt_specs.inp"
 
 python $inp_file -cnt $1 -i $params -p $psf -c $crd -t $toppar -n ${file_name}

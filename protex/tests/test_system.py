@@ -1,4 +1,5 @@
 # Import package, test suite, and other packages as needed
+import io
 import os
 from sys import stdout
 from collections import defaultdict
@@ -184,7 +185,8 @@ def test_run_simulation():
     print("Running dynmamics...")
     simulation.step(200)
     # If simulation aborts with Nan error, try smaller timestep (e.g. 0.0001 ps) and then extract new crd from dcd using "protex/forcefield/crdfromdcd.inp"
-
+    os.remove("output.pdb")
+    os.remove("output.dcd")
 
 def test_create_IonicLiquidTemplate():
     allowed_updates = {}
@@ -237,11 +239,25 @@ def test_create_IonicLiquid():
     assert count["IM1"] == 350
     assert count["HOAC"] == 350
 
-    initial_number_of_molecules = ionic_liquid.INITIAL_NUMBER_OF_EACH_RESIDUE_TYPE
-    assert initial_number_of_molecules["IM1H"] == 150
-    assert initial_number_of_molecules["OAC"] == 150
-    assert initial_number_of_molecules["IM1"] == 350
-    assert initial_number_of_molecules["HOAC"] == 350
+def test_save_load_allowedupdates():
+
+    simulation = generate_im1h_oac_system()
+    allowed_updates = {}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 0.9}
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 0.3}
+
+    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+    ionic_liquid = IonicLiquidSystem(simulation, templates)
+
+    assert allowed_updates == ionic_liquid.templates.allowed_updates
+
+    ionic_liquid.save_updates("updates.yaml")
+    ionic_liquid.load_updates("updates.yaml")
+    os.remove("updates.yaml")
+
+    print(ionic_liquid.templates.allowed_updates)
+
+    assert allowed_updates == ionic_liquid.templates.allowed_updates
 
 
 def test_residues():
@@ -701,61 +717,61 @@ def test_create_IonicLiquid_residue():
     assert ionic_liquid.residues[0].original_name == "IM1H"
 
 
-def test_save_load_residue_names():
-    # obtain simulation object
-    simulation = generate_im1h_oac_system()
-    # get ionic liquid templates
-    allowed_updates = {}
-    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 2.33}
-    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": -2.33}
+# def test_save_load_residue_names():
+#     # obtain simulation object
+#     simulation = generate_im1h_oac_system()
+#     # get ionic liquid templates
+#     allowed_updates = {}
+#     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 2.33}
+#     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": -2.33}
 
-    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
-    # wrap system in IonicLiquidSystem
-    ionic_liquid = IonicLiquidSystem(simulation, templates)
-    # initialize update method
-    update = NaiveMCUpdate(ionic_liquid)
-    # initialize state update class
-    state_update = StateUpdate(update)
+#     templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+#     # wrap system in IonicLiquidSystem
+#     ionic_liquid = IonicLiquidSystem(simulation, templates)
+#     # initialize update method
+#     update = NaiveMCUpdate(ionic_liquid)
+#     # initialize state update class
+#     state_update = StateUpdate(update)
 
-    ionic_liquid.simulation.step(50)
-    state_update.update(2)
+#     ionic_liquid.simulation.step(50)
+#     state_update.update(2)
 
-    residue_names_1 = [residue.current_name for residue in ionic_liquid.residues]
-    residue_parameters_1 = [residue.parameters for residue in ionic_liquid.residues]
+#     residue_names_1 = [residue.current_name for residue in ionic_liquid.residues]
+#     residue_parameters_1 = [residue.parameters for residue in ionic_liquid.residues]
 
-    ionic_liquid.save_current_names("current_names.txt")
+#     ionic_liquid.save_current_names("current_names.txt")
 
-    ionic_liquid.load_current_names("current_names.txt")
+#     ionic_liquid.load_current_names("current_names.txt")
 
-    residue_names_2 = [residue.current_name for residue in ionic_liquid.residues]
-    residue_parameters_2 = [residue.parameters for residue in ionic_liquid.residues]
+#     residue_names_2 = [residue.current_name for residue in ionic_liquid.residues]
+#     residue_parameters_2 = [residue.parameters for residue in ionic_liquid.residues]
 
-    assert (
-        residue_names_1 == residue_names_2
-    ), "Names should have been loaded into ionic_liquid..."
+#     assert (
+#         residue_names_1 == residue_names_2
+#     ), "Names should have been loaded into ionic_liquid..."
 
-    assert residue_parameters_1 == residue_parameters_2
+#     assert residue_parameters_1 == residue_parameters_2
 
-    # obtain simulation object
-    simulation = generate_im1h_oac_system()
-    # get ionic liquid templates
-    allowed_updates = {}
-    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 2.33}
-    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": -2.33}
+#     # obtain simulation object
+#     simulation = generate_im1h_oac_system()
+#     # get ionic liquid templates
+#     allowed_updates = {}
+#     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 2.33}
+#     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": -2.33}
 
-    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
-    # wrap system in IonicLiquidSystem
-    ionic_liquid = IonicLiquidSystem(simulation, templates)
-    ionic_liquid.load_current_names("current_names.txt")
+#     templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+#     # wrap system in IonicLiquidSystem
+#     ionic_liquid = IonicLiquidSystem(simulation, templates)
+#     ionic_liquid.load_current_names("current_names.txt")
 
-    residue_names_2 = [residue.current_name for residue in ionic_liquid.residues]
-    residue_parameters_2 = [residue.parameters for residue in ionic_liquid.residues]
+#     residue_names_2 = [residue.current_name for residue in ionic_liquid.residues]
+#     residue_parameters_2 = [residue.parameters for residue in ionic_liquid.residues]
 
-    assert (
-        residue_names_1 == residue_names_2
-    ), "Names should have been loaded into ionic_liquid..."
+#     assert (
+#         residue_names_1 == residue_names_2
+#     ), "Names should have been loaded into ionic_liquid..."
 
-    assert residue_parameters_1 == residue_parameters_2
+#     assert residue_parameters_1 == residue_parameters_2
 
 
 @pytest.mark.skipif(
@@ -819,11 +835,13 @@ def test_write_psf_save_load():
 
     old_psf_file = f"{protex.__path__[0]}/forcefield/im1h_oac_150_im1_hoac_350.psf"
     ionic_liquid.write_psf(old_psf_file, "test.psf")
+    os.remove("test.psf")
 
     # ionic_liquid.simulation.step(50)
     state_update.update(2)
 
     ionic_liquid.write_psf(old_psf_file, "test.psf")
+    os.remove("test.psf")
     ionic_liquid.saveState("state.rst")
     ionic_liquid.saveCheckpoint("checkpoint.rst")
 

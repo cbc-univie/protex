@@ -15,7 +15,7 @@ Getting involved
 Please report **bugs** or **enhancement requests** through the `Issue
 Tracker`_.
 
-.. _Issue Tracker: https://github.com/wiederm/protex/issues
+.. _Issue Tracker: https://github.com/florianj77/protex/issues
 
 
 User Guide
@@ -30,12 +30,12 @@ Installing Protex and Source Code
 ---------------------------------
 
 **Source code** is available from
-https://github.com/wiederm/protex/ under the MIT License.
+https://github.com/florianj77/protex/ under the MIT License.
 Obtain the sources with `git`_.
 
 .. code-block:: bash
 
-   git clone https://github.com/wiederm/protex.git
+   git clone https://github.com/florianj77/protex.git
    cd protex
    pip install .
 

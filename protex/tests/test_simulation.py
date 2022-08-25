@@ -48,7 +48,7 @@ def test_outline():
     state_update = StateUpdate(update)
     # ionic_liquid.simulation.minimizeEnergy(maxIterations=200)
     # adding reporter
-    ionic_liquid.simulation.reporters.append(DCDReporter("outline.dcd", 500))
+    ionic_liquid.simulation.reporters.append(DCDReporter("outline1.dcd", 500))
 
     ionic_liquid.simulation.reporters.append(
         StateDataReporter(
@@ -63,7 +63,7 @@ def test_outline():
         )
     )
     ionic_liquid.simulation.reporters.append(
-        DrudeTemperatureReporter("drude_temp.out", 500)
+        DrudeTemperatureReporter("drude_temp1.out", 500)
     )
 
     charge_info = {"dcd_save_freq": 500}
@@ -84,3 +84,6 @@ def test_outline():
         state_update.update(update_steps)
         ionic_liquid.simulation.step(int(sim_steps - update_steps))
     ionic_liquid.simulation.step(int(update_steps / 2))
+
+    os.remove("outline1.dcd")
+    os.remove("drude_temp1.out")
