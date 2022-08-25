@@ -96,7 +96,7 @@ if update_steps % 2 != 0:
     steps_from_update_after_reporter += 1
 
 steps_between_updates = int(time_between_updates/dt) #int division not working, dt too small
-if ((1/dt)*time_between_updates)%(1/dt)!=0:
+if ((1/dt)*time_between_updates)%(1/dt)!=0: #BUG not working if time_between_updates <1
     time_between_updates = round(steps_between_updates*dt,8)
     msg = f"Not possible to have an integer step value with {time_between_updates}/{dt}! \
             It is rounded down. Hence the effective time between updates is now {steps_between_updates*dt}"
@@ -108,16 +108,25 @@ real_steps_between_updates = steps_between_updates-update_steps #remove the step
 final_steps_between_updates = steps_from_update_after_reporter
 
 transfer_cycles = sim_time/time_between_updates
-actual_transfer_cycles = transfer_cycles -1 #-1 da die ersten steps außerhalb der loop stattfinden
 total_steps = sim_time/dt
+if file_nr == 1:
+    actual_transfer_cycles = transfer_cycles -1 #-1 da die ersten steps außerhalb der loop stattfinden
+    assert total_steps == init_steps_between_updates+(real_steps_between_updates+update_steps)*(actual_transfer_cycles)+final_steps_between_updates
+    simulation.context.setTime(0.)
+else:
+    actual_transfer_cycles = transfer_cycles
+    assert total_steps == (real_steps_between_updates+update_steps)*(actual_transfer_cycles)
+    simulation.currentStep = int(total_steps*(file_nr-1)-1)
 
-assert total_steps == init_steps_between_updates+(real_steps_between_updates+update_steps)*(actual_transfer_cycles)+final_steps_between_updates
 
 infos = {"dcd_save_freq": dcd_save_freq, "sim_time(ps)": sim_time, "update_steps": update_steps, "steps_between_updates": steps_between_updates, "dt(ps)": dt}
 charge_reporter = ChargeReporter(f"out/charge_changes_{file_nr}.out", dcd_save_freq, ionic_liquid, header_data=infos)
 ionic_liquid.simulation.reporters.append(charge_reporter)
 
-
+print(f"{init_steps_between_updates=}")
+print(f"{update_steps=}")
+print(f"{real_steps_between_updates=}")
+print(f"{final_steps_between_updates=}")
 if file_nr == 1:
     print("First run")
     ionic_liquid.simulation.step(int(init_steps_between_updates))
@@ -125,8 +134,8 @@ for step in range(1,int(actual_transfer_cycles+1)):
     print(step)
     state_update.update(int(update_steps))
     ionic_liquid.simulation.step(int(real_steps_between_updates))
-if file_nr == last_nr:
-    print(f"Last run (Nr. {last_nr})")
+if file_nr == last_run:
+    print(f"Last run (Nr. {last_run})")
     ionic_liquid.simulation.step(int(final_steps_between_updates))
 
 # restart files
