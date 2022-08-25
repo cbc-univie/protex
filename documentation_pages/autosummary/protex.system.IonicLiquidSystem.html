@@ -90,10 +90,12 @@
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>This class defines the full system, performs the MD steps and offers an
 interface for protonation state updates.</p>
-<dl class="simple">
-<dt>simulation:</dt><dd><p>the OpenMM simulation object</p>
-</dd>
-<dt>templates:</dt><dd><p>An instance of the IonicLiquidTemplates class</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>simulation</strong> – the OpenMM simulation object</p></li>
+<li><p><strong>templates</strong> – An instance of the IonicLiquidTemplates class</p></li>
+</ul>
 </dd>
 </dl>
 <p class="rubric">Methods</p>
@@ -107,10 +109,10 @@ interface for protonation state updates.</p>
 <td><p></p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#protex.system.IonicLiquidSystem.loadCheckpoint" title="protex.system.IonicLiquidSystem.loadCheckpoint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">loadCheckpoint</span></code></a></p></td>
-<td><p>Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object :Parameters: <strong>file</strong> (<em>string or file</em>) -- a File-like object to load the checkpoint from, or alternatively a              filename</p></td>
+<td><p>Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#protex.system.IonicLiquidSystem.loadState" title="protex.system.IonicLiquidSystem.loadState"><code class="xref py py-obj docutils literal notranslate"><span class="pre">loadState</span></code></a></p></td>
-<td><p>Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object :Parameters: <strong>file</strong> (<em>string or file</em>) -- a File-like object to load the state from, or alternatively a              filename</p></td>
+<td><p>Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#protex.system.IonicLiquidSystem.load_updates" title="protex.system.IonicLiquidSystem.load_updates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_updates</span></code></a></p></td>
 <td><p>Load the current update values from a yaml file, which was generated using &quot;save_updates&quot;.</p></td>
@@ -119,10 +121,10 @@ interface for protonation state updates.</p>
 <td><p>report_states prints out a summary of the current protonation state of the ionic liquid</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#protex.system.IonicLiquidSystem.saveCheckpoint" title="protex.system.IonicLiquidSystem.saveCheckpoint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">saveCheckpoint</span></code></a></p></td>
-<td><p>Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object :Parameters: <strong>file</strong> (<em>string or file</em>) -- a File-like object to write the checkpoint to, or alternatively a              filename</p></td>
+<td><p>Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#protex.system.IonicLiquidSystem.saveState" title="protex.system.IonicLiquidSystem.saveState"><code class="xref py py-obj docutils literal notranslate"><span class="pre">saveState</span></code></a></p></td>
-<td><p>Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object :Parameters: <strong>file</strong> (<em>string or file</em>) -- a File-like object to write the state to, or alternatively a              filename</p></td>
+<td><p>Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#protex.system.IonicLiquidSystem.save_updates" title="protex.system.IonicLiquidSystem.save_updates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_updates</span></code></a></p></td>
 <td><p>Save the current update values into a yaml file.</p></td>
@@ -138,28 +140,36 @@ interface for protonation state updates.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="protex.system.IonicLiquidSystem.loadCheckpoint">
 <span class="sig-name descname"><span class="pre">loadCheckpoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/protex/system.html#IonicLiquidSystem.loadCheckpoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#protex.system.IonicLiquidSystem.loadCheckpoint" title="Permalink to this definition"></a></dt>
-<dd><p>Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object
-:Parameters: <strong>file</strong> (<em>string or file</em>) – a File-like object to load the checkpoint from, or alternatively a</p>
-<blockquote>
-<div><p>filename</p>
-</div></blockquote>
+<dd><p>Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>file</strong> (<em>string or file</em>) – a File-like object to load the checkpoint from, or alternatively a
+filename</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="protex.system.IonicLiquidSystem.loadState">
 <span class="sig-name descname"><span class="pre">loadState</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/protex/system.html#IonicLiquidSystem.loadState"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#protex.system.IonicLiquidSystem.loadState" title="Permalink to this definition"></a></dt>
-<dd><p>Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object
-:Parameters: <strong>file</strong> (<em>string or file</em>) – a File-like object to load the state from, or alternatively a</p>
-<blockquote>
-<div><p>filename</p>
-</div></blockquote>
+<dd><p>Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>file</strong> (<em>string or file</em>) – a File-like object to load the state from, or alternatively a
+filename</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="protex.system.IonicLiquidSystem.load_updates">
 <span class="sig-name descname"><span class="pre">load_updates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/protex/system.html#IonicLiquidSystem.load_updates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#protex.system.IonicLiquidSystem.load_updates" title="Permalink to this definition"></a></dt>
-<dd><p>Load the current update values from a yaml file, which was generated using “save_updates”.
-:Parameters: <strong>file</strong> (<em>string or file</em>)</p>
+<dd><p>Load the current update values from a yaml file, which was generated using “save_updates”.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>file</strong> (<em>string or file</em>)</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -171,28 +181,36 @@ interface for protonation state updates.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="protex.system.IonicLiquidSystem.saveCheckpoint">
 <span class="sig-name descname"><span class="pre">saveCheckpoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/protex/system.html#IonicLiquidSystem.saveCheckpoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#protex.system.IonicLiquidSystem.saveCheckpoint" title="Permalink to this definition"></a></dt>
-<dd><p>Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object
-:Parameters: <strong>file</strong> (<em>string or file</em>) – a File-like object to write the checkpoint to, or alternatively a</p>
-<blockquote>
-<div><p>filename</p>
-</div></blockquote>
+<dd><p>Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>file</strong> (<em>string or file</em>) – a File-like object to write the checkpoint to, or alternatively a
+filename</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="protex.system.IonicLiquidSystem.saveState">
 <span class="sig-name descname"><span class="pre">saveState</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/protex/system.html#IonicLiquidSystem.saveState"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#protex.system.IonicLiquidSystem.saveState" title="Permalink to this definition"></a></dt>
-<dd><p>Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object
-:Parameters: <strong>file</strong> (<em>string or file</em>) – a File-like object to write the state to, or alternatively a</p>
-<blockquote>
-<div><p>filename</p>
-</div></blockquote>
+<dd><p>Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>file</strong> (<em>string or file</em>) – a File-like object to write the state to, or alternatively a
+filename</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="protex.system.IonicLiquidSystem.save_updates">
 <span class="sig-name descname"><span class="pre">save_updates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/protex/system.html#IonicLiquidSystem.save_updates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#protex.system.IonicLiquidSystem.save_updates" title="Permalink to this definition"></a></dt>
-<dd><p>Save the current update values into a yaml file. Used to have the current probability values.
-:Parameters: <strong>file</strong> (<em>string or file</em>)</p>
+<dd><p>Save the current update values into a yaml file. Used to have the current probability values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>file</strong> (<em>string or file</em>)</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">

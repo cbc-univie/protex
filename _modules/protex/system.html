@@ -93,19 +93,23 @@
 <span class="sd">    -----------</span>
 <span class="sd">    states:</span>
 <span class="sd">        A list of dictionary depicting the residue name and the atom name which should be changed, i.e.:</span>
-<span class="sd">        .. code-block::</span>
-<span class="sd">        IM1H_IM1 = { &quot;IM1H&quot;: {&quot;atom_name&quot;: &quot;H7&quot;, &quot;canonical_name&quot;: &quot;IM1&quot;},</span>
-<span class="sd">                     &quot;IM1&quot;: {&quot;atom_name&quot;: &quot;N2&quot;, &quot;canonical_name&quot;: &quot;IM1&quot;} }</span>
-<span class="sd">        OAC_HOAC = { &quot;OAC&quot;: {&quot;atom_name&quot;: &quot;O2&quot;, &quot;canonical_name&quot;: &quot;OAC&quot;},</span>
-<span class="sd">                     &quot;HOAC&quot;: {&quot;atom_name&quot;: &quot;H&quot;, &quot;canonical_name&quot;: &quot;OAC&quot;} }</span>
-<span class="sd">        states = [IM1H_IM1, OAC_HOAC]</span>
+
+<span class="sd">        .. code-block:: python</span>
+
+<span class="sd">            IM1H_IM1 = { &quot;IM1H&quot;: {&quot;atom_name&quot;: &quot;H7&quot;, &quot;canonical_name&quot;: &quot;IM1&quot;},</span>
+<span class="sd">                        &quot;IM1&quot;: {&quot;atom_name&quot;: &quot;N2&quot;, &quot;canonical_name&quot;: &quot;IM1&quot;} }</span>
+<span class="sd">            OAC_HOAC = { &quot;OAC&quot;: {&quot;atom_name&quot;: &quot;O2&quot;, &quot;canonical_name&quot;: &quot;OAC&quot;},</span>
+<span class="sd">                        &quot;HOAC&quot;: {&quot;atom_name&quot;: &quot;H&quot;, &quot;canonical_name&quot;: &quot;OAC&quot;} }</span>
+<span class="sd">            states = [IM1H_IM1, OAC_HOAC]</span>
 
 <span class="sd">    allowed_updates:</span>
 <span class="sd">        A dictionary specifiying which updates are possile.</span>
 <span class="sd">        Key is a frozenset with the two residue names for the update.</span>
 <span class="sd">        The values is a dictionary which specifies the maximum distance (&quot;r_max&quot;) and the probability for this update (&quot;prob&quot;)</span>
 <span class="sd">        r_max is in nanometer and the prob between 0 and 1</span>
-<span class="sd">        .. code-block::</span>
+
+<span class="sd">        .. code-block:: python</span>
+
 <span class="sd">            allowed_updates = {}</span>
 <span class="sd">            allowed_updates[frozenset([&quot;IM1H&quot;, &quot;OAC&quot;])] = {&quot;r_max&quot;: 0.155, &quot;prob&quot;: 1}</span>
 <span class="sd">            allowed_updates[frozenset([&quot;IM1&quot;, &quot;HOAC&quot;])] = {&quot;r_max&quot;: 0.155, &quot;prob&quot;: 1}</span>
@@ -144,21 +148,20 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        returns the value in the allowed updates dictionary</span>
 
-<span class="sd">        Parameters:</span>
-<span class="sd">        -----------</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
 <span class="sd">        residue_set:</span>
 <span class="sd">            dictionary key for residue_set, i.e [&quot;IM1H&quot;, &quot;OAC&quot;]</span>
 <span class="sd">        property:</span>
 <span class="sd">            dictionary key for the property defined for the residue key, i.e. prob</span>
 
-<span class="sd">        Returns:</span>
-<span class="sd">        --------</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
 <span class="sd">        float</span>
 <span class="sd">            the value of the property</span>
 
-
-<span class="sd">        Raises:</span>
-<span class="sd">        -------</span>
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
 <span class="sd">        RuntimeError</span>
 <span class="sd">            if keys do not exist</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -178,8 +181,8 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Updates a value in the allowed updates dictionary</span>
 
-<span class="sd">        Parameters:</span>
-<span class="sd">        -----------</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
 <span class="sd">        residue:</span>
 <span class="sd">            dictionary key for residue_set, i.e [&quot;IM1H&quot;,&quot;OAC&quot;]</span>
 <span class="sd">        property:</span>
@@ -187,12 +190,12 @@
 <span class="sd">        value:</span>
 <span class="sd">            the value the property should be set to</span>
 
-<span class="sd">        Returns:</span>
-<span class="sd">        --------</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
 <span class="sd">        None</span>
 
-<span class="sd">        Raises:</span>
-<span class="sd">        -------</span>
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
 <span class="sd">        RuntimeError</span>
 <span class="sd">            is raised if new residue_set or new property is trying to be inserted</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -284,8 +287,8 @@
 <span class="sd">    This class defines the full system, performs the MD steps and offers an</span>
 <span class="sd">    interface for protonation state updates.</span>
 
-<span class="sd">    Parameters:</span>
-<span class="sd">    -----------</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
 <span class="sd">    simulation:</span>
 <span class="sd">        the OpenMM simulation object</span>
 <span class="sd">    templates:</span>
@@ -610,6 +613,7 @@
 <div class="viewcode-block" id="IonicLiquidSystem.saveCheckpoint"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.IonicLiquidSystem.html#protex.system.IonicLiquidSystem.saveCheckpoint">[docs]</a>    <span class="k">def</span> <span class="nf">saveCheckpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object</span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        file: string or file</span>
@@ -620,6 +624,7 @@
 
 <div class="viewcode-block" id="IonicLiquidSystem.loadCheckpoint"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.IonicLiquidSystem.html#protex.system.IonicLiquidSystem.loadCheckpoint">[docs]</a>    <span class="k">def</span> <span class="nf">loadCheckpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object</span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        file : string or file</span>
@@ -630,6 +635,7 @@
 
 <div class="viewcode-block" id="IonicLiquidSystem.saveState"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.IonicLiquidSystem.html#protex.system.IonicLiquidSystem.saveState">[docs]</a>    <span class="k">def</span> <span class="nf">saveState</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object</span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        file : string or file</span>
@@ -640,6 +646,7 @@
 
 <div class="viewcode-block" id="IonicLiquidSystem.loadState"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.IonicLiquidSystem.html#protex.system.IonicLiquidSystem.loadState">[docs]</a>    <span class="k">def</span> <span class="nf">loadState</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object</span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        file : string or file</span>
@@ -651,6 +658,7 @@
 <div class="viewcode-block" id="IonicLiquidSystem.save_updates"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.IonicLiquidSystem.html#protex.system.IonicLiquidSystem.save_updates">[docs]</a>    <span class="k">def</span> <span class="nf">save_updates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Save the current update values into a yaml file. Used to have the current probability values.</span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        file: string or file</span>
@@ -666,6 +674,7 @@
 <div class="viewcode-block" id="IonicLiquidSystem.load_updates"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.IonicLiquidSystem.html#protex.system.IonicLiquidSystem.load_updates">[docs]</a>    <span class="k">def</span> <span class="nf">load_updates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Load the current update values from a yaml file, which was generated using &quot;save_updates&quot;.</span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        file: string or file</span>
