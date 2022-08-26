@@ -7737,7 +7737,7 @@ CD2R5C   0.0   -0.0500     2.0900 ! too big (balance with its H) PYRR, pyrrole
 CD2R5D  0.0  -0.0329  1.8000  !  TESTING  FOR  IMIM
 CD2R5E  0.0  -0.0597  1.8500  !  TESTING  FOR  IMIM
 CD2R5F   0.0   -0.1430     2.0920 ! nucleic acids, jal 
-CD2R6A   0.0   -0.0690     2.0900 ! BENZ, benzene 
+CD2R6A  0.0  -0.0346  2.0900  !  BENZ,  benzene
 CD2R6B   0.0   -0.1190     1.8700 ! PYR, pyridine (adjacent to N), jal 
 CD2R6C   0.0   -0.1070     1.8690 ! PYRM, pyrimidine (between 2 Ns), jal 
 CD2R6D   0.0   -0.0380     1.9000 ! INDO, indole: 5,6 membered ring bisector C 
@@ -7806,7 +7806,7 @@ OD2C1B   0.0   -0.2030     1.7740 ! NA bases carbonyl O, jal
 OD2C1C   0.0   -0.1750     1.8750 ! aldehydes
 OD2C1D   0.0   -0.2000     1.8500 ! ketones/aldehydes
 OD2C2A  0.0  -0.1575  1.9100  !  ACET,  EH
-OD2C2B   0.0   -0.1900     1.9700 ! DMP, cmb, 06/09, lipids
+OD2C2B  0.0  -0.1349  1.9700  !  DMP,  cmb,  06/09,  lipids
 OD2C2C   0.0   -0.0700     1.8650 ! DMP, nucleic acids
 OD2C3A  0.0  -0.1141  1.8800  !  !  0.0  -0.18  1.35  !  MAS,ACEH  EML
 OD2C3B   0.0   -0.1800     1.7500 ! from OD2C3B for lipids ! MAS,ACEH EML  JC-v2-24
@@ -7821,7 +7821,7 @@ OD30BR   0.0   -0.0200     1.7500 ! DMP, nucleic acids, copied for RNA, jal
 OD30C    0.0   -0.1720     1.7000 ! Of the MAS/ACEH series OD30C and OD31F is the only different parameter
 OD30CL   0.0   -0.1220     1.7500 ! from OD30CL for lipids: MAS/ACEH series OD30C and OD31F is the only different parameter
 OD30D    0.0   -0.1700     1.7700 ! MP_1, merge if possible
-OD30E    0.0   -0.1600     1.8600 ! Phenolate, PHET, XZ
+OD30E  0.0  -0.1098  1.8600  !  Phenolate,  PHET,  XZ
 OD305A   0.0   -0.0800     1.7200 ! THF, tetrahydrofuran, drude+lp,H2O int.+ cond phase  11/18/08 cmb 
 OD306A   0.0   -0.0800     1.7400 ! THP, tetrahydropyran, drude+lp,H2O int.+ cond phase  11/18/08 cmb 
 OD31A  0.0  -0.1116  1.7650  !  alcohols,  va
@@ -7836,7 +7836,7 @@ ODW6     0.0   -0.1620     1.7950 ! SWM6-NDP water
 ! Sulfurs 
 SD31A    0.0   -0.4300     2.0500 ! MESH 
 SD31B    0.0   -0.4200     2.0200 ! ETSH, PRSH 
-SD30A    0.0   -0.3100     2.0500 ! EMS 
+SD30A  0.0  -0.2128  2.0500  !  EMS
 SD30B    0.0   -0.3200     2.0000 ! DMDS 
 SD2C2A   0.0   -0.2000     1.8500 ! MES, thiolates
 SD2C2B   0.0   -0.1000     1.8500 ! ETS, thiolates

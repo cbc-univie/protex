@@ -317,9 +317,10 @@ class Residue:
 
         return [parm_interpolated, exceptions_interpolated]
 
-    def _get_offset(self, name):
+    def _get_offset(self, name, force_name=None):
         # get offset for atom idx
-        force_name = "HarmonicBondForce"
+        if force_name is None:
+            force_name = "HarmonicBondForce"
         return min(
             itertools.chain(
                 *[query_parm[0:2] for query_parm in self.parameters[name][force_name]]
@@ -444,15 +445,16 @@ class Residue:
         new_name = self.alternativ_name
         parm_interpolated = []
         force_name = "PeriodicTorsionForce"
-        new_parms_offset = self._get_offset(new_name)
-        old_parms_offset = self._get_offset(old_name)
+        new_parms_offset = self._get_offset(new_name, force_name=force_name)
+        old_parms_offset = self._get_offset(old_name, force_name=force_name)
 
         # match parameters
         parms_old = []
         parms_new = []
 
         for old_idx, old_parm in enumerate(self.parameters[old_name][force_name]):
-            idx1, idx2, idx3, idx4 = old_parm[0], old_parm[1], old_parm[2], old_parm[3]
+            idx1, idx2, idx3, idx4, idx5 = old_parm[0], old_parm[1], old_parm[2], old_parm[3], old_parm[4] 
+            # first 4 parms: atoms in dihedral, 5.: multiplicity -> need all 5, different multiplicities for same dihedral possible
             for new_idx, new_parm in enumerate(self.parameters[new_name][force_name]):
                 if set(
                     [
@@ -460,6 +462,7 @@ class Residue:
                         new_parm[1] - new_parms_offset,
                         new_parm[2] - new_parms_offset,
                         new_parm[3] - new_parms_offset,
+                        new_parm[4]
                     ]
                 ) == set(
                     [
@@ -467,11 +470,13 @@ class Residue:
                         idx2 - old_parms_offset,
                         idx3 - old_parms_offset,
                         idx4 - old_parms_offset,
+                        idx5
                     ]
                 ):
                     if old_idx != new_idx:
+
                         raise RuntimeError(
-                            "Odering of angle parameters is different between the two topologies."
+                            "Odering of dihedral parameters is different between the two topologies."
                         )
 
                     parms_old.append(old_parm)

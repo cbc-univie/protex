@@ -45,6 +45,7 @@ import protex
 from ..system import IonicLiquidSystem, IonicLiquidTemplates
 from ..update import NaiveMCUpdate, StateUpdate
 from ..reporter import ChargeReporter
+from ..residue import Residue
 
 from ..testsystems import (
     IM1H_IM1,
@@ -54,7 +55,7 @@ from ..testsystems import (
     generate_single_hpts_system,
 )
 
-from ..update import NaiveMCUpdate, StateUpdate
+
 
 
 ############################
@@ -571,9 +572,9 @@ def test_forces():
     atom_names = {}  # store atom_names
     names = []  # store residue names
 
-    # iterate over residues, select the first residue for HOAC and OAC and save the individual bonded forces
+    # iterate over residues, select the first residue for HPTS and HPTSH and save the individual bonded forces
     for ridx, r in enumerate(topology.residues()):
-        if r.name == "HOAC" and ridx == 657:  # match first HOAC residue
+        if r.name == "HPTS" and ridx == 1007:  # match first HPTS residue
             names.append(r.name)
             atom_idxs[r.name] = [atom.index for atom in r.atoms()]
             atom_names[r.name] = [atom.name for atom in r.atoms()]
@@ -588,7 +589,7 @@ def test_forces():
                         ):  # atom index of bond force needs to be in atom_idxs
                             force_state[r.name].append(f)
 
-        if r.name == "OAC" and ridx == 157:
+        if r.name == "HPTSH" and ridx == 1008:
             names.append(r.name)
             atom_idxs[r.name] = [atom.index for atom in r.atoms()]
             atom_names[r.name] = [atom.name for atom in r.atoms()]
@@ -639,9 +640,9 @@ def test_torsion_forces():
     atom_names = {}  # store atom_names
     names = []  # store residue names
 
-    # iterate over residues, select the first residue for HOAC and OAC and save the individual bonded forces
+    # iterate over residues, select the first residue for HPTS and HPTSH and save the individual bonded forces
     for ridx, r in enumerate(topology.residues()):
-        if r.name == "HOAC" and ridx == 657:  # match first HOAC residue
+        if r.name == "HPTS" and ridx == 1007:  # match first HPTS residue
             names.append(r.name)
             atom_idxs[r.name] = [atom.index for atom in r.atoms()]
             atom_names[r.name] = [atom.name for atom in r.atoms()]
@@ -662,9 +663,9 @@ def test_torsion_forces():
                             and idx4 in atom_idxs[r.name]
                         ):  # atom index of bond force needs to be in atom_idxs
                             force_state[r.name].append(f)
-                            print("hoac", f)
+                            print("hpts", f)
 
-        if r.name == "OAC" and ridx == 157:
+        if r.name == "HPTSH" and ridx == 1008:
             names.append(r.name)
             atom_idxs[r.name] = [atom.index for atom in r.atoms()]
             atom_names[r.name] = [atom.name for atom in r.atoms()]
@@ -684,7 +685,7 @@ def test_torsion_forces():
                             and idx4 in atom_idxs[r.name]
                         ):
                             force_state[r.name].append(f)
-                            print("oac", f)
+                            print("hpts", f)
 
     if len(force_state[names[0]]) != len(
         force_state[names[1]]
@@ -710,9 +711,9 @@ def test_torsion_forces():
         for f in force_state[names[1]]:
             print(f)
 
-    # iterate over residues, select the first residue for HOAC and OAC and save the individual bonded forces
+    # iterate over residues, select the first residue for HPTS and HPTSH and save the individual bonded forces
     for ridx, r in enumerate(topology.residues()):
-        if r.name == "HOAC" and ridx == 657:  # match first HOAC residue
+        if r.name == "HPTS" and ridx == 1007:  # match first HPTS residue
             names.append(r.name)
             atom_idxs[r.name] = [atom.index for atom in r.atoms()]
             atom_names[r.name] = [atom.name for atom in r.atoms()]
@@ -733,9 +734,9 @@ def test_torsion_forces():
                             and idx4 in atom_idxs[r.name]
                         ):  # atom index of bond force needs to be in atom_idxs
                             force_state[r.name].append(f)
-                            print("hoac", f)
+                            print("hpts", f)
 
-        if r.name == "OAC" and ridx == 157:
+        if r.name == "HPTSH" and ridx == 1008:
             names.append(r.name)
             atom_idxs[r.name] = [atom.index for atom in r.atoms()]
             atom_names[r.name] = [atom.name for atom in r.atoms()]
@@ -755,7 +756,7 @@ def test_torsion_forces():
                             and idx4 in atom_idxs[r.name]
                         ):
                             force_state[r.name].append(f)
-                            print("oac", f)
+                            print("hptsh", f)
 
     if len(force_state[names[0]]) != len(
         force_state[names[1]]
@@ -1202,3 +1203,169 @@ def test_pbc():
     assert (
         len(distance_pbc[distance_pbc > boxl]) == 0
     ), "After correcting for PBC no distance should be larger than the boxlength"
+
+
+@pytest.mark.skipif(
+    os.getenv("CI") == "true",
+    reason="Will fail sporadicaly.",
+)
+def test_residue_forces():
+    simulation = generate_hpts_system()
+    allowed_updates = {}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.15, "prob": 1}
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.15, "prob": 1}
+    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.15, "prob": 1} # 1+2
+    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 1} # 3+4
+    allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000} 
+    allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.15, "prob":1.000} 
+    allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000} 
+    allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000} 
+    allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000} 
+    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1, HPTSH_HPTS], (allowed_updates))
+    ionic_liquid = IonicLiquidSystem(simulation, templates)
+
+    oac = ionic_liquid.residues[157]
+    hoac = ionic_liquid.residues[657]
+
+    offset1 = oac._get_offset("OAC")
+    offset2 = hoac._get_offset("HOAC")
+
+    ### test if number of forces are equal
+    # for force in ("NonbondedForce", "HarmonicBondForce", "HarmonicAngleForce", "PeriodicTorsionForce", "CustomTorsionForce", "DrudeForce"):
+    #     print(f"{force=}")
+    #     par1 = hpts.parameters["HPTS"][force]
+    #     par2 = hptsh.parameters["HPTSH"][force]
+    #     assert len(par1) == len(par2)
+
+    ### test indices
+    
+
+    print("force=HarmonicBondForce")
+    for old_idx, old_parm in enumerate(oac.parameters["OAC"]["HarmonicBondForce"]):
+        idx1, idx2 = old_parm[0], old_parm[1]
+        for new_idx, new_parm in enumerate(hoac.parameters["HOAC"]["HarmonicBondForce"]):
+            if set(
+                [new_parm[0] - offset2, new_parm[1] - offset2]
+            ) == set([idx1 - offset1, idx2 - offset1]):
+                if old_idx != new_idx:
+                    print(old_idx, new_idx)
+                    raise RuntimeError(
+                            "Odering is different between the two topologies."
+                    )
+
+    # print("force=DrudeForce")
+    # for old_idx, old_parm in enumerate(oac.parameters["OAC"]["DrudeForce"]):
+    #     idx1, idx2 = old_parm[0], old_parm[1]
+    #     for new_idx, new_parm in enumerate(hoac.parameters["HOAC"]["DrudeForce"]):
+    #         if set(
+    #             [new_parm[0] - offset2, new_parm[1] - offset2]
+    #         ) == set([idx1 - offset1, idx2 - offset1]):
+    #             if old_idx != new_idx:
+    #                 raise RuntimeError(
+    #                         "Odering is different between the two topologies."
+    #                 )
+
+    # print("force=HarmonicAngleForce")
+    # for old_idx, old_parm in enumerate(hpts.parameters["HPTS"]["HarmonicAngleForce"]):
+    #         idx1, idx2, idx3 = old_parm[0], old_parm[1], old_parm[2]
+    #         for new_idx, new_parm in enumerate(hptsh.parameters["HPTSH"]["HarmonicAngleForce"]):
+    #             if set(
+    #                 [new_parm[0] - offset2, new_parm[1] - offset2, new_parm[2] - offset2]
+    #             ) == set([idx1 - offset1, idx2 - offset1, idx3 - offset1]):
+    #                 if old_idx != new_idx:
+    #                     raise RuntimeError(
+    #                          "Odering is different between the two topologies."
+    #                     )
+ 
+    # print("force=PeriodicTorsionForce")    
+    # for old_idx, old_parm in enumerate(hpts.parameters["HPTS"]["PeriodicTorsionForce"]):
+    #     idx1, idx2, idx3, idx4, idx5 = old_parm[0], old_parm[1], old_parm[2], old_parm[3], old_parm[4]
+    #     for new_idx, new_parm in enumerate(hptsh.parameters["HPTSH"]["PeriodicTorsionForce"]):
+    #         if set(
+    #             [new_parm[0] - offset2, new_parm[1] - offset2, new_parm[2] - offset2, new_parm[3] - offset2, new_parm[4]]
+    #         ) == set([idx1 - offset1, idx2 - offset1, idx3 - offset1, idx4 - offset1, idx5]):
+    #             if old_idx != new_idx:
+    #                 raise RuntimeError(
+    #                         "Odering is different between the two topologies."
+    #                 )
+
+    # print("force=CustomTorsionForce")    
+    # for old_idx, old_parm in enumerate(hpts.parameters["HPTS"]["CustomTorsionForce"]):
+    #     idx1, idx2, idx3, idx4 = old_parm[0], old_parm[1], old_parm[2], old_parm[3]
+    #     for new_idx, new_parm in enumerate(hptsh.parameters["HPTSH"]["CustomTorsionForce"]):
+    #         if set(
+    #             [new_parm[0] - offset2, new_parm[1] - offset2, new_parm[2] - offset2, new_parm[3] - offset2]
+    #         ) == set([idx1 - offset1, idx2 - offset1, idx3 - offset1, idx4 - offset1]):
+    #             if old_idx != new_idx:
+    #                 raise RuntimeError(
+    #                         "Odering is different between the two topologies."
+    #                 )
+    
+    # for old_idx, old_parm in enumerate(hpts.parameters["HPTS"]["PeriodicTorsionForce"]):
+    #         idx1, idx2, idx3, idx4 = old_parm[0], old_parm[1], old_parm[2], old_parm[3]
+    #         for new_idx, new_parm in enumerate(hptsh.parameters["HPTSH"]["PeriodicTorsionForce"]):
+    #             if set(
+    #                 [new_parm[0] - offset2, new_parm[1] - offset2, new_parm[2] - offset2, new_parm[3] - offset2]
+    #             ) == set([idx1 - offset1, idx2 - offset1, idx3 - offset1, idx4 - offset1]):
+    #                 if old_idx != new_idx:
+    #                     print(old_idx, new_idx)
+    #                     for force in simulation.system.getForces():
+    #                         if type(force).__name__ == "PeriodicTorsionForce":
+    #                             for torsion_id in range(force.getNumTorsions()):
+    #                                 f = force.getTorsionParameters(torsion_id)
+    #                                 if (
+    #                                     f[0] in old_parm
+    #                                     and f[1] in old_parm
+    #                                     and f[2] in old_parm
+    #                                     and f[3] in old_parm
+    #                                 ):
+    #                                     print("old force", f)
+    #                                 if (
+    #                                     f[0] in new_parm
+    #                                     and f[1] in new_parm
+    #                                     and f[2] in new_parm
+    #                                     and f[3] in new_parm
+    #                                 ):
+    #                                     print("new force", f)
+
+                        # raise RuntimeError(
+                        #      "Odering is different between the two topologies."
+                        # )
+
+def test_Force():
+    simulation = generate_hpts_system()
+    allowed_updates = {}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.15, "prob": 1}
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.15, "prob": 1}
+    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.15, "prob": 1} # 1+2
+    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 1} # 3+4
+    allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000} 
+    allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.15, "prob":1.000} 
+    allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000} 
+    allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000} 
+    allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000} 
+    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1, HPTSH_HPTS], (allowed_updates))
+    ionic_liquid = IonicLiquidSystem(simulation, templates)
+
+    oac = ionic_liquid.residues[157]
+    hoac = ionic_liquid.residues[657]
+
+    offset1 = oac._get_offset("OAC")
+    offset2 = hoac._get_offset("HOAC")
+
+
+    for old_idx, old_parm in enumerate(oac.parameters["OAC"]["HarmonicBondForce"]):
+        idx1, idx2 = old_parm[0]-offset1, old_parm[1]-offset1
+        f = open("oac_bonds.txt", "a")
+        f.write(str(old_idx) +"\t"+ str(idx1) +"\t"+ str(idx2) +"\n")
+        f.close()
+
+
+    for new_idx, new_parm in enumerate(hoac.parameters["HOAC"]["HarmonicBondForce"]):
+        id1, id2 = new_parm[0]-offset2, new_parm[1]-offset2
+        g = open("hoac_bonds.txt", "a")
+        g.write(str(new_idx) +"\t"+ str(id1) +"\t"+ str(id2) +"\n")
+        g.close()
+
+    
+
