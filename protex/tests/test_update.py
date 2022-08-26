@@ -865,7 +865,7 @@ def test_adapt_probabilities(caplog):
     caplog.set_level(logging.DEBUG)
     # check that residue and frozeset match
     try:
-        to_adapt = [("OAC", 150, frozenset(["IM1H", "HOAC"]))]
+        to_adapt = [("OAC", 150, frozenset(["IM1H", "HOAC"]), 1)]
         update = NaiveMCUpdate(ionic_liquid, to_adapt)
         update._adapt_probabilities(to_adapt)
     except AssertionError as e:
@@ -874,8 +874,8 @@ def test_adapt_probabilities(caplog):
     # check that not duplicate sets
     try:
         to_adapt = [
-            ("OAC", 150, frozenset(["IM1H", "OAC"])),
-            ("OAC", 140, frozenset(["IM1H", "OAC"])),
+            ("OAC", 150, frozenset(["IM1H", "OAC"]), 1),
+            ("OAC", 140, frozenset(["IM1H", "OAC"]), 1),
         ]
         update = NaiveMCUpdate(ionic_liquid, to_adapt)
         update._adapt_probabilities(to_adapt)
@@ -884,7 +884,7 @@ def test_adapt_probabilities(caplog):
         print(e)
     # check that set is an allowed update set
     try:
-        to_adapt = [("HOAC", 350, frozenset(["IM1", "HOAC"]))]
+        to_adapt = [("HOAC", 350, frozenset(["IM1", "HOAC"]), 1)]
         update = NaiveMCUpdate(ionic_liquid, to_adapt)
         update._adapt_probabilities(to_adapt)
     except RuntimeError as e:

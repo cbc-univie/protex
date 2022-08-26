@@ -125,7 +125,7 @@ class NaiveMCUpdate(Update):
         # )
 
     def _adapt_probabilities(
-        self, to_adapt=list[tuple[str, int, frozenset[str]]]
+        self, to_adapt=list[tuple[str, int, frozenset[str], float]]
     ) -> None:
         """
         Adapt the probability for certain events depending on the current equilibrium, in order to stay close to a given reference
@@ -136,22 +136,25 @@ class NaiveMCUpdate(Update):
         to_adapt: List of tuples with first the residue name of the species,
             the number of residues of this species in the system
             and the specific reaction in which this species occurs and the probability should be updated
+            reference probability
         """
+        n_residues = len(self.ionic_liquid.residues)
         # check that there are not duplicate frozen sets
         counts = Counter(s[2] for s in to_adapt)
         assert (
             len([e for e, c in counts.items() if c > 1]) == 0
         ), "No duplicates for the transfer reactions allowed!"
 
-        K = 300
+        K = 2000
         current_numbers: dict[
             str, int
         ] = self.ionic_liquid.get_current_number_of_each_residue_type()
         for entry_tuple in to_adapt:
-            res_name, initial_number, update_set = (
+            res_name, initial_number, update_set, ref_prob = (
                 entry_tuple[0],
                 entry_tuple[1],
                 entry_tuple[2],
+                entry_tuple[3],
             )
             assert res_name in update_set, "Resname not in update set"
             try:
@@ -164,13 +167,15 @@ class NaiveMCUpdate(Update):
             logger.debug(
                 f"{res_name=}, {initial_number=}, {current_number=}, {update_set=}"
             )
-            perc_change = current_number / initial_number
-            factor = K * (perc_change - 1) ** 3
-            logger.debug(f"{perc_change=}, {factor=}")
+            perc_init = initial_number / n_residues
+            perc_now = current_number / n_residues
+            factor = K * (perc_now - perc_init) ** 3
+            logger.debug(f"{perc_now=}, {factor=}")
             new_prob = (
                 self.ionic_liquid.templates.get_update_value_for(update_set, "prob")
                 + factor
             )
+            # new_prob = ref_prob + factor
             if new_prob > 1:
                 logger.info(
                     f"Probability set to 1, cannot be greater. (Was: {new_prob})"
