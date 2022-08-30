@@ -231,6 +231,7 @@ class IonicLiquidSystem:
         self,
         simulation: openmm.app.simulation.Simulation,
         templates: IonicLiquidTemplates,
+        simulation_for_parameters: openmm.app.simulation.Simulation = None
     ) -> None:
         self.system: openmm.openmm.System = simulation.system
         self.topology: openmm.app.topology.Topology = simulation.topology
@@ -240,6 +241,7 @@ class IonicLiquidSystem:
         self.boxlength: float = (
             simulation.context.getState().getPeriodicBoxVectors()[0][0]._value
         )  # NOTE: supports only cubic boxes
+        self.simulation_for_parameters = simulation_for_parameters
 
     def get_current_number_of_each_residue_type(self) -> dict[str, int]:
         current_number_of_each_residue_type = defaultdict(int)
@@ -280,15 +282,20 @@ class IonicLiquidSystem:
     def _extract_templates(self, query_name: str) -> defaultdict:
         # returns the forces for the residue name
         forces_dict = defaultdict(list)
+        sim = None
+        if self.simulation_for_parameters is not None:
+            sim = self.simulation_for_parameters
+        else:
+            sim = self.simulation
 
-        for residue in self.topology.residues():
+        for residue in sim.topology.residues():
             if query_name == residue.name:
                 atom_idxs = [atom.index for atom in residue.atoms()]
                 atom_names = [atom.name for atom in residue.atoms()]
                 logger.debug(atom_idxs)
                 logger.debug(atom_names)
 
-                for force in self.system.getForces():
+                for force in sim.system.getForces():
                     # print(type(force).__name__)
                     if type(force).__name__ == "NonbondedForce":
                         forces_dict[type(force).__name__] = [
@@ -373,6 +380,8 @@ class IonicLiquidSystem:
                                 # print(f"{drude1=}, {drude2=}")
                                 forces_dict[type(force).__name__ + "Thole"].append(f)
                 break  # do this only for the relevant amino acid once
+        else:
+            raise RuntimeError("residue not found")
         return forces_dict
 
     @staticmethod

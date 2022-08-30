@@ -588,6 +588,7 @@ def test_forces():
                             idx1 in atom_idxs[r.name] and idx2 in atom_idxs[r.name]
                         ):  # atom index of bond force needs to be in atom_idxs
                             force_state[r.name].append(f)
+                        else:
 
         if r.name == "HPTSH" and ridx == 1008:
             names.append(r.name)
