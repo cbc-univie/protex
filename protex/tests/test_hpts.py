@@ -1226,9 +1226,17 @@ def test_residue_forces():
 
     oac = ionic_liquid.residues[157]
     hoac = ionic_liquid.residues[657]
+    im1h = ionic_liquid.residues[0]
+    im1 = ionic_liquid.residues[307]
+    hpts = ionic_liquid.residues[1007]
+    hptsh = ionic_liquid.residues[1008]
 
-    offset1 = oac._get_offset("OAC")
-    offset2 = hoac._get_offset("HOAC")
+    offset_oac = oac._get_offset("OAC")
+    offset_hoac = hoac._get_offset("HOAC")
+    offset_im1h = im1h._get_offset("IM1H")
+    offset_im1 = im1._get_offset("IM1")
+    offset_hpts = hpts._get_offset("HPTS")
+    offset_hptsh = hptsh._get_offset("HPTSH")
 
     ### test if number of forces are equal
     # for force in ("NonbondedForce", "HarmonicBondForce", "HarmonicAngleForce", "PeriodicTorsionForce", "CustomTorsionForce", "DrudeForce"):
@@ -1240,18 +1248,18 @@ def test_residue_forces():
     ### test indices
     
 
-    print("force=HarmonicBondForce")
-    for old_idx, old_parm in enumerate(oac.parameters["OAC"]["HarmonicBondForce"]):
-        idx1, idx2 = old_parm[0], old_parm[1]
-        for new_idx, new_parm in enumerate(hoac.parameters["HOAC"]["HarmonicBondForce"]):
-            if set(
-                [new_parm[0] - offset2, new_parm[1] - offset2]
-            ) == set([idx1 - offset1, idx2 - offset1]):
-                if old_idx != new_idx:
-                    print(old_idx, new_idx)
-                    raise RuntimeError(
-                            "Odering is different between the two topologies."
-                    )
+    # print("force=HarmonicBondForce")
+    # for old_idx, old_parm in enumerate(oac.parameters["OAC"]["HarmonicBondForce"]):
+    #     idx1, idx2 = old_parm[0], old_parm[1]
+    #     for new_idx, new_parm in enumerate(hoac.parameters["HOAC"]["HarmonicBondForce"]):
+    #         if set(
+    #             [new_parm[0] - offset2, new_parm[1] - offset2]
+    #         ) == set([idx1 - offset1, idx2 - offset1]):
+    #             if old_idx != new_idx:
+    #                 print(old_idx, new_idx)
+    #                 raise RuntimeError(
+    #                         "Odering is different between the two topologies."
+    #                 )
 
     # print("force=DrudeForce")
     # for old_idx, old_parm in enumerate(oac.parameters["OAC"]["DrudeForce"]):
@@ -1300,39 +1308,62 @@ def test_residue_forces():
     #                 raise RuntimeError(
     #                         "Odering is different between the two topologies."
     #                 )
-    
-    # for old_idx, old_parm in enumerate(hpts.parameters["HPTS"]["PeriodicTorsionForce"]):
-    #         idx1, idx2, idx3, idx4 = old_parm[0], old_parm[1], old_parm[2], old_parm[3]
-    #         for new_idx, new_parm in enumerate(hptsh.parameters["HPTSH"]["PeriodicTorsionForce"]):
-    #             if set(
-    #                 [new_parm[0] - offset2, new_parm[1] - offset2, new_parm[2] - offset2, new_parm[3] - offset2]
-    #             ) == set([idx1 - offset1, idx2 - offset1, idx3 - offset1, idx4 - offset1]):
-    #                 if old_idx != new_idx:
-    #                     print(old_idx, new_idx)
-    #                     for force in simulation.system.getForces():
-    #                         if type(force).__name__ == "PeriodicTorsionForce":
-    #                             for torsion_id in range(force.getNumTorsions()):
-    #                                 f = force.getTorsionParameters(torsion_id)
-    #                                 if (
-    #                                     f[0] in old_parm
-    #                                     and f[1] in old_parm
-    #                                     and f[2] in old_parm
-    #                                     and f[3] in old_parm
-    #                                 ):
-    #                                     print("old force", f)
-    #                                 if (
-    #                                     f[0] in new_parm
-    #                                     and f[1] in new_parm
-    #                                     and f[2] in new_parm
-    #                                     and f[3] in new_parm
-    #                                 ):
-    #                                     print("new force", f)
 
-                        # raise RuntimeError(
-                        #      "Odering is different between the two topologies."
-                        # )
 
-def test_Force():
+    for old_idx, old_parm in enumerate(hoac.parameters["HOAC"]["PeriodicTorsionForce"]):
+        idx1, idx2, idx3, idx4, idx5 = old_parm[0], old_parm[1], old_parm[2], old_parm[3], old_parm[4]
+        for new_idx, new_parm in enumerate(oac.parameters["OAC"]["PeriodicTorsionForce"]):
+            if set(
+                [new_parm[0] - offset_oac, new_parm[1] - offset_oac, new_parm[2] - offset_oac, new_parm[3] - offset_oac, new_parm[4]]
+            ) == set([idx1 - offset_hoac, idx2 - offset_hoac, idx3 - offset_hoac, idx4 - offset_hoac, idx5]):
+                if old_idx != new_idx:
+                    print(old_idx, new_idx)
+                    for force in simulation.system.getForces():
+                        if type(force).__name__ == "PeriodicTorsionForce":
+                            for torsion_id in range(force.getNumTorsions()):
+                                f = force.getTorsionParameters(torsion_id)
+                                if (
+                                    f[0] in old_parm
+                                    and f[1] in old_parm
+                                    and f[2] in old_parm
+                                    and f[3] in old_parm
+                                ):
+                                    print("old force", f)
+                                if (
+                                    f[0] in new_parm
+                                    and f[1] in new_parm
+                                    and f[2] in new_parm
+                                    and f[3] in new_parm
+                                ):
+                                    print("new force", f)
+
+                    raise RuntimeError(
+                            "Odering is different between the two topologies."
+                    )
+                break
+
+        else:
+            for force in simulation.system.getForces():
+                if type(force).__name__ == "PeriodicTorsionForce":
+                    for torsion_id in range(force.getNumTorsions()):
+                        f = force.getTorsionParameters(torsion_id)
+                        if (
+                            f[0] in old_parm
+                            and f[1] in old_parm
+                            and f[2] in old_parm
+                            and f[3] in old_parm
+                        ):
+                            print(old_idx, "old force", f)
+                        if (
+                            f[0] in new_parm
+                            and f[1] in new_parm
+                            and f[2] in new_parm
+                            and f[3] in new_parm
+                        ):
+                            print(new_idx, "new force", f)
+            raise RuntimeError()
+
+def test_list_torsionforce():
     simulation = generate_hpts_system()
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.15, "prob": 1}
@@ -1354,18 +1385,164 @@ def test_Force():
     offset2 = hoac._get_offset("HOAC")
 
 
-    for old_idx, old_parm in enumerate(oac.parameters["OAC"]["HarmonicBondForce"]):
-        idx1, idx2 = old_parm[0]-offset1, old_parm[1]-offset1
-        f = open("oac_bonds.txt", "a")
-        f.write(str(old_idx) +"\t"+ str(idx1) +"\t"+ str(idx2) +"\n")
+    for old_idx, old_parm in enumerate(oac.parameters["OAC"]["PeriodicTorsionForce"]):
+        idx1, idx2, idx3, idx4, idx5, idx6, idx7 = old_parm[0]-offset1, old_parm[1]-offset1, old_parm[2]-offset1, old_parm[3]-offset1, old_parm[4], old_parm[5], old_parm[6]
+        f = open("oac_torsion.txt", "a")
+        f.write(str(old_idx) +"\t"+ str(idx1) +"\t"+ str(idx2) +"\t"+ str(idx3)+"\t"+ str(idx4)+"\t"+ str(idx5)+"\t"+ str(idx6)+"\t"+ str(idx7) +"\n")
         f.close()
 
 
-    for new_idx, new_parm in enumerate(hoac.parameters["HOAC"]["HarmonicBondForce"]):
-        id1, id2 = new_parm[0]-offset2, new_parm[1]-offset2
-        g = open("hoac_bonds.txt", "a")
-        g.write(str(new_idx) +"\t"+ str(id1) +"\t"+ str(id2) +"\n")
+    for new_idx, new_parm in enumerate(hoac.parameters["HOAC"]["PeriodicTorsionForce"]):
+        id1, id2, id3, id4, id5, id6, id7 = new_parm[0]-offset2, new_parm[1]-offset2, new_parm[2]-offset2, new_parm[3]-offset2, new_parm[4], new_parm[5], new_parm[6]
+        g = open("hoac_torsion.txt", "a")
+        g.write(str(new_idx) +"\t"+ str(id1) +"\t"+ str(id2)+"\t"+ str(id3)+"\t"+ str(id4)+"\t"+ str(id5)+"\t"+ str(id6)+"\t"+ str(id7) +"\n")
         g.close()
 
-    
+def test_count_forces():
+    simulation = generate_hpts_system()
+    allowed_updates = {}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.15, "prob": 1}
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.15, "prob": 1}
+    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.15, "prob": 1} # 1+2
+    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 1} # 3+4
+    allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000} 
+    allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.15, "prob":1.000} 
+    allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000} 
+    allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000} 
+    allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000} 
+    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1, HPTSH_HPTS], (allowed_updates))
+    ionic_liquid = IonicLiquidSystem(simulation, templates)
 
+    oac = ionic_liquid.residues[157]
+    hoac = ionic_liquid.residues[657]
+    im1h = ionic_liquid.residues[0]
+    im1 = ionic_liquid.residues[307]
+    hpts = ionic_liquid.residues[1007]
+    hptsh = ionic_liquid.residues[1008]
+
+
+    ### change res and pair (alternative of res) to test different molecules
+    res = oac
+    pair = hoac
+
+    offset = res._get_offset(res.current_name)
+    offset_pair = pair._get_offset(pair.current_name)
+
+    ### make list of atoms in dihedrals, check if there are duplicates
+    torsions=[]
+
+
+    for old_idx, old_parm in enumerate(res.parameters[res.current_name]["PeriodicTorsionForce"]):
+        idx1, idx2, idx3, idx4 = old_parm[0]-offset, old_parm[1]-offset, old_parm[2]-offset, old_parm[3]-offset
+        ids = [idx1, idx2, idx3, idx4]
+        torsions.append(ids)
+
+    #print(torsions)
+
+    for old_idx, old_parm in enumerate(res.parameters[res.current_name]["PeriodicTorsionForce"]):
+        idx1, idx2, idx3, idx4, idx5 = old_parm[0]-offset, old_parm[1]-offset, old_parm[2]-offset, old_parm[3]-offset, old_parm[4]
+        ids = [idx1, idx2, idx3, idx4]
+        print(ids)
+        print(torsions.count(ids))       
+        if torsions.count(ids) == 1:
+            print("count id 1, in branch without multiplicity")
+            for new_idx, new_parm in enumerate(pair.parameters[pair.current_name]["PeriodicTorsionForce"]):
+                if set(
+                    [new_parm[0] - offset_pair, new_parm[1] - offset_pair, new_parm[2] - offset_pair, new_parm[3] - offset_pair]
+                ) == set([idx1, idx2, idx3, idx4]):
+                    if old_idx != new_idx:
+                        print(old_idx, new_idx)
+                        for force in simulation.system.getForces():
+                            if type(force).__name__ == "PeriodicTorsionForce":
+                                for torsion_id in range(force.getNumTorsions()):
+                                    f = force.getTorsionParameters(torsion_id)
+                                    if (
+                                        f[0] in old_parm
+                                        and f[1] in old_parm
+                                        and f[2] in old_parm
+                                        and f[3] in old_parm
+                                    ):
+                                        print("old force", f)
+                                    if (
+                                        f[0] in new_parm
+                                        and f[1] in new_parm
+                                        and f[2] in new_parm
+                                        and f[3] in new_parm
+                                    ):
+                                        print("new force", f)
+                        raise RuntimeError(
+                                "Odering is different between the two topologies."
+                        )
+                    break
+
+            else:
+                for force in simulation.system.getForces():
+                    if type(force).__name__ == "PeriodicTorsionForce":
+                        for torsion_id in range(force.getNumTorsions()):
+                            f = force.getTorsionParameters(torsion_id)
+                            if (
+                                f[0] in old_parm
+                                and f[1] in old_parm
+                                and f[2] in old_parm
+                                and f[3] in old_parm
+                            ):
+                                print(old_idx, "old force", f)
+                            if (
+                                f[0] in new_parm
+                                and f[1] in new_parm
+                                and f[2] in new_parm
+                                and f[3] in new_parm
+                            ):
+                                print(new_idx, "new force", f)
+                raise RuntimeError()
+        else:
+            print("count id != 1, in branch with multiplicities")
+            for new_idx, new_parm in enumerate(pair.parameters[pair.current_name]["PeriodicTorsionForce"]):
+                if set(
+                    [new_parm[0] - offset_pair, new_parm[1] - offset_pair, new_parm[2] - offset_pair, new_parm[3] - offset_pair, new_parm[4]]
+                ) == set([idx1 , idx2, idx3, idx4, idx5]):
+                    if old_idx != new_idx:
+                        print(old_idx, new_idx)
+                        for force in simulation.system.getForces():
+                            if type(force).__name__ == "PeriodicTorsionForce":
+                                for torsion_id in range(force.getNumTorsions()):
+                                    f = force.getTorsionParameters(torsion_id)
+                                    if (
+                                        f[0] in old_parm
+                                        and f[1] in old_parm
+                                        and f[2] in old_parm
+                                        and f[3] in old_parm
+                                    ):
+                                        print("old force", f)
+                                    if (
+                                        f[0] in new_parm
+                                        and f[1] in new_parm
+                                        and f[2] in new_parm
+                                        and f[3] in new_parm
+                                    ):
+                                        print("new force", f)
+                        raise RuntimeError(
+                                "Odering is different between the two topologies."
+                        )
+                    break
+
+            else:
+                for force in simulation.system.getForces():
+                    if type(force).__name__ == "PeriodicTorsionForce":
+                        for torsion_id in range(force.getNumTorsions()):
+                            f = force.getTorsionParameters(torsion_id)
+                            if (
+                                f[0] in old_parm
+                                and f[1] in old_parm
+                                and f[2] in old_parm
+                                and f[3] in old_parm
+                            ):
+                                print(old_idx, "old force", f)
+                            if (
+                                f[0] in new_parm
+                                and f[1] in new_parm
+                                and f[2] in new_parm
+                                and f[3] in new_parm
+                            ):
+                                print(new_idx, "new force", f)
+                raise RuntimeError()
