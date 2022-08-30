@@ -300,6 +300,7 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">simulation</span><span class="p">:</span> <span class="n">openmm</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">Simulation</span><span class="p">,</span>
         <span class="n">templates</span><span class="p">:</span> <span class="n">IonicLiquidTemplates</span><span class="p">,</span>
+        <span class="n">simulation_for_parameters</span><span class="p">:</span> <span class="n">openmm</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">Simulation</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="p">:</span> <span class="n">openmm</span><span class="o">.</span><span class="n">openmm</span><span class="o">.</span><span class="n">System</span> <span class="o">=</span> <span class="n">simulation</span><span class="o">.</span><span class="n">system</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">topology</span><span class="p">:</span> <span class="n">openmm</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">topology</span><span class="o">.</span><span class="n">Topology</span> <span class="o">=</span> <span class="n">simulation</span><span class="o">.</span><span class="n">topology</span>
@@ -309,6 +310,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">boxlength</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">simulation</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">getState</span><span class="p">()</span><span class="o">.</span><span class="n">getPeriodicBoxVectors</span><span class="p">()[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">_value</span>
         <span class="p">)</span>  <span class="c1"># NOTE: supports only cubic boxes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">simulation_for_parameters</span> <span class="o">=</span> <span class="n">simulation_for_parameters</span>
 
     <span class="k">def</span> <span class="nf">get_current_number_of_each_residue_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
         <span class="n">current_number_of_each_residue_type</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
@@ -349,15 +351,20 @@
     <span class="k">def</span> <span class="nf">_extract_templates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">defaultdict</span><span class="p">:</span>
         <span class="c1"># returns the forces for the residue name</span>
         <span class="n">forces_dict</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+        <span class="n">sim</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">simulation_for_parameters</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">sim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">simulation_for_parameters</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">simulation</span>
 
-        <span class="k">for</span> <span class="n">residue</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">topology</span><span class="o">.</span><span class="n">residues</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">residue</span> <span class="ow">in</span> <span class="n">sim</span><span class="o">.</span><span class="n">topology</span><span class="o">.</span><span class="n">residues</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">query_name</span> <span class="o">==</span> <span class="n">residue</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
                 <span class="n">atom_idxs</span> <span class="o">=</span> <span class="p">[</span><span class="n">atom</span><span class="o">.</span><span class="n">index</span> <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">residue</span><span class="o">.</span><span class="n">atoms</span><span class="p">()]</span>
                 <span class="n">atom_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">atom</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">residue</span><span class="o">.</span><span class="n">atoms</span><span class="p">()]</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">atom_idxs</span><span class="p">)</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">atom_names</span><span class="p">)</span>
 
-                <span class="k">for</span> <span class="n">force</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">getForces</span><span class="p">():</span>
+                <span class="k">for</span> <span class="n">force</span> <span class="ow">in</span> <span class="n">sim</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">getForces</span><span class="p">():</span>
                     <span class="c1"># print(type(force).__name__)</span>
                     <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">force</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;NonbondedForce&quot;</span><span class="p">:</span>
                         <span class="n">forces_dict</span><span class="p">[</span><span class="nb">type</span><span class="p">(</span><span class="n">force</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
@@ -442,6 +449,8 @@
                                 <span class="c1"># print(f&quot;{drude1=}, {drude2=}&quot;)</span>
                                 <span class="n">forces_dict</span><span class="p">[</span><span class="nb">type</span><span class="p">(</span><span class="n">force</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">+</span> <span class="s2">&quot;Thole&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
                 <span class="k">break</span>  <span class="c1"># do this only for the relevant amino acid once</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;residue not found&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">forces_dict</span>
 
     <span class="nd">@staticmethod</span>
