@@ -237,11 +237,11 @@ class IonicLiquidSystem:
         self.topology: openmm.app.topology.Topology = simulation.topology
         self.simulation: openmm.app.simulation.Simulation = simulation
         self.templates: IonicLiquidTemplates = templates
+        self.simulation_for_parameters = simulation_for_parameters
         self.residues: list[Residue] = self._set_initial_states()
         self.boxlength: float = (
             simulation.context.getState().getPeriodicBoxVectors()[0][0]._value
         )  # NOTE: supports only cubic boxes
-        self.simulation_for_parameters = simulation_for_parameters
 
     def get_current_number_of_each_residue_type(self) -> dict[str, int]:
         current_number_of_each_residue_type = defaultdict(int)
