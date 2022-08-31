@@ -844,7 +844,7 @@ def test_write_psf_save_load():
     state_update.update(2)
 
     ionic_liquid.write_psf(old_psf_file, "test2.psf")
-    # os.remove("test2.psf")
+    os.remove("test2.psf")
     ionic_liquid.saveState("state.rst")
     ionic_liquid.saveCheckpoint("checkpoint.rst")
 
