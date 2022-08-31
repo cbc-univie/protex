@@ -12,6 +12,7 @@ Welcome to protex's documentation!
 
    ./documentation_pages/getting_started
    ./documentation_pages/quickstart
+   ./documentation_pages/use_cases
    ./documentation_pages/api
 
 
