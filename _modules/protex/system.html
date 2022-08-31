@@ -583,16 +583,13 @@
             <span class="n">pm_residue</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
             <span class="n">pm_residue</span><span class="o">.</span><span class="n">chain</span> <span class="o">=</span> <span class="n">name</span>
             <span class="n">pm_residue</span><span class="o">.</span><span class="n">segid</span> <span class="o">=</span> <span class="n">name</span>
+            <span class="n">pm_residue</span><span class="o">.</span><span class="n">number</span> <span class="o">=</span> <span class="n">residue_counts</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
             <span class="k">for</span> <span class="n">unique_atom</span><span class="p">,</span> <span class="n">pm_atom</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
                 <span class="n">pm_unique_residues</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">atoms</span><span class="p">,</span> <span class="n">pm_residue</span><span class="o">.</span><span class="n">atoms</span>
             <span class="p">):</span>
                 <span class="n">pm_atom</span><span class="o">.</span><span class="n">_charge</span> <span class="o">=</span> <span class="n">unique_atom</span><span class="o">.</span><span class="n">_charge</span>
                 <span class="n">pm_atom</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">unique_atom</span><span class="o">.</span><span class="n">type</span>
                 <span class="n">pm_atom</span><span class="o">.</span><span class="n">props</span> <span class="o">=</span> <span class="n">unique_atom</span><span class="o">.</span><span class="n">props</span>
-                <span class="n">pm_atom</span><span class="o">.</span><span class="n">resid</span> <span class="o">=</span> <span class="n">residue_counts</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
-                <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;IM1H&quot;</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="n">residue_counts</span><span class="p">[</span><span class="n">name</span><span class="p">])</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="n">pm_residue</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">pm_atom</span><span class="o">.</span><span class="n">resid</span><span class="p">)</span>
             <span class="n">residue_counts</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
 
         <span class="k">return</span> <span class="n">psf</span>
