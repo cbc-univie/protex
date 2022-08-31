@@ -514,16 +514,13 @@ class IonicLiquidSystem:
             pm_residue.name = name
             pm_residue.chain = name
             pm_residue.segid = name
+            pm_residue.number = residue_counts[name]
             for unique_atom, pm_atom in zip(
                 pm_unique_residues[name].atoms, pm_residue.atoms
             ):
                 pm_atom._charge = unique_atom._charge
                 pm_atom.type = unique_atom.type
                 pm_atom.props = unique_atom.props
-                pm_atom.resid = residue_counts[name]
-                if name == "IM1H":
-                    print(residue_counts[name])
-                    print(pm_residue.name, pm_atom.resid)
             residue_counts[name] += 1
 
         return psf
