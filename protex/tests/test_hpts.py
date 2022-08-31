@@ -588,7 +588,7 @@ def test_forces():
                             idx1 in atom_idxs[r.name] and idx2 in atom_idxs[r.name]
                         ):  # atom index of bond force needs to be in atom_idxs
                             force_state[r.name].append(f)
-                        else:
+                        
 
         if r.name == "HPTSH" and ridx == 1008:
             names.append(r.name)
@@ -1065,7 +1065,12 @@ def test_reporter_class():
 
 
 def test_write_psf_save_load():
-    simulation = generate_hpts_system()
+    psf_for_parameters = f"{protex.__path__[0]}/forcefield/hpts.psf"
+    psf_file = f"{protex.__path__[0]}/forcefield/nvt_1.psf"
+
+    simulation = generate_hpts_system(psf_file=psf_file)
+    simulation_for_parameters = generate_hpts_system(psf_file=psf_for_parameters)
+
     # get ionic liquid templates
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
@@ -1080,7 +1085,7 @@ def test_write_psf_save_load():
 
     templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1, HPTSH_HPTS], (allowed_updates))
     # wrap system in IonicLiquidSystem
-    ionic_liquid = IonicLiquidSystem(simulation, templates)
+    ionic_liquid = IonicLiquidSystem(simulation, templates, simulation_for_parameters)
     # initialize update method
     update = NaiveMCUpdate(ionic_liquid)
     # initialize state update class
@@ -1547,3 +1552,4 @@ def test_count_forces():
                             ):
                                 print(new_idx, "new force", f)
                 raise RuntimeError()
+

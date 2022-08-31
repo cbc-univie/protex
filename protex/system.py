@@ -499,6 +499,7 @@ class IonicLiquidSystem:
         """
         Helper function to adapt the psf
         """
+        #print(len(self.residues), len(psf.residues))
         assert len(self.residues) == len(psf.residues)
 
         # make a dict with parmed representations of each residue, use it to assign the opposite one if a transfer occured
