@@ -3,7 +3,8 @@ import io
 import os
 from sys import stdout
 from collections import defaultdict
-#import json
+
+# import json
 import copy
 
 try:  # Syntax changed in OpenMM 7.6
@@ -188,6 +189,7 @@ def test_run_simulation():
     os.remove("output.pdb")
     os.remove("output.dcd")
 
+
 def test_create_IonicLiquidTemplate():
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 2.33}
@@ -238,6 +240,7 @@ def test_create_IonicLiquid():
     assert count["OAC"] == 150
     assert count["IM1"] == 350
     assert count["HOAC"] == 350
+
 
 def test_save_load_allowedupdates():
 
@@ -834,18 +837,20 @@ def test_write_psf_save_load():
     state_update = StateUpdate(update)
 
     old_psf_file = f"{protex.__path__[0]}/forcefield/im1h_oac_150_im1_hoac_350.psf"
-    ionic_liquid.write_psf(old_psf_file, "test.psf")
-    os.remove("test.psf")
+    ionic_liquid.write_psf(old_psf_file, "test1.psf")
+    os.remove("test1.psf")
 
     # ionic_liquid.simulation.step(50)
     state_update.update(2)
 
-    ionic_liquid.write_psf(old_psf_file, "test.psf")
-    os.remove("test.psf")
+    ionic_liquid.write_psf(old_psf_file, "test2.psf")
+    os.remove("test2.psf")
     ionic_liquid.saveState("state.rst")
     ionic_liquid.saveCheckpoint("checkpoint.rst")
 
-    ionic_liquid2 = ionic_liquid #copy.deepcopy(ionic_liquid)
+    ionic_liquid2 = ionic_liquid  # copy.deepcopy(ionic_liquid)
     ionic_liquid.loadState("state.rst")
     ionic_liquid2.loadCheckpoint("checkpoint.rst")
-    
+
+    os.remove("state.rst")
+    os.remove("checkpoint.rst")
