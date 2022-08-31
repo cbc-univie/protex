@@ -1,0 +1,31 @@
+/* search bar left side */
+.wy-side-nav-search input[type=text] {
+       border-color: #c1e1c1 
+}
+/* .wy-nav-top {
+        background: #c1e1c1
+}*/
+/* CONTENTS: on left side */
+.wy-menu-vertical header, .wy-menu-vertical p.caption {
+        color: #c1e1c1
+}
+.wy-menu > .caption > span.caption-text {
+        color: #c1e1c1
+}
+/* home icon, "view page source", headlines  
+ * i think i have to specify in more detail what i want*/
+/*
+a {
+        color: #ffffff
+}
+a:hover {
+        color: #c1e1c1
+}
+a:visited {
+        color: #c1e1c1
+}
+*/
+/* Sidebar */
+/* .wy-nav-side {
+        background: #c1e1c1
+} */
