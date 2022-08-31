@@ -1066,7 +1066,7 @@ def test_reporter_class():
 
 def test_write_psf_save_load():
     psf_for_parameters = f"{protex.__path__[0]}/forcefield/hpts.psf"
-    psf_file = f"{protex.__path__[0]}/forcefield/nvt_1.psf"
+    psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
 
     simulation = generate_hpts_system(psf_file=psf_file)
     simulation_for_parameters = generate_hpts_system(psf_file=psf_for_parameters)
