@@ -6,7 +6,7 @@ protex
 [![Github release](https://badgen.net/github/release/florianj77/protex)](https://github.com/florianj77/protex/releases/)
 [![GitHub license](https://img.shields.io/github/license/florianj77/protex?color=green)](https://github.com/florianj77/protex/blob/main/LICENSE)
 [![GH Pages](https://github.com/florianj77/protex/actions/workflows/main.yml/badge.svg)](https://github.com/florianj77/protex/actions/workflows/main.yml)
-[![docs stable](https://img.shields.io/badge/docs-stable-5077AB.svg?logo=read%20the%20docs)](https://wiederm.github.io/endstate_correction/)
+[![docs stable](https://img.shields.io/badge/docs-stable-5077AB.svg?logo=read%20the%20docs)](https://florianj77.github.io/protex/)
 
 [//]: <[![GitHub forks](https://img.shields.io/github/forks/florianj77/protex)](https://github.com/florianj77/protex/network)>
 [//]: <[![Github tag](https://badgen.net/github/tag/florianj77/protex)](https://github.com/florianj77/protex/tags/)>
