@@ -119,7 +119,7 @@ html_theme = "sphinx_rtd_theme"
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
 
-html_logo = "assets/images/logo.png"
+html_logo = "assets/images/protex_logo.png"
 html_theme_options = {"logo_only": True, "navigation_depth": 4}
 
 # Custom sidebar templates, must be a dictionary that maps document names
