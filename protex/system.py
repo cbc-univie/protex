@@ -492,28 +492,39 @@ class IonicLiquidSystem:
 
         # make a dict with parmed representations of each residue, use it to assign the opposite one if a transfer occured
         pm_unique_residues: dict[str, parmed.Residue] = {}
+        residue_counts: dict[
+            str, int
+        ] = (
+            {}
+        )  # incremented by one each time it is used to track the current residue number
         for residue in psf.residues:
             if residue.name in pm_unique_residues:
                 continue
             else:
                 pm_unique_residues[residue.name] = residue
+                residue_counts[residue.name] = 1
 
         for residue, pm_residue in zip(self.residues, psf.residues):
             # if the new residue (residue.current_name) is different than the original one from the old psf (pm_residue.name)
             # a proton transfer occured and we want to change this in the new psf, which means overwriting the parmed residue instance
             # with the new information
-            if residue.current_name != pm_residue.name:
-                # do changes
-                name = residue.current_name
-                pm_residue.name = name
-                pm_residue.chain = name
-                pm_residue.segid = name
-                for unique_atom, pm_atom in zip(
-                    pm_unique_residues[name].atoms, pm_residue.atoms
-                ):
-                    pm_atom._charge = unique_atom._charge
-                    pm_atom.type = unique_atom.type
-                    pm_atom.props = unique_atom.props
+            # if residue.current_name != pm_residue.name:
+            # do changes
+            name = residue.current_name
+            pm_residue.name = name
+            pm_residue.chain = name
+            pm_residue.segid = name
+            for unique_atom, pm_atom in zip(
+                pm_unique_residues[name].atoms, pm_residue.atoms
+            ):
+                pm_atom._charge = unique_atom._charge
+                pm_atom.type = unique_atom.type
+                pm_atom.props = unique_atom.props
+                pm_atom.resid = residue_counts[name]
+                if name == "IM1H":
+                    print(residue_counts[name])
+                    print(pm_residue.name, pm_atom.resid)
+            residue_counts[name] += 1
 
         return psf
 
