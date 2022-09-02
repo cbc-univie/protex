@@ -76,8 +76,12 @@
 <span id="id1"></span><h1>Quick Start Guide<a class="headerlink" href="#quick-start-guide" title="Permalink to this heading"></a></h1>
 <p>Here is how to easily set up your system and start with Protex!</p>
 <p><code class="docutils literal notranslate"><span class="pre">protex</span></code> works together with <a class="reference external" href="https://openmm.org">OpenMM</a> to allow bond breaking and formation (i.e. for a proton transfer) during MD Simulations.
-First, obtain an OpenMM <code class="docutils literal notranslate"><span class="pre">simulation</span></code> object (there are helper functions provided by protex- implement!).
-Afterwards the main pathway is to specifiy the allowed transfers using <code class="docutils literal notranslate"><span class="pre">IonicLiquidTemplates</span></code> and wrap the simulation and templates into an <code class="docutils literal notranslate"><span class="pre">IonicLiquidSystem</span></code>.</p>
+First, obtain an OpenMM <code class="docutils literal notranslate"><span class="pre">simulation</span></code> object (there are helper functions provided by protex- implement!).</p>
+<div class="admonition attention">
+<p class="admonition-title">Attention</p>
+<p>It is VERY important that the atom order of the protonated and deprotonated residues match exactly between the coordinate as well as topology/psf files!</p>
+</div>
+<p>Afterwards the main pathway is to specifiy the allowed transfers using <code class="docutils literal notranslate"><span class="pre">IonicLiquidTemplates</span></code> and wrap the simulation and templates into an <code class="docutils literal notranslate"><span class="pre">IonicLiquidSystem</span></code>.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">allowed_updates</span> <span class="o">=</span> <span class="p">{}</span>
 <span class="n">allowed_updates</span><span class="p">[</span><span class="nb">frozenset</span><span class="p">([</span><span class="s2">&quot;IM1H&quot;</span><span class="p">,</span> <span class="s2">&quot;OAC&quot;</span><span class="p">])]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;r_max&quot;</span><span class="p">:</span> <span class="mf">0.16</span><span class="p">,</span> <span class="s2">&quot;prob&quot;</span><span class="p">:</span> <span class="mf">0.994</span><span class="p">}</span>
 <span class="n">allowed_updates</span><span class="p">[</span><span class="nb">frozenset</span><span class="p">([</span><span class="s2">&quot;IM1&quot;</span><span class="p">,</span> <span class="s2">&quot;HOAC&quot;</span><span class="p">])]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;r_max&quot;</span><span class="p">:</span> <span class="mf">0.16</span><span class="p">,</span> <span class="s2">&quot;prob&quot;</span><span class="p">:</span> <span class="mf">0.098</span><span class="p">}</span>

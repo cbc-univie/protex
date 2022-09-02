@@ -7,6 +7,10 @@ Here is how to easily set up your system and start with Protex!
 
 ``protex`` works together with `OpenMM <https://openmm.org>`_ to allow bond breaking and formation (i.e. for a proton transfer) during MD Simulations.
 First, obtain an OpenMM ``simulation`` object (there are helper functions provided by protex- implement!).
+
+.. attention:: 
+    It is VERY important that the atom order of the protonated and deprotonated residues match exactly between the coordinate as well as topology/psf files!
+
 Afterwards the main pathway is to specifiy the allowed transfers using ``IonicLiquidTemplates`` and wrap the simulation and templates into an ``IonicLiquidSystem``.
 
 .. code-block:: python
