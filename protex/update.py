@@ -221,7 +221,7 @@ class StateUpdate:
                 return par
 
     def get_num_residues(self) -> dict:
-        res_dict = {"IM1H": 0, "OAC": 0, "IM1": 0, "HOAC": 0}
+        res_dict = {"IM1H": 0, "OAC": 0, "IM1": 0, "HOAC": 0, "HPTS":0, "HPTSH":0}
         for residue in self.ionic_liquid.residues:
             res_dict[residue.current_name] += 1
         return res_dict

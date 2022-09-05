@@ -1,3 +1,4 @@
+from copy import deepcopy
 import itertools
 import logging
 from collections import ChainMap, defaultdict, deque
@@ -5,6 +6,7 @@ from pdb import pm
 import numpy as np
 import parmed
 import yaml, json
+from copy import deepcopy
 
 try:
     import openmm
@@ -509,7 +511,8 @@ class IonicLiquidSystem:
         ] = (
             {}
         )  # incremented by one each time it is used to track the current residue number
-        for residue in psf.residues:
+        psf_copy = deepcopy(psf)
+        for residue in psf_copy.residues:
             if residue.name in pm_unique_residues:
                 continue
             else:
