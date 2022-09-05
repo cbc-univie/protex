@@ -5,6 +5,7 @@ from pdb import pm
 import numpy as np
 import parmed
 import yaml, json
+from copy import deepcopy
 
 try:
     import openmm
@@ -500,12 +501,13 @@ class IonicLiquidSystem:
         pm_unique_residues: dict[str, parmed.Residue] = {}
         # incremented by one each time it is used to track the current residue number
         residue_counts: dict[str, int] = {}
-        for residue in psf.residues:
-            if residue.name in pm_unique_residues:
+        psf_copy = deepcopy(psf)
+        for pm_residue in psf_copy.residues:
+            if pm_residue.name in pm_unique_residues:
                 continue
             else:
-                pm_unique_residues[residue.name] = residue
-                residue_counts[residue.name] = 1
+                pm_unique_residues[pm_residue.name] = pm_residue
+                residue_counts[pm_residue.name] = 1
 
         for residue, pm_residue in zip(self.residues, psf.residues):
             # if the new residue (residue.current_name) is different than the original one from the old psf (pm_residue.name)
@@ -519,7 +521,7 @@ class IonicLiquidSystem:
             pm_residue.segid = name
             pm_residue.number = residue_counts[name]
             for unique_atom, pm_atom in zip(
-                pm_unique_residues[residue.alternativ_name].atoms, pm_residue.atoms
+                pm_unique_residues[name].atoms, pm_residue.atoms
             ):
                 pm_atom._charge = unique_atom._charge
                 pm_atom.type = unique_atom.type
