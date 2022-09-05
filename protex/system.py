@@ -152,11 +152,12 @@ class IonicLiquidTemplates:
     ) -> None:
         self.allowed_updates = allowed_updates
 
-    def get_canonical_name(self, name: str) -> str:
-        assert name in self.names
-        for state in self.states:
-            if name in state:
-                return self.states[name]["canonical_name"]
+    # Not used(?)
+    # def get_canonical_name(self, name: str) -> str:
+    #     assert name in self.names
+    #     for state in self.states:
+    #         if name in state:
+    #             return self.states[name]["canonical_name"]
 
     def get_residue_name_for_coupled_state(self, name: str):
         """
@@ -441,11 +442,15 @@ class IonicLiquidSystem:
                         self.system,
                         parameters_state1,
                         parameters_state2,
-                        self.templates.get_canonical_name(name),
+                        # self.templates.get_canonical_name(name),
                         self.pair_12_13_list,
                     )
                 )
-                residues[-1].current_name = name
+                residues[
+                    -1
+                ].current_name = (
+                    name  # Why, isnt it done in the initializer of Residue?
+                )
 
             else:
                 raise RuntimeError("Found resiude not present in Templates: {r.name}")
@@ -476,11 +481,12 @@ class IonicLiquidSystem:
     #     for residue, name in zip(self.residues, residue_names):
     #         residue.current_name = name
 
-    def report_states(self) -> None:
-        """
-        report_states prints out a summary of the current protonation state of the ionic liquid
-        """
-        pass
+    # not used
+    # def report_states(self) -> None:
+    #     """
+    #     report_states prints out a summary of the current protonation state of the ionic liquid
+    #     """
+    #     pass
 
     def _adapt_parmed_psf_file(
         self, psf: parmed.charmm.CharmmPsfFile
@@ -492,11 +498,8 @@ class IonicLiquidSystem:
 
         # make a dict with parmed representations of each residue, use it to assign the opposite one if a transfer occured
         pm_unique_residues: dict[str, parmed.Residue] = {}
-        residue_counts: dict[
-            str, int
-        ] = (
-            {}
-        )  # incremented by one each time it is used to track the current residue number
+        # incremented by one each time it is used to track the current residue number
+        residue_counts: dict[str, int] = {}
         for residue in psf.residues:
             if residue.name in pm_unique_residues:
                 continue
@@ -516,7 +519,7 @@ class IonicLiquidSystem:
             pm_residue.segid = name
             pm_residue.number = residue_counts[name]
             for unique_atom, pm_atom in zip(
-                pm_unique_residues[name].atoms, pm_residue.atoms
+                pm_unique_residues[residue.alternativ_name].atoms, pm_residue.atoms
             ):
                 pm_atom._charge = unique_atom._charge
                 pm_atom.type = unique_atom.type
