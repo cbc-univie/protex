@@ -51,6 +51,7 @@ def generate_im1h_oac_system(
         # =======================================================================
         # Loading CHARMM files
         print("Loading CHARMM files...")
+        base = f"{protex.__path__[0]}/forcefield"  # NOTE: this points now to the installed files!
         if para_files is not None:
             print("Using user supplied parameter files. Whole path must be given")
             params = CharmmParameterSet(*para_files)
@@ -62,7 +63,6 @@ def generate_im1h_oac_system(
                 "im1_d.str",
                 "oac_d.str",
             ]
-            base = f"{protex.__path__[0]}/forcefield"  # NOTE: this points now to the installed files!
             params = CharmmParameterSet(
                 *[f"{base}/toppar/{para_files}" for para_files in PARA_FILES]
             )
