@@ -123,7 +123,6 @@
         <span class="c1"># =======================================================================</span>
         <span class="c1"># Loading CHARMM files</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Loading CHARMM files...&quot;</span><span class="p">)</span>
-        <span class="n">base</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">protex</span><span class="o">.</span><span class="n">__path__</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">/forcefield&quot;</span>  <span class="c1"># NOTE: this points now to the installed files!</span>
         <span class="k">if</span> <span class="n">para_files</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Using user supplied parameter files. Whole path must be given&quot;</span><span class="p">)</span>
             <span class="n">params</span> <span class="o">=</span> <span class="n">CharmmParameterSet</span><span class="p">(</span><span class="o">*</span><span class="n">para_files</span><span class="p">)</span>
@@ -135,6 +134,7 @@
                 <span class="s2">&quot;im1_d.str&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;oac_d.str&quot;</span><span class="p">,</span>
             <span class="p">]</span>
+            <span class="n">base</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">protex</span><span class="o">.</span><span class="n">__path__</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">/forcefield&quot;</span>  <span class="c1"># NOTE: this points now to the installed files!</span>
             <span class="n">params</span> <span class="o">=</span> <span class="n">CharmmParameterSet</span><span class="p">(</span>
                 <span class="o">*</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">base</span><span class="si">}</span><span class="s2">/toppar/</span><span class="si">{</span><span class="n">para_files</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">para_files</span> <span class="ow">in</span> <span class="n">PARA_FILES</span><span class="p">]</span>
             <span class="p">)</span>
@@ -390,22 +390,22 @@
 <span class="n">IM1H_IM1</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">&quot;IM1H&quot;</span><span class="p">:</span> <span class="p">{</span>
         <span class="s2">&quot;atom_name&quot;</span><span class="p">:</span> <span class="s2">&quot;H7&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;canonical_name&quot;</span><span class="p">:</span> <span class="s2">&quot;IM1&quot;</span><span class="p">,</span>  <span class="c1"># Not needed?</span>
+        <span class="s2">&quot;canonical_name&quot;</span><span class="p">:</span> <span class="s2">&quot;IM1&quot;</span><span class="p">,</span>
     <span class="p">},</span>
     <span class="s2">&quot;IM1&quot;</span><span class="p">:</span> <span class="p">{</span>
         <span class="s2">&quot;atom_name&quot;</span><span class="p">:</span> <span class="s2">&quot;N2&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;canonical_name&quot;</span><span class="p">:</span> <span class="s2">&quot;IM1&quot;</span><span class="p">,</span>  <span class="c1"># Not needed?</span>
+        <span class="s2">&quot;canonical_name&quot;</span><span class="p">:</span> <span class="s2">&quot;IM1&quot;</span><span class="p">,</span>
     <span class="p">},</span>
 <span class="p">}</span>
 
 <span class="n">OAC_HOAC</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">&quot;OAC&quot;</span><span class="p">:</span> <span class="p">{</span>
         <span class="s2">&quot;atom_name&quot;</span><span class="p">:</span> <span class="s2">&quot;O2&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;canonical_name&quot;</span><span class="p">:</span> <span class="s2">&quot;OAC&quot;</span><span class="p">,</span>  <span class="c1"># Not needed?</span>
+        <span class="s2">&quot;canonical_name&quot;</span><span class="p">:</span> <span class="s2">&quot;OAC&quot;</span><span class="p">,</span>
     <span class="p">},</span>
     <span class="s2">&quot;HOAC&quot;</span><span class="p">:</span> <span class="p">{</span>
         <span class="s2">&quot;atom_name&quot;</span><span class="p">:</span> <span class="s2">&quot;H&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;canonical_name&quot;</span><span class="p">:</span> <span class="s2">&quot;OAC&quot;</span><span class="p">,</span>  <span class="c1"># Not needed?</span>
+        <span class="s2">&quot;canonical_name&quot;</span><span class="p">:</span> <span class="s2">&quot;OAC&quot;</span><span class="p">,</span>
     <span class="p">},</span>
 <span class="p">}</span>
 </pre></div>
