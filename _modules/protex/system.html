@@ -77,7 +77,6 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">parmed</span>
 <span class="kn">import</span> <span class="nn">yaml</span><span class="o">,</span> <span class="nn">json</span>
-<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
 
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">openmm</span>
@@ -225,12 +224,11 @@
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">allowed_updates</span> <span class="o">=</span> <span class="n">allowed_updates</span>
 
-    <span class="c1"># Not used(?)</span>
-    <span class="c1"># def get_canonical_name(self, name: str) -&gt; str:</span>
-    <span class="c1">#     assert name in self.names</span>
-    <span class="c1">#     for state in self.states:</span>
-    <span class="c1">#         if name in state:</span>
-    <span class="c1">#             return self.states[name][&quot;canonical_name&quot;]</span>
+    <span class="k">def</span> <span class="nf">get_canonical_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">names</span>
+        <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">state</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s2">&quot;canonical_name&quot;</span><span class="p">]</span>
 
 <div class="viewcode-block" id="IonicLiquidTemplates.get_residue_name_for_coupled_state"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.IonicLiquidTemplates.html#protex.system.IonicLiquidTemplates.get_residue_name_for_coupled_state">[docs]</a>    <span class="k">def</span> <span class="nf">get_residue_name_for_coupled_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -515,15 +513,11 @@
                         <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="p">,</span>
                         <span class="n">parameters_state1</span><span class="p">,</span>
                         <span class="n">parameters_state2</span><span class="p">,</span>
-                        <span class="c1"># self.templates.get_canonical_name(name),</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">templates</span><span class="o">.</span><span class="n">get_canonical_name</span><span class="p">(</span><span class="n">name</span><span class="p">),</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">pair_12_13_list</span><span class="p">,</span>
                     <span class="p">)</span>
                 <span class="p">)</span>
-                <span class="n">residues</span><span class="p">[</span>
-                    <span class="o">-</span><span class="mi">1</span>
-                <span class="p">]</span><span class="o">.</span><span class="n">current_name</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="n">name</span>  <span class="c1"># Why, isnt it done in the initializer of Residue?</span>
-                <span class="p">)</span>
+                <span class="n">residues</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">current_name</span> <span class="o">=</span> <span class="n">name</span>
 
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Found resiude not present in Templates: </span><span class="si">{r.name}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -554,15 +548,14 @@
     <span class="c1">#     for residue, name in zip(self.residues, residue_names):</span>
     <span class="c1">#         residue.current_name = name</span>
 
-    <span class="c1"># not used</span>
-    <span class="c1"># def report_states(self) -&gt; None:</span>
-    <span class="c1">#     &quot;&quot;&quot;</span>
-    <span class="c1">#     report_states prints out a summary of the current protonation state of the ionic liquid</span>
-    <span class="c1">#     &quot;&quot;&quot;</span>
-    <span class="c1">#     pass</span>
+<div class="viewcode-block" id="IonicLiquidSystem.report_states"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.IonicLiquidSystem.html#protex.system.IonicLiquidSystem.report_states">[docs]</a>    <span class="k">def</span> <span class="nf">report_states</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        report_states prints out a summary of the current protonation state of the ionic liquid</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
 
     <span class="k">def</span> <span class="nf">_adapt_parmed_psf_file</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">psf</span><span class="p">:</span> <span class="n">parmed</span><span class="o">.</span><span class="n">charmm</span><span class="o">.</span><span class="n">CharmmPsfFile</span><span class="p">,</span> <span class="n">psf_copy</span><span class="p">:</span> <span class="n">parmed</span><span class="o">.</span><span class="n">charmm</span><span class="o">.</span><span class="n">CharmmPsfFile</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">psf</span><span class="p">:</span> <span class="n">parmed</span><span class="o">.</span><span class="n">charmm</span><span class="o">.</span><span class="n">CharmmPsfFile</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">parmed</span><span class="o">.</span><span class="n">charmm</span><span class="o">.</span><span class="n">CharmmPsfFile</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Helper function to adapt the psf</span>
@@ -571,14 +564,17 @@
 
         <span class="c1"># make a dict with parmed representations of each residue, use it to assign the opposite one if a transfer occured</span>
         <span class="n">pm_unique_residues</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">parmed</span><span class="o">.</span><span class="n">Residue</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="c1"># incremented by one each time it is used to track the current residue number</span>
-        <span class="n">residue_counts</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">for</span> <span class="n">pm_residue</span> <span class="ow">in</span> <span class="n">psf_copy</span><span class="o">.</span><span class="n">residues</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">pm_residue</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">pm_unique_residues</span><span class="p">:</span>
+        <span class="n">residue_counts</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span>
+            <span class="nb">str</span><span class="p">,</span> <span class="nb">int</span>
+        <span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">{}</span>
+        <span class="p">)</span>  <span class="c1"># incremented by one each time it is used to track the current residue number</span>
+        <span class="k">for</span> <span class="n">residue</span> <span class="ow">in</span> <span class="n">psf</span><span class="o">.</span><span class="n">residues</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">residue</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">pm_unique_residues</span><span class="p">:</span>
                 <span class="k">continue</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">pm_unique_residues</span><span class="p">[</span><span class="n">pm_residue</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">pm_residue</span>
-                <span class="n">residue_counts</span><span class="p">[</span><span class="n">pm_residue</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="n">pm_unique_residues</span><span class="p">[</span><span class="n">residue</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">residue</span>
+                <span class="n">residue_counts</span><span class="p">[</span><span class="n">residue</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
 
         <span class="k">for</span> <span class="n">residue</span><span class="p">,</span> <span class="n">pm_residue</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">residues</span><span class="p">,</span> <span class="n">psf</span><span class="o">.</span><span class="n">residues</span><span class="p">):</span>
             <span class="c1"># if the new residue (residue.current_name) is different than the original one from the old psf (pm_residue.name)</span>
@@ -609,9 +605,7 @@
         <span class="kn">import</span> <span class="nn">parmed</span>
 
         <span class="n">pm_old_psf</span> <span class="o">=</span> <span class="n">parmed</span><span class="o">.</span><span class="n">charmm</span><span class="o">.</span><span class="n">CharmmPsfFile</span><span class="p">(</span><span class="n">old_psf_infname</span><span class="p">)</span>
-        <span class="c1"># copying parmed structure did not work</span>
-        <span class="n">pm_old_psf_copy</span> <span class="o">=</span> <span class="n">parmed</span><span class="o">.</span><span class="n">charmm</span><span class="o">.</span><span class="n">CharmmPsfFile</span><span class="p">(</span><span class="n">old_psf_infname</span><span class="p">)</span>
-        <span class="n">pm_new_psf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_adapt_parmed_psf_file</span><span class="p">(</span><span class="n">pm_old_psf</span><span class="p">,</span> <span class="n">pm_old_psf_copy</span><span class="p">)</span>
+        <span class="n">pm_new_psf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_adapt_parmed_psf_file</span><span class="p">(</span><span class="n">pm_old_psf</span><span class="p">)</span>
         <span class="n">pm_new_psf</span><span class="o">.</span><span class="n">write_psf</span><span class="p">(</span><span class="n">new_psf_outfname</span><span class="p">)</span></div>
 
     <span class="c1"># possibly in future when parmed and openmm drude connection is working</span>
