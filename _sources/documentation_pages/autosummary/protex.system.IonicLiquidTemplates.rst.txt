@@ -1,4 +1,4 @@
-protex.system.IonicLiquidTemplates
+﻿protex.system.IonicLiquidTemplates
 ==================================
 
 .. currentmodule:: protex.system
@@ -16,7 +16,6 @@ protex.system.IonicLiquidTemplates
    .. autosummary::
       :nosignatures:
    
-      ~IonicLiquidTemplates.get_canonical_name
       ~IonicLiquidTemplates.get_charge_template_for
       ~IonicLiquidTemplates.get_residue_name_for_coupled_state
       ~IonicLiquidTemplates.get_update_value_for
