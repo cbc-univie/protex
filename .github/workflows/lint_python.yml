@@ -14,7 +14,7 @@ jobs:
           # Fail if "new" violations detected or "any", default "new"
           failIf: new
           # Additional arguments to pass to flake8, default "." (current directory)
-          args: "--exclude protex/scripts protex/forcefield --ignore=E121,E123 ."
+          args: "--ignore=E121,E123 ."
           
 #name: lint_python
 #on: [pull_request, push, workflow_dispatch]
