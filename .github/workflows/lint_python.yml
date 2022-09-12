@@ -9,6 +9,12 @@ jobs:
       - uses: actions/checkout@v2
       - name: Setup flake8 annotations
         uses: rbialon/flake8-annotations@v1
+      - name: Lint with flake8
+        run: |
+          pip install flake8 pep8-naming
+          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+          flake8 protex/update.py --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
 
       
 #name: lint_python
