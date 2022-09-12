@@ -6,15 +6,14 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: grantmcconnaughey/lintly-flake8-github-action@v1.0
+      - uses: actions/checkout@v1
+      - uses: marian-code/python-lint-annotate@v3
         with:
-          # The GitHub API token to create reviews with
-          token: ${{ secrets.GITHUB_TOKEN }}
-          # Fail if "new" violations detected or "any", default "new"
-          failIf: new
-          # Additional arguments to pass to flake8, default "." (current directory)
-          args: "--ignore=E121,E123 ."
+          #python-root-list: "src/ tests/*"  # accepts wildcards
+          use-pycodestyle: false
+          use-mypy: false
+          use-vulture: true
+          python-version: "3.9"
           
 #name: lint_python
 #on: [pull_request, push, workflow_dispatch]
