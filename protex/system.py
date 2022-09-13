@@ -5,6 +5,7 @@ from pdb import pm
 import numpy as np
 import parmed
 import yaml, json
+from copy import deepcopy
 
 try:
     import openmm
@@ -152,11 +153,12 @@ class IonicLiquidTemplates:
     ) -> None:
         self.allowed_updates = allowed_updates
 
-    def get_canonical_name(self, name: str) -> str:
-        assert name in self.names
-        for state in self.states:
-            if name in state:
-                return self.states[name]["canonical_name"]
+    # Not used(?)
+    # def get_canonical_name(self, name: str) -> str:
+    #     assert name in self.names
+    #     for state in self.states:
+    #         if name in state:
+    #             return self.states[name]["canonical_name"]
 
     def get_residue_name_for_coupled_state(self, name: str):
         """
@@ -441,11 +443,15 @@ class IonicLiquidSystem:
                         self.system,
                         parameters_state1,
                         parameters_state2,
-                        self.templates.get_canonical_name(name),
+                        # self.templates.get_canonical_name(name),
                         self.pair_12_13_list,
                     )
                 )
-                residues[-1].current_name = name
+                residues[
+                    -1
+                ].current_name = (
+                    name  # Why, isnt it done in the initializer of Residue?
+                )
 
             else:
                 raise RuntimeError("Found resiude not present in Templates: {r.name}")
@@ -476,14 +482,15 @@ class IonicLiquidSystem:
     #     for residue, name in zip(self.residues, residue_names):
     #         residue.current_name = name
 
-    def report_states(self) -> None:
-        """
-        report_states prints out a summary of the current protonation state of the ionic liquid
-        """
-        pass
+    # not used
+    # def report_states(self) -> None:
+    #     """
+    #     report_states prints out a summary of the current protonation state of the ionic liquid
+    #     """
+    #     pass
 
     def _adapt_parmed_psf_file(
-        self, psf: parmed.charmm.CharmmPsfFile
+        self, psf: parmed.charmm.CharmmPsfFile, psf_copy: parmed.charmm.CharmmPsfFile
     ) -> parmed.charmm.CharmmPsfFile:
         """
         Helper function to adapt the psf
@@ -492,17 +499,14 @@ class IonicLiquidSystem:
 
         # make a dict with parmed representations of each residue, use it to assign the opposite one if a transfer occured
         pm_unique_residues: dict[str, parmed.Residue] = {}
-        residue_counts: dict[
-            str, int
-        ] = (
-            {}
-        )  # incremented by one each time it is used to track the current residue number
-        for residue in psf.residues:
-            if residue.name in pm_unique_residues:
+        # incremented by one each time it is used to track the current residue number
+        residue_counts: dict[str, int] = {}
+        for pm_residue in psf_copy.residues:
+            if pm_residue.name in pm_unique_residues:
                 continue
             else:
-                pm_unique_residues[residue.name] = residue
-                residue_counts[residue.name] = 1
+                pm_unique_residues[pm_residue.name] = pm_residue
+                residue_counts[pm_residue.name] = 1
 
         for residue, pm_residue in zip(self.residues, psf.residues):
             # if the new residue (residue.current_name) is different than the original one from the old psf (pm_residue.name)
@@ -533,7 +537,9 @@ class IonicLiquidSystem:
         import parmed
 
         pm_old_psf = parmed.charmm.CharmmPsfFile(old_psf_infname)
-        pm_new_psf = self._adapt_parmed_psf_file(pm_old_psf)
+        # copying parmed structure did not work
+        pm_old_psf_copy = parmed.charmm.CharmmPsfFile(old_psf_infname)
+        pm_new_psf = self._adapt_parmed_psf_file(pm_old_psf, pm_old_psf_copy)
         pm_new_psf.write_psf(new_psf_outfname)
 
     # possibly in future when parmed and openmm drude connection is working

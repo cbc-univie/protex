@@ -1,39 +1,46 @@
-name: lint
+name: lint_python
 
-on: [pull_request]
+on: [pull_request, workflow_dispatch]
 
+permissions:
+  checks: write
+  contents: write
+  
 jobs:
-  lint:
+  run-linters:
+    name: Run linters
     runs-on: ubuntu-latest
+    
     steps:
-      - uses: actions/checkout@v3
-      - uses: grantmcconnaughey/lintly-flake8-github-action@v1.0
+      - name: Check out Git repository
+        uses: actions/checkout@v2
+        
+      - name: Set up Python
+        uses: actions/setup-python@v1
         with:
-          # The GitHub API token to create reviews with
-          token: ${{ secrets.GITHUB_TOKEN }}
-          # Fail if "new" violations detected or "any", default "new"
-          failIf: new
-          # Additional arguments to pass to flake8, default "." (current directory)
-          args: "--ignore=E121,E123 ."
+          python-version: 3.9
           
-#name: lint_python
-#on: [pull_request, push, workflow_dispatch]
-#jobs:
-#  lint_python:
-#    runs-on: ubuntu-latest
-#    steps:
-#      - uses: actions/checkout@v3
-#      - uses: actions/setup-python@v3
-#      - run: pip install bandit black codespell flake8 isort mypy pytest pyupgrade safety
-#      - run: bandit --recursive --skip B101 . || true  # B101 is assert statements
-#      - run: black --check . || true
-#      - run: codespell || true  # --ignore-words-list="" --skip=""
-#      - run: flake8 . --exclude protex/scripts --count --select=E9,F63,F7,F82 --show-source --statistics
-#      - run: flake8 . --count --exit-zero --max-complexity=10 --max-line-length=88 --show-source --statistics
-#      - run: isort --check-only --profile black . || true
-#      - run: pip install -r requirements.txt || true
-#      - run: mypy --install-types --non-interactive . || true
-#      - run: pytest . || true
-#     - run: pytest --doctest-modules . || true
-#     - run: shopt -s globstar && pyupgrade --py36-plus **/*.py || true
-#     - run: safety check
+      - name: Install Python dependencies
+        run: pip install flake8 pep8-naming black
+        
+      - name: Run linters
+        uses: wearerequired/lint-action@v2
+        with:
+          black: true
+          black_dir: "protex/"
+          black_args: '--extend-exclude="(forcefield/*|scripts/*|_version.py)"'
+          auto_fix: true
+          flake8: true
+          flake8_dir: "protex/"
+          flake8_args: "--exclude=scripts,forcefield,_version.py --max-line-length=88 --extend-ignore=E203 --exit-zero"
+
+        
+      #- name: Setup flake8 annotations
+      #  uses: rbialon/flake8-annotations@v1
+      #- name: Lint with flake8
+      #  run: |
+      #    pip install flake8 pep8-naming
+      #    # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+      #    flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+
