@@ -29,6 +29,7 @@ jobs:
           black: true
           black_dir: "protex/"
           black_args: '--extend-exclude="(forcefield/*|scripts/*|_version.py)"'
+          auto_fix: true
           flake8: true
           flake8_dir: "protex/"
           flake8_args: "--exclude=scripts,forcefield,_version.py --max-line-length=88 --extend-ignore=E203"
