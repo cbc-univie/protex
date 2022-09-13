@@ -28,14 +28,11 @@ jobs:
         with:
           black: true
           black_dir: "protex/"
-          black_args: '--extend-exclude="(forcefield/*|scripts/*)"'
+          black_args: '--extend-exclude="(forcefield/*|scripts/*|_version.py)"'
           flake8: true
           flake8_dir: "protex/"
-          flake8_args: "--exclude=scripts,forcefield --max-line-length=88 --extend-ignore=E203"
-          
-        
-        
-        
+          flake8_args: "--exclude=scripts,forcefield,_version.py --max-line-length=88 --extend-ignore=E203"
+
         
       #- name: Setup flake8 annotations
       #  uses: rbialon/flake8-annotations@v1
