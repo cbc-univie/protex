@@ -29,7 +29,7 @@ jobs:
           flake8: true
           flake8_args: "--exclude=devtools,protex/scripts,protex/forcefield,docs/ --max-line-length=88 --extend-ignore=E203"
           black: true
-          black_args: "--exclude=devtools --exclude=docs"
+          black_args: "--exclude='devtools docs'"
         
         
         
