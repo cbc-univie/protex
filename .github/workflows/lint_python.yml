@@ -26,11 +26,13 @@ jobs:
       - name: Run linters
         uses: wearerequired/lint-action@v2
         with:
-          flake8: true
-          flake8_args: "--exclude=devtools,protex/scripts,protex/forcefield,docs/ --max-line-length=88 --extend-ignore=E203"
           black: true
           black_dir: "protex/"
-          black_args: "--force-exclude='''(^/protex/forcefield/* | scripts)'''"
+          black_args: '--extend-exclude="(forcefield/*|scripts/*)"'
+          flake8: true
+          flake8_dir: "protex/"
+          flake8_args: "--exclude=scripts,forcefield --max-line-length=88 --extend-ignore=E203"
+          
         
         
         
@@ -44,25 +46,3 @@ jobs:
       #    flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
 
-      
-#name: lint_python
-#on: [pull_request, push, workflow_dispatch]
-#jobs:
-#  lint_python:
-#    runs-on: ubuntu-latest
-#    steps:
-#      - uses: actions/checkout@v3
-#      - uses: actions/setup-python@v3
-#      - run: pip install bandit black codespell flake8 isort mypy pytest pyupgrade safety
-#      - run: bandit --recursive --skip B101 . || true  # B101 is assert statements
-#      - run: black --check . || true
-#      - run: codespell || true  # --ignore-words-list="" --skip=""
-#      - run: flake8 . --exclude protex/scripts --count --select=E9,F63,F7,F82 --show-source --statistics
-#      - run: flake8 . --count --exit-zero --max-complexity=10 --max-line-length=88 --show-source --statistics
-#      - run: isort --check-only --profile black . || true
-#      - run: pip install -r requirements.txt || true
-#      - run: mypy --install-types --non-interactive . || true
-#      - run: pytest . || true
-#     - run: pytest --doctest-modules . || true
-#     - run: shopt -s globstar && pyupgrade --py36-plus **/*.py || true
-#     - run: safety check
