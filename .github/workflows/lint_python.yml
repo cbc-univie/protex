@@ -27,7 +27,7 @@ jobs:
         uses: wearerequired/lint-action@v2
         with:
           flake8: true
-          flake8_args: "--exclude=devtools protex/scripts protex/forcefield"
+          flake8_args: "--exclude=devtools,protex/scripts,protex/forcefield"
           black: true
         
         
