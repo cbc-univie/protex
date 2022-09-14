@@ -1,11 +1,15 @@
 # Import package, test suite, and other packages as needed
 import os
 import logging
+import pwd
 from sys import stdout
 import numpy as np
 from collections import defaultdict
 #import json
 import copy
+import parmed
+import re
+import pandas as pd
 
 try:  # Syntax changed in OpenMM 7.6
     import openmm as mm
@@ -1614,32 +1618,3 @@ def test_update_write_psf():
 
         i +=1
 
-def test_sum_charge():
-    psf_for_parameters = f"{protex.__path__[0]}/forcefield/hpts.psf"
-    psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
-
-    simulation = generate_hpts_system(psf_file=psf_file)
-    simulation_for_parameters = generate_hpts_system(psf_file=psf_for_parameters)
-
-    # get ionic liquid templates
-    allowed_updates = {}
-    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 0.994}
-    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 0.098}
-    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 0.201} # 1+2
-    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 0.684} # 3+4
-    allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000} 
-    allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.15, "prob":1.000} 
-    allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000} 
-    allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000} 
-    allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000} 
-
-    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1, HPTSH_HPTS], (allowed_updates))
-    # wrap system in IonicLiquidSystem
-    ionic_liquid = IonicLiquidSystem(simulation, templates, simulation_for_parameters)
-
-    sum_charge=0
-    for x in range(0, 1009):
-        resi=ionic_liquid.residues[x]
-        sum_charge=sum_charge+resi.current_charge
-    print(sum_charge)
-    assert sum_charge == 0
