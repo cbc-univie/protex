@@ -6,7 +6,6 @@ from pdb import pm
 import numpy as np
 import parmed
 import yaml, json
-from copy import deepcopy
 
 try:
     import openmm
@@ -496,7 +495,7 @@ class IonicLiquidSystem:
         pass
 
     def _adapt_parmed_psf_file(
-        self, psf: parmed.charmm.CharmmPsfFile
+        self, psf: parmed.charmm.CharmmPsfFile, psf_copy: parmed.charmm.CharmmPsfFile
     ) -> parmed.charmm.CharmmPsfFile:
         """
         Helper function to adapt the psf
@@ -511,7 +510,7 @@ class IonicLiquidSystem:
         ] = (
             {}
         )  # incremented by one each time it is used to track the current residue number
-        psf_copy = deepcopy(psf)
+        
         for residue in psf_copy.residues:
             if residue.name in pm_unique_residues:
                 continue
@@ -548,7 +547,8 @@ class IonicLiquidSystem:
         import parmed
 
         pm_old_psf = parmed.charmm.CharmmPsfFile(old_psf_infname)
-        pm_new_psf = self._adapt_parmed_psf_file(pm_old_psf)
+        pm_old_psf_copy = parmed.charmm.CharmmPsfFile(old_psf_infname)
+        pm_new_psf = self._adapt_parmed_psf_file(pm_old_psf, pm_old_psf_copy)
         pm_new_psf.write_psf(new_psf_outfname)
 
     # possibly in future when parmed and openmm drude connection is working
