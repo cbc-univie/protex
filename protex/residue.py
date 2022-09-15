@@ -2,6 +2,7 @@ import numpy as np
 from collections import deque
 import itertools
 
+
 class Residue:
     """Residue extends the OpenMM Residue Class by important features needed for the proton transfer
 
@@ -53,7 +54,7 @@ class Residue:
         system,
         inital_parameters,
         alternativ_parameters,
-        canonical_name,
+        # canonical_name,
         pair_12_13_exclusion_list,
     ) -> None:
 
@@ -67,7 +68,7 @@ class Residue:
             alternativ_name: alternativ_parameters,
         }
         self.record_charge_state = []
-        self.canonical_name = canonical_name
+        # self.canonical_name = canonical_name
         self.system = system
         self.record_charge_state.append(self.endstate_charge)  # Not used anywhere?
         self.pair_12_13_list = pair_12_13_exclusion_list
@@ -721,7 +722,3 @@ class Residue:
                     charge += charge_idx._value
 
         return np.round(charge, 3)
-
-
-
-

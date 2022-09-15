@@ -155,11 +155,12 @@ class IonicLiquidTemplates:
     ) -> None:
         self.allowed_updates = allowed_updates
 
-    def get_canonical_name(self, name: str) -> str:
-        assert name in self.names
-        for state in self.states:
-            if name in state:
-                return self.states[name]["canonical_name"]
+    # Not used(?)
+    # def get_canonical_name(self, name: str) -> str:
+    #     assert name in self.names
+    #     for state in self.states:
+    #         if name in state:
+    #             return self.states[name]["canonical_name"]
 
     def get_residue_name_for_coupled_state(self, name: str):
         """
@@ -457,11 +458,15 @@ class IonicLiquidSystem:
                         self.system,
                         parameters_state1,
                         parameters_state2,
-                        self.templates.get_canonical_name(name),
+                        # self.templates.get_canonical_name(name),
                         self.pair_12_13_list,
                     )
                 )
-                residues[-1].current_name = name
+                residues[
+                    -1
+                ].current_name = (
+                    name  # Why, isnt it done in the initializer of Residue?
+                )
 
             else:
                 raise RuntimeError("Found resiude not present in Templates: {r.name}")
@@ -492,11 +497,12 @@ class IonicLiquidSystem:
     #     for residue, name in zip(self.residues, residue_names):
     #         residue.current_name = name
 
-    def report_states(self) -> None:
-        """
-        report_states prints out a summary of the current protonation state of the ionic liquid
-        """
-        pass
+    # not used
+    # def report_states(self) -> None:
+    #     """
+    #     report_states prints out a summary of the current protonation state of the ionic liquid
+    #     """
+    #     pass
 
     def _adapt_parmed_psf_file(
         self, psf: parmed.charmm.CharmmPsfFile, psf_copy: parmed.charmm.CharmmPsfFile
