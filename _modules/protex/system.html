@@ -575,6 +575,7 @@
         <span class="n">pm_unique_residues</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">parmed</span><span class="o">.</span><span class="n">Residue</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="c1"># incremented by one each time it is used to track the current residue number</span>
         <span class="n">residue_counts</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
         <span class="k">for</span> <span class="n">pm_residue</span> <span class="ow">in</span> <span class="n">psf_copy</span><span class="o">.</span><span class="n">residues</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">pm_residue</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">pm_unique_residues</span><span class="p">:</span>
                 <span class="k">continue</span>
