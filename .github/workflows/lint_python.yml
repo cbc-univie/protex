@@ -46,6 +46,16 @@ jobs:
           # configuration: # optional, default is --check-only --diff
           # path(s) to requirements files that should be installed to properly configure third-party imports
           # requirementsFiles: # optional, default is 
+      - name: Commit changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add -A && git diff-index --cached --quiet HEAD || git commit -m 'isort'
+
+      - name: Push changes
+        uses: ad-m/github-push-action@v0.5.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
 
         
       #- name: Setup flake8 annotations
