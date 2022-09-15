@@ -3,7 +3,7 @@
 Use Cases
 =========
 
-A collection of some useful situation for PROTEX.
+A collection of some useful situations for PROTEX.
 
 HPTS
 ----
@@ -12,6 +12,21 @@ The photoacid 8-Hydroxypyrene-1,3,6-trisulfonic acid (HPTSH) can be used to intr
 
 The protonated (HPTSH) and deprotonated (HPTS) forms of the molecule need to be set up with `CHARMM-GUI <https://www.charmm-gui.org/>`_ and Drude parametrized with `FFParam <http://ffparam.umaryland.edu/>`_, using dummy atoms and dummy lone pairs where necessary.
 ``protex`` can be set up as described in the :ref:`Quick-Start-Guide`, with the exception that the new species need to be added to the templates.
+
+.. code-block:: python
+    
+    HPTSH_HPTS = {
+       "HPTSH": {
+            "atom_name": "H7",
+            "canonical_name": "HPTS",
+        },
+        "HPTS": {
+            "atom_name": "O7",
+            "canonical_name": "HPTS",
+        },
+    }
+
+
 The deprotonated acid shouldn't accept any protons, so only the reactions involving the protonated form should be added to the allowed updates:
 
 .. code-block:: python
@@ -24,7 +39,7 @@ The deprotonated acid shouldn't accept any protons, so only the reactions involv
     allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.16, "prob": 1.0}
     allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.16, "prob": 1.0}
 
-    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1, HPTS_HPTSH], allowed_updates)
+    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1, HPTSH_HPTS], allowed_updates)
     ionic_liquid = IonicLiquidSystem(simulation, templates)
 
 Carry out simulations as described before.
@@ -38,7 +53,7 @@ You can use this list to index a selection of H atoms with `MDAnalysis <https://
     sel_h = u.select_atoms("(resname IM1H and name H7) or (resname IM1 and name H7) or (resname OAC and name H) or (resname HOAC and name H) or (resname HPTS and name H7) or (resname HPTSH and name H7)")
     (...)
     ctr = 0
-    for ts, step, idx in zip(u.trajectory[::skip], list(charge_steps)[::skip], h_idx):
+    for ts, idx in zip(u.trajectory[::skip], h_idx):
         pos_h[ctr] = sel_h[idx].position
         ctr += 1
 
