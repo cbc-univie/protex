@@ -51,21 +51,21 @@ jobs:
           # requirementsFiles: # optional, default is 
       - name: Commit changes
         run: |
-          # git clone https://github.com/florianjoerg/protex.git --branch isort-action --single-branch isort-action
+          git remote set-url origin ${{ github.repositoryUrl }}
           git fetch --no-tags --depth=1 origin ${{ github.ref }}
           git branch --force ${{ github.ref }} --track origin/${{ github.ref }}
           git checkout ${{ github.ref }}
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --local user.name "GitHub Action"
           git add -A && git diff-index --cached --quiet HEAD || git commit -m 'isort'
-          git push
+          #git push
           # git commit -m "isort" -a
 
       - name: Push changes
         uses: ad-m/github-push-action@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: isort-action
+          #branch: isort-action
 
           
       
