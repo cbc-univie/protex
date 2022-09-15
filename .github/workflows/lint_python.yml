@@ -53,7 +53,7 @@ jobs:
         run: |
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --local user.name "GitHub Action"
-          git remote set-url origin https://florianjoerg:${{ secrets.GITHUB_TOKEN}@github.com/florianjoerg/protex.git
+          git remote set-url origin https://florianjoerg:${{ secrets.GITHUB_TOKEN }}@github.com/florianjoerg/protex.git
           git fetch --no-tags --depth=1 origin ${{ github.ref }}
           git branch --force ${{ github.ref }} --track origin/${{ github.ref }}
           git checkout ${{ github.ref }}
