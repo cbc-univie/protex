@@ -33,15 +33,19 @@ jobs:
           flake8: true
           flake8_dir: "protex/"
           flake8_args: "--exclude=scripts,forcefield,_version.py --max-line-length=88 --extend-ignore=E203 --exit-zero"
-      - name: python-isort
+      - name: Run python-isort
+        uses: olance(isort-action@v1.0.0
+        with: 
+          args: .
+          
         # You may pin to the exact commit or the version.
         # uses: isort/isort-action@f555d1d11ca0529654eb6d1f017f9e4a269ffa7f
-        uses: isort/isort-action@v1.0.0
-        with:
+        #uses: isort/isort-action@v1.0.0
+        #with:
           # Version of isort to use
           # isortVersion: # optional, default is latest
           # files or directories to sort
-          sortPaths: . # optional, default is .
+         # sortPaths: . # optional, default is .
           # isort configuration options
           # configuration: # optional, default is --check-only --diff
           # path(s) to requirements files that should be installed to properly configure third-party imports
