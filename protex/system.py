@@ -1,11 +1,11 @@
-from copy import deepcopy
 import itertools
 import logging
 from collections import ChainMap, defaultdict, deque
 from pdb import pm
+
 import numpy as np
 import parmed
-import yaml, json
+import yaml
 
 try:
     import openmm
@@ -232,7 +232,7 @@ class IonicLiquidSystem:
         self,
         simulation: openmm.app.simulation.Simulation,
         templates: IonicLiquidTemplates,
-        simulation_for_parameters: openmm.app.simulation.Simulation = None
+        simulation_for_parameters: openmm.app.simulation.Simulation = None,
     ) -> None:
         self.system: openmm.openmm.System = simulation.system
         self.topology: openmm.app.topology.Topology = simulation.topology
@@ -271,7 +271,7 @@ class IonicLiquidSystem:
             for b in pair_12_set:
                 shared = set(a).intersection(set(b))
                 if len(shared) == 1:
-                    pair = tuple(sorted(set(list(a) + list(b)) - shared)) 
+                    pair = tuple(sorted(set(list(a) + list(b)) - shared))
                     pair_13_set.add(pair)
                     # there were duplicates in pair_13_set, e.q. (1,3) and (3,1), needs to be sorted
 
@@ -366,8 +366,10 @@ class IonicLiquidSystem:
                             idx2 = f[1]  # parentatom
                             if idx1 in atom_idxs and idx2 in atom_idxs:
                                 forces_dict[type(force).__name__].append(f)
-                        #print(self.pair_12_13_list)
-                        assert len(self.pair_12_13_list) == force.getNumScreenedPairs(), f"{len(self.pair_12_13_list)=}, {force.getNumScreenedPairs()=}"
+                        # print(self.pair_12_13_list)
+                        assert (
+                            len(self.pair_12_13_list) == force.getNumScreenedPairs()
+                        ), f"{len(self.pair_12_13_list)=}, {force.getNumScreenedPairs()=}"
                         for drude_id in range(force.getNumScreenedPairs()):
                             f = force.getScreenedPairParameters(drude_id)
                             # idx1 = f[0]
@@ -500,17 +502,14 @@ class IonicLiquidSystem:
         """
         Helper function to adapt the psf
         """
-        #print(len(self.residues), len(psf.residues))
+        # print(len(self.residues), len(psf.residues))
         assert len(self.residues) == len(psf.residues)
 
         # make a dict with parmed representations of each residue, use it to assign the opposite one if a transfer occured
         pm_unique_residues: dict[str, parmed.Residue] = {}
-        residue_counts: dict[
-            str, int
-        ] = (
-            {}
-        )  # incremented by one each time it is used to track the current residue number
-        
+        # incremented by one each time it is used to track the current residue number
+        residue_counts: dict[str, int] = {}
+
         for residue in psf_copy.residues:
             if residue.name in pm_unique_residues:
                 continue

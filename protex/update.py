@@ -1,11 +1,12 @@
 import logging
 import random
-import numpy as np
 from collections import Counter
+
+import numpy as np
 from scipy.spatial import distance_matrix
 
-from protex.system import IonicLiquidSystem
 from protex.residue import Residue
+from protex.system import IonicLiquidSystem
 
 logger = logging.getLogger(__name__)
 
@@ -221,7 +222,7 @@ class StateUpdate:
                 return par
 
     def get_num_residues(self) -> dict:
-        res_dict = {"IM1H": 0, "OAC": 0, "IM1": 0, "HOAC": 0, "HPTS":0, "HPTSH":0}
+        res_dict = {"IM1H": 0, "OAC": 0, "IM1": 0, "HOAC": 0, "HPTS": 0, "HPTSH": 0}
         for residue in self.ionic_liquid.residues:
             res_dict[residue.current_name] += 1
         return res_dict
