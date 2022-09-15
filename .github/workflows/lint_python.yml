@@ -33,10 +33,25 @@ jobs:
           flake8: true
           flake8_dir: "protex/"
           flake8_args: "--exclude=scripts,forcefield,_version.py --max-line-length=88 --extend-ignore=E203 --exit-zero"
+          
       - name: Run python-isort
-        uses: olance(isort-action@v1.0.0
+        uses: olance/isort-action@v1.0.0
         with: 
           args: .
+        
+      - name: Commit changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add -A && git diff-index --cached --quiet HEAD || git commit -m 'isort'
+
+      - name: Push changes
+        uses: ad-m/github-push-action@v0.5.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+        
+        
           
         # You may pin to the exact commit or the version.
         # uses: isort/isort-action@f555d1d11ca0529654eb6d1f017f9e4a269ffa7f
@@ -50,18 +65,7 @@ jobs:
           # configuration: # optional, default is --check-only --diff
           # path(s) to requirements files that should be installed to properly configure third-party imports
           # requirementsFiles: # optional, default is 
-      - name: Commit changes
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add -A && git diff-index --cached --quiet HEAD || git commit -m 'isort'
-
-      - name: Push changes
-        uses: ad-m/github-push-action@v0.5.0
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-
-        
+          
       #- name: Setup flake8 annotations
       #  uses: rbialon/flake8-annotations@v1
       #- name: Lint with flake8
