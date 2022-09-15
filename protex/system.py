@@ -1,6 +1,8 @@
 import itertools
+import json
 import logging
 from collections import ChainMap, defaultdict, deque
+from copy import deepcopy
 from pdb import pm
 
 import numpy as np
@@ -510,12 +512,12 @@ class IonicLiquidSystem:
         # incremented by one each time it is used to track the current residue number
         residue_counts: dict[str, int] = {}
 
-        for residue in psf_copy.residues:
-            if residue.name in pm_unique_residues:
+        for pm_residue in psf_copy.residues:
+            if pm_residue.name in pm_unique_residues:
                 continue
             else:
-                pm_unique_residues[residue.name] = residue
-                residue_counts[residue.name] = 1
+                pm_unique_residues[pm_residue.name] = pm_residue
+                residue_counts[pm_residue.name] = 1
 
         for residue, pm_residue in zip(self.residues, psf.residues):
             # if the new residue (residue.current_name) is different than the original one from the old psf (pm_residue.name)
@@ -546,6 +548,7 @@ class IonicLiquidSystem:
         import parmed
 
         pm_old_psf = parmed.charmm.CharmmPsfFile(old_psf_infname)
+        # copying parmed structure did not work
         pm_old_psf_copy = parmed.charmm.CharmmPsfFile(old_psf_infname)
         pm_new_psf = self._adapt_parmed_psf_file(pm_old_psf, pm_old_psf_copy)
         pm_new_psf.write_psf(new_psf_outfname)
