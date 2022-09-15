@@ -12,6 +12,9 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
+      - name: work around permission issue
+        run: git config --global --add safe.directory /github/workspace
+    
       - name: Check out Git repository
         uses: actions/checkout@v2
         #with:
@@ -53,7 +56,6 @@ jobs:
         run: |
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --local user.name "GitHub Action"
-          git config --global --add safe.directory /github/workspace
           git add -A && git diff-index --cached --quiet HEAD || git commit -m 'isort'
 
       - name: Push changes
