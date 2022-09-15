@@ -503,6 +503,7 @@ class IonicLiquidSystem:
         pm_unique_residues: dict[str, parmed.Residue] = {}
         # incremented by one each time it is used to track the current residue number
         residue_counts: dict[str, int] = {}
+
         for pm_residue in psf_copy.residues:
             if pm_residue.name in pm_unique_residues:
                 continue
