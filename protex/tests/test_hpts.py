@@ -5,7 +5,8 @@ import pwd
 from sys import stdout
 import numpy as np
 from collections import defaultdict
-#import json
+
+# import json
 import copy
 import parmed
 import re
@@ -60,11 +61,10 @@ from ..testsystems import (
 )
 
 
-
-
 ############################
 # TEST SYSTEM
 ############################
+
 
 def test_available_platforms():
     # =======================================================================
@@ -176,7 +176,7 @@ def test_setup_simulation():
     system = simulation.system
 
     nr_of_particles = system.getNumParticles()
-    assert nr_of_particles == 18310  
+    assert nr_of_particles == 18310
 
 
 def test_run_simulation():
@@ -208,15 +208,17 @@ def test_create_IonicLiquidTemplate():
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
-    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 0.201} # 1+2
-    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 0.684} # 3+4
-    allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000} 
-    allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.15, "prob":1.000} 
-    allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000} 
-    allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000} 
-    allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000} 
+    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 0.201}  # 1+2
+    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 0.684}  # 3+4
+    allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
 
-    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1, HPTSH_HPTS], (allowed_updates))
+    templates = IonicLiquidTemplates(
+        [OAC_HOAC, IM1H_IM1, HPTSH_HPTS], (allowed_updates)
+    )
 
     r = templates.get_residue_name_for_coupled_state("OAC")
     assert r == "HOAC"
@@ -233,7 +235,9 @@ def test_create_IonicLiquidTemplate():
     assert templates.states["IM1"]["atom_name"] == "N2"
     assert templates.states["HPTS"]["atom_name"] == "O7"
 
-    assert sorted(templates.names) == sorted(["OAC", "HOAC", "IM1H", "IM1", "HPTS", "HPTSH"])
+    assert sorted(templates.names) == sorted(
+        ["OAC", "HOAC", "IM1H", "IM1", "HPTS", "HPTSH"]
+    )
     print(templates.allowed_updates)
     assert templates.overall_max_distance == 0.16
 
@@ -251,16 +255,18 @@ def test_create_IonicLiquid():
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 2.33}
     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": -2.33}
-   # allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.15, "prob": 0.098} #1+4
-    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 0.201} # 1+2
-    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 0.684} # 3+4
-    allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000} 
-    allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.15, "prob":1.000} 
-    allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000} 
-    allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000} 
-    allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000} 
-    
-    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1, HPTSH_HPTS], (allowed_updates))
+    # allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.15, "prob": 0.098} #1+4
+    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 0.201}  # 1+2
+    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 0.684}  # 3+4
+    allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
+
+    templates = IonicLiquidTemplates(
+        [OAC_HOAC, IM1H_IM1, HPTSH_HPTS], (allowed_updates)
+    )
 
     count = defaultdict(int)
     ionic_liquid = IonicLiquidSystem(simulation, templates)
@@ -288,22 +294,25 @@ def test_create_IonicLiquid():
 
 ########## testing with 1 of each
 
+
 def test_create_single_IonicLiquid():
 
     simulation = generate_single_hpts_system()
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
-   # allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.15, "prob": 0.098} #1+4
-    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 0.201} # 1+2
-    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 0.684} # 3+4
-    allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000} 
-    allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.15, "prob":1.000} 
-    allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000} 
-    allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000} 
-    allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000} 
-    
-    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1, HPTSH_HPTS], (allowed_updates))
+    # allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.15, "prob": 0.098} #1+4
+    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 0.201}  # 1+2
+    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 0.684}  # 3+4
+    allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
+
+    templates = IonicLiquidTemplates(
+        [OAC_HOAC, IM1H_IM1, HPTSH_HPTS], (allowed_updates)
+    )
 
     count = defaultdict(int)
     ionic_liquid = IonicLiquidSystem(simulation, templates)
@@ -327,7 +336,6 @@ def test_create_single_IonicLiquid():
     assert initial_number_of_molecules["HOAC"] == 1
     assert initial_number_of_molecules["HPTS"] == 1
     assert initial_number_of_molecules["HPTSH"] == 1
-
 
 
 def test_residues():
@@ -381,7 +389,7 @@ def test_residues():
                 "N2",
                 "DN2",
                 "H7",
-                "LPN21"
+                "LPN21",
             ]
         if r.name == "HPTSH" and idx == 1008:
             atom_idxs = [atom.index for atom in r.atoms()]
@@ -478,7 +486,7 @@ def test_residues():
             ]
 
             assert atom_names == [
-               "C1",
+                "C1",
                 "DC1",
                 "C2",
                 "DC2",
@@ -592,7 +600,6 @@ def test_forces():
                             idx1 in atom_idxs[r.name] and idx2 in atom_idxs[r.name]
                         ):  # atom index of bond force needs to be in atom_idxs
                             force_state[r.name].append(f)
-                        
 
         if r.name == "HPTSH" and ridx == 1008:
             names.append(r.name)
@@ -796,15 +803,17 @@ def test_drude_forces():
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
-    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 0.201} # 1+2
-    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 0.684} # 3+4
-    allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000} 
-    allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.15, "prob":1.000} 
-    allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000} 
-    allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000} 
-    allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000} 
+    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 0.201}  # 1+2
+    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 0.684}  # 3+4
+    allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
 
-    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1, HPTSH_HPTS], (allowed_updates))
+    templates = IonicLiquidTemplates(
+        [OAC_HOAC, IM1H_IM1, HPTSH_HPTS], (allowed_updates)
+    )
 
     ionic_liquid = IonicLiquidSystem(simulation, templates)
     system = simulation.system
@@ -906,21 +915,22 @@ def test_drude_forces():
         raise AssertionError("ohoh")
 
 
-
 def test_create_IonicLiquid_residue():
     simulation = generate_hpts_system()
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
-    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 0.201} # 1+2
-    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 0.684} # 3+4
-    allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000} 
-    allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.15, "prob":1.000} 
-    allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000} 
-    allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000} 
-    allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000} 
+    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 0.201}  # 1+2
+    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 0.684}  # 3+4
+    allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
 
-    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1, HPTSH_HPTS], (allowed_updates))
+    templates = IonicLiquidTemplates(
+        [OAC_HOAC, IM1H_IM1, HPTSH_HPTS], (allowed_updates)
+    )
 
     ionic_liquid = IonicLiquidSystem(simulation, templates)
     assert len(ionic_liquid.residues) == 1009
@@ -944,7 +954,6 @@ def test_create_IonicLiquid_residue():
     assert ionic_liquid.residues[0].current_name == "IM1H"
     assert ionic_liquid.residues[0].original_name == "IM1H"
 
-    
 
 def test_save_load_residue_names():
     # obtain simulation object
@@ -953,15 +962,17 @@ def test_save_load_residue_names():
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
-    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 0.201} # 1+2
-    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 0.684} # 3+4
-    allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000} 
-    allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.15, "prob":1.000} 
-    allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000} 
-    allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000} 
-    allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000} 
+    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 0.201}  # 1+2
+    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 0.684}  # 3+4
+    allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
 
-    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1, HPTSH_HPTS], (allowed_updates))
+    templates = IonicLiquidTemplates(
+        [OAC_HOAC, IM1H_IM1, HPTSH_HPTS], (allowed_updates)
+    )
     # wrap system in IonicLiquidSystem
     ionic_liquid = IonicLiquidSystem(simulation, templates)
     # initialize update method
@@ -994,15 +1005,17 @@ def test_save_load_residue_names():
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
-    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 0.201} # 1+2
-    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 0.684} # 3+4
-    allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000} 
-    allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.15, "prob":1.000} 
-    allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000} 
-    allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000} 
-    allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000} 
+    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 0.201}  # 1+2
+    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 0.684}  # 3+4
+    allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
 
-    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1, HPTSH_HPTS], (allowed_updates))
+    templates = IonicLiquidTemplates(
+        [OAC_HOAC, IM1H_IM1, HPTSH_HPTS], (allowed_updates)
+    )
     # wrap system in IonicLiquidSystem
     ionic_liquid = IonicLiquidSystem(simulation, templates)
     ionic_liquid.load_current_names("current_names.txt")
@@ -1028,15 +1041,17 @@ def test_reporter_class():
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
-    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 0.201} # 1+2
-    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 0.684} # 3+4
-    allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000} 
-    allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.15, "prob":1.000} 
-    allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000} 
-    allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000} 
-    allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000} 
+    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 0.201}  # 1+2
+    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 0.684}  # 3+4
+    allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
 
-    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1, HPTSH_HPTS], (allowed_updates))
+    templates = IonicLiquidTemplates(
+        [OAC_HOAC, IM1H_IM1, HPTSH_HPTS], (allowed_updates)
+    )
     # wrap system in IonicLiquidSystem
     ionic_liquid = IonicLiquidSystem(simulation, templates)
     # initialize update method
@@ -1079,15 +1094,17 @@ def test_write_psf_save_load():
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 0.994}
     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 0.098}
-    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 0.201} # 1+2
-    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 0.684} # 3+4
-    allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000} 
-    allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.15, "prob":1.000} 
-    allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000} 
-    allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000} 
-    allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000} 
+    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 0.201}  # 1+2
+    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 0.684}  # 3+4
+    allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
 
-    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1, HPTSH_HPTS], (allowed_updates))
+    templates = IonicLiquidTemplates(
+        [OAC_HOAC, IM1H_IM1, HPTSH_HPTS], (allowed_updates)
+    )
     # wrap system in IonicLiquidSystem
     ionic_liquid = IonicLiquidSystem(simulation, templates, simulation_for_parameters)
     # initialize update method
@@ -1105,7 +1122,7 @@ def test_write_psf_save_load():
     ionic_liquid.saveState("state.rst")
     ionic_liquid.saveCheckpoint("checkpoint.rst")
 
-    ionic_liquid2 = ionic_liquid #copy.deepcopy(ionic_liquid)
+    ionic_liquid2 = ionic_liquid  # copy.deepcopy(ionic_liquid)
     ionic_liquid.loadState("state.rst")
     ionic_liquid2.loadCheckpoint("checkpoint.rst")
 
@@ -1113,6 +1130,7 @@ def test_write_psf_save_load():
 #####################
 # TEST UODATE
 #######################
+
 
 @pytest.mark.skipif(
     os.getenv("CI") == "true",
@@ -1126,17 +1144,19 @@ def test_updates(caplog):
     # allowed updates according to simple protonation scheme
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.15, "prob": 1}
     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.15, "prob": 1}
-    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.15, "prob": 1} # 1+2
-    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 1} # 3+4
-    allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000} 
-    allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.15, "prob":1.000} 
-    allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000} 
-    allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000} 
-    allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000} 
+    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.15, "prob": 1}  # 1+2
+    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 1}  # 3+4
+    allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
 
     print(allowed_updates.keys())
     # get ionic liquid templates
-    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1, HPTSH_HPTS], (allowed_updates))
+    templates = IonicLiquidTemplates(
+        [OAC_HOAC, IM1H_IM1, HPTSH_HPTS], (allowed_updates)
+    )
     # wrap system in IonicLiquidSystem
     ionic_liquid = IonicLiquidSystem(simulation, templates)
     pars = []
@@ -1152,10 +1172,11 @@ def test_updates(caplog):
         candidate_pairs = state_update.update(2)
 
         print(candidate_pairs)
-    
+
     # test whether the update changed the psf
     old_psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
     ionic_liquid.write_psf(old_psf_file, "protex/forcefield/hpts_new.psf")
+
 
 @pytest.mark.skipif(
     os.getenv("CI") == "true",
@@ -1168,15 +1189,17 @@ def test_pbc():
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
-    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 1} # 1+2
-    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 1} # 3+4
-    allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000} 
-    allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.15, "prob":1.000} 
-    allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000} 
-    allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000} 
-    allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000} 
+    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 1}  # 1+2
+    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 1}  # 3+4
+    allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
 
-    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1, HPTSH_HPTS], (allowed_updates))
+    templates = IonicLiquidTemplates(
+        [OAC_HOAC, IM1H_IM1, HPTSH_HPTS], (allowed_updates)
+    )
     # wrap system in IonicLiquidSystem
     ionic_liquid = IonicLiquidSystem(simulation, templates)
 
@@ -1224,14 +1247,16 @@ def test_residue_forces():
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.15, "prob": 1}
     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.15, "prob": 1}
-    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.15, "prob": 1} # 1+2
-    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 1} # 3+4
-    allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000} 
-    allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.15, "prob":1.000} 
-    allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000} 
-    allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000} 
-    allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000} 
-    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1, HPTSH_HPTS], (allowed_updates))
+    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.15, "prob": 1}  # 1+2
+    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 1}  # 3+4
+    allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
+    templates = IonicLiquidTemplates(
+        [OAC_HOAC, IM1H_IM1, HPTSH_HPTS], (allowed_updates)
+    )
     ionic_liquid = IonicLiquidSystem(simulation, templates)
 
     oac = ionic_liquid.residues[157]
@@ -1256,7 +1281,6 @@ def test_residue_forces():
     #     assert len(par1) == len(par2)
 
     ### test indices
-    
 
     # print("force=HarmonicBondForce")
     # for old_idx, old_parm in enumerate(oac.parameters["OAC"]["HarmonicBondForce"]):
@@ -1294,8 +1318,8 @@ def test_residue_forces():
     #                     raise RuntimeError(
     #                          "Odering is different between the two topologies."
     #                     )
- 
-    # print("force=PeriodicTorsionForce")    
+
+    # print("force=PeriodicTorsionForce")
     # for old_idx, old_parm in enumerate(hpts.parameters["HPTS"]["PeriodicTorsionForce"]):
     #     idx1, idx2, idx3, idx4, idx5 = old_parm[0], old_parm[1], old_parm[2], old_parm[3], old_parm[4]
     #     for new_idx, new_parm in enumerate(hptsh.parameters["HPTSH"]["PeriodicTorsionForce"]):
@@ -1307,7 +1331,7 @@ def test_residue_forces():
     #                         "Odering is different between the two topologies."
     #                 )
 
-    # print("force=CustomTorsionForce")    
+    # print("force=CustomTorsionForce")
     # for old_idx, old_parm in enumerate(hpts.parameters["HPTS"]["CustomTorsionForce"]):
     #     idx1, idx2, idx3, idx4 = old_parm[0], old_parm[1], old_parm[2], old_parm[3]
     #     for new_idx, new_parm in enumerate(hptsh.parameters["HPTSH"]["CustomTorsionForce"]):
@@ -1319,13 +1343,34 @@ def test_residue_forces():
     #                         "Odering is different between the two topologies."
     #                 )
 
-
     for old_idx, old_parm in enumerate(hoac.parameters["HOAC"]["PeriodicTorsionForce"]):
-        idx1, idx2, idx3, idx4, idx5 = old_parm[0], old_parm[1], old_parm[2], old_parm[3], old_parm[4]
-        for new_idx, new_parm in enumerate(oac.parameters["OAC"]["PeriodicTorsionForce"]):
+        idx1, idx2, idx3, idx4, idx5 = (
+            old_parm[0],
+            old_parm[1],
+            old_parm[2],
+            old_parm[3],
+            old_parm[4],
+        )
+        for new_idx, new_parm in enumerate(
+            oac.parameters["OAC"]["PeriodicTorsionForce"]
+        ):
             if set(
-                [new_parm[0] - offset_oac, new_parm[1] - offset_oac, new_parm[2] - offset_oac, new_parm[3] - offset_oac, new_parm[4]]
-            ) == set([idx1 - offset_hoac, idx2 - offset_hoac, idx3 - offset_hoac, idx4 - offset_hoac, idx5]):
+                [
+                    new_parm[0] - offset_oac,
+                    new_parm[1] - offset_oac,
+                    new_parm[2] - offset_oac,
+                    new_parm[3] - offset_oac,
+                    new_parm[4],
+                ]
+            ) == set(
+                [
+                    idx1 - offset_hoac,
+                    idx2 - offset_hoac,
+                    idx3 - offset_hoac,
+                    idx4 - offset_hoac,
+                    idx5,
+                ]
+            ):
                 if old_idx != new_idx:
                     print(old_idx, new_idx)
                     for force in simulation.system.getForces():
@@ -1348,7 +1393,7 @@ def test_residue_forces():
                                     print("new force", f)
 
                     raise RuntimeError(
-                            "Odering is different between the two topologies."
+                        "Odering is different between the two topologies."
                     )
                 break
 
@@ -1373,19 +1418,22 @@ def test_residue_forces():
                             print(new_idx, "new force", f)
             raise RuntimeError()
 
+
 def test_list_torsionforce():
     simulation = generate_hpts_system()
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.15, "prob": 1}
     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.15, "prob": 1}
-    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.15, "prob": 1} # 1+2
-    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 1} # 3+4
-    allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000} 
-    allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.15, "prob":1.000} 
-    allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000} 
-    allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000} 
-    allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000} 
-    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1, HPTSH_HPTS], (allowed_updates))
+    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.15, "prob": 1}  # 1+2
+    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 1}  # 3+4
+    allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
+    templates = IonicLiquidTemplates(
+        [OAC_HOAC, IM1H_IM1, HPTSH_HPTS], (allowed_updates)
+    )
     ionic_liquid = IonicLiquidSystem(simulation, templates)
 
     oac = ionic_liquid.residues[157]
@@ -1394,33 +1442,84 @@ def test_list_torsionforce():
     offset1 = oac._get_offset("OAC")
     offset2 = hoac._get_offset("HOAC")
 
-
     for old_idx, old_parm in enumerate(oac.parameters["OAC"]["PeriodicTorsionForce"]):
-        idx1, idx2, idx3, idx4, idx5, idx6, idx7 = old_parm[0]-offset1, old_parm[1]-offset1, old_parm[2]-offset1, old_parm[3]-offset1, old_parm[4], old_parm[5], old_parm[6]
+        idx1, idx2, idx3, idx4, idx5, idx6, idx7 = (
+            old_parm[0] - offset1,
+            old_parm[1] - offset1,
+            old_parm[2] - offset1,
+            old_parm[3] - offset1,
+            old_parm[4],
+            old_parm[5],
+            old_parm[6],
+        )
         f = open("oac_torsion.txt", "a")
-        f.write(str(old_idx) +"\t"+ str(idx1) +"\t"+ str(idx2) +"\t"+ str(idx3)+"\t"+ str(idx4)+"\t"+ str(idx5)+"\t"+ str(idx6)+"\t"+ str(idx7) +"\n")
+        f.write(
+            str(old_idx)
+            + "\t"
+            + str(idx1)
+            + "\t"
+            + str(idx2)
+            + "\t"
+            + str(idx3)
+            + "\t"
+            + str(idx4)
+            + "\t"
+            + str(idx5)
+            + "\t"
+            + str(idx6)
+            + "\t"
+            + str(idx7)
+            + "\n"
+        )
         f.close()
 
-
     for new_idx, new_parm in enumerate(hoac.parameters["HOAC"]["PeriodicTorsionForce"]):
-        id1, id2, id3, id4, id5, id6, id7 = new_parm[0]-offset2, new_parm[1]-offset2, new_parm[2]-offset2, new_parm[3]-offset2, new_parm[4], new_parm[5], new_parm[6]
+        id1, id2, id3, id4, id5, id6, id7 = (
+            new_parm[0] - offset2,
+            new_parm[1] - offset2,
+            new_parm[2] - offset2,
+            new_parm[3] - offset2,
+            new_parm[4],
+            new_parm[5],
+            new_parm[6],
+        )
         g = open("hoac_torsion.txt", "a")
-        g.write(str(new_idx) +"\t"+ str(id1) +"\t"+ str(id2)+"\t"+ str(id3)+"\t"+ str(id4)+"\t"+ str(id5)+"\t"+ str(id6)+"\t"+ str(id7) +"\n")
+        g.write(
+            str(new_idx)
+            + "\t"
+            + str(id1)
+            + "\t"
+            + str(id2)
+            + "\t"
+            + str(id3)
+            + "\t"
+            + str(id4)
+            + "\t"
+            + str(id5)
+            + "\t"
+            + str(id6)
+            + "\t"
+            + str(id7)
+            + "\n"
+        )
         g.close()
+
 
 def test_count_forces():
     simulation = generate_hpts_system()
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.15, "prob": 1}
     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.15, "prob": 1}
-    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.15, "prob": 1} # 1+2
-    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 1} # 3+4
-    allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000} 
-    allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.15, "prob":1.000} 
-    allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000} 
-    allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000} 
-    allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000} 
-    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1, HPTSH_HPTS], (allowed_updates))
+    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.15, "prob": 1}  # 1+2
+    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 1}  # 3+4
+    allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
+    templates = IonicLiquidTemplates(
+        [OAC_HOAC, IM1H_IM1, HPTSH_HPTS], (allowed_updates)
+    )
     ionic_liquid = IonicLiquidSystem(simulation, templates)
 
     oac = ionic_liquid.residues[157]
@@ -1430,7 +1529,6 @@ def test_count_forces():
     hpts = ionic_liquid.residues[1007]
     hptsh = ionic_liquid.residues[1008]
 
-
     ### change res and pair (alternative of res) to test different molecules
     res = oac
     pair = hoac
@@ -1439,26 +1537,47 @@ def test_count_forces():
     offset_pair = pair._get_offset(pair.current_name)
 
     ### make list of atoms in dihedrals, check if there are duplicates
-    torsions=[]
+    torsions = []
 
-
-    for old_idx, old_parm in enumerate(res.parameters[res.current_name]["PeriodicTorsionForce"]):
-        idx1, idx2, idx3, idx4 = old_parm[0]-offset, old_parm[1]-offset, old_parm[2]-offset, old_parm[3]-offset
+    for old_idx, old_parm in enumerate(
+        res.parameters[res.current_name]["PeriodicTorsionForce"]
+    ):
+        idx1, idx2, idx3, idx4 = (
+            old_parm[0] - offset,
+            old_parm[1] - offset,
+            old_parm[2] - offset,
+            old_parm[3] - offset,
+        )
         ids = [idx1, idx2, idx3, idx4]
         torsions.append(ids)
 
-    #print(torsions)
+    # print(torsions)
 
-    for old_idx, old_parm in enumerate(res.parameters[res.current_name]["PeriodicTorsionForce"]):
-        idx1, idx2, idx3, idx4, idx5 = old_parm[0]-offset, old_parm[1]-offset, old_parm[2]-offset, old_parm[3]-offset, old_parm[4]
+    for old_idx, old_parm in enumerate(
+        res.parameters[res.current_name]["PeriodicTorsionForce"]
+    ):
+        idx1, idx2, idx3, idx4, idx5 = (
+            old_parm[0] - offset,
+            old_parm[1] - offset,
+            old_parm[2] - offset,
+            old_parm[3] - offset,
+            old_parm[4],
+        )
         ids = [idx1, idx2, idx3, idx4]
         print(ids)
-        print(torsions.count(ids))       
+        print(torsions.count(ids))
         if torsions.count(ids) == 1:
             print("count id 1, in branch without multiplicity")
-            for new_idx, new_parm in enumerate(pair.parameters[pair.current_name]["PeriodicTorsionForce"]):
+            for new_idx, new_parm in enumerate(
+                pair.parameters[pair.current_name]["PeriodicTorsionForce"]
+            ):
                 if set(
-                    [new_parm[0] - offset_pair, new_parm[1] - offset_pair, new_parm[2] - offset_pair, new_parm[3] - offset_pair]
+                    [
+                        new_parm[0] - offset_pair,
+                        new_parm[1] - offset_pair,
+                        new_parm[2] - offset_pair,
+                        new_parm[3] - offset_pair,
+                    ]
                 ) == set([idx1, idx2, idx3, idx4]):
                     if old_idx != new_idx:
                         print(old_idx, new_idx)
@@ -1481,7 +1600,7 @@ def test_count_forces():
                                     ):
                                         print("new force", f)
                         raise RuntimeError(
-                                "Odering is different between the two topologies."
+                            "Odering is different between the two topologies."
                         )
                     break
 
@@ -1507,10 +1626,18 @@ def test_count_forces():
                 raise RuntimeError()
         else:
             print("count id != 1, in branch with multiplicities")
-            for new_idx, new_parm in enumerate(pair.parameters[pair.current_name]["PeriodicTorsionForce"]):
+            for new_idx, new_parm in enumerate(
+                pair.parameters[pair.current_name]["PeriodicTorsionForce"]
+            ):
                 if set(
-                    [new_parm[0] - offset_pair, new_parm[1] - offset_pair, new_parm[2] - offset_pair, new_parm[3] - offset_pair, new_parm[4]]
-                ) == set([idx1 , idx2, idx3, idx4, idx5]):
+                    [
+                        new_parm[0] - offset_pair,
+                        new_parm[1] - offset_pair,
+                        new_parm[2] - offset_pair,
+                        new_parm[3] - offset_pair,
+                        new_parm[4],
+                    ]
+                ) == set([idx1, idx2, idx3, idx4, idx5]):
                     if old_idx != new_idx:
                         print(old_idx, new_idx)
                         for force in simulation.system.getForces():
@@ -1532,7 +1659,7 @@ def test_count_forces():
                                     ):
                                         print("new force", f)
                         raise RuntimeError(
-                                "Odering is different between the two topologies."
+                            "Odering is different between the two topologies."
                         )
                     break
 
@@ -1569,15 +1696,17 @@ def test_update_write_psf():
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 0.994}
     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 0.098}
-    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 0.201} # 1+2
-    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 0.684} # 3+4
-    allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000} 
-    allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.15, "prob":1.000} 
-    allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000} 
-    allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000} 
-    allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000} 
+    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 0.201}  # 1+2
+    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 0.684}  # 3+4
+    allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
 
-    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1, HPTSH_HPTS], (allowed_updates))
+    templates = IonicLiquidTemplates(
+        [OAC_HOAC, IM1H_IM1, HPTSH_HPTS], (allowed_updates)
+    )
     # wrap system in IonicLiquidSystem
     ionic_liquid = IonicLiquidSystem(simulation, templates, simulation_for_parameters)
     # initialize update method
@@ -1588,12 +1717,12 @@ def test_update_write_psf():
     old_psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
     ionic_liquid.write_psf(old_psf_file, "test.psf")
 
-    i=0
+    i = 0
     while i < 20:
-        sum_charge=0
+        sum_charge = 0
         for x in range(0, 1009):
-            resi=ionic_liquid.residues[x]
-            sum_charge=sum_charge+resi.current_charge
+            resi = ionic_liquid.residues[x]
+            sum_charge = sum_charge + resi.current_charge
         print(sum_charge)
         if sum_charge != 0:
             raise RuntimeError("Error in run", i)
@@ -1601,7 +1730,9 @@ def test_update_write_psf():
         os.rename("test.psf", "old_psf.psf")
 
         simulation = generate_hpts_system(psf_file="old_psf.psf")
-        ionic_liquid = IonicLiquidSystem(simulation, templates, simulation_for_parameters)
+        ionic_liquid = IonicLiquidSystem(
+            simulation, templates, simulation_for_parameters
+        )
         update = NaiveMCUpdate(ionic_liquid)
         state_update = StateUpdate(update)
 
@@ -1612,9 +1743,8 @@ def test_update_write_psf():
         ionic_liquid.saveState("state.rst")
         ionic_liquid.saveCheckpoint("checkpoint.rst")
 
-        ionic_liquid2 = ionic_liquid #copy.deepcopy(ionic_liquid)
+        ionic_liquid2 = ionic_liquid  # copy.deepcopy(ionic_liquid)
         ionic_liquid.loadState("state.rst")
         ionic_liquid2.loadCheckpoint("checkpoint.rst")
 
-        i +=1
-
+        i += 1

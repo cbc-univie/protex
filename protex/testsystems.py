@@ -194,9 +194,10 @@ def generate_im1h_oac_system(
 
     return setup_simulation()
 
+
 ### new generate
 def generate_hpts_system(
-    psf_file: str =None,
+    psf_file: str = None,
     crd_file: str = None,
     restart_file: str = None,
     constraints: str = None,
@@ -228,7 +229,7 @@ def generate_hpts_system(
                 "im1_d.str",
                 "oac_d.str",
                 "hpts_d.str",
-                "hptsh_d.str"
+                "hptsh_d.str",
             ]
             base = f"{protex.__path__[0]}/forcefield"  # NOTE: this points now to the installed files!
             params = CharmmParameterSet(
@@ -361,6 +362,7 @@ def generate_hpts_system(
         return simulation
 
     return setup_simulation()
+
 
 ### old generate
 # def generate_hpts_system(coll_freq=10, drude_coll_freq=120):
@@ -548,7 +550,7 @@ def generate_single_hpts_system(coll_freq=10, drude_coll_freq=120):
             "im1_d.str",
             "oac_d.str",
             "hpts_d.str",
-            "hptsh_d.str"
+            "hptsh_d.str",
         ]
         base = f"{protex.__path__[0]}/forcefield"  # NOTE: this points now to the installed files!
         params = CharmmParameterSet(
@@ -674,7 +676,7 @@ OAC_HOAC = {
 }
 
 HPTSH_HPTS = {
-   "HPTSH": {
+    "HPTSH": {
         "atom_name": "H7",
         "canonical_name": "HPTS",
     },

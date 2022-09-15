@@ -449,11 +449,18 @@ class Residue:
         new_parms_offset = self._get_offset(new_name, force_name=force_name)
         old_parms_offset = self._get_offset(old_name, force_name=force_name)
 
-        torsions =[] # list for atom indices in a dihedral
+        torsions = []  # list for atom indices in a dihedral
 
         # fill list with all dihedrals
-        for old_idx, old_parm in enumerate(self.parameters[self.current_name]["PeriodicTorsionForce"]):
-            idx1, idx2, idx3, idx4 = old_parm[0]-old_parms_offset, old_parm[1]-old_parms_offset, old_parm[2]-old_parms_offset, old_parm[3]-old_parms_offset
+        for old_idx, old_parm in enumerate(
+            self.parameters[self.current_name]["PeriodicTorsionForce"]
+        ):
+            idx1, idx2, idx3, idx4 = (
+                old_parm[0] - old_parms_offset,
+                old_parm[1] - old_parms_offset,
+                old_parm[2] - old_parms_offset,
+                old_parm[3] - old_parms_offset,
+            )
             ids = [idx1, idx2, idx3, idx4]
             torsions.append(ids)
 
@@ -462,27 +469,30 @@ class Residue:
         parms_new = []
 
         for old_idx, old_parm in enumerate(self.parameters[old_name][force_name]):
-            idx1, idx2, idx3, idx4, idx5 = old_parm[0]-old_parms_offset, old_parm[1]-old_parms_offset, old_parm[2]-old_parms_offset, old_parm[3]-old_parms_offset, old_parm[4]
+            idx1, idx2, idx3, idx4, idx5 = (
+                old_parm[0] - old_parms_offset,
+                old_parm[1] - old_parms_offset,
+                old_parm[2] - old_parms_offset,
+                old_parm[3] - old_parms_offset,
+                old_parm[4],
+            )
             # first 4 parms: atoms in dihedral, 5.: multiplicity -> need all 5, different multiplicities for same dihedral possible
-            ids = [idx1, idx2, idx3, idx4] # get atoms in the current dihedral
-           
-            if torsions.count(ids) == 1: # only 1 dihedral with 1 multiplicity, multiplicity can be different between old and new -> ignore multiplicity
-                for new_idx, new_parm in enumerate(self.parameters[new_name][force_name]):
+            ids = [idx1, idx2, idx3, idx4]  # get atoms in the current dihedral
+
+            if (
+                torsions.count(ids) == 1
+            ):  # only 1 dihedral with 1 multiplicity, multiplicity can be different between old and new -> ignore multiplicity
+                for new_idx, new_parm in enumerate(
+                    self.parameters[new_name][force_name]
+                ):
                     if set(
                         [
                             new_parm[0] - new_parms_offset,
                             new_parm[1] - new_parms_offset,
                             new_parm[2] - new_parms_offset,
-                            new_parm[3] - new_parms_offset
+                            new_parm[3] - new_parms_offset,
                         ]
-                    ) == set(
-                        [
-                            idx1,
-                            idx2,
-                            idx3,
-                            idx4
-                            ]
-                    ):
+                    ) == set([idx1, idx2, idx3, idx4]):
                         if old_idx != new_idx:
 
                             raise RuntimeError(
@@ -494,26 +504,20 @@ class Residue:
                         break
                 else:
                     raise RuntimeError()
-            
-            else: # count > 1: multiple dihedrals with different multiplicities for same set of atoms -> also match multiplicity
-                for new_idx, new_parm in enumerate(self.parameters[new_name][force_name]):
+
+            else:  # count > 1: multiple dihedrals with different multiplicities for same set of atoms -> also match multiplicity
+                for new_idx, new_parm in enumerate(
+                    self.parameters[new_name][force_name]
+                ):
                     if set(
                         [
                             new_parm[0] - new_parms_offset,
                             new_parm[1] - new_parms_offset,
                             new_parm[2] - new_parms_offset,
                             new_parm[3] - new_parms_offset,
-                            new_parm[4]
+                            new_parm[4],
                         ]
-                    ) == set(
-                        [
-                            idx1,
-                            idx2,
-                            idx3,
-                            idx4,
-                            idx5
-                            ]
-                    ):
+                    ) == set([idx1, idx2, idx3, idx4, idx5]):
                         if old_idx != new_idx:
 
                             raise RuntimeError(
@@ -524,7 +528,7 @@ class Residue:
                         parms_new.append(new_parm)
                         break
                 else:
-                    raise RuntimeError() 
+                    raise RuntimeError()
 
         # interpolate parameters
         # omm dihedral: [atom1, atom2, atom3, atom4, periodicity, Quantity(value=delta/phase, unit=radian), Quantity(value=Kchi, unit=kilojoule/mole)]
