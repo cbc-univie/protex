@@ -11,23 +11,7 @@ HPTS
 The photoacid 8-Hydroxypyrene-1,3,6-trisulfonic acid (HPTSH) can be used to introduce an excess proton into the system. It may be insightful to investigate the transfers this proton undergoes during the simulation.
 
 The protonated (HPTSH) and deprotonated (HPTS) forms of the molecule need to be set up with `CHARMM-GUI <https://www.charmm-gui.org/>`_ and Drude parametrized with `FFParam <http://ffparam.umaryland.edu/>`_, using dummy atoms and dummy lone pairs where necessary.
-``protex`` can be set up as described in the :ref:`Quick-Start-Guide`, with the exception that the new species need to be added to the templates.
-
-.. code-block:: python
-    
-    HPTSH_HPTS = {
-       "HPTSH": {
-            "atom_name": "H7",
-            "canonical_name": "HPTS",
-        },
-        "HPTS": {
-            "atom_name": "O7",
-            "canonical_name": "HPTS",
-        },
-    }
-
-
-The deprotonated acid shouldn't accept any protons, so only the reactions involving the protonated form should be added to the allowed updates:
+``protex`` can be set up as described in the :ref:`Quick-Start-Guide`, with the exception that the new species need to be added to the templates. The deprotonated acid shouldn't accept any protons, so only the reactions involving the protonated form should be added to the allowed updates:
 
 .. code-block:: python
 
@@ -41,6 +25,21 @@ The deprotonated acid shouldn't accept any protons, so only the reactions involv
 
     templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1, HPTSH_HPTS], allowed_updates)
     ionic_liquid = IonicLiquidSystem(simulation, templates)
+  
+To carry out tests, the new template needs to be  added to the test system explicitly, with the residue names and the atoms that are involved in the proton transfer:
+
+.. code-block:: python
+    
+    HPTSH_HPTS = {
+       "HPTSH": {
+            "atom_name": "H7",
+            "canonical_name": "HPTS",
+        },
+        "HPTS": {
+            "atom_name": "O7",
+            "canonical_name": "HPTS",
+        },
+    }
 
 Carry out simulations as described before.
 
