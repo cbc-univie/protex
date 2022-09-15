@@ -1,11 +1,13 @@
 import itertools
+import json
 import logging
 from collections import ChainMap, defaultdict, deque
+from copy import deepcopy
 from pdb import pm
+
 import numpy as np
 import parmed
-import yaml, json
-from copy import deepcopy
+import yaml
 
 try:
     import openmm
