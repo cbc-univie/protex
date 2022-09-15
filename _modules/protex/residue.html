@@ -390,10 +390,9 @@
 
         <span class="k">return</span> <span class="p">[</span><span class="n">parm_interpolated</span><span class="p">,</span> <span class="n">exceptions_interpolated</span><span class="p">]</span>
 
-    <span class="k">def</span> <span class="nf">_get_offset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">force_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_get_offset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
         <span class="c1"># get offset for atom idx</span>
-        <span class="k">if</span> <span class="n">force_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">force_name</span> <span class="o">=</span> <span class="s2">&quot;HarmonicBondForce&quot;</span>
+        <span class="n">force_name</span> <span class="o">=</span> <span class="s2">&quot;HarmonicBondForce&quot;</span>
         <span class="k">return</span> <span class="nb">min</span><span class="p">(</span>
             <span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span>
                 <span class="o">*</span><span class="p">[</span><span class="n">query_parm</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span> <span class="k">for</span> <span class="n">query_parm</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="n">force_name</span><span class="p">]]</span>
@@ -518,85 +517,41 @@
         <span class="n">new_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">alternativ_name</span>
         <span class="n">parm_interpolated</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">force_name</span> <span class="o">=</span> <span class="s2">&quot;PeriodicTorsionForce&quot;</span>
-        <span class="n">new_parms_offset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_offset</span><span class="p">(</span><span class="n">new_name</span><span class="p">,</span> <span class="n">force_name</span><span class="o">=</span><span class="n">force_name</span><span class="p">)</span>
-        <span class="n">old_parms_offset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_offset</span><span class="p">(</span><span class="n">old_name</span><span class="p">,</span> <span class="n">force_name</span><span class="o">=</span><span class="n">force_name</span><span class="p">)</span>
-
-        <span class="n">torsions</span> <span class="o">=</span><span class="p">[]</span> <span class="c1"># list for atom indices in a dihedral</span>
-
-        <span class="c1"># fill list with all dihedrals</span>
-        <span class="k">for</span> <span class="n">old_idx</span><span class="p">,</span> <span class="n">old_parm</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">current_name</span><span class="p">][</span><span class="s2">&quot;PeriodicTorsionForce&quot;</span><span class="p">]):</span>
-            <span class="n">idx1</span><span class="p">,</span> <span class="n">idx2</span><span class="p">,</span> <span class="n">idx3</span><span class="p">,</span> <span class="n">idx4</span> <span class="o">=</span> <span class="n">old_parm</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">old_parms_offset</span><span class="p">,</span> <span class="n">old_parm</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">old_parms_offset</span><span class="p">,</span> <span class="n">old_parm</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">-</span><span class="n">old_parms_offset</span><span class="p">,</span> <span class="n">old_parm</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">-</span><span class="n">old_parms_offset</span>
-            <span class="n">ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">idx1</span><span class="p">,</span> <span class="n">idx2</span><span class="p">,</span> <span class="n">idx3</span><span class="p">,</span> <span class="n">idx4</span><span class="p">]</span>
-            <span class="n">torsions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ids</span><span class="p">)</span>
+        <span class="n">new_parms_offset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_offset</span><span class="p">(</span><span class="n">new_name</span><span class="p">)</span>
+        <span class="n">old_parms_offset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_offset</span><span class="p">(</span><span class="n">old_name</span><span class="p">)</span>
 
         <span class="c1"># match parameters</span>
         <span class="n">parms_old</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">parms_new</span> <span class="o">=</span> <span class="p">[]</span>
 
         <span class="k">for</span> <span class="n">old_idx</span><span class="p">,</span> <span class="n">old_parm</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="n">old_name</span><span class="p">][</span><span class="n">force_name</span><span class="p">]):</span>
-            <span class="n">idx1</span><span class="p">,</span> <span class="n">idx2</span><span class="p">,</span> <span class="n">idx3</span><span class="p">,</span> <span class="n">idx4</span><span class="p">,</span> <span class="n">idx5</span> <span class="o">=</span> <span class="n">old_parm</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">-</span><span class="n">old_parms_offset</span><span class="p">,</span> <span class="n">old_parm</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">old_parms_offset</span><span class="p">,</span> <span class="n">old_parm</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">-</span><span class="n">old_parms_offset</span><span class="p">,</span> <span class="n">old_parm</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">-</span><span class="n">old_parms_offset</span><span class="p">,</span> <span class="n">old_parm</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
-            <span class="c1"># first 4 parms: atoms in dihedral, 5.: multiplicity -&gt; need all 5, different multiplicities for same dihedral possible</span>
-            <span class="n">ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">idx1</span><span class="p">,</span> <span class="n">idx2</span><span class="p">,</span> <span class="n">idx3</span><span class="p">,</span> <span class="n">idx4</span><span class="p">]</span> <span class="c1"># get atoms in the current dihedral</span>
-           
-            <span class="k">if</span> <span class="n">torsions</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">ids</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span> <span class="c1"># only 1 dihedral with 1 multiplicity, multiplicity can be different between old and new -&gt; ignore multiplicity</span>
-                <span class="k">for</span> <span class="n">new_idx</span><span class="p">,</span> <span class="n">new_parm</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="n">new_name</span><span class="p">][</span><span class="n">force_name</span><span class="p">]):</span>
-                    <span class="k">if</span> <span class="nb">set</span><span class="p">(</span>
-                        <span class="p">[</span>
-                            <span class="n">new_parm</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">new_parms_offset</span><span class="p">,</span>
-                            <span class="n">new_parm</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">new_parms_offset</span><span class="p">,</span>
-                            <span class="n">new_parm</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">new_parms_offset</span><span class="p">,</span>
-                            <span class="n">new_parm</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">-</span> <span class="n">new_parms_offset</span>
-                        <span class="p">]</span>
-                    <span class="p">)</span> <span class="o">==</span> <span class="nb">set</span><span class="p">(</span>
-                        <span class="p">[</span>
-                            <span class="n">idx1</span><span class="p">,</span>
-                            <span class="n">idx2</span><span class="p">,</span>
-                            <span class="n">idx3</span><span class="p">,</span>
-                            <span class="n">idx4</span>
-                            <span class="p">]</span>
-                    <span class="p">):</span>
-                        <span class="k">if</span> <span class="n">old_idx</span> <span class="o">!=</span> <span class="n">new_idx</span><span class="p">:</span>
+            <span class="n">idx1</span><span class="p">,</span> <span class="n">idx2</span><span class="p">,</span> <span class="n">idx3</span><span class="p">,</span> <span class="n">idx4</span> <span class="o">=</span> <span class="n">old_parm</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">old_parm</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">old_parm</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">old_parm</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">new_idx</span><span class="p">,</span> <span class="n">new_parm</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="n">new_name</span><span class="p">][</span><span class="n">force_name</span><span class="p">]):</span>
+                <span class="k">if</span> <span class="nb">set</span><span class="p">(</span>
+                    <span class="p">[</span>
+                        <span class="n">new_parm</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">new_parms_offset</span><span class="p">,</span>
+                        <span class="n">new_parm</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">new_parms_offset</span><span class="p">,</span>
+                        <span class="n">new_parm</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">new_parms_offset</span><span class="p">,</span>
+                        <span class="n">new_parm</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">-</span> <span class="n">new_parms_offset</span><span class="p">,</span>
+                    <span class="p">]</span>
+                <span class="p">)</span> <span class="o">==</span> <span class="nb">set</span><span class="p">(</span>
+                    <span class="p">[</span>
+                        <span class="n">idx1</span> <span class="o">-</span> <span class="n">old_parms_offset</span><span class="p">,</span>
+                        <span class="n">idx2</span> <span class="o">-</span> <span class="n">old_parms_offset</span><span class="p">,</span>
+                        <span class="n">idx3</span> <span class="o">-</span> <span class="n">old_parms_offset</span><span class="p">,</span>
+                        <span class="n">idx4</span> <span class="o">-</span> <span class="n">old_parms_offset</span><span class="p">,</span>
+                    <span class="p">]</span>
+                <span class="p">):</span>
+                    <span class="k">if</span> <span class="n">old_idx</span> <span class="o">!=</span> <span class="n">new_idx</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                            <span class="s2">&quot;Odering of angle parameters is different between the two topologies.&quot;</span>
+                        <span class="p">)</span>
 
-                            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
-                                <span class="s2">&quot;Odering of dihedral parameters is different between the two topologies.&quot;</span>
-                            <span class="p">)</span>
-
-                        <span class="n">parms_old</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">old_parm</span><span class="p">)</span>
-                        <span class="n">parms_new</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_parm</span><span class="p">)</span>
-                        <span class="k">break</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">()</span>
-            
-            <span class="k">else</span><span class="p">:</span> <span class="c1"># count &gt; 1: multiple dihedrals with different multiplicities for same set of atoms -&gt; also match multiplicity</span>
-                <span class="k">for</span> <span class="n">new_idx</span><span class="p">,</span> <span class="n">new_parm</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="n">new_name</span><span class="p">][</span><span class="n">force_name</span><span class="p">]):</span>
-                    <span class="k">if</span> <span class="nb">set</span><span class="p">(</span>
-                        <span class="p">[</span>
-                            <span class="n">new_parm</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">new_parms_offset</span><span class="p">,</span>
-                            <span class="n">new_parm</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">new_parms_offset</span><span class="p">,</span>
-                            <span class="n">new_parm</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">new_parms_offset</span><span class="p">,</span>
-                            <span class="n">new_parm</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">-</span> <span class="n">new_parms_offset</span><span class="p">,</span>
-                            <span class="n">new_parm</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
-                        <span class="p">]</span>
-                    <span class="p">)</span> <span class="o">==</span> <span class="nb">set</span><span class="p">(</span>
-                        <span class="p">[</span>
-                            <span class="n">idx1</span><span class="p">,</span>
-                            <span class="n">idx2</span><span class="p">,</span>
-                            <span class="n">idx3</span><span class="p">,</span>
-                            <span class="n">idx4</span><span class="p">,</span>
-                            <span class="n">idx5</span>
-                            <span class="p">]</span>
-                    <span class="p">):</span>
-                        <span class="k">if</span> <span class="n">old_idx</span> <span class="o">!=</span> <span class="n">new_idx</span><span class="p">:</span>
-
-                            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
-                                <span class="s2">&quot;Odering of dihedral parameters is different between the two topologies.&quot;</span>
-                            <span class="p">)</span>
-
-                        <span class="n">parms_old</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">old_parm</span><span class="p">)</span>
-                        <span class="n">parms_new</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_parm</span><span class="p">)</span>
-                        <span class="k">break</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">()</span> 
+                    <span class="n">parms_old</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">old_parm</span><span class="p">)</span>
+                    <span class="n">parms_new</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_parm</span><span class="p">)</span>
+                    <span class="k">break</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">()</span>
 
         <span class="c1"># interpolate parameters</span>
         <span class="c1"># omm dihedral: [atom1, atom2, atom3, atom4, periodicity, Quantity(value=delta/phase, unit=radian), Quantity(value=Kchi, unit=kilojoule/mole)]</span>
