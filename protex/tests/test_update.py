@@ -14,8 +14,12 @@ except ImportError:
 import protex
 
 from ..system import IonicLiquidSystem, IonicLiquidTemplates
-from ..testsystems import (IM1H_IM1, OAC_HOAC, generate_im1h_oac_system,
-                           generate_single_im1h_oac_system)
+from ..testsystems import (
+    IM1H_IM1,
+    OAC_HOAC,
+    generate_im1h_oac_system,
+    generate_single_im1h_oac_system,
+)
 from ..update import NaiveMCUpdate, StateUpdate
 
 

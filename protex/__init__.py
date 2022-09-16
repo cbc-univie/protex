@@ -5,6 +5,7 @@ Proton exchange using SAMS and openMM for ionic liquids
 
 # Handle versioneer
 from ._version import get_versions
+
 # Add imports here
 from .protex import *
 
