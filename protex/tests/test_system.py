@@ -1,26 +1,19 @@
 # Import package, test suite, and other packages as needed
-import io
-import os
-from sys import stdout
-from collections import defaultdict
-
 # import json
 import copy
+import io
+import os
+from collections import defaultdict
+from sys import stdout
 
 try:  # Syntax changed in OpenMM 7.6
     import openmm as mm
-    from openmm import (
-        OpenMMException,
-        Platform,
-        Context,
-        DrudeLangevinIntegrator,
-        DrudeNoseHooverIntegrator,
-        XmlSerializer,
-    )
-    from openmm.app import DCDReporter, PDBReporter, StateDataReporter
-    from openmm.app import CharmmCrdFile, CharmmParameterSet, CharmmPsfFile
-    from openmm.app import PME, HBonds
-    from openmm.app import Simulation
+    from openmm import (Context, DrudeLangevinIntegrator,
+                        DrudeNoseHooverIntegrator, OpenMMException, Platform,
+                        XmlSerializer)
+    from openmm.app import (PME, CharmmCrdFile, CharmmParameterSet,
+                            CharmmPsfFile, DCDReporter, HBonds, PDBReporter,
+                            Simulation, StateDataReporter)
     from openmm.unit import angstroms, kelvin, picoseconds
 except ImportError:
     import simtk.openmm as mm
@@ -41,15 +34,11 @@ except ImportError:
 import pytest
 
 import protex
-from ..system import IonicLiquidSystem, IonicLiquidTemplates
-from ..update import NaiveMCUpdate, StateUpdate
-from ..reporter import ChargeReporter
 
-from ..testsystems import (
-    IM1H_IM1,
-    OAC_HOAC,
-    generate_im1h_oac_system,
-)
+from ..reporter import ChargeReporter
+from ..system import IonicLiquidSystem, IonicLiquidTemplates
+from ..testsystems import IM1H_IM1, OAC_HOAC, generate_im1h_oac_system
+from ..update import NaiveMCUpdate, StateUpdate
 
 
 def test_available_platforms():

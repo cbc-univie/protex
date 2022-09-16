@@ -2,19 +2,17 @@
 #~ Minimization of PACKMOL structure
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-#general Imports
-import sys
 import argparse
 import os
-
-#OpenMM Imports
-from simtk.openmm.app import *
-from simtk.openmm import *
-from simtk.unit import *
+#general Imports
+import sys
 
 from omm_readinputs import *
 from omm_readparams import *
-
+from simtk.openmm import *
+#OpenMM Imports
+from simtk.openmm.app import *
+from simtk.unit import *
 #OpenMM Plugin Imports
 # https://github.com/z-gong/openmm-velocityVerlet
 from velocityverletplugin import VVIntegrator
@@ -22,11 +20,12 @@ from velocityverletplugin import VVIntegrator
 #extra stuff from VVplugin repo
 #sys.path.append("/home/florian/software/openmm-velocityVerlet/examples/")
 #from ommhelper import DrudeTemperatureReporter, ViscosityReporter
-from protex.scripts.ommhelper.reporter.drudetemperaturereporter import DrudeTemperatureReporter
+from protex.scripts.ommhelper.reporter.drudetemperaturereporter import \
+    DrudeTemperatureReporter
 
 # user specified
 sys.path.append("/home/florian/pythonfiles")
-from pystat import read_data 
+from pystat import read_data
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-cnt', dest='counter', help='Counter variable fpr consecutive runs', required=True)

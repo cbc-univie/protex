@@ -11,9 +11,10 @@ Last update: March 29, 2017
 
 import os
 
-from simtk.unit import *
 from simtk.openmm import *
 from simtk.openmm.app import *
+from simtk.unit import *
+
 
 def read_psf(filename):
     psf = CharmmPsfFile(filename)

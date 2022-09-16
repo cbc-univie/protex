@@ -1,7 +1,8 @@
+import glob
+
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
-import glob
 from scipy.signal import find_peaks
 
 plt.rcParams.update({'font.size': 14})

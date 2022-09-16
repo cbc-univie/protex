@@ -9,9 +9,10 @@ Correspondance: jul316@lehigh.edu or wonpil@lehigh.edu
 Last update: March 29, 2017
 """
 
-from simtk.unit import *
 from simtk.openmm import *
 from simtk.openmm.app import *
+from simtk.unit import *
+
 
 class _OpenMMReadInputs():
 

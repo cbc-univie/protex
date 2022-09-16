@@ -2,8 +2,9 @@ try:
     import openmm as mm
 except ImportError:
     import simtk.openmm as mm
-from .util import CONST
+
 from .unit import *
+from .util import CONST
 
 
 def slab_correction(system):

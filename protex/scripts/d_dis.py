@@ -1,12 +1,15 @@
 from __future__ import print_function
+
+import argparse
+import os
+import re
+import sys
+import time
+from pathlib import Path
+
 import MDAnalysis
 import numpy as np
 from MDAnalysis.newanalysis.diffusion import msdCOM, msdMJ, unfoldTraj
-import os, sys
-import time
-import argparse
-import re
-from pathlib import Path
 
 ############
 # argparse

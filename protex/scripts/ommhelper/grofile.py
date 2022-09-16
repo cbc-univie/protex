@@ -2,10 +2,10 @@ import sys
 
 try:
     from openmm.app.gromacsgrofile import GromacsGroFile
-    from openmm.unit import nanometer, picosecond, norm, is_quantity
+    from openmm.unit import is_quantity, nanometer, norm, picosecond
 except ImportError:
     from simtk.openmm.app.gromacsgrofile import GromacsGroFile
-    from simtk.unit import nanometer, picosecond, norm, is_quantity
+    from simtk.unit import is_quantity, nanometer, norm, picosecond
 
 
 class GroFile(GromacsGroFile):

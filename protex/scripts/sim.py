@@ -1,11 +1,12 @@
-from protex.testsystems import generate_im1h_oac_system, OAC_HOAC, IM1H_IM1
-from protex.system import IonicLiquidSystem, IonicLiquidTemplates
-from protex.update import NaiveMCUpdate, StateUpdate
 from sys import stdout
+
+from protex.system import IonicLiquidSystem, IonicLiquidTemplates
+from protex.testsystems import IM1H_IM1, OAC_HOAC, generate_im1h_oac_system
+from protex.update import NaiveMCUpdate, StateUpdate
 
 
 def test_outline():
-    from simtk.openmm.app import StateDataReporter, PDBReporter, DCDReporter
+    from simtk.openmm.app import DCDReporter, PDBReporter, StateDataReporter
 
     # obtain simulation object
     simulation = generate_im1h_oac_system()

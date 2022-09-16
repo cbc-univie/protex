@@ -31,51 +31,41 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from __future__ import division, absolute_import, print_function
+from __future__ import absolute_import, division, print_function
 
-from functools import wraps
-from math import pi, cos, sin, sqrt
 import os
 import re
 import sys
+from functools import wraps
+from math import cos, pi, sin, sqrt
 
 try:
     import openmm as mm
-    from openmm.vec3 import Vec3
     import openmm.unit as u
-    from openmm.app import forcefield as ff, Topology, element
+    from openmm.app import Topology, element
+    from openmm.app import forcefield as ff
     from openmm.app.amberprmtopfile import HCT, OBC1, OBC2, GBn, GBn2
-    from openmm.app.internal.customgbforces import (
-        GBSAHCTForce,
-        GBSAOBC1Force,
-        GBSAOBC2Force,
-        GBSAGBnForce,
-        GBSAGBn2Force,
-    )
-    from openmm.app.internal.unitcell import computePeriodicBoxVectors
-
+    from openmm.app.internal.charmm.exceptions import (CharmmPsfEOF,
+                                                       CharmmPSFError,
+                                                       CharmmPSFWarning,
+                                                       MissingParameter,
+                                                       MoleculeError)
     # CHARMM imports
-    from openmm.app.internal.charmm.topologyobjects import (
-        ResidueList,
-        AtomList,
-        TrackedList,
-        Bond,
-        Angle,
-        Dihedral,
-        Improper,
-        AcceptorDonor,
-        Group,
-        Cmap,
-        UreyBradley,
-        NoUreyBradley,
-    )
-    from openmm.app.internal.charmm.exceptions import (
-        CharmmPSFError,
-        MoleculeError,
-        CharmmPSFWarning,
-        MissingParameter,
-        CharmmPsfEOF,
-    )
+    from openmm.app.internal.charmm.topologyobjects import (AcceptorDonor,
+                                                            Angle, AtomList,
+                                                            Bond, Cmap,
+                                                            Dihedral, Group,
+                                                            Improper,
+                                                            NoUreyBradley,
+                                                            ResidueList,
+                                                            TrackedList,
+                                                            UreyBradley)
+    from openmm.app.internal.customgbforces import (GBSAGBn2Force,
+                                                    GBSAGBnForce, GBSAHCTForce,
+                                                    GBSAOBC1Force,
+                                                    GBSAOBC2Force)
+    from openmm.app.internal.unitcell import computePeriodicBoxVectors
+    from openmm.vec3 import Vec3
 except ImportError:
     import simtk.openmm as mm
     from simtk.openmm.vec3 import Vec3
@@ -113,6 +103,7 @@ except ImportError:
         MissingParameter,
         CharmmPsfEOF,
     )
+
 import warnings
 
 TINY = 1e-8
@@ -2024,7 +2015,7 @@ def set_molecules(atom_list):
     """
     Correctly sets the molecularity of the system based on connectivity
     """
-    from sys import setrecursionlimit, getrecursionlimit
+    from sys import getrecursionlimit, setrecursionlimit
 
     # Since we use a recursive function here, we make sure that the recursion
     # limit is large enough to handle the maximum possible recursion depth we'll
