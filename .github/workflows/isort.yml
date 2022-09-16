@@ -8,7 +8,7 @@ permissions:
   
 jobs:
   isort:
-    name: Run linters
+    name: Run isort
     runs-on: ubuntu-latest
     
     steps:
@@ -46,7 +46,7 @@ jobs:
           #git remote set-url origin https://florianjoerg:${{ secrets.GITHUB_TOKEN }}@github.com/florianjoerg/protex.git
           #git fetch --no-tags --depth=1 origin ${{ github.ref }}
           #git branch --force ${{ github.ref }} --track origin/${{ github.ref }}
-          #git checkout ${{ github.ref }}
+          git checkout ${{ github.ref }}
           git pull
           git add -A && git diff-index --cached --quiet HEAD || git commit -m 'isort'
           git push
