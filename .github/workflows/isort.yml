@@ -16,12 +16,12 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-          ref: ${{ github.ref }}
+         # ref: ${{ github.ref }}
         
-      - name: Set up Python
-        uses: actions/setup-python@v1
-        with:
-          python-version: 3.9
+      #- name: Set up Python
+      #  uses: actions/setup-python@v1
+      #  with:
+      #    python-version: 3.9
           
       - name: Install Python dependencies
         run: pip install isort
@@ -47,13 +47,13 @@ jobs:
           #git fetch --no-tags --depth=1 origin ${{ github.ref }}
           #git branch --force ${{ github.ref }} --track origin/${{ github.ref }}
           #git checkout ${{ github.ref }}
-          
+          git pull
           git add -A && git diff-index --cached --quiet HEAD || git commit -m 'isort'
-          #git push
+          git push
           # git commit -m "isort" -a
 
-      - name: Push changes
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ github.ref }}
+      #- name: Push changes
+      #  uses: ad-m/github-push-action@master
+      #  with:
+      #    github_token: ${{ secrets.GITHUB_TOKEN }}
+      #    branch: ${{ github.ref }}
