@@ -8,25 +8,12 @@ from sys import stdout
 
 try:  # Syntax changed in OpenMM 7.6
     import openmm as mm
-    from openmm import (
-        Context,
-        DrudeLangevinIntegrator,
-        DrudeNoseHooverIntegrator,
-        OpenMMException,
-        Platform,
-        XmlSerializer,
-    )
-    from openmm.app import (
-        PME,
-        CharmmCrdFile,
-        CharmmParameterSet,
-        CharmmPsfFile,
-        DCDReporter,
-        HBonds,
-        PDBReporter,
-        Simulation,
-        StateDataReporter,
-    )
+    from openmm import (Context, DrudeLangevinIntegrator,
+                        DrudeNoseHooverIntegrator, OpenMMException, Platform,
+                        XmlSerializer)
+    from openmm.app import (PME, CharmmCrdFile, CharmmParameterSet,
+                            CharmmPsfFile, DCDReporter, HBonds, PDBReporter,
+                            Simulation, StateDataReporter)
     from openmm.unit import angstroms, kelvin, picoseconds
 except ImportError:
     import simtk.openmm as mm
