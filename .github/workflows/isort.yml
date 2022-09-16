@@ -48,7 +48,7 @@ jobs:
           #git branch --force ${{ github.ref }} --track origin/${{ github.ref }}
           #git checkout ${{ github.ref }}
           #git pull
-          git status
+          echo git status
           git add -A && git diff-index --cached --quiet HEAD || git commit -m 'isort'
           git push
           # git commit -m "isort" -a
