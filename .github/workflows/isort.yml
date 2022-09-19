@@ -22,7 +22,7 @@ jobs:
         run: pip install isort
         
       - name: Run python-isort
-        run: isort .
+        run: isort --profile black .
       
       - name: Commit changes
         run: |
