@@ -3,13 +3,9 @@ from sys import stdout
 
 import pytest
 
-from ..system import IonicLiquidSystem, IonicLiquidTemplates
 from ..reporter import ChargeReporter
-from ..testsystems import (
-    IM1H_IM1,
-    OAC_HOAC,
-    generate_im1h_oac_system,
-)
+from ..system import IonicLiquidSystem, IonicLiquidTemplates
+from ..testsystems import IM1H_IM1, OAC_HOAC, generate_im1h_oac_system
 from ..update import NaiveMCUpdate, StateUpdate
 
 try:

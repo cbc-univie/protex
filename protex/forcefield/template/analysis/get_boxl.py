@@ -1,6 +1,7 @@
 import math
 import pathlib
 
+
 def read_outfile(file):  
     with open(file, "r") as f:
         lines = f.readlines()  

@@ -1,29 +1,35 @@
-import sys 
-import warnings
 import os
+import sys
+import warnings
 from pathlib import Path
 
-from simtk.openmm.app import StateDataReporter, PDBReporter, DCDReporter
-from simtk.openmm import XmlSerializer
-from simtk.openmm.app import CharmmCrdFile, CharmmParameterSet, CharmmPsfFile
-from simtk.openmm.app import PME, HBonds
-from simtk.openmm.app import Simulation
-from simtk.unit import angstroms, kelvin, picoseconds
 from simtk.openmm import (
-        OpenMMException,
-        Platform,
-        Context,
-        DrudeLangevinIntegrator,
-        DrudeNoseHooverIntegrator,
-        XmlSerializer,
-    )
+    Context,
+    DrudeLangevinIntegrator,
+    DrudeNoseHooverIntegrator,
+    OpenMMException,
+    Platform,
+    XmlSerializer,
+)
+from simtk.openmm.app import (
+    PME,
+    CharmmCrdFile,
+    CharmmParameterSet,
+    CharmmPsfFile,
+    DCDReporter,
+    HBonds,
+    PDBReporter,
+    Simulation,
+    StateDataReporter,
+)
+from simtk.unit import angstroms, kelvin, picoseconds
 
 import protex
-from protex.testsystems import generate_im1h_oac_system, OAC_HOAC, IM1H_IM1
-from protex.system import IonicLiquidSystem, IonicLiquidTemplates
 from protex.reporter import ChargeReporter
-from protex.update import NaiveMCUpdate, StateUpdate
 from protex.scripts.ommhelper import DrudeTemperatureReporter
+from protex.system import IonicLiquidSystem, IonicLiquidTemplates
+from protex.testsystems import IM1H_IM1, OAC_HOAC, generate_im1h_oac_system
+from protex.update import NaiveMCUpdate, StateUpdate
 
 allowed_updates = {}
 # allowed updates according to simple protonation scheme

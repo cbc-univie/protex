@@ -1,11 +1,12 @@
 import logging
 import random
-import numpy as np
 from collections import Counter
+
+import numpy as np
 from scipy.spatial import distance_matrix
 
-from protex.system import IonicLiquidSystem
 from protex.residue import Residue
+from protex.system import IonicLiquidSystem
 
 logger = logging.getLogger(__name__)
 
