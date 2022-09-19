@@ -2,8 +2,14 @@ import argparse
 import sys
 
 from simtk.openmm import DrudeNoseHooverIntegrator, MonteCarloBarostat
-from simtk.openmm.app import (PME, CharmmCrdFile, CharmmParameterSet,
-                              CharmmPsfFile, HBonds, Simulation)
+from simtk.openmm.app import (
+    PME,
+    CharmmCrdFile,
+    CharmmParameterSet,
+    CharmmPsfFile,
+    HBonds,
+    Simulation,
+)
 from simtk.unit import angstroms, atmosphere, kelvin, picoseconds
 
 # user specified

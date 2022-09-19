@@ -45,25 +45,36 @@ try:
     from openmm.app import Topology, element
     from openmm.app import forcefield as ff
     from openmm.app.amberprmtopfile import HCT, OBC1, OBC2, GBn, GBn2
-    from openmm.app.internal.charmm.exceptions import (CharmmPsfEOF,
-                                                       CharmmPSFError,
-                                                       CharmmPSFWarning,
-                                                       MissingParameter,
-                                                       MoleculeError)
+    from openmm.app.internal.charmm.exceptions import (
+        CharmmPsfEOF,
+        CharmmPSFError,
+        CharmmPSFWarning,
+        MissingParameter,
+        MoleculeError,
+    )
+
     # CHARMM imports
-    from openmm.app.internal.charmm.topologyobjects import (AcceptorDonor,
-                                                            Angle, AtomList,
-                                                            Bond, Cmap,
-                                                            Dihedral, Group,
-                                                            Improper,
-                                                            NoUreyBradley,
-                                                            ResidueList,
-                                                            TrackedList,
-                                                            UreyBradley)
-    from openmm.app.internal.customgbforces import (GBSAGBn2Force,
-                                                    GBSAGBnForce, GBSAHCTForce,
-                                                    GBSAOBC1Force,
-                                                    GBSAOBC2Force)
+    from openmm.app.internal.charmm.topologyobjects import (
+        AcceptorDonor,
+        Angle,
+        AtomList,
+        Bond,
+        Cmap,
+        Dihedral,
+        Group,
+        Improper,
+        NoUreyBradley,
+        ResidueList,
+        TrackedList,
+        UreyBradley,
+    )
+    from openmm.app.internal.customgbforces import (
+        GBSAGBn2Force,
+        GBSAGBnForce,
+        GBSAHCTForce,
+        GBSAOBC1Force,
+        GBSAOBC2Force,
+    )
     from openmm.app.internal.unitcell import computePeriodicBoxVectors
     from openmm.vec3 import Vec3
 except ImportError:
