@@ -67,15 +67,15 @@ jobs:
       run: echo "$github.event.type"
       
     - name: Make Cache (no worflow_dispatch)
-      if: ${{ github.event.type }} != "workflow_dispatch"
+      if: ! ${{ inputs.CACHE_NUMBER }}
       uses: actions/cache@v2
       with:
         path: ~/conda_pkgs_dir # ${{ matrix.prefix }}
-        key: ${{ matrix.label }}-conda-${{ hashFiles('devtools/conda-envs/openmm7.6.yaml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
+        key: ${{ matrix.label }}-conda-${{ hashFiles('devtools/conda-envs/openmm7.6.yaml') }}-${{ env.DATE }}-0
       id: cache1
       
     - name: Make Cache (worflow_dispatch)
-      if: ${{ github.event.type }} == "workflow_dispatch"
+      if: ${{ inputs.CACHE_NUMBER }}
       uses: actions/cache@v2
       with:
         path: ~/conda_pkgs_dir # ${{ matrix.prefix }}
