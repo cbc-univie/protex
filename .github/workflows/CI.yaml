@@ -67,7 +67,7 @@ jobs:
       run: echo "$github.event.type"
       
     - name: Make Cache (no worflow_dispatch)
-      if: ! ${{ inputs.CACHE_NUMBER }}
+      if: ${{ inputs.CACHE_NUMBER }} == "false"
       uses: actions/cache@v2
       with:
         path: ~/conda_pkgs_dir # ${{ matrix.prefix }}
