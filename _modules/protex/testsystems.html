@@ -220,9 +220,8 @@
                 <span class="n">drude_coll_freq</span> <span class="o">/</span> <span class="n">picoseconds</span><span class="p">,</span>
                 <span class="mf">0.0005</span> <span class="o">*</span> <span class="n">picoseconds</span><span class="p">,</span>
             <span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Using VVIntegrator Plugin&quot;</span><span class="p">)</span>
 
-        <span class="k">except</span> <span class="p">(</span><span class="ne">ModuleNotFoundError</span><span class="p">,</span> <span class="n">OpenMMException</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">ModuleNotFoundError</span><span class="p">,</span> <span class="n">OpenMMException</span><span class="p">):</span>
             <span class="n">integrator</span> <span class="o">=</span> <span class="n">DrudeNoseHooverIntegrator</span><span class="p">(</span>
                 <span class="mi">300</span> <span class="o">*</span> <span class="n">kelvin</span><span class="p">,</span>
                 <span class="n">coll_freq</span> <span class="o">/</span> <span class="n">picoseconds</span><span class="p">,</span>
@@ -230,10 +229,6 @@
                 <span class="n">drude_coll_freq</span> <span class="o">/</span> <span class="n">picoseconds</span><span class="p">,</span>
                 <span class="mf">0.0005</span> <span class="o">*</span> <span class="n">picoseconds</span><span class="p">,</span>
             <span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Using built in DrudeNoseHooverIntegrator&quot;</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Some tests might fail&quot;</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Plugin not usable, because:&quot;</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
 
         <span class="c1"># print(</span>
         <span class="c1">#    f&quot;{coll_freq=}, {drude_coll_freq=}&quot;</span>
@@ -606,7 +601,7 @@
             <span class="s2">&quot;im1_d_fm_lj_chelpg_withlp.str&quot;</span><span class="p">,</span>
             <span class="s2">&quot;oac_d_lj.str&quot;</span><span class="p">,</span>
         <span class="p">]</span>
-        <span class="n">base</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">protex</span><span class="o">.</span><span class="n">__path__</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">/forcefield/single_pairs&quot;</span>  <span class="c1"># NOTE: this points now to the installed files!</span>
+        <span class="n">base</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">protex</span><span class="o">.</span><span class="n">__path__</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">/single_pairs&quot;</span>  <span class="c1"># NOTE: this points now to the installed files!</span>
         <span class="n">params</span> <span class="o">=</span> <span class="n">CharmmParameterSet</span><span class="p">(</span>
             <span class="o">*</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">base</span><span class="si">}</span><span class="s2">/toppar/</span><span class="si">{</span><span class="n">para_files</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">para_files</span> <span class="ow">in</span> <span class="n">PARA_FILES</span><span class="p">]</span>
         <span class="p">)</span>
@@ -690,7 +685,6 @@
                 <span class="n">drude_coll_freq</span> <span class="o">/</span> <span class="n">picoseconds</span><span class="p">,</span>
                 <span class="mf">0.0005</span> <span class="o">*</span> <span class="n">picoseconds</span><span class="p">,</span>
             <span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Using VVIntegrator Plugin&quot;</span><span class="p">)</span>
 
         <span class="k">except</span> <span class="p">(</span><span class="ne">ModuleNotFoundError</span><span class="p">,</span> <span class="n">OpenMMException</span><span class="p">):</span>
             <span class="n">integrator</span> <span class="o">=</span> <span class="n">DrudeNoseHooverIntegrator</span><span class="p">(</span>
@@ -701,7 +695,6 @@
                 <span class="mf">0.0005</span> <span class="o">*</span> <span class="n">picoseconds</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="c1"># temperature grouped nose hoover thermostat</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Using built in DrudeNoseHooverIntegrator&quot;</span><span class="p">)</span>
 
         <span class="nb">print</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">coll_freq</span><span class="si">=}</span><span class="s2">, </span><span class="si">{</span><span class="n">drude_coll_freq</span><span class="si">=}</span><span class="s2">&quot;</span>
