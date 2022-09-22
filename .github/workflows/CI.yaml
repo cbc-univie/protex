@@ -120,7 +120,7 @@ jobs:
       
     
     - name: Run tests (no workflow_dispatch)
-      if: ${{ github.event_name != 'workflow_dispatch}}
+      if: ${{ github.event_name != 'workflow_dispatch' }}
 
       # conda setup requires this special shell
       shell: bash -l {0}
