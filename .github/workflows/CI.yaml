@@ -27,7 +27,8 @@ on:
         default: true
   
 env:
-  CACHE_NUMBER: ${{ inputs.CACHE_NUMBER }} # Increase this reset cache manually
+  CACHE_NUMBER: 0 
+  
 
 jobs:
   test:
@@ -57,12 +58,27 @@ jobs:
 
     - name: Set cache date
       run: echo "DATE=$(date +'%Y%m%d')" >> $GITHUB_ENV
+    
+    #- name: Set cache number (no worflow_dispatch)
+    #  if: ${{ github.event != "worflow_dispatch" }}
+    #  # Increase this reset cache manually
+    #  run: echo "CACHE_NUMBER=0" >> $GITHUB_ENV
       
-    - uses: actions/cache@v2
+    - name: Make Cache (no worflow_dispatch)
+      if: ${{github.event != "worflow_dispatch" }}
+      uses: actions/cache@v2
       with:
         path: ~/conda_pkgs_dir # ${{ matrix.prefix }}
         key: ${{ matrix.label }}-conda-${{ hashFiles('devtools/conda-envs/openmm7.6.yaml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
-      id: cache
+      id: cache1
+      
+    - name: Make Cache (worflow_dispatch)
+      if: ${{github.event == "worflow_dispatch" }}
+      uses: actions/cache@v2
+      with:
+        path: ~/conda_pkgs_dir # ${{ matrix.prefix }}
+        key: ${{ matrix.label }}-conda-${{ hashFiles('devtools/conda-envs/openmm7.6.yaml') }}-${{ env.DATE }}-${{ inputs.CACHE_NUMBER }}
+      id: cache2
       
     # More info on options: https://github.com/conda-incubator/setup-miniconda 
     - uses: conda-incubator/setup-miniconda@v2
