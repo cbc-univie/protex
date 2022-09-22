@@ -225,6 +225,9 @@ class IonicLiquidSystem:
         the OpenMM simulation object
     templates:
         An instance of the IonicLiquidTemplates class
+    simulation_for_parameters:
+        another OpenMM simulation object, set up with a psf that contains all possible forms (protonated and deprotonated) of all species,
+        needed for finding the parameters of the other form during an update
 
     """
 
