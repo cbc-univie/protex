@@ -1,5 +1,7 @@
 import math
+
 from .. import GroFile
+
 
 class GroReporter(object):
     '''

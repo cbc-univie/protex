@@ -1,8 +1,10 @@
 from __future__ import print_function
-import MDAnalysis
-import numpy as np
+
 import random
 import sys
+
+import MDAnalysis
+import numpy as np
 
 #########################################################################################
 # Trajectory setup

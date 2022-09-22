@@ -2,10 +2,12 @@
 Unit and regression test for the protex package.
 """
 
+import sys
+
+import pytest
+
 # Import package, test suite, and other packages as needed
 import protex
-import pytest
-import sys
 
 
 def test_protex_imported():

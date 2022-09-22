@@ -1,11 +1,12 @@
-from ..testsystems import generate_im1h_oac_system, OAC_HOAC, IM1H_IM1
-from ..system import IonicLiquidSystem, IonicLiqudTemplates
-from ..update import NaiveMCUpdate, StateUpdate
 from sys import stdout
+
+from ..system import IonicLiqudTemplates, IonicLiquidSystem
+from ..testsystems import IM1H_IM1, OAC_HOAC, generate_im1h_oac_system
+from ..update import NaiveMCUpdate, StateUpdate
 
 
 def main():
-    from simtk.openmm.app import StateDataReporter, PDBReporter, DCDReporter
+    from simtk.openmm.app import DCDReporter, PDBReporter, StateDataReporter
 
     # obtain simulation object
     simulation = generate_im1h_oac_system()

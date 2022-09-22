@@ -1,31 +1,38 @@
 # Import package, test suite, and other packages as needed
-import os
-import logging
-import pwd
-from sys import stdout
-import numpy as np
-from collections import defaultdict
-
 # import json
 import copy
-import parmed
+import logging
+import os
+import pwd
 import re
+from collections import defaultdict
+from sys import stdout
+
+import numpy as np
 import pandas as pd
+import parmed
 
 try:  # Syntax changed in OpenMM 7.6
     import openmm as mm
     from openmm import (
-        OpenMMException,
-        Platform,
         Context,
         DrudeLangevinIntegrator,
         DrudeNoseHooverIntegrator,
+        OpenMMException,
+        Platform,
         XmlSerializer,
     )
-    from openmm.app import DCDReporter, PDBReporter, StateDataReporter
-    from openmm.app import CharmmCrdFile, CharmmParameterSet, CharmmPsfFile
-    from openmm.app import PME, HBonds
-    from openmm.app import Simulation
+    from openmm.app import (
+        PME,
+        CharmmCrdFile,
+        CharmmParameterSet,
+        CharmmPsfFile,
+        DCDReporter,
+        HBonds,
+        PDBReporter,
+        Simulation,
+        StateDataReporter,
+    )
     from openmm.unit import angstroms, kelvin, picoseconds
 except ImportError:
     import simtk.openmm as mm
@@ -47,19 +54,18 @@ import pytest
 from scipy.spatial import distance_matrix
 
 import protex
-from ..system import IonicLiquidSystem, IonicLiquidTemplates
-from ..update import NaiveMCUpdate, StateUpdate
+
 from ..reporter import ChargeReporter
 from ..residue import Residue
-
+from ..system import IonicLiquidSystem, IonicLiquidTemplates
 from ..testsystems import (
+    HPTSH_HPTS,
     IM1H_IM1,
     OAC_HOAC,
-    HPTSH_HPTS,
     generate_hpts_system,
     generate_single_hpts_system,
 )
-
+from ..update import NaiveMCUpdate, StateUpdate
 
 ############################
 # TEST SYSTEM

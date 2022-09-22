@@ -28,8 +28,7 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
-from __future__ import absolute_import
-from __future__ import print_function
+from __future__ import absolute_import, print_function
 
 __author__ = "Peter Eastman"
 __version__ = "1.0"
@@ -54,6 +53,7 @@ try:
 except ImportError:
     import simtk.openmm as mm
     import simtk.unit as unit
+
 import math
 import time
 

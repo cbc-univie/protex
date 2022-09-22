@@ -1,17 +1,18 @@
 import logging
 import os
-
 from collections import defaultdict, deque
+
 import numpy as np
 import pytest
 from scipy.spatial import distance_matrix
 
 try:
-    from openmm.app import StateDataReporter, DCDReporter
+    from openmm.app import DCDReporter, StateDataReporter
 except ImportError:
     from simtk.openmm.app import StateDataReporter, DCDReporter
 
 import protex
+
 from ..system import IonicLiquidSystem, IonicLiquidTemplates
 from ..testsystems import (
     IM1H_IM1,

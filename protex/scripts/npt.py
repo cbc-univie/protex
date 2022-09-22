@@ -1,14 +1,20 @@
-from simtk.openmm.app import CharmmCrdFile, CharmmParameterSet, CharmmPsfFile
-from simtk.openmm.app import PME, HBonds, Simulation
-from simtk.unit import angstroms, kelvin, picoseconds, atmosphere
-from simtk.openmm import DrudeNoseHooverIntegrator, MonteCarloBarostat
-
-import sys
 import argparse
+import sys
+
+from simtk.openmm import DrudeNoseHooverIntegrator, MonteCarloBarostat
+from simtk.openmm.app import (
+    PME,
+    CharmmCrdFile,
+    CharmmParameterSet,
+    CharmmPsfFile,
+    HBonds,
+    Simulation,
+)
+from simtk.unit import angstroms, atmosphere, kelvin, picoseconds
 
 # user specified
 sys.path.append("/home/florian/pythonfiles")
-from pystat import read_data 
+from pystat import read_data
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-cnt', dest='counter', help='Counter variable fpr consecutive runs', required=True)

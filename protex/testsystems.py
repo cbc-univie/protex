@@ -1,31 +1,42 @@
-import protex
 import os
+
+import protex
 
 try:  # Syntax changed in OpenMM 7.6
     from openmm import (
-        OpenMMException,
-        Platform,
         Context,
         DrudeLangevinIntegrator,
         DrudeNoseHooverIntegrator,
+        OpenMMException,
+        Platform,
         XmlSerializer,
     )
-    from openmm.app import CharmmCrdFile, CharmmParameterSet, CharmmPsfFile
-    from openmm.app import PME, HBonds
-    from openmm.app import Simulation
+    from openmm.app import (
+        PME,
+        CharmmCrdFile,
+        CharmmParameterSet,
+        CharmmPsfFile,
+        HBonds,
+        Simulation,
+    )
     from openmm.unit import angstroms, kelvin, picoseconds
 except ImportError:
     from simtk.openmm import (
-        OpenMMException,
-        Platform,
         Context,
         DrudeLangevinIntegrator,
         DrudeNoseHooverIntegrator,
+        OpenMMException,
+        Platform,
         XmlSerializer,
     )
-    from simtk.openmm.app import CharmmCrdFile, CharmmParameterSet, CharmmPsfFile
-    from simtk.openmm.app import PME, HBonds
-    from simtk.openmm.app import Simulation
+    from simtk.openmm.app import (
+        PME,
+        CharmmCrdFile,
+        CharmmParameterSet,
+        CharmmPsfFile,
+        HBonds,
+        Simulation,
+    )
     from simtk.unit import angstroms, kelvin, picoseconds
 
 
