@@ -26,8 +26,9 @@ on:
         type: boolean
         default: true
   
-env:
-  CACHE_NUMBER: ${{ inputs.CACHE_NUMBER }} # Increase this reset cache manually
+#env:
+#  CACHE_NUMBER: 0 
+  
 
 jobs:
   test:
@@ -46,6 +47,13 @@ jobs:
             prefix: /Users/runner/miniconda3/envs/openmm7.6
 
     steps:
+    - name: test
+      if: ${{ github.event_name == 'workflow_dispatch' }}
+      run: echo "hi"
+    - name: test2
+      if: ${{ github.event_name == 'push' }}
+      run: echo "hi2"
+      
     - uses: actions/checkout@v1
 
     - name: Additional info about the build
@@ -58,11 +66,22 @@ jobs:
     - name: Set cache date
       run: echo "DATE=$(date +'%Y%m%d')" >> $GITHUB_ENV
       
-    - uses: actions/cache@v2
+    - name: Make Cache (no worflow_dispatch)
+      if: ${{ github.event_name != 'workflow_dispatch' }}
+      uses: actions/cache@v2
       with:
         path: ~/conda_pkgs_dir # ${{ matrix.prefix }}
-        key: ${{ matrix.label }}-conda-${{ hashFiles('devtools/conda-envs/openmm7.6.yaml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
-      id: cache
+        # Increase the last number (0) to reset cache manually
+        key: ${{ matrix.label }}-conda-${{ hashFiles('devtools/conda-envs/openmm7.6.yaml') }}-${{ env.DATE }}-0
+      id: cache1
+      
+    - name: Make Cache (worflow_dispatch)
+      if: ${{ github.event_name == 'workflow_dispatch' }}
+      uses: actions/cache@v2
+      with:
+        path: ~/conda_pkgs_dir # ${{ matrix.prefix }}
+        key: ${{ matrix.label }}-conda-${{ hashFiles('devtools/conda-envs/openmm7.6.yaml') }}-${{ env.DATE }}-${{ inputs.CACHE_NUMBER }}
+      id: cache2
       
     # More info on options: https://github.com/conda-incubator/setup-miniconda 
     - uses: conda-incubator/setup-miniconda@v2
@@ -89,8 +108,19 @@ jobs:
         conda list
     
 
-    - name: Run tests
-      if: ${{ inputs.RUN_TESTS }}
+    - name: Run tests (workflow_dispatch)
+      if: ${{ github.event_name == 'workflow_dispatch' && inputs.RUN_TESTS }}
+
+      # conda setup requires this special shell
+      shell: bash -l {0}
+
+      run: |
+        conda activate openmm7.6
+        pytest -v --cov=protex --cov-report=xml --color=yes protex/tests/
+      
+    
+    - name: Run tests (no workflow_dispatch)
+      if: ${{ github.event_name != 'workflow_dispatch' }}
 
       # conda setup requires this special shell
       shell: bash -l {0}
