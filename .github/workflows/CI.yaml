@@ -26,8 +26,8 @@ on:
         type: boolean
         default: true
   
-env:
-  CACHE_NUMBER: 0 
+#env:
+#  CACHE_NUMBER: 0 
   
 
 jobs:
@@ -71,6 +71,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: ~/conda_pkgs_dir # ${{ matrix.prefix }}
+       # Increase the last number (0) to reset cache manually
         key: ${{ matrix.label }}-conda-${{ hashFiles('devtools/conda-envs/openmm7.6.yaml') }}-${{ env.DATE }}-0
       id: cache1
       
@@ -108,7 +109,7 @@ jobs:
     
 
     - name: Run tests
-      if: ${{ inputs.RUN_TESTS }}
+      if: ${{ inputs.RUN_TESTS }} != "false"
 
       # conda setup requires this special shell
       shell: bash -l {0}
