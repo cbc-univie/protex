@@ -47,6 +47,10 @@ jobs:
             prefix: /Users/runner/miniconda3/envs/openmm7.6
 
     steps:
+    - name: test
+      if: ${{ github.event.type.push }}
+      run: echo "hi"
+      
     - uses: actions/checkout@v1
 
     - name: Additional info about the build
