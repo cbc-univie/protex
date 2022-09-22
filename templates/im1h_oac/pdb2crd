@@ -1,0 +1,56 @@
+#!/usr/bin/awk -f
+BEGIN{ 
+   natom = 0; 
+   maxresid = 0;
+   iresid = 0;
+}
+/^REMARK/ { 
+   remark = substr($0,7,60);
+   printf("*. %s \n",remark);
+}
+/^HETATM/ {
+    atomname[++natom] = substr($0,13,4);
+    sub(/^[ \t]+/, "",atomname[natom]);
+    resname[natom]    = substr($0,18,4);
+    sub(/^[ \t]+/, "",resname[natom]);
+    resid[natom]      = substr($0,23,4);
+
+    if (resname[natom] != resname[natom-1]) { iresid++; }
+    else {
+       if (resid[natom]   != resid[natom-1]){ iresid++; }
+    }
+    resid_new[natom] = iresid;
+
+    x[natom] = substr($0,32,7);
+    y[natom] = substr($0,40,7);
+    z[natom] = substr($0,48,7);
+}
+
+/^ATOM/ {
+    atomname[++natom] = substr($0,13,4);
+    sub(/^[ \t]+/, "",atomname[natom]);
+    resname[natom]    = substr($0,18,4);
+    sub(/^[ \t]+/, "",resname[natom]);
+    resid[natom]      = substr($0,23,4);
+
+    if (resname[natom] != resname[natom-1]) { iresid++; }
+    else {
+       if (resid[natom]   != resid[natom-1]){ iresid++; }
+    }
+    resid_new[natom] = iresid;
+
+    x[natom]          = substr($0,32,7);
+    y[natom]          = substr($0,40,7);
+    z[natom]          = substr($0,48,7);
+}
+END{
+    printf("%-5s\n",natom);
+   for (i=1; i<=natom;i++)
+   {
+       printf("%5s%5s ",i,resid_new[i]);
+       printf("%-4s %-4s",resname[i],atomname[i]);
+       printf("%10.5f%10.5f%10.5f ",x[i],y[i],z[i]);
+       printf("%4s ",resname[i]);
+       printf("    %10.5f\n",0.0);
+   }
+}

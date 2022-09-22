@@ -1,7 +1,0 @@
-Previously used skripts for proton transfer
-
-run.sh: summarizes the use of alternately calling npt.inp and proton_transfer.py
-
-current_charges_1.str: exemplary file, which is used to set the new charges in charmm
-
-non_polarizable.rtf: Residues IM1H, IM1, HOAC, OAC are of interest. In IM1 and OAC the Hydrogen is also present but with charge 0. Impropers remain the same. 

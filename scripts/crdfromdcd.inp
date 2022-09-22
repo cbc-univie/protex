@@ -1,0 +1,69 @@
+*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*~ Minimization of PACKMOL structure
+*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*
+ioformat extended
+!=======================================================================
+! Force field
+!=======================================================================
+!set TOPPAR /site/raid2/florian/str/scaled_lj
+set TOPPAR ./toppar
+stream @TOPPAR/toppar_drude_master_protein_2013f_lj02.str
+stream @TOPPAR/im1h_d_fm_lj_lp.str
+stream @TOPPAR/oac_d_lj.str
+stream @TOPPAR/im1_d_fm_lj_dummy_lp.str
+stream @TOPPAR/hoac_d.str
+
+read sequence IM1H 150
+generate IM1H setup warn drude dmass 0.4
+
+read sequence OAC 150
+generate OAC setup warn drude dmass 0.4
+
+read sequence IM1 350
+generate IM1 setup warn drude dmass 0.4
+
+read sequence HOAC 350
+generate HOAC setup warn drude dmass 0.4
+!=======================================================================
+! Coordinates
+!=======================================================================
+open  unit 10 read form name "./im1h_oac_150_im1_hoac_350_lp.crd"
+read  unit 10 coor card 
+close unit 10
+
+coor sdrude !gives cordinates to drudes
+coor shake !gives cordinates to lonepairs
+
+set XTL = 48.0
+calc XTL2 = @xtl/2
+set GRID = 48
+
+crystal define cubic @XTL @XTL @XTL 90.0 90.0 90.0
+crystal build  cutoff @XTL2 noperations 0
+image byresidue select ALL end
+
+energy
+
+open unform read unit 11 name "../../output.dcd"
+traj first 11 nunit 1 begin 200 stop 200
+traj read
+
+
+!open unit 11 read file name "../../output.dcd"
+!read coor file unit 11 ifle 1
+!close unit 11
+!write coor card name "test_200.crd"
+write coor card name "im1h_oac_150_im1_hoac_350_lp2.crd"
+
+
+!open  unit 10 write form name "./im1h_oac_150_im1_hoac_350.crd"
+!write unit 10 coor card 
+!close unit 10
+!
+!open unit 10 write form name "./im1h_oac_150_im1_hoac_350.psf"
+!write unit 10 psf xplor card
+!close unit 10
+
+stop
+
