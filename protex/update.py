@@ -47,7 +47,7 @@ class NaiveMCUpdate(Update):
         to_adapt: list[tuple[str, int, frozenset[str]]] = None,
     ) -> None:
         super().__init__(ionic_liquid, to_adapt)
-        self.allowed_forces: list[int] = [  # change charges only
+        self.allowed_forces: list[str] = [  # change charges only
             "NonbondedForce",  # BUG: Charge stored in the DrudeForce does NOT get updated, probably you want to allow DrudeForce as well!
             "DrudeForce",
         ]
@@ -222,7 +222,7 @@ class StateUpdate:
                 return par
 
     def get_num_residues(self) -> dict:
-        res_dict = {"IM1H": 0, "OAC": 0, "IM1": 0, "HOAC": 0}
+        res_dict = {"IM1H": 0, "OAC": 0, "IM1": 0, "HOAC": 0, "HPTS": 0, "HPTSH": 0}
         for residue in self.ionic_liquid.residues:
             res_dict[residue.current_name] += 1
         return res_dict

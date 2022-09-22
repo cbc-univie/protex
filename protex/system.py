@@ -228,6 +228,9 @@ class IonicLiquidSystem:
         the OpenMM simulation object
     templates:
         An instance of the IonicLiquidTemplates class
+    simulation_for_parameters:
+        another OpenMM simulation object, set up with a psf that contains all possible forms (protonated and deprotonated) of all species,
+        needed for finding the parameters of the other form during an update
 
     """
 
@@ -235,11 +238,13 @@ class IonicLiquidSystem:
         self,
         simulation: openmm.app.simulation.Simulation,
         templates: IonicLiquidTemplates,
+        simulation_for_parameters: openmm.app.simulation.Simulation = None,
     ) -> None:
         self.system: openmm.openmm.System = simulation.system
         self.topology: openmm.app.topology.Topology = simulation.topology
         self.simulation: openmm.app.simulation.Simulation = simulation
         self.templates: IonicLiquidTemplates = templates
+        self.simulation_for_parameters = simulation_for_parameters
         self.residues: list[Residue] = self._set_initial_states()
         self.boxlength: float = (
             simulation.context.getState().getPeriodicBoxVectors()[0][0]._value
@@ -272,8 +277,9 @@ class IonicLiquidSystem:
             for b in pair_12_set:
                 shared = set(a).intersection(set(b))
                 if len(shared) == 1:
-                    pair = tuple(set(list(a) + list(b)) - shared)
+                    pair = tuple(sorted(set(list(a) + list(b)) - shared))
                     pair_13_set.add(pair)
+                    # there were duplicates in pair_13_set, e.q. (1,3) and (3,1), needs to be sorted
 
         self.pair_12_list = list(sorted(pair_12_set))
         self.pair_13_list = list(sorted(pair_13_set - pair_12_set))
@@ -283,15 +289,20 @@ class IonicLiquidSystem:
     def _extract_templates(self, query_name: str) -> defaultdict:
         # returns the forces for the residue name
         forces_dict = defaultdict(list)
+        sim = None
+        if self.simulation_for_parameters is not None:
+            sim = self.simulation_for_parameters
+        else:
+            sim = self.simulation
 
-        for residue in self.topology.residues():
+        for residue in sim.topology.residues():
             if query_name == residue.name:
                 atom_idxs = [atom.index for atom in residue.atoms()]
                 atom_names = [atom.name for atom in residue.atoms()]
                 logger.debug(atom_idxs)
                 logger.debug(atom_names)
 
-                for force in self.system.getForces():
+                for force in sim.system.getForces():
                     # print(type(force).__name__)
                     if type(force).__name__ == "NonbondedForce":
                         forces_dict[type(force).__name__] = [
@@ -361,7 +372,10 @@ class IonicLiquidSystem:
                             idx2 = f[1]  # parentatom
                             if idx1 in atom_idxs and idx2 in atom_idxs:
                                 forces_dict[type(force).__name__].append(f)
-                        assert len(self.pair_12_13_list) == force.getNumScreenedPairs()
+                        # print(self.pair_12_13_list)
+                        assert (
+                            len(self.pair_12_13_list) == force.getNumScreenedPairs()
+                        ), f"{len(self.pair_12_13_list)=}, {force.getNumScreenedPairs()=}"
                         for drude_id in range(force.getNumScreenedPairs()):
                             f = force.getScreenedPairParameters(drude_id)
                             # idx1 = f[0]
@@ -375,6 +389,8 @@ class IonicLiquidSystem:
                                 # print(f"{drude1=}, {drude2=}")
                                 forces_dict[type(force).__name__ + "Thole"].append(f)
                 break  # do this only for the relevant amino acid once
+        else:
+            raise RuntimeError("residue not found")
         return forces_dict
 
     @staticmethod
@@ -497,6 +513,7 @@ class IonicLiquidSystem:
         """
         Helper function to adapt the psf
         """
+        # print(len(self.residues), len(psf.residues))
         assert len(self.residues) == len(psf.residues)
 
         # make a dict with parmed representations of each residue, use it to assign the opposite one if a transfer occured
