@@ -1125,7 +1125,9 @@ def test_updates(caplog):
 
     # test whether the update changed the psf
     old_psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
-    ionic_liquid.write_psf(old_psf_file, "protex/forcefield/hpts_new.psf")
+    ionic_liquid.write_psf(old_psf_file, "hpts_new.psf")
+
+    os.remove("hpts_new.psf")
 
 
 @pytest.mark.skipif(
