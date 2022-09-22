@@ -44,9 +44,8 @@ except ImportError:
     from simtk.openmm.app import Simulation
     from simtk.unit import angstroms, kelvin, picoseconds
 
-import pytest
-
 import protex
+import pytest
 
 from ..reporter import ChargeReporter
 from ..system import IonicLiquidSystem, IonicLiquidTemplates
@@ -187,7 +186,7 @@ def test_run_simulation():
     )
     print("Running dynmamics...")
     simulation.step(200)
-    # If simulation aborts with Nan error, try smaller timestep (e.g. 0.0001 ps) and then extract new crd from dcd using "protex/forcefield/crdfromdcd.inp"
+    # If simulation aborts with Nan error, try smaller timestep (e.g. 0.0001 ps) and then extract new crd from dcd using "scripts/crdfromdcd.inp"
     os.remove("output.pdb")
     os.remove("output.dcd")
 

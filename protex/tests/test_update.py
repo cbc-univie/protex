@@ -1234,7 +1234,7 @@ def test_pbc():
 )
 def test_single_im1h_oac():
 
-    base = f"{protex.__path__[0]}/single_pairs"
+    base = f"{protex.__path__[0]}/forcefield/single_pairs"
 
     simulation = generate_single_im1h_oac_system()
     # get ionic liquid templates

@@ -148,8 +148,9 @@ def generate_im1h_oac_system(
                 drude_coll_freq / picoseconds,
                 0.0005 * picoseconds,
             )
+            print("Using VVIntegrator Plugin")
 
-        except (ModuleNotFoundError, OpenMMException):
+        except (ModuleNotFoundError, OpenMMException) as e:
             integrator = DrudeNoseHooverIntegrator(
                 300 * kelvin,
                 coll_freq / picoseconds,
@@ -157,6 +158,10 @@ def generate_im1h_oac_system(
                 drude_coll_freq / picoseconds,
                 0.0005 * picoseconds,
             )
+            print("Using built in DrudeNoseHooverIntegrator")
+            print("Some tests might fail")
+            print("Plugin not usable, because:")
+            print(e)
 
         # print(
         #    f"{coll_freq=}, {drude_coll_freq=}"
@@ -225,7 +230,7 @@ def generate_single_im1h_oac_system(coll_freq=10, drude_coll_freq=100):
             "im1_d_fm_lj_chelpg_withlp.str",
             "oac_d_lj.str",
         ]
-        base = f"{protex.__path__[0]}/single_pairs"  # NOTE: this points now to the installed files!
+        base = f"{protex.__path__[0]}/forcefield/single_pairs"  # NOTE: this points now to the installed files!
         params = CharmmParameterSet(
             *[f"{base}/toppar/{para_files}" for para_files in PARA_FILES]
         )
@@ -275,6 +280,7 @@ def generate_single_im1h_oac_system(coll_freq=10, drude_coll_freq=100):
                 drude_coll_freq / picoseconds,
                 0.0005 * picoseconds,
             )
+            print("Using VVIntegrator Plugin")
 
         except (ModuleNotFoundError, OpenMMException):
             integrator = DrudeNoseHooverIntegrator(
@@ -285,6 +291,7 @@ def generate_single_im1h_oac_system(coll_freq=10, drude_coll_freq=100):
                 0.0005 * picoseconds,
             )
             # temperature grouped nose hoover thermostat
+            print("Using built in DrudeNoseHooverIntegrator")
 
         print(
             f"{coll_freq=}, {drude_coll_freq=}"
