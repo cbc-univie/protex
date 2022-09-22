@@ -65,7 +65,7 @@ jobs:
     #  run: echo "CACHE_NUMBER=0" >> $GITHUB_ENV
       
     - name: Make Cache (no worflow_dispatch)
-      if: ${{github.event != "worflow_dispatch" }}
+      if: ${{github.event }} != "worflow_dispatch"
       uses: actions/cache@v2
       with:
         path: ~/conda_pkgs_dir # ${{ matrix.prefix }}
@@ -73,7 +73,7 @@ jobs:
       id: cache1
       
     - name: Make Cache (worflow_dispatch)
-      if: ${{github.event == "worflow_dispatch" }}
+      if: ${{github.event }} == "worflow_dispatch"
       uses: actions/cache@v2
       with:
         path: ~/conda_pkgs_dir # ${{ matrix.prefix }}
