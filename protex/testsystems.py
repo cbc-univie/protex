@@ -531,10 +531,10 @@ def generate_hpts_meoh_system(
 
         simulation.context.setPositions(crd.positions)
         # Try with positions from equilibrated system:
-        if restart_file is None:
-            base = f"{protex.__path__[0]}/forcefield"
-            restart_file = f"{base}/traj/hpts_npt_7.rst"
-        if os.path.exists(restart_file):
+        # if restart_file is None:
+        #     base = f"{protex.__path__[0]}/forcefield"
+        #     restart_file = f"{base}/traj/hpts_npt_7.rst"
+        if restart_file is not None:
             with open(restart_file) as f:
                 print(f"Opening restart file {f}")
                 simulation.context.setState(XmlSerializer.deserialize(f.read()))
