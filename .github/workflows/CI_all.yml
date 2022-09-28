@@ -111,11 +111,12 @@ jobs:
       shell: bash -l {0}
       run: |
         echo $CONDA_PREFIX
-        ls $CONDA_PREFIX
-        ls $CONDA_PREFIX/..
+        echo "hi"
         ls $CONDA_PREFIX/../..
+        echo "hi"
         #path_omm_dir=`echo $CONDA_PREFIX/pkgs/openmm-7.6!(*.bz2)`
-        path_omm_dir=`echo $CONDA_PREFIX/pkgs/openmm-7.6*_0`
+        conda_path=`echo $CONDA_PREFIX | cut -d"/" -f-4`
+        path_omm_dir=`echo ${conda_path}/pkgs/openmm-7.6*_0`
         conda activate openmm7.6
         conda install swig
         git clone https://github.com/z-gong/openmm-velocityVerlet.git
