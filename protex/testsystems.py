@@ -385,7 +385,7 @@ def generate_hpts_meoh_system(
     crd_file: str = None,
     restart_file: str = None,
     constraints: str = None,
-    boxl: float = 61.0,
+    boxl: float = 70.0,
     para_files: list[str] = None,
     coll_freq=10,
     drude_coll_freq=100,
