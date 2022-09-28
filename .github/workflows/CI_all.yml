@@ -111,6 +111,10 @@ jobs:
       shell: bash -l {0}
       run: |
         echo $CONDA_PREFIX
+        ls $CONDA_PREFIX
+        ls $CONDA_PREFIX/..
+        ls $CONDA_PREFIX/../..
+        #path_omm_dir=`echo $CONDA_PREFIX/pkgs/openmm-7.6!(*.bz2)`
         path_omm_dir=`echo $CONDA_PREFIX/pkgs/openmm-7.6*_0`
         conda activate openmm7.6
         conda install swig
@@ -120,11 +124,16 @@ jobs:
         cmake --version
         echo $CONDA_PREFIX
         pwd
-        #path_omm_dir=`echo $CONDA_PREFIX/pkgs/openmm-7.6!(*.bz2)`
+        ls
         sed -i "s~SET(OPENMM_DIR \"/usr/local/openmm~SET(OPENMM_DIR \"${path_omm_dir}~" CMakeLists.txt
         # new_path=`echo $CONDA_PREFIX`
-        sed "/^ENDIF (\${CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT})/a SET(CMAKE_INSTALL_PREFIX \"${CONDA_PREFIX}\" CACHE PATH \"Where to install the plugin\" FORCE)" CMakeLists.txt
+        sed -i "/^ENDIF (\${CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT})/a SET(CMAKE_INSTALL_PREFIX \"${CONDA_PREFIX}\" CACHE PATH \"Where to install the plugin\" FORCE)" CMakeLists.txt
         cat CMakeLists.txt
+        cd build
+        cmake ../.
+        make install
+        cd python
+        make PythonInstall
     
     - name: Run tests (workflow_dispatch)
       if: ${{ github.event_name == 'workflow_dispatch' && inputs.RUN_TESTS }}
