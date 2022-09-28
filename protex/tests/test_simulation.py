@@ -3,7 +3,7 @@ from sys import stdout
 
 import pytest
 
-from ..reporter import ChargeReporter
+from ..reporter import ChargeReporter, DrudeTemperatureReporter
 from ..system import IonicLiquidSystem, IonicLiquidTemplates
 from ..testsystems import IM1H_IM1, OAC_HOAC, generate_im1h_oac_system
 from ..update import NaiveMCUpdate, StateUpdate
@@ -20,7 +20,7 @@ except ImportError:
 )
 def test_outline():
 
-    from ..scripts.ommhelper import DrudeTemperatureReporter
+    # from ..scripts.ommhelper import DrudeTemperatureReporter
 
     # obtain simulation object
     simulation = generate_im1h_oac_system(coll_freq=10, drude_coll_freq=120)
@@ -37,7 +37,6 @@ def test_outline():
     templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
     # wrap system in IonicLiquidSystem
     ionic_liquid = IonicLiquidSystem(simulation, templates)
-    ionic_liquid.report_states()
     # initialize update method
     update = NaiveMCUpdate(ionic_liquid, all_forces=True)
     # initialize state update class
