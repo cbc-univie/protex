@@ -110,10 +110,7 @@ jobs:
     - name: Install plugin
       shell: bash -l {0}
       run: |
-        #echo $CONDA_PREFIX
-        #echo "hi"
-        #ls $CONDA_PREFIX/../..
-        #echo "hi"
+        pwd
         #path_omm_dir=`echo $CONDA_PREFIX/pkgs/openmm-7.6!(*.bz2)`
         conda_path=`echo $CONDA_PREFIX | cut -d"/" -f-4`
         ls ${conda_path}/pkgs/ | grep "openmm-7.6.*_0$"
@@ -127,9 +124,6 @@ jobs:
         cd openmm-velocityVerlet
         mkdir build
         cmake --version
-        #echo $CONDA_PREFIX
-        #pwd
-        #ls
         sed -i "s~SET(OPENMM_DIR \"/usr/local/openmm~SET(OPENMM_DIR \"${path_omm_dir}~" CMakeLists.txt
         # new_path=`echo $CONDA_PREFIX`
         sed -i "/^ENDIF (\${CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT})/a SET(CMAKE_INSTALL_PREFIX \"${CONDA_PREFIX}\" CACHE PATH \"Where to install the plugin\" FORCE)" CMakeLists.txt
