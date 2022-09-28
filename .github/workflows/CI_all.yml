@@ -1,0 +1,146 @@
+name: CI All
+
+on:
+  # GitHub has started calling new repo's first branch "main" https://github.com/github/renaming
+  # Existing codes likely still have "master" as the primary branch
+  # Both are tracked here to keep legacy and new codes working
+  push:
+    branches:
+      - "master"
+      - "main"
+  pull_request:
+    branches:
+      - "master"
+      - "main"
+  schedule:
+    # Nightly tests run on master by default:
+    #   Scheduled workflows run on the latest commit on the default or base branch.
+    #   (from https://help.github.com/en/actions/reference/events-that-trigger-workflows#scheduled-events-schedule)
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+    inputs:
+      CACHE_NUMBER:
+        type: number
+        default: 0
+      RUN_TESTS:
+        type: boolean
+        default: true
+  
+#env:
+#  CACHE_NUMBER: 0 
+  
+
+jobs:
+  test_all:
+    name: Test on ${{ matrix.os }}, Python ${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macOS-latest, ubuntu-latest]
+        python-version: [3.9]
+        include:
+          - os: ubuntu-latest
+            label: linux-64
+            prefix: /usr/share/miniconda3/envs/openmm7.6 
+          - os: macos-latest
+            label: osx-64
+            prefix: /Users/runner/miniconda3/envs/openmm7.6
+
+    steps:
+    - name: test
+      if: ${{ github.event_name == 'workflow_dispatch' }}
+      run: echo "hi"
+    - name: test2
+      if: ${{ github.event_name == 'push' }}
+      run: echo "hi2"
+      
+    - uses: actions/checkout@v1
+
+    - name: Additional info about the build
+      shell: bash
+      run: |
+        uname -a
+        df -h
+        ulimit -a
+
+    - name: Set cache date
+      run: echo "DATE=$(date +'%Y%m%d')" >> $GITHUB_ENV
+      
+    - name: Make Cache (no worflow_dispatch)
+      if: ${{ github.event_name != 'workflow_dispatch' }}
+      uses: actions/cache@v2
+      with:
+        path: ~/conda_pkgs_dir # ${{ matrix.prefix }}
+        # Increase the last number (0) to reset cache manually
+        key: ${{ matrix.label }}-conda-${{ hashFiles('devtools/conda-envs/openmm7.6.yaml') }}-${{ env.DATE }}-0
+      id: cache1
+      
+    - name: Make Cache (worflow_dispatch)
+      if: ${{ github.event_name == 'workflow_dispatch' }}
+      uses: actions/cache@v2
+      with:
+        path: ~/conda_pkgs_dir # ${{ matrix.prefix }}
+        key: ${{ matrix.label }}-conda-${{ hashFiles('devtools/conda-envs/openmm7.6.yaml') }}-${{ env.DATE }}-${{ inputs.CACHE_NUMBER }}
+      id: cache2
+      
+    # More info on options: https://github.com/conda-incubator/setup-miniconda 
+    - uses: conda-incubator/setup-miniconda@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+        #environment-file: devtools/conda-envs/openmm7.6.yaml
+        #channels: conda-forge,defaults
+        activate-environment: openmm7.6
+        #auto-update-conda: false
+        auto-activate-base: false
+        #show-channel-urls: true
+        use-only-tar-bz2: true # IMPORTANT: This needs to be set for caching to work properly!
+      
+    - name: Update environment
+      run: conda env update -n openmm7.6 -f devtools/conda-envs/openmm7.6.yaml
+      # if: steps.cache.outputs.cache-hit != 'true'
+        
+    - name: Install package
+
+      # conda setup requires this special shell
+      shell: bash -l {0}
+      run: |
+        python -m pip install . --no-deps
+        conda list
+    
+    - name: Install plugin
+      shell: bash -l {0}
+      run: |
+        conda activate openmm7.6
+        conda install swig
+        git clone https://github.com/z-gong/openmm-velocityVerlet.git
+        cd openmm-velocityVerlet
+        mkdir build
+        cmake --version
+    
+    - name: Run tests (workflow_dispatch)
+      if: ${{ github.event_name == 'workflow_dispatch' && inputs.RUN_TESTS }}
+
+      # conda setup requires this special shell
+      shell: bash -l {0}
+
+      run: |
+        conda activate openmm7.6
+        pytest -v --cov=protex --cov-report=xml --color=yes protex/tests/
+      
+    
+    - name: Run tests (no workflow_dispatch)
+      if: ${{ github.event_name != 'workflow_dispatch' }}
+
+      # conda setup requires this special shell
+      shell: bash -l {0}
+
+      run: |
+        conda activate openmm7.6
+        pytest -v --cov=protex --cov-report=xml --color=yes protex/tests/
+
+    - name: CodeCov
+      uses: codecov/codecov-action@v1
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-${{ matrix.os }}-py${{ matrix.python-version }}
