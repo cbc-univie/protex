@@ -110,6 +110,8 @@ jobs:
     - name: Install plugin
       shell: bash -l {0}
       run: |
+        echo $CONDA_PREFIX
+        path_omm_dir=`echo $CONDA_PREFIX/pkgs/openmm-7.6*_0`
         conda activate openmm7.6
         conda install swig
         git clone https://github.com/z-gong/openmm-velocityVerlet.git
@@ -119,10 +121,9 @@ jobs:
         echo $CONDA_PREFIX
         pwd
         #path_omm_dir=`echo $CONDA_PREFIX/pkgs/openmm-7.6!(*.bz2)`
-        path_omm_dir=`echo $CONDA_PREFIX/pkgs/openmm-7.6*_0`
         sed -i "s~SET(OPENMM_DIR \"/usr/local/openmm~SET(OPENMM_DIR \"${path_omm_dir}~" CMakeLists.txt
-        new_path=`echo $CONDA_PREFIX/env/openmm7.6`
-        sed "/^ENDIF (\${CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT})/a SET(CMAKE_INSTALL_PREFIX \"${new_path}\" CACHE PATH \"Where to install the plugin\" FORCE)" CMakeLists.txt
+        # new_path=`echo $CONDA_PREFIX`
+        sed "/^ENDIF (\${CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT})/a SET(CMAKE_INSTALL_PREFIX \"${CONDA_PREFIX}\" CACHE PATH \"Where to install the plugin\" FORCE)" CMakeLists.txt
         cat CMakeLists.txt
     
     - name: Run tests (workflow_dispatch)
