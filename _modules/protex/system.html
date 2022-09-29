@@ -507,6 +507,16 @@
             <span class="n">name</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">name</span>
             <span class="n">name_of_paired_ion</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">templates</span><span class="o">.</span><span class="n">get_residue_name_for_coupled_state</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
 
+            <span class="c1">### do something like this, to precess meoh without having a template</span>
+            <span class="c1">#### problem: residues for psf are collected this way</span>
+            <span class="c1">#if name in self.templates.names:</span>
+               <span class="c1"># name_of_paired_ion = self.templates.get_residue_name_for_coupled_state(name)</span>
+            <span class="c1">#   if name in templates or name_of_paired_ion in templates:</span>
+            <span class="c1">#     continue</span>
+
+                <span class="c1"># templates[name] = self._extract_templates(name)</span>
+                <span class="c1"># templates[name_of_paired_ion] = self._extract_templates(name_of_paired_ion)</span>
+
             <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">templates</span> <span class="ow">or</span> <span class="n">name_of_paired_ion</span> <span class="ow">in</span> <span class="n">templates</span><span class="p">:</span>
                 <span class="k">continue</span>
 
@@ -545,7 +555,7 @@
                 <span class="p">)</span>
 
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Found resiude not present in Templates: </span><span class="si">{r.name}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Found resiude not present in Templates: </span><span class="si">{r.name}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="c1"># we want to ignore meoh, doesn&#39;t work the way it actually is</span>
         <span class="k">return</span> <span class="n">residues</span>
 
     <span class="c1"># def save_current_names(self, file: str) -&gt; None:</span>
