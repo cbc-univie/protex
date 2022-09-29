@@ -703,3 +703,14 @@ HPTSH_HPTS = {
         "canonical_name": "HPTS",
     },
 }
+
+MEOH_MEOH2 = {                               ### to check meoh system before protonated MEOH parameters are available, TODO: change MEOH2
+    "MEOH": {
+        "atom_name": "HO1",
+        "canonical_name": "MEOH",
+    },
+    "MEOH2": {
+        "atom_name": "HO1",
+        "canonical_name": "MEOH",
+    },
+}
