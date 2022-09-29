@@ -8,7 +8,7 @@ from protex.update import NaiveMCUpdate, StateUpdate
 def test_outline():
     from simtk.openmm.app import DCDReporter, PDBReporter, StateDataReporter
 
-    from protex.scripts.ommhelper import DrudeTemperatureReporter
+    from protex.reporter import DrudeTemperatureReporter
 
     # obtain simulation object
     simulation = generate_im1h_oac_system()
@@ -55,7 +55,7 @@ def test_outline():
         )
         ionic_liquid.simulation.step(10000)
         state_update.update(1)
-        ionic_liquid.report_states()
+        #ionic_liquid.report_states()
 
     # ionic_liquid.charge_changes_to_json("charge_changes_chelpg_1.json", append=False)
 
