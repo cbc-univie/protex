@@ -90,7 +90,7 @@ dynamics simulations.</p>
 </section>
 <section id="getting-involved">
 <h2>Getting involved<a class="headerlink" href="#getting-involved" title="Permalink to this heading"></a></h2>
-<p>Please report <strong>bugs</strong> or <strong>enhancement requests</strong> through the <a class="reference external" href="https://github.com/florianj77/protex/issues">Issue
+<p>Please report <strong>bugs</strong> or <strong>enhancement requests</strong> through the <a class="reference external" href="https://github.com/florianjoerg/protex/issues">Issue
 Tracker</a>.</p>
 </section>
 <section id="user-guide">
@@ -101,12 +101,35 @@ get startet with setting up a system for Protex.</p>
 <section id="installing-protex-and-source-code">
 <span id="installation-instructions"></span><h2>Installing Protex and Source Code<a class="headerlink" href="#installing-protex-and-source-code" title="Permalink to this heading"></a></h2>
 <p><strong>Source code</strong> is available from
-<a class="reference external" href="https://github.com/florianj77/protex/">https://github.com/florianj77/protex/</a> under the MIT License.
+<a class="reference external" href="https://github.com/florianjoerg/protex/">https://github.com/florianjoerg/protex/</a> under the MIT License.
 Obtain the sources with <a class="reference external" href="https://git-scm.com/">git</a>.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git clone https://github.com/florianj77/protex.git
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git clone https://github.com/florianjoerg/protex.git
 <span class="nb">cd</span> protex
 pip install .
 </pre></div>
+</div>
+<p><strong>Using conda environment</strong></p>
+<p>Information how to obtain conda can be found <a class="reference external" href="https://docs.conda.io/projects/conda/en/latest/">here</a>.</p>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>It is recommended to use a (conda) environment for the installation.</p>
+</div>
+<p>First create a conda environment and install the dependencies. You can clone the github project and use the yml file.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you plan to use protex with polarizable MD simulations it is import to get the current master branch of ParmEd.
+The last release (v3.4.3) is not enough since the very recently added Drude functionality is necessary.</p>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git clone https://github.com/florianjoerg/protex.git
+<span class="nb">cd</span> protex
+conda create --name protex -f devtools/conda_envs/protex.yml
+conda activate protex
+pip install .
+</pre></div>
+</div>
+<div class="successstyle admonition">
+<p class="admonition-title">Success!</p>
+<p>Now you are ready to go!</p>
 </div>
 </section>
 <section id="citation">
