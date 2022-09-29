@@ -21,6 +21,7 @@
       :nosignatures:
    
       ChargeReporter
+      DrudeTemperatureReporter
    
    
 

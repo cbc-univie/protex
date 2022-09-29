@@ -71,7 +71,16 @@
            <div itemprop="articleBody">
              
   <h1>Source code for protex.reporter</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">protex.system</span> <span class="kn">import</span> <span class="n">IonicLiquidSystem</span>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">openmm</span>
+    <span class="kn">import</span> <span class="nn">openmm.unit</span> <span class="k">as</span> <span class="nn">unit</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">simtk.openmm</span> <span class="k">as</span> <span class="nn">openmm</span>
+    <span class="kn">import</span> <span class="nn">simtk.unit</span> <span class="k">as</span> <span class="nn">unit</span>
+
+<span class="kn">from</span> <span class="nn">protex.system</span> <span class="kn">import</span> <span class="n">IonicLiquidSystem</span>
 
 
 <div class="viewcode-block" id="ChargeReporter"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.reporter.ChargeReporter.html#protex.reporter.ChargeReporter">[docs]</a><span class="k">class</span> <span class="nc">ChargeReporter</span><span class="p">:</span>
@@ -145,6 +154,179 @@
 
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_out</span><span class="p">,</span> <span class="s2">&quot;flush&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">callable</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_out</span><span class="o">.</span><span class="n">flush</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_out</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_out</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<span class="c1"># Reporter from https://github.com/z-gong/openmm-velocityVerlet/tree/master/examples/ommhelper/reporter</span>
+<div class="viewcode-block" id="DrudeTemperatureReporter"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.reporter.DrudeTemperatureReporter.html#protex.reporter.DrudeTemperatureReporter">[docs]</a><span class="k">class</span> <span class="nc">DrudeTemperatureReporter</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    DrudeTemperatureReporter reports the temperatures of different DOFs in a Drude simulation system.</span>
+
+<span class="sd">    The temperatures for three sets of degrees of freedom are reported</span>
+<span class="sd">    -- molecular center of mass, internal atomic and Drude temperature.</span>
+<span class="sd">    It&#39;s better to set the reportInterval larger than 10000 to avoid performance penalty</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    file : string</span>
+<span class="sd">        The file to write to</span>
+<span class="sd">    reportInterval : int</span>
+<span class="sd">        The interval (in time steps) at which to write frames</span>
+<span class="sd">    append : bool</span>
+<span class="sd">        Whether or not append to existing file</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="n">reportInterval</span><span class="p">,</span> <span class="n">append</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_reportInterval</span> <span class="o">=</span> <span class="n">reportInterval</span>
+        <span class="k">if</span> <span class="n">append</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_out</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_out</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_hasInitialized</span> <span class="o">=</span> <span class="kc">False</span>
+
+<div class="viewcode-block" id="DrudeTemperatureReporter.describeNextReport"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.reporter.DrudeTemperatureReporter.html#protex.reporter.DrudeTemperatureReporter.describeNextReport">[docs]</a>    <span class="k">def</span> <span class="nf">describeNextReport</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">simulation</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get information about the next report this object will generate.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        simulation : Simulation</span>
+<span class="sd">            The Simulation to generate a report for</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple</span>
+<span class="sd">            A six element tuple. The first element is the number of steps</span>
+<span class="sd">            until the next report. The next four elements specify whether</span>
+<span class="sd">            that report will require positions, velocities, forces, and</span>
+<span class="sd">            energies respectively.  The final element specifies whether</span>
+<span class="sd">            positions should be wrapped to lie in a single periodic box.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">steps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reportInterval</span> <span class="o">-</span> <span class="n">simulation</span><span class="o">.</span><span class="n">currentStep</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reportInterval</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">steps</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DrudeTemperatureReporter.report"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.reporter.DrudeTemperatureReporter.html#protex.reporter.DrudeTemperatureReporter.report">[docs]</a>    <span class="k">def</span> <span class="nf">report</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">simulation</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Generate a report.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        simulation : Simulation</span>
+<span class="sd">            The Simulation to generate a report for</span>
+<span class="sd">        state : State</span>
+<span class="sd">            The current state of the simulation</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">system</span><span class="p">:</span> <span class="n">openmm</span><span class="o">.</span><span class="n">System</span> <span class="o">=</span> <span class="n">simulation</span><span class="o">.</span><span class="n">system</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hasInitialized</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">n_atom</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">getNumParticles</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">molecules</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="nb">list</span><span class="p">(</span><span class="n">atoms</span><span class="p">)</span> <span class="k">for</span> <span class="n">atoms</span> <span class="ow">in</span> <span class="n">simulation</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">getMolecules</span><span class="p">()</span>
+            <span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">n_mol</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">molecules</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mol_atoms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">n_atom</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span>
+            <span class="p">)</span>  <span class="c1"># record which molecule the atoms are in</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mass_molecules</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_mol</span><span class="p">)</span>  <span class="c1"># record the mass of molecules</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">atoms</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">molecules</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">atoms</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">mol_atoms</span><span class="p">[</span><span class="n">atom</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">mass_molecules</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="n">system</span><span class="o">.</span><span class="n">getParticleMass</span><span class="p">(</span>
+                        <span class="n">atom</span>
+                    <span class="p">)</span><span class="o">.</span><span class="n">value_in_unit</span><span class="p">(</span><span class="n">unit</span><span class="o">.</span><span class="n">dalton</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">dof_com</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mass_molecules</span><span class="p">)</span> <span class="o">*</span> <span class="mi">3</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dof_atom</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dof_drude</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_atom</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">system</span><span class="o">.</span><span class="n">getParticleMass</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="o">*</span> <span class="n">unit</span><span class="o">.</span><span class="n">dalton</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">dof_atom</span> <span class="o">+=</span> <span class="mi">3</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dof_atom</span> <span class="o">-=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dof_com</span> <span class="o">+</span> <span class="n">system</span><span class="o">.</span><span class="n">getNumConstraints</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="o">==</span> <span class="n">openmm</span><span class="o">.</span><span class="n">CMMotionRemover</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">system</span><span class="o">.</span><span class="n">getForces</span><span class="p">()):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">dof_com</span> <span class="o">-=</span> <span class="mi">3</span>
+
+            <span class="n">drude_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pair_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+            <span class="n">force</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">system</span><span class="o">.</span><span class="n">getForces</span><span class="p">()</span> <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="o">==</span> <span class="n">openmm</span><span class="o">.</span><span class="n">DrudeForce</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dof_atom</span> <span class="o">-=</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">force</span><span class="o">.</span><span class="n">getNumParticles</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dof_drude</span> <span class="o">+=</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">force</span><span class="o">.</span><span class="n">getNumParticles</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">force</span><span class="o">.</span><span class="n">getNumParticles</span><span class="p">()):</span>
+                <span class="n">i_drude</span><span class="p">,</span> <span class="n">i_core</span> <span class="o">=</span> <span class="n">force</span><span class="o">.</span><span class="n">getParticleParameters</span><span class="p">(</span><span class="n">i</span><span class="p">)[:</span><span class="mi">2</span><span class="p">]</span>
+                <span class="n">drude_set</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">i_drude</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pair_set</span><span class="o">.</span><span class="n">add</span><span class="p">((</span><span class="n">i_drude</span><span class="p">,</span> <span class="n">i_core</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">drude_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">drude_set</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">atom_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_atom</span><span class="p">))</span> <span class="o">-</span> <span class="n">drude_set</span><span class="p">))</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_hasInitialized</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="s1">&#39;#&quot;Step&quot;</span><span class="se">\t</span><span class="s1">&quot;T_COM&quot;</span><span class="se">\t</span><span class="s1">&quot;T_Atom&quot;</span><span class="se">\t</span><span class="s1">&quot;T_Drude&quot;</span><span class="se">\t</span><span class="s1">&quot;KE_COM&quot;</span><span class="se">\t</span><span class="s1">&quot;KE_Atom&quot;</span><span class="se">\t</span><span class="s1">&quot;KE_Drude&quot;&#39;</span><span class="p">,</span>
+                <span class="n">file</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_out</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="n">velocities</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">getVelocities</span><span class="p">(</span><span class="n">asNumpy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">value_in_unit</span><span class="p">(</span>
+            <span class="n">unit</span><span class="o">.</span><span class="n">nanometer</span> <span class="o">/</span> <span class="n">unit</span><span class="o">.</span><span class="n">picosecond</span>
+        <span class="p">)</span>
+        <span class="n">masses</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">system</span><span class="o">.</span><span class="n">getParticleMass</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">value_in_unit</span><span class="p">(</span><span class="n">unit</span><span class="o">.</span><span class="n">dalton</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_atom</span><span class="p">)</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+
+        <span class="n">vel_mol</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">n_mol</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">atoms</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">molecules</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass_molecules</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">mv</span> <span class="o">=</span> <span class="n">masses</span><span class="p">[</span><span class="n">atoms</span><span class="p">][:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span> <span class="o">*</span> <span class="n">velocities</span><span class="p">[</span><span class="n">atoms</span><span class="p">]</span>
+            <span class="n">vel_mol</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">mv</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass_molecules</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">mvv_com</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mass_molecules</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">vel_mol</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">ke_com</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">mvv_com</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">unit</span><span class="o">.</span><span class="n">nanometer</span> <span class="o">/</span> <span class="n">unit</span><span class="o">.</span><span class="n">picosecond</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">unit</span><span class="o">.</span><span class="n">dalton</span>
+        <span class="p">)</span>
+        <span class="n">t_com</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">ke_com</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dof_com</span> <span class="o">*</span> <span class="n">unit</span><span class="o">.</span><span class="n">MOLAR_GAS_CONSTANT_R</span><span class="p">)</span>
+
+        <span class="n">velocities</span> <span class="o">-=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">vel_mol</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">mol_atoms</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_atom</span><span class="p">)])</span>
+        <span class="k">for</span> <span class="n">i_drude</span><span class="p">,</span> <span class="n">i_core</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pair_set</span><span class="p">:</span>
+            <span class="n">v_drude</span> <span class="o">=</span> <span class="n">velocities</span><span class="p">[</span><span class="n">i_drude</span><span class="p">]</span>
+            <span class="n">v_core</span> <span class="o">=</span> <span class="n">velocities</span><span class="p">[</span><span class="n">i_core</span><span class="p">]</span>
+            <span class="n">m_drude</span> <span class="o">=</span> <span class="n">masses</span><span class="p">[</span><span class="n">i_drude</span><span class="p">]</span>
+            <span class="n">m_core</span> <span class="o">=</span> <span class="n">masses</span><span class="p">[</span><span class="n">i_core</span><span class="p">]</span>
+            <span class="n">m_com</span> <span class="o">=</span> <span class="n">m_drude</span> <span class="o">+</span> <span class="n">m_core</span>
+            <span class="n">m_rel</span> <span class="o">=</span> <span class="n">m_drude</span> <span class="o">*</span> <span class="n">m_core</span> <span class="o">/</span> <span class="n">m_com</span>
+            <span class="n">v_com</span> <span class="o">=</span> <span class="p">(</span><span class="n">m_drude</span> <span class="o">*</span> <span class="n">v_drude</span> <span class="o">+</span> <span class="n">m_core</span> <span class="o">*</span> <span class="n">v_core</span><span class="p">)</span> <span class="o">/</span> <span class="n">m_com</span>
+            <span class="n">v_rel</span> <span class="o">=</span> <span class="n">v_drude</span> <span class="o">-</span> <span class="n">v_core</span>
+            <span class="n">velocities</span><span class="p">[</span><span class="n">i_drude</span><span class="p">]</span> <span class="o">=</span> <span class="n">v_rel</span>
+            <span class="n">velocities</span><span class="p">[</span><span class="n">i_core</span><span class="p">]</span> <span class="o">=</span> <span class="n">v_com</span>
+            <span class="n">masses</span><span class="p">[</span><span class="n">i_drude</span><span class="p">]</span> <span class="o">=</span> <span class="n">m_rel</span>
+            <span class="n">masses</span><span class="p">[</span><span class="n">i_core</span><span class="p">]</span> <span class="o">=</span> <span class="n">m_com</span>
+        <span class="n">mvv</span> <span class="o">=</span> <span class="n">masses</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">velocities</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">ke</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">mvv</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">atom_array</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+            <span class="o">/</span> <span class="mi">2</span>
+            <span class="o">*</span> <span class="p">(</span><span class="n">unit</span><span class="o">.</span><span class="n">nanometer</span> <span class="o">/</span> <span class="n">unit</span><span class="o">.</span><span class="n">picosecond</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+            <span class="o">*</span> <span class="n">unit</span><span class="o">.</span><span class="n">dalton</span>
+        <span class="p">)</span>
+        <span class="n">ke_drude</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">mvv</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">drude_array</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+            <span class="o">/</span> <span class="mi">2</span>
+            <span class="o">*</span> <span class="p">(</span><span class="n">unit</span><span class="o">.</span><span class="n">nanometer</span> <span class="o">/</span> <span class="n">unit</span><span class="o">.</span><span class="n">picosecond</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+            <span class="o">*</span> <span class="n">unit</span><span class="o">.</span><span class="n">dalton</span>
+        <span class="p">)</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">ke</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dof_atom</span> <span class="o">*</span> <span class="n">unit</span><span class="o">.</span><span class="n">MOLAR_GAS_CONSTANT_R</span><span class="p">)</span>
+        <span class="n">t_drude</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">ke_drude</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dof_drude</span> <span class="o">*</span> <span class="n">unit</span><span class="o">.</span><span class="n">MOLAR_GAS_CONSTANT_R</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="n">simulation</span><span class="o">.</span><span class="n">currentStep</span><span class="p">,</span>
+            <span class="n">t_com</span><span class="o">.</span><span class="n">value_in_unit</span><span class="p">(</span><span class="n">unit</span><span class="o">.</span><span class="n">kelvin</span><span class="p">),</span>
+            <span class="n">t</span><span class="o">.</span><span class="n">value_in_unit</span><span class="p">(</span><span class="n">unit</span><span class="o">.</span><span class="n">kelvin</span><span class="p">),</span>
+            <span class="n">t_drude</span><span class="o">.</span><span class="n">value_in_unit</span><span class="p">(</span><span class="n">unit</span><span class="o">.</span><span class="n">kelvin</span><span class="p">),</span>
+            <span class="n">ke_com</span><span class="o">.</span><span class="n">value_in_unit</span><span class="p">(</span><span class="n">unit</span><span class="o">.</span><span class="n">kilojoule_per_mole</span><span class="p">),</span>
+            <span class="n">ke</span><span class="o">.</span><span class="n">value_in_unit</span><span class="p">(</span><span class="n">unit</span><span class="o">.</span><span class="n">kilojoule_per_mole</span><span class="p">),</span>
+            <span class="n">ke_drude</span><span class="o">.</span><span class="n">value_in_unit</span><span class="p">(</span><span class="n">unit</span><span class="o">.</span><span class="n">kilojoule_per_mole</span><span class="p">),</span>
+            <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">file</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_out</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_out</span><span class="p">,</span> <span class="s2">&quot;flush&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">callable</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_out</span><span class="o">.</span><span class="n">flush</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_out</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span></div>
 
     <span class="k">def</span> <span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_out</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
