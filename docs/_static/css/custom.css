@@ -43,3 +43,7 @@ I defined one in getting_started.rst with :class: successstyle */
 .rst-content .successstyle {
         background: #f6a80042
 }
+
+.logo-gif {
+        mix-blend-mode: multiply;
+}
