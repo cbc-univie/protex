@@ -18,7 +18,7 @@ First, obtain an OpenMM ``simulation`` object. For purposes of this tutorial we 
 .. attention:: 
     It is VERY important that the atom order of the protonated and deprotonated residues match exactly between the coordinate as well as topology/psf files!
 
-Afterwards the main pathway is to specifiy the allowed and transfers which atoms are subject to the transfer using ``IonicLiquidTemplates``. 
+Afterwards the main pathway is to specifiy the allowed transfers and which atoms are subject to the transfer using ``IonicLiquidTemplates``. 
 Then wrap the simulation and templates into an ``IonicLiquidSystem``.
 
 .. code-block:: python
@@ -46,7 +46,7 @@ Next define the update method.
     from protex.update import NaiveMCUpdate, StateUpdate
 
     update = NaiveMCUpdate(ionic_liquid)
-    state_update = StateUpdate(Update)
+    state_update = StateUpdate(update)
 
 Optionally you can define reporters for the simulation. Protex has a built in ``ChargeReporter`` to report the current charges of all molecules which can just be added to the simulation like all other OpenMM reporters.
 
@@ -54,10 +54,16 @@ Optionally you can define reporters for the simulation. Protex has a built in ``
 
     from protex.reporter import ChargeReporter
 
-    infod={"Put whatever additional infos you would like the charge reporter to store here"}
+    infos={"Put whatever additional infos you would like the charge reporter to store here"}
     save_freq = 200
     charge_reporter = ChargeReporter(f"path/to/outfile", save_freq, ionic_liquid, header_data=infos)
     ionic_liquid.simulation.reporters.append(charge_reporter)
+
+You can add additional OpenMM reporters:
+
+.. code-block:: python
+
+    from openmm.reporters import ..
 
 
 Now you are ready to run the simulation and just call the update method whenever you like.
