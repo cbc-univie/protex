@@ -66,5 +66,3 @@ Now you are ready to run the simulation and just call the update method whenever
 
     ionic_liquid.simulation.step(1000)
     state_update.update(2)
-
-There is also a ``ChargeReporter``.

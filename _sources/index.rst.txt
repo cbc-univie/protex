@@ -5,6 +5,14 @@
 
 Welcome to protex's documentation!
 =========================================================
+.. image:: ./assets/images/protex_logo.gif
+   :class: logo-gif
+
+**Protex** is an lightweight object-oriented python
+extension to easily enable bond breaking and formation in molecular
+dynamics simulations.
+It uses the fast and lightweight `OpenMM <https://openmm.org>`_ package for the underlying molecular dynamics simulations.
+
 
 .. toctree::
    :maxdepth: 2
