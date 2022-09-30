@@ -47,7 +47,8 @@
 <li class="toctree-l2"><a class="reference internal" href="#protex-documentation">Protex documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#getting-involved">Getting involved</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#user-guide">User Guide</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#installing-protex-and-source-code">Installing Protex and Source Code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#installing-protex-from-source-code">Installing Protex from Source Code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#installing-using-a-conda-environment">Installing Using a Conda Environment</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#citation">Citation</a></li>
 </ul>
 </li>
@@ -98,8 +99,12 @@ Tracker</a>.</p>
 <p>The Protex <a class="reference internal" href="quickstart.html#quick-start-guide"><span class="std std-ref">Quick Start Guide</span></a> provides information on how to
 get startet with setting up a system for Protex.</p>
 </section>
-<section id="installing-protex-and-source-code">
-<span id="installation-instructions"></span><h2>Installing Protex and Source Code<a class="headerlink" href="#installing-protex-and-source-code" title="Permalink to this heading"></a></h2>
+<section id="installing-protex-from-source-code">
+<span id="installation-instructions"></span><h2>Installing Protex from Source Code<a class="headerlink" href="#installing-protex-from-source-code" title="Permalink to this heading"></a></h2>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>It is recommended to use a (conda) environment for the installation. Go to <a class="reference internal" href="#install-using-conda-env">install using conda env</a>.</p>
+</div>
 <p><strong>Source code</strong> is available from
 <a class="reference external" href="https://github.com/florianjoerg/protex/">https://github.com/florianjoerg/protex/</a> under the MIT License.
 Obtain the sources with <a class="reference external" href="https://git-scm.com/">git</a>.</p>
@@ -108,12 +113,10 @@ Obtain the sources with <a class="reference external" href="https://git-scm.com/
 pip install .
 </pre></div>
 </div>
-<p><strong>Using conda environment</strong></p>
+</section>
+<section id="installing-using-a-conda-environment">
+<span id="install-using-conda-env"></span><h2>Installing Using a Conda Environment<a class="headerlink" href="#installing-using-a-conda-environment" title="Permalink to this heading"></a></h2>
 <p>Information how to obtain conda can be found <a class="reference external" href="https://docs.conda.io/projects/conda/en/latest/">here</a>.</p>
-<div class="admonition important">
-<p class="admonition-title">Important</p>
-<p>It is recommended to use a (conda) environment for the installation.</p>
-</div>
 <p>First create a conda environment and install the dependencies. You can clone the github project and use the yml file.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -122,7 +125,7 @@ The last release (v3.4.3) is not enough since the very recently added Drude func
 </div>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git clone https://github.com/florianjoerg/protex.git
 <span class="nb">cd</span> protex/devtools/conda_envs
-conda create --name protex --file protex.yml
+conda env create --file protex.yml
 conda activate protex
 <span class="nb">cd</span> ../../
 pip install .
@@ -136,11 +139,13 @@ pip install .
 <p>To use the better Drude Integrator install the plugin from <a class="reference external" href="https://github.com/z-gong/openmm-velocityVerlet">velocity-verlet</a>.
 Here a quick install guide is given. Use the documentation provided there for further details.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda activate protex <span class="c1"># if not already done</span>
+<span class="c1"># change directory outside of protex, if not already done</span>
+<span class="nb">cd</span> ..
 conda install swig
 git clone https://github.com/z-gong/openmm-velocityVerlet.git
 <span class="nb">cd</span> openmm-velocityVerlet
 <span class="c1"># set OPENMM_DIR</span>
-sed -i <span class="s2">&quot;s~SET(OPENMM_DIR \&quot;/usr/local/openmm~SET(OPENMM_DIR \&quot;</span><span class="si">${</span><span class="nv">CONDA_PREFIX</span><span class="si">}</span><span class="s2">../../pkgs/openmm-7.6(!.bz2)&quot;</span> CMakeLists.txt
+sed -i <span class="s2">&quot;s~SET(OPENMM_DIR \&quot;/usr/local/openmm~SET(OPENMM_DIR \&quot;</span><span class="k">$(</span><span class="nb">echo</span> <span class="si">${</span><span class="nv">CONDA_PREFIX</span><span class="si">}</span>/../../pkgs/openmm-7.6*/<span class="k">)</span><span class="s2">~&quot;</span> CMakeLists.txt
 <span class="c1"># set CMAKE_INSTALL_PREFIX</span>
 sed -i <span class="s2">&quot;/^ENDIF (\${CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT})/a SET(CMAKE_INSTALL_PREFIX \&quot;</span><span class="si">${</span><span class="nv">CONDA_PREFIX</span><span class="si">}</span><span class="s2">\&quot; CACHE PATH \&quot;Where to install the plugin\&quot; FORCE)&quot;</span> CMakeLists.txt
 mkdir build
@@ -153,7 +158,7 @@ make PythonInstall
 </div>
 <div class="successstyle admonition">
 <p class="admonition-title">🎊 Success! 🎊</p>
-<p>Now you are ready to go!</p>
+<p>Now you are ready to go! Try protex using the <a class="reference internal" href="quickstart.html#quick-start-guide"><span class="std std-ref">Quick Start Guide</span></a>.</p>
 </div>
 </section>
 <section id="citation">

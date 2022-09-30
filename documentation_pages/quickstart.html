@@ -87,7 +87,7 @@ First, obtain an OpenMM <code class="docutils literal notranslate"><span class="
 <p class="admonition-title">Attention</p>
 <p>It is VERY important that the atom order of the protonated and deprotonated residues match exactly between the coordinate as well as topology/psf files!</p>
 </div>
-<p>Afterwards the main pathway is to specifiy the allowed and transfers which atoms are subject to the transfer using <code class="docutils literal notranslate"><span class="pre">IonicLiquidTemplates</span></code>.
+<p>Afterwards the main pathway is to specifiy the allowed transfers and which atoms are subject to the transfer using <code class="docutils literal notranslate"><span class="pre">IonicLiquidTemplates</span></code>.
 Then wrap the simulation and templates into an <code class="docutils literal notranslate"><span class="pre">IonicLiquidSystem</span></code>.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">protex.system</span> <span class="kn">import</span> <span class="n">IonicLiquidSystem</span><span class="p">,</span> <span class="n">IonicLiquidTemplates</span>
 
@@ -109,16 +109,20 @@ Then wrap the simulation and templates into an <code class="docutils literal not
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">protex.update</span> <span class="kn">import</span> <span class="n">NaiveMCUpdate</span><span class="p">,</span> <span class="n">StateUpdate</span>
 
 <span class="n">update</span> <span class="o">=</span> <span class="n">NaiveMCUpdate</span><span class="p">(</span><span class="n">ionic_liquid</span><span class="p">)</span>
-<span class="n">state_update</span> <span class="o">=</span> <span class="n">StateUpdate</span><span class="p">(</span><span class="n">Update</span><span class="p">)</span>
+<span class="n">state_update</span> <span class="o">=</span> <span class="n">StateUpdate</span><span class="p">(</span><span class="n">update</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Optionally you can define reporters for the simulation. Protex has a built in <code class="docutils literal notranslate"><span class="pre">ChargeReporter</span></code> to report the current charges of all molecules which can just be added to the simulation like all other OpenMM reporters.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">protex.reporter</span> <span class="kn">import</span> <span class="n">ChargeReporter</span>
 
-<span class="n">infod</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Put whatever additional infos you would like the charge reporter to store here&quot;</span><span class="p">}</span>
+<span class="n">infos</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Put whatever additional infos you would like the charge reporter to store here&quot;</span><span class="p">}</span>
 <span class="n">save_freq</span> <span class="o">=</span> <span class="mi">200</span>
 <span class="n">charge_reporter</span> <span class="o">=</span> <span class="n">ChargeReporter</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;path/to/outfile&quot;</span><span class="p">,</span> <span class="n">save_freq</span><span class="p">,</span> <span class="n">ionic_liquid</span><span class="p">,</span> <span class="n">header_data</span><span class="o">=</span><span class="n">infos</span><span class="p">)</span>
 <span class="n">ionic_liquid</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">reporters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">charge_reporter</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You can add additional OpenMM reporters:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">openmm.reporters</span> <span class="kn">import</span> <span class="o">..</span>
 </pre></div>
 </div>
 <p>Now you are ready to run the simulation and just call the update method whenever you like.</p>
