@@ -57,12 +57,39 @@ First create a conda environment and install the dependencies. You can clone the
 .. code-block:: bash
 
    git clone https://github.com/florianjoerg/protex.git
-   cd protex
-   conda create --name protex -f devtools/conda_envs/protex.yml
+   cd protex/devtools/conda_envs
+   conda create --name protex --file protex.yml
    conda activate protex
+   cd ../../
    pip install .
 
-.. admonition:: Success!
+.. Tip::
+
+   It is recommended to use the VVIntegrator Plugin. |:arrow_down:|
+
+**Usage with the VVIntegrator Plugin for OpenMM**
+
+To use the better Drude Integrator install the plugin from `velocity-verlet <https://github.com/z-gong/openmm-velocityVerlet>`_.
+Here a quick install guide is given. Use the documentation provided there for further details.
+
+.. code-block:: bash
+
+   conda activate protex # if not already done
+   conda install swig
+   git clone https://github.com/z-gong/openmm-velocityVerlet.git
+   cd openmm-velocityVerlet
+   # set OPENMM_DIR
+   sed -i "s~SET(OPENMM_DIR \"/usr/local/openmm~SET(OPENMM_DIR \"${CONDA_PREFIX}../../pkgs/openmm-7.6(!.bz2)" CMakeLists.txt
+   # set CMAKE_INSTALL_PREFIX
+   sed -i "/^ENDIF (\${CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT})/a SET(CMAKE_INSTALL_PREFIX \"${CONDA_PREFIX}\" CACHE PATH \"Where to install the plugin\" FORCE)" CMakeLists.txt
+   mkdir build
+   cd build
+   cmake ../.
+   make install
+   cd python
+   make PythonInstall
+
+.. admonition:: |:confetti_ball:| Success! |:confetti_ball:|
    :class: successstyle
 
    Now you are ready to go!

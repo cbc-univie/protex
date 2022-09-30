@@ -121,14 +121,38 @@ pip install .
 The last release (v3.4.3) is not enough since the very recently added Drude functionality is necessary.</p>
 </div>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git clone https://github.com/florianjoerg/protex.git
-<span class="nb">cd</span> protex
-conda create --name protex -f devtools/conda_envs/protex.yml
+<span class="nb">cd</span> protex/devtools/conda_envs
+conda create --name protex --file protex.yml
 conda activate protex
+<span class="nb">cd</span> ../../
 pip install .
 </pre></div>
 </div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>It is recommended to use the VVIntegrator Plugin. ⬇️</p>
+</div>
+<p><strong>Usage with the VVIntegrator Plugin for OpenMM</strong></p>
+<p>To use the better Drude Integrator install the plugin from <a class="reference external" href="https://github.com/z-gong/openmm-velocityVerlet">velocity-verlet</a>.
+Here a quick install guide is given. Use the documentation provided there for further details.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda activate protex <span class="c1"># if not already done</span>
+conda install swig
+git clone https://github.com/z-gong/openmm-velocityVerlet.git
+<span class="nb">cd</span> openmm-velocityVerlet
+<span class="c1"># set OPENMM_DIR</span>
+sed -i <span class="s2">&quot;s~SET(OPENMM_DIR \&quot;/usr/local/openmm~SET(OPENMM_DIR \&quot;</span><span class="si">${</span><span class="nv">CONDA_PREFIX</span><span class="si">}</span><span class="s2">../../pkgs/openmm-7.6(!.bz2)&quot;</span> CMakeLists.txt
+<span class="c1"># set CMAKE_INSTALL_PREFIX</span>
+sed -i <span class="s2">&quot;/^ENDIF (\${CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT})/a SET(CMAKE_INSTALL_PREFIX \&quot;</span><span class="si">${</span><span class="nv">CONDA_PREFIX</span><span class="si">}</span><span class="s2">\&quot; CACHE PATH \&quot;Where to install the plugin\&quot; FORCE)&quot;</span> CMakeLists.txt
+mkdir build
+<span class="nb">cd</span> build
+cmake ../.
+make install
+<span class="nb">cd</span> python
+make PythonInstall
+</pre></div>
+</div>
 <div class="successstyle admonition">
-<p class="admonition-title">Success!</p>
+<p class="admonition-title">🎊 Success! 🎊</p>
 <p>Now you are ready to go!</p>
 </div>
 </section>
