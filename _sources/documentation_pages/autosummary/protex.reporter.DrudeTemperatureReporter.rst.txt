@@ -1,4 +1,4 @@
-﻿protex.reporter.DrudeTemperatureReporter
+protex.reporter.DrudeTemperatureReporter
 ========================================
 
 .. currentmodule:: protex.reporter
