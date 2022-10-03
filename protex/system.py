@@ -375,7 +375,7 @@ class IonicLiquidSystem:
                         # print(self.pair_12_13_list)
                         assert (
                             len(self.pair_12_13_list) == force.getNumScreenedPairs()
-                        ), f"{len(self.pair_12_13_list)=}, {force.getNumScreenedPairs()=}"
+                        ), f"{len(self.pair_12_13_list)=}, {force.getNumScreenedPairs()=}"  
                         for drude_id in range(force.getNumScreenedPairs()):
                             f = force.getScreenedPairParameters(drude_id)
                             # idx1 = f[0]
@@ -437,12 +437,12 @@ class IonicLiquidSystem:
             ### do something like this, to precess meoh without having a template
             #### problem: residues for psf are collected this way
             # if name in self.templates.names:
-            # name_of_paired_ion = self.templates.get_residue_name_for_coupled_state(name)
+                # name_of_paired_ion = self.templates.get_residue_name_for_coupled_state(name)
             #   if name in templates or name_of_paired_ion in templates:
             #     continue
 
-            # templates[name] = self._extract_templates(name)
-            # templates[name_of_paired_ion] = self._extract_templates(name_of_paired_ion)
+                # templates[name] = self._extract_templates(name)
+                # templates[name_of_paired_ion] = self._extract_templates(name_of_paired_ion)
 
             if name in templates or name_of_paired_ion in templates:
                 continue
