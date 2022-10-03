@@ -415,7 +415,7 @@ def generate_hpts_meoh_system(
                 "hpts_d.str",
                 "hptsh_d.str",
                 "meoh_unscaled.str",
-                "meoh2_unscaled.str"
+                "meoh2_unscaled.str",
             ]
             base = f"{protex.__path__[0]}/forcefield"  # NOTE: this points now to the installed files!
             params = CharmmParameterSet(
@@ -705,7 +705,7 @@ HPTSH_HPTS = {
     },
 }
 
-MEOH_MEOH2 = {  
+MEOH_MEOH2 = {
     "MEOH": {
         "atom_name": "O1",
         "canonical_name": "MEOH",
