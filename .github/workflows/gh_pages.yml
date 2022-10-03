@@ -6,9 +6,8 @@ on:
       - "master"
       - "main"
   pull_request:
-    branches:
-      - "master"
-      - "main"
+    types:
+      - labeled
   workflow_dispatch:
 
 env:
@@ -17,6 +16,7 @@ env:
 
 jobs:
   build:
+    if: ${{ github.event.label.name == 'documentation' }}
     strategy:
       matrix:
         include:
