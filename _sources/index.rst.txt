@@ -20,6 +20,7 @@ It uses the fast and lightweight `OpenMM <https://openmm.org>`_ package for the 
 
    ./documentation_pages/getting_started
    ./documentation_pages/quickstart
+   ./documentation_pages/detailed_example
    ./documentation_pages/use_cases
    ./documentation_pages/api
 

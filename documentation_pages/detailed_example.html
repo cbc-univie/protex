@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Quick Start Guide &mdash; protex  documentation</title>
+  <title>Detailed Example &mdash; protex  documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/custom.css" type="text/css" />
@@ -21,8 +21,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Detailed Example" href="detailed_example.html" />
-    <link rel="prev" title="Getting Started" href="getting_started.html" /> 
+    <link rel="next" title="Use Cases" href="use_cases.html" />
+    <link rel="prev" title="Quick Start Guide" href="quickstart.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -44,8 +44,8 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Quick Start Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="detailed_example.html">Detailed Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start Guide</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Detailed Example</a></li>
 <li class="toctree-l1"><a class="reference internal" href="use_cases.html">Use Cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API Documentation</a></li>
 </ul>
@@ -64,9 +64,9 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>Quick Start Guide</li>
+      <li>Detailed Example</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/documentation_pages/quickstart.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/documentation_pages/detailed_example.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -74,13 +74,13 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="quick-start-guide">
-<span id="id1"></span><h1>Quick Start Guide<a class="headerlink" href="#quick-start-guide" title="Permalink to this heading"></a></h1>
-<p>Here is how to easily set up your system and start with protex!</p>
-<div class="admonition important">
-<p class="admonition-title">Important</p>
-<p>If not already done, use the <a class="reference internal" href="getting_started.html#installation-instructions"><span class="std std-ref">installation instructions</span></a> to get protex.
-For purposes of this tutorial it is important to have the <a class="reference internal" href="getting_started.html#install-using-conda-env"><span class="std std-ref">VVIntegrator plugin</span></a> installed!</p>
+  <section id="detailed-example">
+<span id="id1"></span><h1>Detailed Example<a class="headerlink" href="#detailed-example" title="Permalink to this heading"></a></h1>
+<p><strong>!!!Under Construction!!!</strong></p>
+<div class="successstyle admonition">
+<p class="admonition-title">🎊 Congratulations! 🎊</p>
+<p>It seems you realy want to learn how to use protex!
+Keep going! 😄</p>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">protex</span></code> works together with <a class="reference external" href="https://openmm.org">OpenMM</a> to allow bond breaking and formation (i.e. for a proton transfer) during MD Simulations.
 First, obtain an OpenMM <code class="docutils literal notranslate"><span class="pre">simulation</span></code> object. For purposes of this tutorial we will use a helper function.</p>
@@ -88,6 +88,10 @@ First, obtain an OpenMM <code class="docutils literal notranslate"><span class="
 
 <span class="n">simulation</span> <span class="o">=</span> <span class="n">generate_im1h_oac_system</span><span class="p">()</span>
 </pre></div>
+</div>
+<div class="admonition attention">
+<p class="admonition-title">Attention</p>
+<p>It is VERY important that the atom order of the protonated and deprotonated residues match exactly between the coordinate as well as topology/psf files!</p>
 </div>
 <p>Afterwards the main pathway is to specifiy the allowed transfers and which atoms are subject to the transfer using <code class="docutils literal notranslate"><span class="pre">IonicLiquidTemplates</span></code>.
 Then wrap the simulation and templates into an <code class="docutils literal notranslate"><span class="pre">IonicLiquidSystem</span></code>.</p>
@@ -123,33 +127,14 @@ Then wrap the simulation and templates into an <code class="docutils literal not
 <span class="n">ionic_liquid</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">reporters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">charge_reporter</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>You can add additional OpenMM reporters to the ionic liquid object:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">openmm.app</span> <span class="kn">import</span> <span class="n">StateDataReporter</span><span class="p">,</span> <span class="n">DCDReporter</span>
-<span class="n">report_frequency</span> <span class="o">=</span> <span class="mi">200</span>
-<span class="n">ionic_liquid</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">reporters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">DCDReporter</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;traj.dcd&quot;</span><span class="p">,</span> <span class="n">report_frequency</span><span class="p">))</span>
-<span class="n">state_data_reporter</span><span class="o">=</span> <span class="n">StateDataReporter</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">,</span>
-    <span class="n">report_frequency</span><span class="p">,</span>
-    <span class="n">step</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="n">time</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="n">potentialEnergy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="n">kineticEnergy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="n">totalEnergy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="n">temperature</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="n">volume</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="n">density</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="n">ionic_liquid</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">reporters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">state_data_reporter</span><span class="p">)</span>
+<p>You can add additional OpenMM reporters:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">openmm.reporters</span> <span class="kn">import</span> <span class="o">..</span>
 </pre></div>
 </div>
 <p>Now you are ready to run the simulation and just call the update method whenever you like.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
-    <span class="n">ionic_liquid</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span>
-    <span class="n">state_update</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">ionic_liquid</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span>
+<span class="n">state_update</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
 </pre></div>
-</div>
-<div class="successstyle admonition">
-<p class="admonition-title">🎊 Congratulations! 🎊</p>
-<p>You ran your first protex simulation and manged to break and build bonds during an MD Simulation!</p>
 </div>
 </section>
 
@@ -157,8 +142,8 @@ Then wrap the simulation and templates into an <code class="docutils literal not
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="getting_started.html" class="btn btn-neutral float-left" title="Getting Started" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="detailed_example.html" class="btn btn-neutral float-right" title="Detailed Example" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="quickstart.html" class="btn btn-neutral float-left" title="Quick Start Guide" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="use_cases.html" class="btn btn-neutral float-right" title="Use Cases" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

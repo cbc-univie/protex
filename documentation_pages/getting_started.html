@@ -44,7 +44,6 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Getting Started</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#protex-documentation">Protex documentation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#getting-involved">Getting involved</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#user-guide">User Guide</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#installing-protex-from-source-code">Installing Protex from Source Code</a></li>
@@ -53,6 +52,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="detailed_example.html">Detailed Example</a></li>
 <li class="toctree-l1"><a class="reference internal" href="use_cases.html">Use Cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API Documentation</a></li>
 </ul>
@@ -83,12 +83,9 @@
              
   <section id="getting-started">
 <h1>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this heading"></a></h1>
-<section id="protex-documentation">
-<h2>Protex documentation<a class="headerlink" href="#protex-documentation" title="Permalink to this heading"></a></h2>
 <p><strong>Protex</strong> is an lightweight object-oriented python
 extension to easily enable bond breaking and formation in molecular
 dynamics simulations.</p>
-</section>
 <section id="getting-involved">
 <h2>Getting involved<a class="headerlink" href="#getting-involved" title="Permalink to this heading"></a></h2>
 <p>Please report <strong>bugs</strong> or <strong>enhancement requests</strong> through the <a class="reference external" href="https://github.com/florianjoerg/protex/issues">Issue
@@ -131,9 +128,33 @@ conda activate protex
 pip install .
 </pre></div>
 </div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>For running simulations on an NVIDIA GPU using CUDA, OpenMM will install the python package cudatoolkit.
+Make sure the version in your (conda) environment is <strong>not</strong> higher than the CUDA version of your NVIDIA driver.
+If necessary, you can install the correct cudatoolkit version by using conda install cudatoolkit=X.Y -c conda-forge</p>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>nvidia-smi
+<span class="c1"># +-----------------------------------------------------------------------------+</span>
+<span class="c1"># | NVIDIA-SMI 470.141.03   Driver Version: 470.141.03   CUDA Version: 11.4     |</span>
+<span class="c1"># +-------------------------------+----------------------+----------------------+</span>
+<span class="c1"># ...</span>
+
+conda list <span class="p">|</span> grep cudatoolkit
+<span class="c1"># cudatoolkit               11.4.2              h7a5bcfd_10    conda-forge</span>
+
+<span class="c1"># Here, CUDA Version of nvidia-smi (11.4) and the cudatoolkit version 11.4.2 match.</span>
+<span class="c1"># If cudatoolkit would e.g. be 11.7 you should run the next command and use the</span>
+<span class="c1"># CUDA Version of nvidia-smi</span>
+
+conda install -c conda-forge <span class="nv">cudatoolkit</span><span class="o">=</span>X.Y
+<span class="c1"># so in this example:</span>
+<span class="c1"># conda install -c conda-forge cudatoolkit=11.4</span>
+</pre></div>
+</div>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
-<p>It is recommended to use the VVIntegrator Plugin. ⬇️</p>
+<p>It is highly recommended to use the VVIntegrator Plugin for polarizable simulations. ⬇️</p>
 </div>
 <p><strong>Usage with the VVIntegrator Plugin for OpenMM</strong></p>
 <p>To use the better Drude Integrator install the plugin from <a class="reference external" href="https://github.com/z-gong/openmm-velocityVerlet">velocity-verlet</a>.
