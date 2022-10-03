@@ -45,7 +45,11 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start Guide</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Detailed Example</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Detailed Example</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#setup">Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#advanced-setup">Advanced Setup</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="use_cases.html">Use Cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API Documentation</a></li>
 </ul>
@@ -82,17 +86,53 @@
 <p>It seems you realy want to learn how to use protex!
 Keep going! 😄</p>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">protex</span></code> works together with <a class="reference external" href="https://openmm.org">OpenMM</a> to allow bond breaking and formation (i.e. for a proton transfer) during MD Simulations.
-First, obtain an OpenMM <code class="docutils literal notranslate"><span class="pre">simulation</span></code> object. For purposes of this tutorial we will use a helper function.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">protex.testsystems</span> <span class="kn">import</span> <span class="n">generate_im1h_oac_system</span>
-
-<span class="n">simulation</span> <span class="o">=</span> <span class="n">generate_im1h_oac_system</span><span class="p">()</span>
-</pre></div>
-</div>
+<section id="setup">
+<h2>Setup<a class="headerlink" href="#setup" title="Permalink to this heading"></a></h2>
+<p>Now we will dive a little bit deeper in all of the functions and methods protex offers.
+First and foremost we need to make sure to have valid input files!
+The usual way is to provide a psf and crd file alongside the toppar files.
+The topology and parameter files (toppar) contain all the residues needed for the system setup.
+It is really important, that the corresponding residues prone to (de-)protonation have the same number of atoms in the same order.
+So, i.e if we have methylimidazolium (im1h) and methylimidazole (im1) the missing hydrogen for im1 needs to be a dummy atom. The same is true for acetate/acetic acid.
+Additionally, make sure that also atoms in the coordinate files match the residue description.</p>
 <div class="admonition attention">
 <p class="admonition-title">Attention</p>
 <p>It is VERY important that the atom order of the protonated and deprotonated residues match exactly between the coordinate as well as topology/psf files!</p>
 </div>
+<p>Now, lets start building our system. The first part, getting the OpenMM simulaiton object is nothing protex specific and we won’t need any protex functions for it.
+Nevertheless, here is one possible way to do it, if you are not that familiar with OpenMM.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>All the files we need can be found in the protex directory.</p>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">openmm</span> <span class="kn">import</span> <span class="n">Platform</span>
+<span class="kn">from</span> <span class="nn">openmm.app</span> <span class="kn">import</span> <span class="n">PME</span><span class="p">,</span> <span class="n">CharmmCrdFile</span><span class="p">,</span> <span class="n">CharmmParameterSet</span><span class="p">,</span> <span class="n">CharmmCrdFile</span><span class="p">,</span> <span class="n">Simulation</span>
+<span class="kn">from</span> <span class="nn">openmm.unit</span> <span class="kn">import</span> <span class="n">angstroms</span><span class="p">,</span> <span class="n">kelvin</span><span class="p">,</span> <span class="n">picoseconds</span>
+<span class="kn">from</span> <span class="nn">velocityverletplugin</span> <span class="kn">import</span> <span class="n">VVIntegrator</span>
+
+<span class="n">protex_dir</span> <span class="o">=</span> <span class="s2">&quot;/path/to/your/protex/directory&quot;</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Loading CHARMM files...&quot;</span><span class="p">)</span>
+<span class="n">PARA_FILES</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;toppar_drude_master_protein_2013f_lj025.str&quot;</span><span class="p">,</span> <span class="s2">&quot;hoac_d.str&quot;</span><span class="p">,</span> <span class="s2">&quot;im1h_d.str&quot;</span><span class="p">,</span> <span class="s2">&quot;im1_d.str&quot;</span><span class="p">,</span> <span class="s2">&quot;oac_d.str&quot;</span><span class="p">]</span>
+<span class="n">params</span> <span class="o">=</span> <span class="n">CharmmParameterSet</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">protex_dir</span><span class="si">}</span><span class="s2">/forcefield/toppar/</span><span class="si">{</span><span class="n">para_files</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">para_files</span> <span class="ow">in</span> <span class="n">PARA_FILES</span><span class="p">])</span>
+<span class="n">psf</span> <span class="o">=</span> <span class="n">CharmmPsfFile</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">protex_dir</span><span class="si">}</span><span class="s2">/forcefield/im1h_oac_150_im1_hoac_350.psf&quot;</span><span class="p">)</span>
+<span class="n">psf</span><span class="o">.</span><span class="n">setBox</span><span class="p">(</span><span class="mi">48</span><span class="o">*</span><span class="n">angstroms</span><span class="p">,</span> <span class="mi">48</span><span class="o">*</span><span class="n">angstroms</span><span class="p">,</span> <span class="mi">48</span><span class="o">*</span><span class="n">angstroms</span><span class="p">)</span>
+<span class="n">crd</span> <span class="o">=</span> <span class="n">CharmmCrdFile</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">protex_dir</span><span class="si">}</span><span class="s2">/forcefield/im1h_oac_150_im1_hoac_350.crd&quot;</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Create system&quot;</span><span class="p">)</span>
+<span class="n">system</span> <span class="o">=</span> <span class="n">psf</span><span class="o">.</span><span class="n">createSystem</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">nonbondedMethod</span><span class="o">=</span><span class="n">PME</span><span class="p">,</span> <span class="n">nonbondedCutoff</span><span class="o">=</span><span class="mf">11.0</span> <span class="o">*</span> <span class="n">angstroms</span><span class="p">,</span> <span class="n">switchDistance</span><span class="o">=</span><span class="mi">10</span> <span class="o">*</span> <span class="n">angstroms</span><span class="p">,</span> <span class="n">constraints</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Setup simulation&quot;</span><span class="p">)</span>
+<span class="n">integrator</span> <span class="o">=</span> <span class="n">VVIntegrator</span><span class="p">(</span><span class="mi">300</span> <span class="o">*</span> <span class="n">kelvin</span><span class="p">,</span> <span class="mi">10</span> <span class="o">/</span> <span class="n">picoseconds</span><span class="p">,</span> <span class="mi">1</span> <span class="o">*</span> <span class="n">kelvin</span><span class="p">,</span> <span class="mi">100</span> <span class="o">/</span> <span class="n">picoseconds</span><span class="p">,</span> <span class="mf">0.0005</span> <span class="o">*</span> <span class="n">picoseconds</span><span class="p">)</span>
+<span class="n">integrator</span><span class="o">.</span><span class="n">setMaxDrudeDistance</span><span class="p">(</span><span class="mf">0.25</span> <span class="o">*</span> <span class="n">angstroms</span><span class="p">)</span>
+<span class="n">platform</span> <span class="o">=</span> <span class="n">Platform</span><span class="o">.</span><span class="n">getPlatformByName</span><span class="p">(</span><span class="s2">&quot;CUDA&quot;</span><span class="p">)</span>
+<span class="n">prop</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">CudaPrecision</span><span class="o">=</span><span class="s2">&quot;single&quot;</span><span class="p">)</span>
+<span class="n">simulation</span> <span class="o">=</span> <span class="n">Simulation</span><span class="p">(</span><span class="n">psf</span><span class="o">.</span><span class="n">topology</span><span class="p">,</span> <span class="n">system</span><span class="p">,</span> <span class="n">integrator</span><span class="p">,</span> <span class="n">platform</span><span class="o">=</span><span class="n">platform</span><span class="p">,</span> <span class="n">platformProperties</span><span class="o">=</span><span class="n">prop</span><span class="p">)</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">setPositions</span><span class="p">(</span><span class="n">crd</span><span class="o">.</span><span class="n">positions</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now we have the simulation object ready. In principle we did, what was done with <code class="docutils literal notranslate"><span class="pre">generate_im1h_oac_system()</span></code>. For advanced usage of this function look <a class="reference internal" href="#advanced-setup"><span class="std std-ref">Advanced Setup</span></a></p>
+<p>The next thing is to get everything ready for the <code class="docutils literal notranslate"><span class="pre">IonicLiquidTemplates</span></code> class, which we will need beside the simulation to build the <code class="docutils literal notranslate"><span class="pre">IonicLiquidSystem</span></code>.</p>
 <p>Afterwards the main pathway is to specifiy the allowed transfers and which atoms are subject to the transfer using <code class="docutils literal notranslate"><span class="pre">IonicLiquidTemplates</span></code>.
 Then wrap the simulation and templates into an <code class="docutils literal notranslate"><span class="pre">IonicLiquidSystem</span></code>.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">protex.system</span> <span class="kn">import</span> <span class="n">IonicLiquidSystem</span><span class="p">,</span> <span class="n">IonicLiquidTemplates</span>
@@ -136,6 +176,16 @@ Then wrap the simulation and templates into an <code class="docutils literal not
 <span class="n">state_update</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
 </pre></div>
 </div>
+</section>
+<section id="advanced-setup">
+<span id="id2"></span><h2>Advanced Setup<a class="headerlink" href="#advanced-setup" title="Permalink to this heading"></a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">protex.testsystems</span> <span class="kn">import</span> <span class="n">generate_im1h_oac_system</span>
+
+<span class="n">simulation</span> <span class="o">=</span> <span class="n">generate_im1h_oac_system</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>restart file, psf file, ….</p>
+</section>
 </section>
 
 
