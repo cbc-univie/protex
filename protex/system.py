@@ -251,7 +251,7 @@ class IonicLiquidSystem:
         )  # NOTE: supports only cubic boxes
 
     def get_current_number_of_each_residue_type(self) -> dict[str, int]:
-        current_number_of_each_residue_type = defaultdict(int)
+        current_number_of_each_residue_type: dict[str, int] = defaultdict(int)
         for residue in self.residues:
             current_number_of_each_residue_type[residue.current_name] += 1
         return current_number_of_each_residue_type
@@ -263,9 +263,15 @@ class IonicLiquidSystem:
                 break
 
     def _build_exclusion_list(self):
+
+        if self.simulation_for_parameters is not None:
+            top = self.simulation_for_parameters.topology
+        else:
+            top = self.simulation.topology
+
         pair_12_set = set()
         pair_13_set = set()
-        for bond in self.topology.bonds():
+        for bond in top.bonds():
             a1, a2 = bond.atom1, bond.atom2
             if "H" not in a1.name and "H" not in a2.name:
                 pair = (
@@ -289,7 +295,7 @@ class IonicLiquidSystem:
     def _extract_templates(self, query_name: str) -> defaultdict:
         # returns the forces for the residue name
         forces_dict = defaultdict(list)
-        sim = None
+
         if self.simulation_for_parameters is not None:
             sim = self.simulation_for_parameters
         else:

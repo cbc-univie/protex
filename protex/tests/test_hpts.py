@@ -50,10 +50,9 @@ except ImportError:
     from simtk.openmm.app import Simulation
     from simtk.unit import angstroms, kelvin, picoseconds
 
+import protex
 import pytest
 from scipy.spatial import distance_matrix
-
-import protex
 
 from ..reporter import ChargeReporter
 from ..residue import Residue
@@ -1638,7 +1637,7 @@ def test_update_write_psf():
 
         i += 1
 
-    os.remove("old_psf.psf")
+    # os.remove("old_psf.psf")
     os.remove("state.rst")
-    os.remove("checkpoints.rst")
+    os.remove("checkpoint.rst")
     os.remove("test.psf")
