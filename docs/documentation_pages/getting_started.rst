@@ -1,10 +1,6 @@
 Getting Started
 ===============
 
-Protex documentation
---------------------
-
-
 **Protex** is an lightweight object-oriented python
 extension to easily enable bond breaking and formation in molecular
 dynamics simulations. 
@@ -47,7 +43,7 @@ Obtain the sources with `git`_.
 .. _install using conda env:
 
 Installing Using a Conda Environment
--------------------------------
+------------------------------------
 
 Information how to obtain conda can be found `here <https://docs.conda.io/projects/conda/en/latest/>`_.
 
@@ -66,9 +62,33 @@ First create a conda environment and install the dependencies. You can clone the
    cd ../../
    pip install .
 
+.. warning:: 
+   For running simulations on an NVIDIA GPU using CUDA, OpenMM will install the python package cudatoolkit. 
+   Make sure the version in your (conda) environment is **not** higher than the CUDA version of your NVIDIA driver.
+   If necessary, you can install the correct cudatoolkit version by using conda install cudatoolkit=X.Y -c conda-forge
+
+.. code-block:: bash
+
+   nvidia-smi
+   # +-----------------------------------------------------------------------------+
+   # | NVIDIA-SMI 470.141.03   Driver Version: 470.141.03   CUDA Version: 11.4     |
+   # +-------------------------------+----------------------+----------------------+
+   # ...
+
+   conda list | grep cudatoolkit
+   # cudatoolkit               11.4.2              h7a5bcfd_10    conda-forge
+
+   # Here, CUDA Version of nvidia-smi (11.4) and the cudatoolkit version 11.4.2 match. 
+   # If cudatoolkit would e.g. be 11.7 you should run the next command and use the
+   # CUDA Version of nvidia-smi
+
+   conda install -c conda-forge cudatoolkit=X.Y
+   # so in this example: 
+   # conda install -c conda-forge cudatoolkit=11.4
+
 .. Tip::
 
-   It is recommended to use the VVIntegrator Plugin. |:arrow_down:|
+   It is highly recommended to use the VVIntegrator Plugin for polarizable simulations. |:arrow_down:|
 
 **Usage with the VVIntegrator Plugin for OpenMM**
 

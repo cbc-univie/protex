@@ -1,13 +1,15 @@
-.. _Quick-Start-Guide:
+.. _Detailed-Example:
 
-Quick Start Guide
+Detailed Example
 =================
 
-Here is how to easily set up your system and start with protex!
+**!!!Under Construction!!!**
 
-.. important::  
-    If not already done, use the :ref:`installation instructions <installation-instructions>` to get protex.
-    For purposes of this tutorial it is important to have the :ref:`VVIntegrator plugin <install using conda env>` installed!
+.. admonition:: |:confetti_ball:| Congratulations! |:confetti_ball:|
+   :class: successstyle
+
+   It seems you realy want to learn how to use protex! 
+   Keep going! |:smile:|
 
 ``protex`` works together with `OpenMM <https://openmm.org>`_ to allow bond breaking and formation (i.e. for a proton transfer) during MD Simulations.
 First, obtain an OpenMM ``simulation`` object. For purposes of this tutorial we will use a helper function.
@@ -18,6 +20,10 @@ First, obtain an OpenMM ``simulation`` object. For purposes of this tutorial we 
 
     simulation = generate_im1h_oac_system()
     
+
+.. attention:: 
+    It is VERY important that the atom order of the protonated and deprotonated residues match exactly between the coordinate as well as topology/psf files!
+
 Afterwards the main pathway is to specifiy the allowed transfers and which atoms are subject to the transfer using ``IonicLiquidTemplates``. 
 Then wrap the simulation and templates into an ``IonicLiquidSystem``.
 
@@ -59,35 +65,16 @@ Optionally you can define reporters for the simulation. Protex has a built in ``
     charge_reporter = ChargeReporter(f"path/to/outfile", save_freq, ionic_liquid, header_data=infos)
     ionic_liquid.simulation.reporters.append(charge_reporter)
 
-You can add additional OpenMM reporters to the ionic liquid object:
+You can add additional OpenMM reporters:
 
 .. code-block:: python
 
-    from openmm.app import StateDataReporter, DCDReporter
-    report_frequency = 200
-    ionic_liquid.simulation.reporters.append(DCDReporter(f"traj.dcd", report_frequency))
-    state_data_reporter= StateDataReporter(sys.stdout,
-        report_frequency,
-        step=True,
-        time=True,
-        potentialEnergy=True,
-        kineticEnergy=True,
-        totalEnergy=True,
-        temperature=True,
-        volume=True,
-        density=False,
-    )
-    ionic_liquid.simulation.reporters.append(state_data_reporter)
+    from openmm.reporters import ..
+
 
 Now you are ready to run the simulation and just call the update method whenever you like.
 
 .. code-block:: python
 
-    for i in range(10):
-        ionic_liquid.simulation.step(1000)
-        state_update.update(2)
-
-.. admonition:: |:confetti_ball:| Congratulations! |:confetti_ball:|
-   :class: successstyle
-
-   You ran your first protex simulation and manged to break and build bonds during an MD Simulation!
+    ionic_liquid.simulation.step(1000)
+    state_update.update(2)
