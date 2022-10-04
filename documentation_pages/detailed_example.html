@@ -83,7 +83,7 @@
 <p><strong>!!!Under Construction!!!</strong></p>
 <div class="successstyle admonition">
 <p class="admonition-title">🎊 Congratulations! 🎊</p>
-<p>It seems you realy want to learn how to use protex!
+<p>It seems you really want to learn how to use protex!
 Keep going! 😄</p>
 </div>
 <section id="setup">
@@ -99,7 +99,27 @@ Additionally, make sure that also atoms in the coordinate files match the residu
 <p class="admonition-title">Attention</p>
 <p>It is VERY important that the atom order of the protonated and deprotonated residues match exactly between the coordinate as well as topology/psf files!</p>
 </div>
-<p>Now, lets start building our system. The first part, getting the OpenMM simulaiton object is nothing protex specific and we won’t need any protex functions for it.
+<p>Examplary snippet of the RESI section of a CHARMM input structure. Please note the same atom ordering between the residues.
+Additionally the coordinate files need to have the same ordering as well.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>RESI  IM1    <span class="m">0</span>.0000     <span class="o">||</span>      RESI  IM1H  <span class="m">1</span>.0000
+GROUP                   <span class="o">||</span>      GROUP
+ATOM  C1     CD33G      <span class="o">||</span>      ATOM  C1     CD33F
+ATOM  H1     HDA3A      <span class="o">||</span>      ATOM  H1     HDA3A
+ATOM  H2     HDA3A      <span class="o">||</span>      ATOM  H2     HDA3A
+ATOM  H3     HDA3A      <span class="o">||</span>      ATOM  H3     HDA3A
+ATOM  N1     ND2R5A     <span class="o">||</span>      ATOM  N1     ND2R5C
+ATOM  C2     CD2R5A     <span class="o">||</span>      ATOM  C2     CD2R5D
+ATOM  H4     HDR5A      <span class="o">||</span>      ATOM  H4     HDR5D
+ATOM  C3     CD2R5A     <span class="o">||</span>      ATOM  C3     CD2R5D
+ATOM  H5     HDR5A      <span class="o">||</span>      ATOM  H5     HDR5D
+ATOM  C4     CD2R5B     <span class="o">||</span>      ATOM  C4     CD2R5E
+ATOM  H6     HDR5B      <span class="o">||</span>      ATOM  H6     HDR5E
+ATOM  N2     ND2R5B     <span class="o">||</span>      ATOM  N2     ND2R5C
+ATOM  H7     DUMMY H    <span class="o">||</span>      ATOM  H7     HDP1A
+ATOM  LPN21  LPD        <span class="o">||</span>      ATOM  LPN21  LPD
+</pre></div>
+</div>
+<p>Now, lets start building our system. The first part, getting the OpenMM simulation object is nothing protex specific and we won’t need any protex functions for it.
 Nevertheless, here is one possible way to do it, if you are not that familiar with OpenMM.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -131,11 +151,20 @@ Nevertheless, here is one possible way to do it, if you are not that familiar wi
 <span class="n">simulation</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">setPositions</span><span class="p">(</span><span class="n">crd</span><span class="o">.</span><span class="n">positions</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Now we have the simulation object ready. In principle we did, what was done with <code class="docutils literal notranslate"><span class="pre">generate_im1h_oac_system()</span></code>. For advanced usage of this function look <a class="reference internal" href="#advanced-setup"><span class="std std-ref">Advanced Setup</span></a></p>
-<p>The next thing is to get everything ready for the <code class="docutils literal notranslate"><span class="pre">IonicLiquidTemplates</span></code> class, which we will need beside the simulation to build the <code class="docutils literal notranslate"><span class="pre">IonicLiquidSystem</span></code>.</p>
-<p>Afterwards the main pathway is to specifiy the allowed transfers and which atoms are subject to the transfer using <code class="docutils literal notranslate"><span class="pre">IonicLiquidTemplates</span></code>.
-Then wrap the simulation and templates into an <code class="docutils literal notranslate"><span class="pre">IonicLiquidSystem</span></code>.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">protex.system</span> <span class="kn">import</span> <span class="n">IonicLiquidSystem</span><span class="p">,</span> <span class="n">IonicLiquidTemplates</span>
+<p>Now we have the simulation object ready. In principle we did, what was done with <code class="docutils literal notranslate"><span class="pre">generate_im1h_oac_system()</span></code>.
+For advanced usage of this function see the <a class="reference internal" href="#advanced-setup"><span class="std std-ref">Advanced Setup</span></a> section.</p>
+<p>Next, we construct the <code class="docutils literal notranslate"><span class="pre">IonicLiquidTemplates</span></code> class, which will be needed beside the simulation object to build the <code class="docutils literal notranslate"><span class="pre">IonicLiquidSystem</span></code>.
+Two parts are needed. On the one hand a dictionary, with the settings for the possible transfers.
+The key is always a frozenset of the transfer reaction, while the value is another dictionary with the keywords “r_max” and “prob”
+corresponding values for the maximum distance (in Angstrom) and the probability for this transfer.
+0 means the reaction should never happen, 1 every time “r_max” is fullfilled.
+Note that it is equivalent to write <code class="docutils literal notranslate"><span class="pre">frozenset([&quot;IM1H&quot;,</span> <span class="pre">&quot;OAC&quot;])</span></code> or <code class="docutils literal notranslate"><span class="pre">frozenset([&quot;OAC&quot;,</span> <span class="pre">&quot;IM1H&quot;])</span></code>.</p>
+<p>The second ingredient is another dictionary specifiying the acceptor/donor atom name.
+So in our example from above, we want the hydrogen H7 from IM1H to be transfered to the nitrogen N2 of IM1.
+This information belongs together, so it is grouped in one dictionary, as can be seen in the next code snippet.
+“canonical_name” is deprecated.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">IonicLiquidsTemplates</span></code> class accepts now a list, of all dictionaries with the specified atoms, as well as the allowed_updates dictionary.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">protex.system</span> <span class="kn">import</span> <span class="n">IonicLiquidTemplates</span>
 
 <span class="n">allowed_updates</span> <span class="o">=</span> <span class="p">{}</span>
 <span class="n">allowed_updates</span><span class="p">[</span><span class="nb">frozenset</span><span class="p">([</span><span class="s2">&quot;IM1H&quot;</span><span class="p">,</span> <span class="s2">&quot;OAC&quot;</span><span class="p">])]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;r_max&quot;</span><span class="p">:</span> <span class="mf">0.16</span><span class="p">,</span> <span class="s2">&quot;prob&quot;</span><span class="p">:</span> <span class="mf">0.994</span><span class="p">}</span>
@@ -148,6 +177,11 @@ Then wrap the simulation and templates into an <code class="docutils literal not
             <span class="s2">&quot;HOAC&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;atom_name&quot;</span><span class="p">:</span> <span class="s2">&quot;H&quot;</span><span class="p">,</span> <span class="s2">&quot;canonical_name&quot;</span><span class="p">:</span> <span class="s2">&quot;OAC&quot;</span><span class="p">}}</span>
 
 <span class="n">templates</span> <span class="o">=</span> <span class="n">IonicLiquidTemplates</span><span class="p">([</span><span class="n">OAC_HOAC</span><span class="p">,</span> <span class="n">IM1H_IM1</span><span class="p">],</span> <span class="n">allowed_updates</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now we have everything to build the <code class="docutils literal notranslate"><span class="pre">IonicLiquidSystem</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">protex.system</span> <span class="kn">import</span> <span class="n">IonicLiquidSystem</span>
+
 <span class="n">ionic_liquid</span> <span class="o">=</span> <span class="n">IonicLiquidSystem</span><span class="p">(</span><span class="n">simulation</span><span class="p">,</span> <span class="n">templates</span><span class="p">)</span>
 </pre></div>
 </div>

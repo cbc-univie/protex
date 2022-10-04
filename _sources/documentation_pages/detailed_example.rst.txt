@@ -8,7 +8,7 @@ Detailed Example
 .. admonition:: |:confetti_ball:| Congratulations! |:confetti_ball:|
    :class: successstyle
 
-   It seems you realy want to learn how to use protex! 
+   It seems you really want to learn how to use protex! 
    Keep going! |:smile:|
 
 Setup
@@ -25,7 +25,29 @@ Additionally, make sure that also atoms in the coordinate files match the residu
 .. attention:: 
     It is VERY important that the atom order of the protonated and deprotonated residues match exactly between the coordinate as well as topology/psf files!
 
-Now, lets start building our system. The first part, getting the OpenMM simulaiton object is nothing protex specific and we won't need any protex functions for it. 
+Examplary snippet of the RESI section of a CHARMM input structure. Please note the same atom ordering between the residues. 
+Additionally the coordinate files need to have the same ordering as well.
+
+.. code-block:: bash
+
+    RESI  IM1    0.0000     ||      RESI  IM1H  1.0000
+    GROUP                   ||      GROUP
+    ATOM  C1     CD33G      ||      ATOM  C1     CD33F 
+    ATOM  H1     HDA3A      ||      ATOM  H1     HDA3A
+    ATOM  H2     HDA3A      ||      ATOM  H2     HDA3A
+    ATOM  H3     HDA3A      ||      ATOM  H3     HDA3A
+    ATOM  N1     ND2R5A     ||      ATOM  N1     ND2R5C
+    ATOM  C2     CD2R5A     ||      ATOM  C2     CD2R5D
+    ATOM  H4     HDR5A      ||      ATOM  H4     HDR5D
+    ATOM  C3     CD2R5A     ||      ATOM  C3     CD2R5D
+    ATOM  H5     HDR5A      ||      ATOM  H5     HDR5D
+    ATOM  C4     CD2R5B     ||      ATOM  C4     CD2R5E
+    ATOM  H6     HDR5B      ||      ATOM  H6     HDR5E
+    ATOM  N2     ND2R5B     ||      ATOM  N2     ND2R5C
+    ATOM  H7     DUMMY H    ||      ATOM  H7     HDP1A
+    ATOM  LPN21  LPD        ||      ATOM  LPN21  LPD  
+
+Now, lets start building our system. The first part, getting the OpenMM simulation object is nothing protex specific and we won't need any protex functions for it. 
 Nevertheless, here is one possible way to do it, if you are not that familiar with OpenMM.
 
 .. note:: 
@@ -58,18 +80,26 @@ Nevertheless, here is one possible way to do it, if you are not that familiar wi
     simulation = Simulation(psf.topology, system, integrator, platform=platform, platformProperties=prop)
     simulation.context.setPositions(crd.positions)
 
-Now we have the simulation object ready. In principle we did, what was done with ``generate_im1h_oac_system()``. For advanced usage of this function look :ref:`Advanced setup`
+Now we have the simulation object ready. In principle we did, what was done with ``generate_im1h_oac_system()``.
+For advanced usage of this function see the :ref:`Advanced setup` section.
 
-The next thing is to get everything ready for the ``IonicLiquidTemplates`` class, which we will need beside the simulation to build the ``IonicLiquidSystem``.
+Next, we construct the ``IonicLiquidTemplates`` class, which will be needed beside the simulation object to build the ``IonicLiquidSystem``.
+Two parts are needed. On the one hand a dictionary, with the settings for the possible transfers. 
+The key is always a frozenset of the transfer reaction, while the value is another dictionary with the keywords "r_max" and "prob"
+corresponding values for the maximum distance (in Angstrom) and the probability for this transfer.
+0 means the reaction should never happen, 1 every time "r_max" is fullfilled.
+Note that it is equivalent to write ``frozenset(["IM1H", "OAC"])`` or ``frozenset(["OAC", "IM1H"])``.
 
-    
+The second ingredient is another dictionary specifiying the acceptor/donor atom name. 
+So in our example from above, we want the hydrogen H7 from IM1H to be transfered to the nitrogen N2 of IM1.
+This information belongs together, so it is grouped in one dictionary, as can be seen in the next code snippet.
+"canonical_name" is deprecated.
 
-Afterwards the main pathway is to specifiy the allowed transfers and which atoms are subject to the transfer using ``IonicLiquidTemplates``. 
-Then wrap the simulation and templates into an ``IonicLiquidSystem``.
+The ``IonicLiquidsTemplates`` class accepts now a list, of all dictionaries with the specified atoms, as well as the allowed_updates dictionary.
 
 .. code-block:: python
 
-    from protex.system import IonicLiquidSystem, IonicLiquidTemplates
+    from protex.system import IonicLiquidTemplates
 
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 0.994}
@@ -82,6 +112,13 @@ Then wrap the simulation and templates into an ``IonicLiquidSystem``.
                 "HOAC": {"atom_name": "H", "canonical_name": "OAC"}}
 
     templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], allowed_updates)
+
+Now we have everything to build the ``IonicLiquidSystem``:
+
+.. code-block:: python
+
+    from protex.system import IonicLiquidSystem
+
     ionic_liquid = IonicLiquidSystem(simulation, templates)
 
 
