@@ -122,23 +122,48 @@ Now we have everything to build the ``IonicLiquidSystem``:
     ionic_liquid = IonicLiquidSystem(simulation, templates)
 
 
-Next define the update method. 
+Next define the update method. Currently there is one available update method called ``NaiveMCUpdate``.
+It uses the information passes before, to determine the distance criterion for the specific update paris and the probability.
+NaiveMCUpdate accepts to more keywords:
+
+.. object:: NaiveMCUpdate
+ 
+   .. object:: parameters
+ 
+       .. option:: ionic_liquid: IonicLiquidSystem
+ 
+           The ionic liquid system
+ 
+       .. option:: all_forces: bool = True
+ 
+           Wheter to change all forces during an update (default), or just the non bonded force (all_force=False)
+ 
+       .. option:: to_adapt: list[tuple[str, int, frozenset[str]]] = None
+
+            This option is used to keep certain residues around an equilibrium value. 
+            The tuple consists of the name of the residue, the amount of molecules, and the update set, for which the probability will be accordingly altered.
+
+            **Important:** If using this option in consecutive runs, consider using the save_updates and load_updates methods of ionic liquid to get the current probability values.
+
 
 .. code-block:: python
 
     from protex.update import NaiveMCUpdate, StateUpdate
 
-    update = NaiveMCUpdate(ionic_liquid)
+    to_adapt = [("IM1H", 150, frozenset(["IM1H", "OAC"])), ("IM1", 350, frozenset(["IM1", "HOAC"]))]
+    update = NaiveMCUpdate(ionic_liquid, all_forces=True, to_adapt=to_adapt)
     state_update = StateUpdate(update)
 
-Optionally you can define reporters for the simulation. Protex has a built in ``ChargeReporter`` to report the current charges of all molecules which can just be added to the simulation like all other OpenMM reporters.
+Optionally you can define reporters for the simulation. 
+Protex has a built in ``ChargeReporter`` to report the current charges of all molecules which can just be added to the simulation like all other OpenMM reporters.
+You can define an additional header line with arbitrary informtion, e.g. on system settings.
 
 .. code-block:: python
 
     from protex.reporter import ChargeReporter
 
-    infos={"Put whatever additional infos you would like the charge reporter to store here"}
     save_freq = 200
+    infos={f"Put whatever additional infos you would like the charge reporter to store here, e.g. save_freq: {save_freq}"}
     charge_reporter = ChargeReporter(f"path/to/outfile", save_freq, ionic_liquid, header_data=infos)
     ionic_liquid.simulation.reporters.append(charge_reporter)
 
@@ -146,20 +171,47 @@ You can add additional OpenMM reporters:
 
 .. code-block:: python
 
-    from openmm.reporters import ..
+    from openmm.app import StateDataReporter, DCDReporter
+
+    report_frequency = 200
+    ionic_liquid.simulation.reporters.append(DCDReporter(f"traj.dcd", report_frequency))
+    state_data_reporter= StateDataReporter(sys.stdout,
+        report_frequency,
+        step=True,
+        time=True,
+        potentialEnergy=True,
+        kineticEnergy=True,
+        totalEnergy=True,
+        temperature=True,
+        volume=True,
+        density=False,
+    )
+    ionic_liquid.simulation.reporters.append(state_data_reporter)
 
 
 Now you are ready to run the simulation and just call the update method whenever you like.
+The ``state_update.update`` method an integer as argument specifying the intermediate lambda-states for an update. 
+2 means no intermediate steps, just one before and one after the update. Consequently every number n, means n-2 actual intermediate steps.
+
+You can also save a psf file at any point during the simulation or store the current update values for the probability.
+Due to current limitations on the conversion of Drude OpenMM toplogoies to ParmEd structures, the user has to supply a reference psf file.
+This can just be the initial psf file used for the system creation.
 
 .. code-block:: python
 
     ionic_liquid.simulation.step(1000)
     state_update.update(2)
+    ionic_liquid.save_updates("updates.txt")
+    ionic_liquid.write_psf("im1h_oac_150_im1_hoac_350.psf", "new.psf")
+
 
 .. _Advanced Setup:
 
 Advanced Setup
 --------------
+
+One usual way might be to do multiple runs, which means restarting the simulation after some time. There are some options in protex which should help.
+Follow the example below:
 
 .. code-block:: python
 
