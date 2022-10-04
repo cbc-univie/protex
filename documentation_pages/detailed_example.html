@@ -163,7 +163,7 @@ Note that it is equivalent to write <code class="docutils literal notranslate"><
 So in our example from above, we want the hydrogen H7 from IM1H to be transfered to the nitrogen N2 of IM1.
 This information belongs together, so it is grouped in one dictionary, as can be seen in the next code snippet.
 “canonical_name” is deprecated.</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">IonicLiquidsTemplates</span></code> class accepts now a list, of all dictionaries with the specified atoms, as well as the allowed_updates dictionary.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">IonicLiquidTemplates</span></code> class accepts now a list, of all dictionaries with the specified atoms, as well as the allowed_updates dictionary.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">protex.system</span> <span class="kn">import</span> <span class="n">IonicLiquidTemplates</span>
 
 <span class="n">allowed_updates</span> <span class="o">=</span> <span class="p">{}</span>
@@ -185,40 +185,111 @@ This information belongs together, so it is grouped in one dictionary, as can be
 <span class="n">ionic_liquid</span> <span class="o">=</span> <span class="n">IonicLiquidSystem</span><span class="p">(</span><span class="n">simulation</span><span class="p">,</span> <span class="n">templates</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Next define the update method.</p>
+<p>Next define the update method. Currently there is one available update method called <code class="docutils literal notranslate"><span class="pre">NaiveMCUpdate</span></code>.
+It uses the information passes before, to determine the distance criterion for the specific update paris and the probability.
+NaiveMCUpdate accepts to more keywords:</p>
+<dl class="object">
+<dt class="sig sig-object">
+<span class="sig-name descname"><span class="pre">NaiveMCUpdate</span></span></dt>
+<dd><dl class="object">
+<dt class="sig sig-object">
+<span class="sig-name descname"><span class="pre">parameters</span></span></dt>
+<dd><dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-arg-ionic_liquid">
+<span id="cmdoption-arg-ionic-liquid"></span><span class="sig-name descname"><span class="pre">ionic_liquid:</span></span><span class="sig-prename descclassname"> <span class="pre">IonicLiquidSystem</span></span><a class="headerlink" href="#cmdoption-arg-ionic_liquid" title="Permalink to this definition"></a></dt>
+<dd><p>The ionic liquid system</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-arg-all_forces">
+<span id="cmdoption-arg-all-forces"></span><span class="sig-name descname"><span class="pre">all_forces:</span></span><span class="sig-prename descclassname"> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True</span></span><a class="headerlink" href="#cmdoption-arg-all_forces" title="Permalink to this definition"></a></dt>
+<dd><p>Wheter to change all forces during an update (default), or just the non bonded force (all_force=False)</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-arg-to_adapt">
+<span id="cmdoption-arg-to-adapt"></span><span id="cmdoption-arg-int"></span><span id="cmdoption-arg-frozenset-str"></span><span class="sig-name descname"><span class="pre">to_adapt:</span></span><span class="sig-prename descclassname"> <span class="pre">list[tuple[str</span></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">int</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">frozenset[str]]]</span></span><span class="sig-prename descclassname"> <span class="pre">=</span> <span class="pre">None</span></span><a class="headerlink" href="#cmdoption-arg-to_adapt" title="Permalink to this definition"></a></dt>
+<dd><p>This option is used to keep certain residues around an equilibrium value.
+The tuple consists of the name of the residue, the amount of molecules, and the update set, for which the probability will be accordingly altered.</p>
+<p><strong>Important:</strong> If using this option in consecutive runs, consider using the save_updates and load_updates methods of ionic liquid to get the current probability values.</p>
+</dd></dl>
+
+</dd></dl>
+
+</dd></dl>
+
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">protex.update</span> <span class="kn">import</span> <span class="n">NaiveMCUpdate</span><span class="p">,</span> <span class="n">StateUpdate</span>
 
-<span class="n">update</span> <span class="o">=</span> <span class="n">NaiveMCUpdate</span><span class="p">(</span><span class="n">ionic_liquid</span><span class="p">)</span>
+<span class="n">to_adapt</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">&quot;IM1H&quot;</span><span class="p">,</span> <span class="mi">150</span><span class="p">,</span> <span class="nb">frozenset</span><span class="p">([</span><span class="s2">&quot;IM1H&quot;</span><span class="p">,</span> <span class="s2">&quot;OAC&quot;</span><span class="p">])),</span> <span class="p">(</span><span class="s2">&quot;IM1&quot;</span><span class="p">,</span> <span class="mi">350</span><span class="p">,</span> <span class="nb">frozenset</span><span class="p">([</span><span class="s2">&quot;IM1&quot;</span><span class="p">,</span> <span class="s2">&quot;HOAC&quot;</span><span class="p">]))]</span>
+<span class="n">update</span> <span class="o">=</span> <span class="n">NaiveMCUpdate</span><span class="p">(</span><span class="n">ionic_liquid</span><span class="p">,</span> <span class="n">all_forces</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">to_adapt</span><span class="o">=</span><span class="n">to_adapt</span><span class="p">)</span>
 <span class="n">state_update</span> <span class="o">=</span> <span class="n">StateUpdate</span><span class="p">(</span><span class="n">update</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Optionally you can define reporters for the simulation. Protex has a built in <code class="docutils literal notranslate"><span class="pre">ChargeReporter</span></code> to report the current charges of all molecules which can just be added to the simulation like all other OpenMM reporters.</p>
+<p>Optionally you can define reporters for the simulation.
+Protex has a built in <code class="docutils literal notranslate"><span class="pre">ChargeReporter</span></code> to report the current charges of all molecules which can just be added to the simulation like all other OpenMM reporters.
+You can define an additional header line with arbitrary informtion, e.g. on system settings.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">protex.reporter</span> <span class="kn">import</span> <span class="n">ChargeReporter</span>
 
-<span class="n">infos</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Put whatever additional infos you would like the charge reporter to store here&quot;</span><span class="p">}</span>
 <span class="n">save_freq</span> <span class="o">=</span> <span class="mi">200</span>
+<span class="n">infos</span><span class="o">=</span><span class="p">{</span><span class="sa">f</span><span class="s2">&quot;Put whatever additional infos you would like the charge reporter to store here, e.g. save_freq: </span><span class="si">{</span><span class="n">save_freq</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">}</span>
 <span class="n">charge_reporter</span> <span class="o">=</span> <span class="n">ChargeReporter</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;path/to/outfile&quot;</span><span class="p">,</span> <span class="n">save_freq</span><span class="p">,</span> <span class="n">ionic_liquid</span><span class="p">,</span> <span class="n">header_data</span><span class="o">=</span><span class="n">infos</span><span class="p">)</span>
 <span class="n">ionic_liquid</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">reporters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">charge_reporter</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>You can add additional OpenMM reporters:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">openmm.reporters</span> <span class="kn">import</span> <span class="o">..</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">openmm.app</span> <span class="kn">import</span> <span class="n">StateDataReporter</span><span class="p">,</span> <span class="n">DCDReporter</span>
+
+<span class="n">report_frequency</span> <span class="o">=</span> <span class="mi">200</span>
+<span class="n">ionic_liquid</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">reporters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">DCDReporter</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;traj.dcd&quot;</span><span class="p">,</span> <span class="n">report_frequency</span><span class="p">))</span>
+<span class="n">state_data_reporter</span><span class="o">=</span> <span class="n">StateDataReporter</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">,</span>
+    <span class="n">report_frequency</span><span class="p">,</span>
+    <span class="n">step</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">time</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">potentialEnergy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">kineticEnergy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">totalEnergy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">temperature</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">volume</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">density</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">ionic_liquid</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">reporters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">state_data_reporter</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Now you are ready to run the simulation and just call the update method whenever you like.</p>
+<p>Now you are ready to run the simulation and just call the update method whenever you like.
+The <code class="docutils literal notranslate"><span class="pre">state_update.update()</span></code> method an integer as argument specifying the intermediate lambda-states for an update.
+2 means no intermediate steps, just one before and one after the update. Consequently every number n, means n-2 actual intermediate steps.</p>
+<p>You can also save a psf file at any point during the simulation or store the current update values for the probability.
+Due to current limitations on the conversion of Drude OpenMM toplogoies to ParmEd structures, the user has to supply a reference psf file.
+This can just be the initial psf file used for the system creation.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">ionic_liquid</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span>
 <span class="n">state_update</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">ionic_liquid</span><span class="o">.</span><span class="n">save_updates</span><span class="p">(</span><span class="s2">&quot;updates.txt&quot;</span><span class="p">)</span>
+<span class="n">ionic_liquid</span><span class="o">.</span><span class="n">write_psf</span><span class="p">(</span><span class="s2">&quot;im1h_oac_150_im1_hoac_350.psf&quot;</span><span class="p">,</span> <span class="s2">&quot;new.psf&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
 <section id="advanced-setup">
 <span id="id2"></span><h2>Advanced Setup<a class="headerlink" href="#advanced-setup" title="Permalink to this heading"></a></h2>
+<p>One usual way might be to do multiple runs, which means restarting the simulation after some time. There are some options in protex which should help.
+Use the <cite>psf_file</cite> argument to load the current psf and the <cite>restart_file</cite> argument to load the current restart file. Alternatively new coordinates can also be specified via <cite>load_checkpoint()</cite></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">protex.testsystems</span> <span class="kn">import</span> <span class="n">generate_im1h_oac_system</span>
 
-<span class="n">simulation</span> <span class="o">=</span> <span class="n">generate_im1h_oac_system</span><span class="p">()</span>
+<span class="n">psf_file</span> <span class="o">=</span> <span class="s2">&quot;psf_file_from_previous_run.psf&quot;</span>
+<span class="n">restart_file</span> <span class="o">=</span> <span class="s2">&quot;restart_file.rst&quot;</span>
+<span class="n">simulation</span> <span class="o">=</span> <span class="n">generate_im1h_oac_system</span><span class="p">(</span><span class="n">psf_file</span><span class="o">=</span><span class="n">psf_file</span><span class="p">,</span><span class="n">restart_file</span><span class="o">=</span><span class="n">restart_file</span><span class="p">)</span>
+
+<span class="o">...</span>
+
+<span class="n">ionic_liquid</span><span class="o">.</span><span class="n">load_updates</span><span class="p">(</span><span class="s2">&quot;updates.txt&quot;</span><span class="p">)</span>
+<span class="n">ionic_liquid</span><span class="o">.</span><span class="n">loadCheckpoint</span><span class="p">(</span><span class="s2">&quot;nvt_checkpoint.rst&quot;</span><span class="p">)</span>
+
+<span class="o">...</span>
+
+<span class="n">ionic_liquid</span><span class="o">.</span><span class="n">save_updates</span><span class="p">(</span><span class="s2">&quot;updates.txt&quot;</span><span class="p">)</span>
+<span class="n">ionic_liquid</span><span class="o">.</span><span class="n">write_psf</span><span class="p">(</span><span class="s2">&quot;im1h_oac_150_im1_hoac_350.psf&quot;</span><span class="p">,</span> <span class="s2">&quot;nvt.psf&quot;</span><span class="p">)</span>
+<span class="n">ionic_liquid</span><span class="o">.</span><span class="n">saveCheckpoint</span><span class="p">(</span><span class="s2">&quot;nvt_checkpoint.rst&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>restart file, psf file, ….</p>
 </section>
 </section>
 
