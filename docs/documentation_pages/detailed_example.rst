@@ -95,7 +95,7 @@ So in our example from above, we want the hydrogen H7 from IM1H to be transfered
 This information belongs together, so it is grouped in one dictionary, as can be seen in the next code snippet.
 "canonical_name" is deprecated.
 
-The ``IonicLiquidsTemplates`` class accepts now a list, of all dictionaries with the specified atoms, as well as the allowed_updates dictionary.
+The ``IonicLiquidTemplates`` class accepts now a list, of all dictionaries with the specified atoms, as well as the allowed_updates dictionary.
 
 .. code-block:: python
 
@@ -190,7 +190,7 @@ You can add additional OpenMM reporters:
 
 
 Now you are ready to run the simulation and just call the update method whenever you like.
-The ``state_update.update`` method an integer as argument specifying the intermediate lambda-states for an update. 
+The ``state_update.update()`` method an integer as argument specifying the intermediate lambda-states for an update. 
 2 means no intermediate steps, just one before and one after the update. Consequently every number n, means n-2 actual intermediate steps.
 
 You can also save a psf file at any point during the simulation or store the current update values for the probability.
@@ -211,12 +211,23 @@ Advanced Setup
 --------------
 
 One usual way might be to do multiple runs, which means restarting the simulation after some time. There are some options in protex which should help.
-Follow the example below:
+Use the `psf_file` argument to load the current psf and the `restart_file` argument to load the current restart file. Alternatively new coordinates can also be specified via `load_checkpoint()`
 
 .. code-block:: python
 
     from protex.testsystems import generate_im1h_oac_system
 
-    simulation = generate_im1h_oac_system()
+    psf_file = "psf_file_from_previous_run.psf"
+    restart_file = "restart_file.rst"
+    simulation = generate_im1h_oac_system(psf_file=psf_file,restart_file=restart_file)
+    
+    ...
 
-restart file, psf file, ....
+    ionic_liquid.load_updates("updates.txt")
+    ionic_liquid.loadCheckpoint("nvt_checkpoint.rst")
+
+    ...
+
+    ionic_liquid.save_updates("updates.txt")
+    ionic_liquid.write_psf("im1h_oac_150_im1_hoac_350.psf", "nvt.psf")
+    ionic_liquid.saveCheckpoint("nvt_checkpoint.rst")
