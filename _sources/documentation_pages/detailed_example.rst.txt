@@ -3,8 +3,6 @@
 Detailed Example
 =================
 
-**!!!Under Construction!!!**
-
 .. admonition:: |:confetti_ball:| Congratulations! |:confetti_ball:|
    :class: successstyle
 
