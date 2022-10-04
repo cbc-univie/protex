@@ -54,9 +54,8 @@ Optionally you can define reporters for the simulation. Protex has a built in ``
 
     from protex.reporter import ChargeReporter
 
-    infos={"Put whatever additional infos you would like the charge reporter to store here"}
     save_freq = 200
-    charge_reporter = ChargeReporter(f"path/to/outfile", save_freq, ionic_liquid, header_data=infos)
+    charge_reporter = ChargeReporter(f"path/to/outfile", save_freq, ionic_liquid)
     ionic_liquid.simulation.reporters.append(charge_reporter)
 
 You can add additional OpenMM reporters to the ionic liquid object:

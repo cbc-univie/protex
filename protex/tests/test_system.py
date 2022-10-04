@@ -44,9 +44,8 @@ except ImportError:
     from simtk.openmm.app import Simulation
     from simtk.unit import angstroms, kelvin, picoseconds
 
-import pytest
-
 import protex
+import pytest
 
 from ..reporter import ChargeReporter
 from ..system import IonicLiquidSystem, IonicLiquidTemplates
@@ -372,6 +371,12 @@ def test_forces():
     atom_idxs = {}  # store atom_idxs
     atom_names = {}  # store atom_names
     names = []  # store residue names
+    # for force in system.getForces():
+    #     print(force)
+    #     if type(force).__name__ == "CMAPTorsionForce":
+    #         print(force.getNumTorsions())
+
+    # quit()
 
     # iterate over residues, select the first residue for HOAC and OAC and save the individual bonded forces
     for ridx, r in enumerate(topology.residues()):
