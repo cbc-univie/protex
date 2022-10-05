@@ -262,16 +262,11 @@ class IonicLiquidSystem:
                 force.updateParametersInContext(self.simulation.context)
                 break
 
-    def _build_exclusion_list(self):
-
-        if self.simulation_for_parameters is not None:
-            top = self.simulation_for_parameters.topology
-        else:
-            top = self.simulation.topology
+    def _build_exclusion_list(self, topology):
 
         pair_12_set = set()
         pair_13_set = set()
-        for bond in top.bonds():
+        for bond in topology.bonds():
             a1, a2 = bond.atom1, bond.atom2
             if "H" not in a1.name and "H" not in a2.name:
                 pair = (
@@ -287,19 +282,27 @@ class IonicLiquidSystem:
                     pair_13_set.add(pair)
                     # there were duplicates in pair_13_set, e.q. (1,3) and (3,1), needs to be sorted
 
-        self.pair_12_list = list(sorted(pair_12_set))
-        self.pair_13_list = list(sorted(pair_13_set - pair_12_set))
-        self.pair_12_13_list = self.pair_12_list + self.pair_13_list
+        # self.pair_12_list = list(sorted(pair_12_set))
+        # self.pair_13_list = list(sorted(pair_13_set - pair_12_set))
+        # self.pair_12_13_list = self.pair_12_list + self.pair_13_list
         # change to return the list and set the parameters in the init method?
+        pair_12_list = list(sorted(pair_12_set))
+        pair_13_list = list(sorted(pair_13_set - pair_12_set))
+        pair_12_13_list = pair_12_list + pair_13_list
+        return pair_12_13_list
 
     def _extract_templates(self, query_name: str) -> defaultdict:
         # returns the forces for the residue name
         forces_dict = defaultdict(list)
 
+        # if there is an additional parameter file with all possible residues,
+        # use this for getting the templates
         if self.simulation_for_parameters is not None:
             sim = self.simulation_for_parameters
         else:
             sim = self.simulation
+
+        pair_12_13_list_params = self._build_exclusion_list(sim.topology)
 
         for residue in sim.topology.residues():
             if query_name == residue.name:
@@ -380,13 +383,13 @@ class IonicLiquidSystem:
                                 forces_dict[type(force).__name__].append(f)
                         # print(self.pair_12_13_list)
                         assert (
-                            len(self.pair_12_13_list) == force.getNumScreenedPairs()
-                        ), f"{len(self.pair_12_13_list)=}, {force.getNumScreenedPairs()=}"
+                            len(pair_12_13_list_params) == force.getNumScreenedPairs()
+                        ), f"{len(pair_12_13_list_params)=}, {force.getNumScreenedPairs()=}"
                         for drude_id in range(force.getNumScreenedPairs()):
                             f = force.getScreenedPairParameters(drude_id)
                             # idx1 = f[0]
                             # idx2 = f[1]
-                            parent1, parent2 = self.pair_12_13_list[drude_id]
+                            parent1, parent2 = pair_12_13_list_params[drude_id]
                             drude1, drude2 = parent1 + 1, parent2 + 1
                             # print(f"thole {idx1=}, {idx2=}")
                             # print(f"{drude_id=}, {f=}")
@@ -430,7 +433,8 @@ class IonicLiquidSystem:
         is interfered from the provided openMM system object and the protonation site is defined.
         """
 
-        self._build_exclusion_list()
+        # self._build_exclusion_list()
+        pair_12_13_list = self._build_exclusion_list(self.topology)
 
         residues = []
         templates = dict()
@@ -478,7 +482,7 @@ class IonicLiquidSystem:
                         parameters_state1,
                         parameters_state2,
                         # self.templates.get_canonical_name(name),
-                        self.pair_12_13_list,
+                        pair_12_13_list,
                     )
                 )
                 residues[
