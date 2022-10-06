@@ -1,6 +1,7 @@
 import logging
 import os
 from collections import defaultdict, deque
+from json import load
 
 import numpy as np
 import pytest
@@ -1419,3 +1420,142 @@ def test_update_all_forces(caplog):
         # pars.append(state_update.get_charges())
         candidate_pairs = state_update.update(2)
         print(candidate_pairs)
+
+
+def test_energy_before_after():
+    def get_time_energy(simulation, print=False):
+        time = simulation.context.getState().getTime()
+        e_pot = simulation.context.getState(getEnergy=True).getPotentialEnergy()
+        if print:
+            print(f"time: {time}, e_pot: {e_pot}")
+        return time, e_pot
+
+    def save_il(ionic_liquid, number):
+        ionic_liquid.write_psf(
+            f"protex/forcefield/im1h_oac_150_im1_hoac_350.psf", f"test_{number}.psf"
+        )
+        ionic_liquid.saveCheckpoint(f"test_{number}.rst")
+
+    def load_sim(psf, rst):
+        sim = generate_im1h_oac_system(psf_file=psf)
+        sim.loadCheckpoint(rst)
+        return sim
+
+    def load_il(psf, rst, templates):
+        sim = generate_im1h_oac_system(psf_file=psf)
+        il = IonicLiquidSystem(sim, templates)
+        il.loadCheckpoint(rst)
+        return il
+
+    sim0 = generate_im1h_oac_system()
+    allowed_updates = {}
+    # allowed updates according to simple protonation scheme
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {
+        "r_max": 0.17,
+        "prob": 1,
+    }
+    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+    ionic_liquid = IonicLiquidSystem(sim0, templates)
+    update = NaiveMCUpdate(ionic_liquid, all_forces=False)
+    state_update = StateUpdate(update)
+
+    t_tmp, e_tmp = get_time_energy(ionic_liquid.simulation, print=False)
+    t0, e0 = get_time_energy(sim0)
+    assert t_tmp == t0
+    assert e_tmp == e0
+    save_il(ionic_liquid, 0)
+    sim0_1 = load_sim("test_0.psf", "test_0.rst")
+    t0_1, e0_1 = get_time_energy(sim0_1, print=False)
+    assert t0 == t0_1
+    assert e0 == e0_1
+
+    ionic_liquid.simulation.step(5)
+    t1, e1 = get_time_energy(ionic_liquid.simulation)
+    save_il(ionic_liquid, 1)
+    sim1_1 = load_sim("test_1.psf", "test_1.rst")
+    il1_1 = load_il("test_1.psf", "test_1.rst", templates)
+    t1_1, e1_1 = get_time_energy(sim1_1)
+    t1_2, e1_2 = get_time_energy(il1_1.simulation)
+    assert t1 == t1_1
+    assert t1_1 == t1_2
+    assert e1_2 == e1_1, f"il {e1_2=} should be equal to {e1_1=}"
+    assert e1 == e1_1, f"{e1=} should be equal to {e1_1=}"
+
+    state_update.update(2)
+    t2, e2 = get_time_energy(ionic_liquid.simulation)
+    save_il(ionic_liquid, 2)
+    sim2_1 = load_sim("test_2.psf", "test_2.rst")
+    t2_1, e2_1 = get_time_energy(sim2_1)
+    assert t2 == t2_1
+    assert e2 == e2_1, f"{e2=} should be equal to {e2_1=}"
+
+
+def test_single_energy_before_after(caplog):
+    caplog.set_level(logging.DEBUG)
+
+    def get_time_energy(simulation, print=False):
+        time = simulation.context.getState().getTime()
+        e_pot = simulation.context.getState(getEnergy=True).getPotentialEnergy()
+        if print:
+            print(f"time: {time}, e_pot: {e_pot}")
+        return time, e_pot
+
+    def save_il(ionic_liquid, number):
+        ionic_liquid.write_psf(
+            f"protex/forcefield/single_pairs/im1h_oac_im1_hoac_1_secondtry.psf",
+            f"test_{number}.psf",
+        )
+        ionic_liquid.saveCheckpoint(f"test_{number}.rst")
+
+    def load_sim(psf, rst):
+        sim = generate_single_im1h_oac_system(psf_file=psf)
+        sim.loadCheckpoint(rst)
+        return sim
+
+    def load_il(psf, rst, templates):
+        sim = generate_single_im1h_oac_system(psf_file=psf)
+        il = IonicLiquidSystem(sim, templates)
+        il.loadCheckpoint(rst)
+        return il
+
+    sim0 = generate_single_im1h_oac_system()
+    allowed_updates = {}
+    # allowed updates according to simple protonation scheme
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {
+        "r_max": 0.17,
+        "prob": 1,
+    }
+    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+    ionic_liquid = IonicLiquidSystem(sim0, templates)
+    update = NaiveMCUpdate(ionic_liquid, all_forces=True)
+    state_update = StateUpdate(update)
+
+    t_tmp, e_tmp = get_time_energy(ionic_liquid.simulation, print=False)
+    t0, e0 = get_time_energy(sim0)
+    assert t_tmp == t0
+    assert e_tmp == e0
+    save_il(ionic_liquid, 0)
+    sim0_1 = load_sim("test_0.psf", "test_0.rst")
+    t0_1, e0_1 = get_time_energy(sim0_1, print=False)
+    assert t0 == t0_1
+    assert e0 == e0_1
+
+    ionic_liquid.simulation.step(5)
+    t1, e1 = get_time_energy(ionic_liquid.simulation)
+    save_il(ionic_liquid, 1)
+    sim1_1 = load_sim("test_1.psf", "test_1.rst")
+    il1_1 = load_il("test_1.psf", "test_1.rst", templates)
+    t1_1, e1_1 = get_time_energy(sim1_1)
+    t1_2, e1_2 = get_time_energy(il1_1.simulation)
+    assert t1 == t1_1
+    assert t1_1 == t1_2
+    assert e1_2 == e1_1, f"il {e1_2=} should be equal to {e1_1=}"
+    assert e1 == e1_1, f"{e1=} should be equal to {e1_1=}"
+
+    state_update.update(2)
+    t2, e2 = get_time_energy(ionic_liquid.simulation)
+    save_il(ionic_liquid, 2)
+    sim2_1 = load_sim("test_2.psf", "test_2.rst")
+    t2_1, e2_1 = get_time_energy(sim2_1)
+    assert t2 == t2_1
+    assert e2 == e2_1, f"{e2=} should be equal to {e2_1=}"
