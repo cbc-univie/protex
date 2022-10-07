@@ -530,7 +530,7 @@ class IonicLiquidSystem:
     #     pass
 
     def _adapt_parmed_psf_file(
-        self, psf: parmed.charmm.CharmmPsfFile, psf_copy: parmed.charmm.CharmmPsfFile
+        self, psf: parmed.charmm.CharmmPsfFile, psf_copy: parmed.charmm.CharmmPsfFile, parameters: parmed.charmm.CharmmPsfFile
     ) -> parmed.charmm.CharmmPsfFile:
         """
         Helper function to adapt the psf
@@ -543,7 +543,7 @@ class IonicLiquidSystem:
         # incremented by one each time it is used to track the current residue number
         residue_counts: dict[str, int] = {}
 
-        for pm_residue in psf_copy.residues:
+        for pm_residue in parameters.residues:
             if pm_residue.name in pm_unique_residues:
                 continue
             else:
@@ -571,7 +571,7 @@ class IonicLiquidSystem:
 
         return psf
 
-    def write_psf(self, old_psf_infname: str, new_psf_outfname: str) -> None:
+    def write_psf(self, old_psf_infname: str, new_psf_outfname: str, psf_for_parameters:str) -> None:
         """
         write a new psf file, which reflects the occured transfer events and changed residues
         to load the written psf create a new ionic_liquid instance and load the new psf via OpenMM
@@ -581,7 +581,8 @@ class IonicLiquidSystem:
         pm_old_psf = parmed.charmm.CharmmPsfFile(old_psf_infname)
         # copying parmed structure did not work
         pm_old_psf_copy = parmed.charmm.CharmmPsfFile(old_psf_infname)
-        pm_new_psf = self._adapt_parmed_psf_file(pm_old_psf, pm_old_psf_copy)
+        pm_parameters = parmed.charmm.CharmmPsfFile(psf_for_parameters)
+        pm_new_psf = self._adapt_parmed_psf_file(pm_old_psf, pm_old_psf_copy,pm_parameters)
         pm_new_psf.write_psf(new_psf_outfname)
 
     # possibly in future when parmed and openmm drude connection is working
