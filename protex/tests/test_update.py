@@ -1,6 +1,7 @@
 import logging
 import os
 from collections import defaultdict, deque
+from distutils.log import debug
 from json import load
 
 import numpy as np
@@ -8,17 +9,23 @@ import pytest
 from scipy.spatial import distance_matrix
 
 try:
-    from openmm.app import DCDReporter, StateDataReporter
+    from openmm import DrudeNoseHooverIntegrator, Platform, XmlSerializer
+    from openmm.app import DCDReporter, PDBFile, Simulation, StateDataReporter
+    from openmm.unit import angstroms, kelvin, picoseconds
 except ImportError:
-    from simtk.openmm.app import StateDataReporter, DCDReporter
+    from simtk.openmm.app import StateDataReporter, DCDReporter, PDBFile, Simulation
+    from simtk.openmm import XmlSerializer, Platform, DrudeNoseHooverIntegrator
+    from simtk.unit import angstroms, kelvin, picoseconds
 
 import protex
+from velocityverletplugin import VVIntegrator
 
 from ..system import IonicLiquidSystem, IonicLiquidTemplates
 from ..testsystems import (
     IM1H_IM1,
     OAC_HOAC,
     generate_im1h_oac_system,
+    generate_short_im1h_oac_system,
     generate_single_im1h_oac_system,
 )
 from ..update import NaiveMCUpdate, StateUpdate
@@ -1518,6 +1525,32 @@ def test_single_energy_before_after(caplog):
         il.loadCheckpoint(rst)
         return il
 
+    def save_system(system, number):
+        with open(f"system_{number}.xml", "w") as output:
+            output.write(XmlSerializer.serialize(system))
+
+    def load_system(number):
+        with open(f"system_{number}.xml") as input:
+            system = XmlSerializer.deserialize(input.read())
+            return system
+
+    def print_force_contrib(simulation):
+        for i, f in enumerate(simulation.system.getForces()):
+            state = simulation.context.getState(getEnergy=True, groups={i})
+            print(f.getName(), state.getPotentialEnergy())
+
+    # integrator = VVIntegrator(
+    integrator = DrudeNoseHooverIntegrator(
+        300 * kelvin,
+        10 / picoseconds,
+        1 * kelvin,
+        100 / picoseconds,
+        0.0005 * picoseconds,
+    )
+    integrator.setMaxDrudeDistance(0.25 * angstroms)
+    platform = Platform.getPlatformByName("CUDA")
+    prop = dict(CudaPrecision="single")  # default is single
+
     sim0 = generate_single_im1h_oac_system()
     allowed_updates = {}
     # allowed updates according to simple protonation scheme
@@ -1551,11 +1584,162 @@ def test_single_energy_before_after(caplog):
     assert t1_1 == t1_2
     assert e1_2 == e1_1, f"il {e1_2=} should be equal to {e1_1=}"
     assert e1 == e1_1, f"{e1=} should be equal to {e1_1=}"
+    logging.debug(t1)
+    logging.debug(e1)
+    logging.debug(t1_1)
+    logging.debug(e1_1)
+    print("### Orig Il ###")
+    print_force_contrib(ionic_liquid.simulation)
+    print("loaded il")
+    print_force_contrib(sim1_1)
+    print("####")
 
     state_update.update(2)
     t2, e2 = get_time_energy(ionic_liquid.simulation)
     save_il(ionic_liquid, 2)
-    sim2_1 = load_sim("test_2.psf", "test_2.rst")
+    # save_system(ionic_liquid.system, 2)
+    # positions = ionic_liquid.simulation.context.getState(
+    #    getPositions=True
+    # ).getPositions()
+    # PDBFile.writeFile(ionic_liquid.topology, positions, file=open("test_2.pdb", "w"))
+    sim2_1 = load_sim("protex/forcefield/single_pairs/im1_hoac_2.psf", "test_2.rst")
+    sim2_2 = load_sim("test_2.psf", "test_2.rst")
+    # sys2_2 = load_system(2)
+    # pdb = PDBFile("test_2.pdb")
+    # sim2_2 = Simulation(
+    #    pdb.topology, sys2_2, integrator, platform=platform, platformProperties=prop
+    # )
+    # sim2_2.context.setPositions(pdb.positions)
+    print("### Orig Il ###")
+    print_force_contrib(ionic_liquid.simulation)
+    print("loaded il")
+    print_force_contrib(sim2_1)
+    print("loaded il wrong psf")
+    print_force_contrib(sim2_2)
+    print("####")
     t2_1, e2_1 = get_time_energy(sim2_1)
-    assert t2 == t2_1
-    assert e2 == e2_1, f"{e2=} should be equal to {e2_1=}"
+    t2_2, e2_2 = get_time_energy(sim2_2)
+    logging.debug(t2)
+    logging.debug(e2)
+    logging.debug(t2_1)
+    logging.debug(e2_1)
+    logging.debug(t2_2)
+    logging.debug(e2_2)
+    # ionic_liquid.simulation.saveState("state_2.xml")
+    # print(ionic_liquid.simulation.context.getState(getParameters=True).getParameters())
+    # with open("integrator.xml", "w") as f:
+    #    f.write(
+    #        XmlSerializer.serialize(
+    #            ionic_liquid.simulation.context.getState(getParameters=True)
+    #        )
+    #    )
+    # sim2_3 = Simulation.loadState("state_2.xml")
+    # t2_3, e2_3 = get_time_energy(sim2_3)
+    # print(t2_3, e2_3)
+
+    # assert t2 == t2_1
+    # assert e2 == e2_1, f"{e2=} should be equal to {e2_1=}"
+
+
+def test_save_load_single(caplog):
+    caplog.set_level(logging.DEBUG)
+
+    def get_time_energy(simulation, print=False):
+        time = simulation.context.getState().getTime()
+        e_pot = simulation.context.getState(getEnergy=True).getPotentialEnergy()
+        if print:
+            print(f"time: {time}, e_pot: {e_pot}")
+        return time, e_pot
+
+    def save_system(system, number):
+        with open(f"system_{number}.xml", "w") as output:
+            output.write(XmlSerializer.serialize(system))
+
+    def load_system(number):
+        with open(f"system_{number}.xml") as input:
+            system = XmlSerializer.deserialize(input.read())
+            return system
+
+    def save(ionic_liquid, number):
+        save_system(ionic_liquid.simulation.system, number)
+        positions = ionic_liquid.simulation.context.getState(
+            getPositions=True
+        ).getPositions()
+        PDBFile.writeFile(
+            ionic_liquid.topology, positions, file=open(f"test_{number}.pdb", "w")
+        )
+
+    def load(number):
+        platform = Platform.getPlatformByName("CUDA")
+        prop = dict(CudaPrecision="single")  # default is single
+        integrator = VVIntegrator(
+            # integrator = DrudeNoseHooverIntegrator(
+            300 * kelvin,
+            10 / picoseconds,
+            1 * kelvin,
+            100 / picoseconds,
+            0.0005 * picoseconds,
+        )
+        integrator.setMaxDrudeDistance(0.25 * angstroms)
+        pdb = PDBFile(f"test_{number}.pdb")
+        sys = load_system(0)
+        sim = Simulation(
+            pdb.positions, sys, integrator, platform=platform, platformProperties=prop
+        )
+        sim.context.setPositions(pdb.positions)
+        return sim
+
+    sim0 = generate_short_im1h_oac_system()
+    allowed_updates = {}
+    # allowed updates according to simple protonation scheme
+    allowed_updates[frozenset(["IMH", "OAC"])] = {
+        "r_max": 0.57,
+        "prob": 1,
+    }
+    IM1H_IM1 = {
+        "IMH": {
+            "atom_name": "H7",
+        },
+        "IM1": {
+            "atom_name": "N2",
+        },
+    }
+
+    OAC_HOAC = {
+        "OAC": {
+            "atom_name": "O2",
+        },
+        "HAC": {
+            "atom_name": "H",
+        },
+    }
+    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+    ionic_liquid = IonicLiquidSystem(sim0, templates)
+    update = NaiveMCUpdate(ionic_liquid, all_forces=True)
+    state_update = StateUpdate(update)
+
+    t_tmp, e_tmp = get_time_energy(ionic_liquid.simulation, print=False)
+
+    # print(ionic_liquid.simulation.system.__dir__())
+    save(ionic_liquid, 0)
+    sim = load(0)
+    t_0, e_0 = get_time_energy(sim, print=False)
+
+    ionic_liquid.simulation.step(5)
+    t1, e1 = get_time_energy(ionic_liquid.simulation)
+    save(ionic_liquid, 1)
+    sim = load(1)
+    t_1, e_1 = get_time_energy(sim, print=False)
+
+    state_update.update(2)
+    t2, e2 = get_time_energy(ionic_liquid.simulation)
+    save(ionic_liquid, 2)
+    sim = load(2)
+    t_2, e_2 = get_time_energy(sim, print=False)
+
+    logging.debug(f"Start: {t_tmp}, {e_tmp}")
+    logging.debug(f"Start saved: {t_0}, {e_0}")
+    logging.debug(f"5 steps: {t1}, {e1}")
+    logging.debug(f"5 steps saved: {t_1}, {e_1}")
+    logging.debug(f"after update: {t2}, {e2}")
+    logging.debug(f"after update saved: {t_2}, {e_2}")
