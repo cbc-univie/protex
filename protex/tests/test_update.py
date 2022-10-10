@@ -11,8 +11,6 @@ try:
 except ImportError:
     from simtk.openmm.app import StateDataReporter, DCDReporter
 
-from velocityverletplugin import VVIntegrator
-
 import protex
 
 from ..system import IonicLiquidSystem, IonicLiquidTemplates
