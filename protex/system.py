@@ -260,7 +260,6 @@ class IonicLiquidSystem:
         for force in self.system.getForces():
             if type(force).__name__ == name:
                 force.updateParametersInContext(self.simulation.context)
-                break
 
     def _build_exclusion_list(self):
         pair_12_set = set()
