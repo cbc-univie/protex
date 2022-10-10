@@ -42,7 +42,6 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../documentation_pages/getting_started.html">Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../documentation_pages/quickstart.html">Quick Start Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../documentation_pages/detailed_example.html">Detailed Example</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../documentation_pages/use_cases.html">Use Cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../documentation_pages/api.html">API Documentation</a></li>
 </ul>
@@ -334,7 +333,6 @@
         <span class="k">for</span> <span class="n">force</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">getForces</span><span class="p">():</span>
             <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">force</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="n">name</span><span class="p">:</span>
                 <span class="n">force</span><span class="o">.</span><span class="n">updateParametersInContext</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">context</span><span class="p">)</span>
-                <span class="k">break</span>
 
     <span class="k">def</span> <span class="nf">_build_exclusion_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">pair_12_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
