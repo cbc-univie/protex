@@ -3,7 +3,7 @@ from sys import stdout
 
 import pytest
 
-from ..reporter import ChargeReporter, DrudeTemperatureReporter
+from ..reporter import ChargeReporter, DrudeTemperatureReporter, EnergyReporter
 from ..system import IonicLiquidSystem, IonicLiquidTemplates
 from ..testsystems import IM1H_IM1, OAC_HOAC, generate_im1h_oac_system
 from ..update import NaiveMCUpdate, StateUpdate
@@ -60,6 +60,8 @@ def test_outline():
     ionic_liquid.simulation.reporters.append(
         DrudeTemperatureReporter("drude_temp1.out", 500)
     )
+
+    ionic_liquid.simulation.reporters.append(EnergyReporter("energy.out", 500))
 
     charge_info = {"dcd_save_freq": 500}
     charge_reporter = ChargeReporter(
