@@ -1,8 +1,6 @@
 import logging
 import os
 from collections import defaultdict, deque
-from distutils.log import debug
-from json import load
 
 import numpy as np
 import pytest
@@ -17,8 +15,6 @@ except ImportError:
     from simtk.openmm import XmlSerializer, Platform, DrudeNoseHooverIntegrator
     from simtk.unit import angstroms, kelvin, picoseconds
 
-from velocityverletplugin import VVIntegrator
-
 import protex
 
 from ..system import IonicLiquidSystem, IonicLiquidTemplates
@@ -26,7 +22,6 @@ from ..testsystems import (
     IM1H_IM1,
     OAC_HOAC,
     generate_im1h_oac_system,
-    generate_short_im1h_oac_system,
     generate_single_im1h_oac_system,
 )
 from ..update import NaiveMCUpdate, StateUpdate

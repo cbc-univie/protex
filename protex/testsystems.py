@@ -380,13 +380,13 @@ def generate_hpts_system(
     return setup_simulation()
 
 
-def generate_single_im1h_oac_system(coll_freq=10, drude_coll_freq=100, psf_file=None):
+def generate_single_im1h_oac_system(coll_freq=10, drude_coll_freq=100):
     """
     Sets up a system with 1 IM1H, 1OAC, 1IM1 and 1 HOAC
     Was for testing the deformation of the imidazole ring -> solved by adding the nonbonded exception to the updates
     """
 
-    def load_charmm_files(psf_file=psf_file):
+    def load_charmm_files():
         # =======================================================================
         # Force field
         # =======================================================================
@@ -403,136 +403,12 @@ def generate_single_im1h_oac_system(coll_freq=10, drude_coll_freq=100, psf_file=
         params = CharmmParameterSet(
             *[f"{base}/toppar/{para_files}" for para_files in PARA_FILES]
         )
-        if psf_file is None:
-            psf_file = f"{base}/im1h_oac_im1_hoac_1_secondtry.psf"
-        psf = CharmmPsfFile(psf_file)
+
+        psf = CharmmPsfFile(f"{base}/im1h_oac_im1_hoac_1_secondtry.psf")
         xtl = 15.0 * angstroms
         psf.setBox(xtl, xtl, xtl)
         # cooridnates can be provieded by CharmmCrdFile, CharmmRstFile or PDBFile classes
         crd = CharmmCrdFile(f"{base}/im1h_oac_im1_hoac_1_secondtry.crd")
-        return psf, crd, params
-
-    def setup_system():
-        psf, crd, params = load_charmm_files()
-        system = psf.createSystem(
-            params,
-            nonbondedMethod=PME,
-            nonbondedCutoff=3.0 * angstroms,
-            switchDistance=2.5 * angstroms,
-            constraints=HBonds,
-        )
-
-        return system
-
-    def setup_simulation():
-        psf, crd, params = load_charmm_files()
-        system = setup_system()
-
-        try:
-            # plugin
-            # https://github.com/z-gong/openmm-velocityVerlet
-            from velocityverletplugin import VVIntegrator
-
-            integrator = VVIntegrator(
-                300 * kelvin,
-                coll_freq / picoseconds,
-                1 * kelvin,
-                drude_coll_freq / picoseconds,
-                0.0005 * picoseconds,
-            )
-
-            context = Context(system, integrator)
-            del context
-            integrator = VVIntegrator(
-                300 * kelvin,
-                coll_freq / picoseconds,
-                1 * kelvin,
-                drude_coll_freq / picoseconds,
-                0.0005 * picoseconds,
-            )
-            print("Using VVIntegrator Plugin")
-
-        except (ModuleNotFoundError, OpenMMException):
-            integrator = DrudeNoseHooverIntegrator(
-                300 * kelvin,
-                coll_freq / picoseconds,
-                1 * kelvin,
-                drude_coll_freq / picoseconds,
-                0.0005 * picoseconds,
-            )
-            # temperature grouped nose hoover thermostat
-            print("Using built in DrudeNoseHooverIntegrator")
-
-        print(
-            f"{coll_freq=}, {drude_coll_freq=}"
-        )  # tested with 20, 40, 80, 100, 120, 140, 160: 20,40 bad; 80 - 120 good; 140, 160 crashed
-        integrator.setMaxDrudeDistance(0.25 * angstroms)
-        try:
-            platform = Platform.getPlatformByName("CUDA")
-            prop = dict(CudaPrecision="single")  # default is single
-            simulation = Simulation(
-                psf.topology,
-                system,
-                integrator,
-                platform=platform,  # platformProperties=prop
-            )
-        except OpenMMException:
-            platform = Platform.getPlatformByName("CPU")
-            prop = dict()
-            simulation = Simulation(
-                psf.topology,
-                system,
-                integrator,
-                platform=platform,  # platformProperties=prop
-            )
-
-        simulation.context.setPositions(crd.positions)
-        simulation.context.computeVirtualSites()
-        # simulation.context.setVelocitiesToTemperature(300 * kelvin)
-
-        # print(simulation.context.getIntegrator())
-        # print(simulation.context.getPlatform().getName())
-        # print(
-        #    [
-        #        f"{i}: {simulation.context.getPlatform().getPropertyValue(simulation.context, i)}"
-        #        for i in simulation.context.getPlatform().getPropertyNames()
-        #    ]
-        # )
-        return simulation
-
-    return setup_simulation()
-
-
-def generate_short_im1h_oac_system(coll_freq=10, drude_coll_freq=100, psf_file=None):
-    """
-    Sets up a system with 1 IM1H, 1OAC, 1IM1 and 1 HOAC
-    Was for testing the deformation of the imidazole ring -> solved by adding the nonbonded exception to the updates
-    """
-
-    def load_charmm_files(psf_file=psf_file):
-        # =======================================================================
-        # Force field
-        # =======================================================================
-        # Loading CHARMM files
-        print("Loading CHARMM files...")
-        PARA_FILES = [
-            "toppar_drude_master_protein_2013f_lj02.str",
-            "hoac_short.str",
-            "im1h_short.str",
-            "im1_short.str",
-            "oac_short.str",
-        ]
-        base = f"{protex.__path__[0]}/forcefield/single_pairs"  # NOTE: this points now to the installed files!
-        params = CharmmParameterSet(
-            *[f"{base}/toppar/{para_files}" for para_files in PARA_FILES]
-        )
-        if psf_file is None:
-            psf_file = f"{base}/im1h_oac_im1_hoac_1_short.psf"
-        psf = CharmmPsfFile(psf_file)
-        xtl = 15.0 * angstroms
-        psf.setBox(xtl, xtl, xtl)
-        # cooridnates can be provieded by CharmmCrdFile, CharmmRstFile or PDBFile classes
-        crd = CharmmCrdFile(f"{base}/im1h_oac_im1_hoac_1_short.crd")
         return psf, crd, params
 
     def setup_system():
