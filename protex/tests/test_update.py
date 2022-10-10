@@ -1536,7 +1536,8 @@ def test_single_energy_before_after(caplog):
 
     def print_force_contrib(simulation):
         for i, f in enumerate(simulation.system.getForces()):
-            state = simulation.context.getState(getEnergy=True, groups={i})
+            group = f.getForceGroup()
+            state = simulation.context.getState(getEnergy=True, groups={group})
             print(f.getName(), state.getPotentialEnergy())
 
     # integrator = VVIntegrator(
@@ -1641,8 +1642,8 @@ def test_single_energy_before_after(caplog):
     # assert e2 == e2_1, f"{e2=} should be equal to {e2_1=}"
 
 
-def test_save_load_single(caplog):
-    caplog.set_level(logging.DEBUG)
+def test_periodictorsionforce_energy(caplog):
+    # caplog.set_level(logging.DEBUG)
 
     def get_time_energy(simulation, print=False):
         time = simulation.context.getState().getTime()
@@ -1651,67 +1652,53 @@ def test_save_load_single(caplog):
             print(f"time: {time}, e_pot: {e_pot}")
         return time, e_pot
 
-    def save_system(system, number):
-        with open(f"system_{number}.xml", "w") as output:
-            output.write(XmlSerializer.serialize(system))
-
-    def load_system(number):
-        with open(f"system_{number}.xml") as input:
-            system = XmlSerializer.deserialize(input.read())
-            return system
-
-    def save(ionic_liquid, number):
-        save_system(ionic_liquid.simulation.system, number)
-        positions = ionic_liquid.simulation.context.getState(
-            getPositions=True
-        ).getPositions()
-        PDBFile.writeFile(
-            ionic_liquid.topology, positions, file=open(f"test_{number}.pdb", "w")
+    def save_il(ionic_liquid, number):
+        ionic_liquid.write_psf(
+            f"protex/forcefield/single_pairs/im1h_oac_im1_hoac_1_secondtry.psf",
+            f"test_{number}.psf",
         )
+        ionic_liquid.saveCheckpoint(f"test_{number}.rst")
 
-    def load(number):
-        platform = Platform.getPlatformByName("CUDA")
-        prop = dict(CudaPrecision="single")  # default is single
-        integrator = VVIntegrator(
-            # integrator = DrudeNoseHooverIntegrator(
-            300 * kelvin,
-            10 / picoseconds,
-            1 * kelvin,
-            100 / picoseconds,
-            0.0005 * picoseconds,
-        )
-        integrator.setMaxDrudeDistance(0.25 * angstroms)
-        pdb = PDBFile(f"test_{number}.pdb")
-        sys = load_system(0)
-        sim = Simulation(
-            pdb.positions, sys, integrator, platform=platform, platformProperties=prop
-        )
-        sim.context.setPositions(pdb.positions)
+    def load_sim(psf, rst):
+        sim = generate_single_im1h_oac_system(psf_file=psf)
+        sim.loadCheckpoint(rst)
         return sim
 
-    sim0 = generate_short_im1h_oac_system()
+    def load_il(psf, rst, templates):
+        sim = generate_single_im1h_oac_system(psf_file=psf)
+        il = IonicLiquidSystem(sim, templates)
+        il.loadCheckpoint(rst)
+        return il
+
+    def print_force_contrib(simulation):
+        for i, f in enumerate(simulation.system.getForces()):
+            group = f.getForceGroup()
+            state = simulation.context.getState(getEnergy=True, groups={group})
+            print(f.getName(), state.getPotentialEnergy())
+
+    def print_periodictorsionforce(simulation):
+        f = simulation.system.getForce(3)
+        state = simulation.context.getState(getEnergy=True, groups={3})
+        print(f.getName(), state.getPotentialEnergy())
+
+    # integrator = VVIntegrator(
+    integrator = DrudeNoseHooverIntegrator(
+        300 * kelvin,
+        10 / picoseconds,
+        1 * kelvin,
+        100 / picoseconds,
+        0.0005 * picoseconds,
+    )
+    integrator.setMaxDrudeDistance(0.25 * angstroms)
+    platform = Platform.getPlatformByName("CUDA")
+    prop = dict(CudaPrecision="single")  # default is single
+
+    sim0 = generate_single_im1h_oac_system()
     allowed_updates = {}
     # allowed updates according to simple protonation scheme
-    allowed_updates[frozenset(["IMH", "OAC"])] = {
-        "r_max": 0.57,
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {
+        "r_max": 0.17,
         "prob": 1,
-    }
-    IM1H_IM1 = {
-        "IMH": {
-            "atom_name": "H7",
-        },
-        "IM1": {
-            "atom_name": "N2",
-        },
-    }
-
-    OAC_HOAC = {
-        "OAC": {
-            "atom_name": "O2",
-        },
-        "HAC": {
-            "atom_name": "H",
-        },
     }
     templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
     ionic_liquid = IonicLiquidSystem(sim0, templates)
@@ -1719,27 +1706,120 @@ def test_save_load_single(caplog):
     state_update = StateUpdate(update)
 
     t_tmp, e_tmp = get_time_energy(ionic_liquid.simulation, print=False)
-
-    # print(ionic_liquid.simulation.system.__dir__())
-    save(ionic_liquid, 0)
-    sim = load(0)
-    t_0, e_0 = get_time_energy(sim, print=False)
+    t0, e0 = get_time_energy(sim0)
+    assert t_tmp == t0
+    assert e_tmp == e0
+    save_il(ionic_liquid, 0)
+    sim0_1 = load_sim("test_0.psf", "test_0.rst")
+    t0_1, e0_1 = get_time_energy(sim0_1, print=False)
+    assert t0 == t0_1
+    assert e0 == e0_1
 
     ionic_liquid.simulation.step(5)
     t1, e1 = get_time_energy(ionic_liquid.simulation)
-    save(ionic_liquid, 1)
-    sim = load(1)
-    t_1, e_1 = get_time_energy(sim, print=False)
+    save_il(ionic_liquid, 1)
+    sim1_1 = load_sim("test_1.psf", "test_1.rst")
+    il1_1 = load_il("test_1.psf", "test_1.rst", templates)
+    t1_1, e1_1 = get_time_energy(sim1_1)
+    t1_2, e1_2 = get_time_energy(il1_1.simulation)
+    assert t1 == t1_1
+    assert t1_1 == t1_2
+    assert e1_2 == e1_1, f"il {e1_2=} should be equal to {e1_1=}"
+    assert e1 == e1_1, f"{e1=} should be equal to {e1_1=}"
+    # print("### Orig Il ###")
+    # print_periodictorsionforce(ionic_liquid.simulation)
+    # print("loaded il")
+    # print_periodictorsionforce(sim1_1)
+    # print("####")
+    # print("IL before update")
+    # print_force_contrib(ionic_liquid.simulation)
 
     state_update.update(2)
-    t2, e2 = get_time_energy(ionic_liquid.simulation)
-    save(ionic_liquid, 2)
-    sim = load(2)
-    t_2, e_2 = get_time_energy(sim, print=False)
+    # t2, e2 = get_time_energy(ionic_liquid.simulation)
+    save_il(ionic_liquid, 2)
 
-    logging.debug(f"Start: {t_tmp}, {e_tmp}")
-    logging.debug(f"Start saved: {t_0}, {e_0}")
-    logging.debug(f"5 steps: {t1}, {e1}")
-    logging.debug(f"5 steps saved: {t_1}, {e_1}")
-    logging.debug(f"after update: {t2}, {e2}")
-    logging.debug(f"after update saved: {t_2}, {e_2}")
+    sim2_1 = load_sim("protex/forcefield/single_pairs/im1_hoac_2.psf", "test_2.rst")
+    sim_2_oldcoord = load_sim(
+        "protex/forcefield/single_pairs/im1_hoac_2.psf", "test_1.rst"
+    )
+    # sim2_2 = load_sim("test_2.psf", "test_2.rst")
+
+    # print("### Orig Il ###")
+    # print_periodictorsionforce(ionic_liquid.simulation)
+    # print("loaded il")
+    # print_periodictorsionforce(sim2_1)
+    ## print("loaded il wrong psf")
+    ## print_force_contrib(sim2_2)
+    # print("####")
+    # print("### Orig Il ###")
+    # print_force_contrib(ionic_liquid.simulation)
+    # print("loaded il")
+    # print_force_contrib(sim2_1)
+    # print("loaded il old coord")
+    # print_force_contrib(sim_2_oldcoord)
+    # t2_1, e2_1 = get_time_energy(sim2_1)
+    # t2_2, e2_2 = get_time_energy(sim2_2)
+    # logging.debug(t2)
+    # logging.debug(e2)
+    # logging.debug(t2_1)
+    # logging.debug(e2_1)
+    # logging.debug(t2_2)
+    # logging.debug(e2_2)
+
+
+def test_ubforce_update(caplog):
+    # caplog.set_level(logging.DEBUG)
+
+    def print_force_contrib(simulation):
+        for i, f in enumerate(simulation.system.getForces()):
+            group = f.getForceGroup()
+            state = simulation.context.getState(getEnergy=True, groups={group})
+            print(f.getName(), state.getPotentialEnergy())
+
+    sim0 = generate_single_im1h_oac_system()
+    allowed_updates = {}
+    # allowed updates according to simple protonation scheme
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {
+        "r_max": 0.17,
+        "prob": 1,
+    }
+    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+    ionic_liquid = IonicLiquidSystem(sim0, templates)
+
+    print_force_contrib(ionic_liquid.simulation)
+    for force in ionic_liquid.system.getForces():
+        print(force, force.getForceGroup())
+        if (
+            type(force).__name__ == "HarmonicBondForce"
+        ):  # and force.getForceGroup() == 3:
+            f0 = force.getBondParameters(0)
+            print(f"Initial params, {f0=}")
+            force.setBondParameters(0, *f0[0:2], 0.15, 500000)
+            f0_new = force.getBondParameters(0)
+            print(f"New params, {f0_new=}")
+        if type(force).__name__ == "HarmonicAngleForce":
+            f0 = force.getAngleParameters(0)
+            # print(f"Initial params, {f0=}")
+            # force.setAngleParameters(0, *f0[0:3], 20, 100)
+            # f0_new = force.getAngleParameters(0)
+            # print(f"New params, {f0_new=}")
+        if type(force).__name__ == "PeriodicTorsionForce":
+            f0 = force.getTorsionParameters(0)
+            # print(f"Initial params, {f0=}")
+            # force.setTorsionParameters(0, *f0[0:4], 2, np.pi, 30)
+            # f0_new = force.getTorsionParameters(0)
+            # print(f"New params, {f0_new=}")
+    print_force_contrib(ionic_liquid.simulation)
+    for force in ionic_liquid.system.getForces():
+        # print(force)
+        if (
+            type(force).__name__ == "HarmonicBondForce"
+        ):  # and force.getForceGroup() == 3:
+            print(f"hier: {force}")
+            force.updateParametersInContext(ionic_liquid.simulation.context)
+        # if type(force).__name__ == "HarmonicAngleForce":
+        #    force.updateParametersInContext(ionic_liquid.simulation.context)
+        # if type(force).__name__ == "PeriodicTorsionForce":
+        #    force.updateParametersInContext(ionic_liquid.simulation.context)
+
+    print_force_contrib(ionic_liquid.simulation)

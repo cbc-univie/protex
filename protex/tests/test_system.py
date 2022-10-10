@@ -2,6 +2,7 @@
 # import json
 import copy
 import io
+import logging
 import os
 from collections import defaultdict
 from sys import stdout
@@ -27,7 +28,13 @@ try:  # Syntax changed in OpenMM 7.6
         Simulation,
         StateDataReporter,
     )
-    from openmm.unit import angstroms, kelvin, picoseconds
+    from openmm.unit import (
+        angstroms,
+        kelvin,
+        kilocalories_per_mole,
+        md_kilocalories,
+        picoseconds,
+    )
 except ImportError:
     import simtk.openmm as mm
     from simtk.openmm import (
@@ -44,13 +51,17 @@ except ImportError:
     from simtk.openmm.app import Simulation
     from simtk.unit import angstroms, kelvin, picoseconds
 
-import pytest
-
 import protex
+import pytest
 
 from ..reporter import ChargeReporter
 from ..system import IonicLiquidSystem, IonicLiquidTemplates
-from ..testsystems import IM1H_IM1, OAC_HOAC, generate_im1h_oac_system
+from ..testsystems import (
+    IM1H_IM1,
+    OAC_HOAC,
+    generate_im1h_oac_system,
+    generate_single_im1h_oac_system,
+)
 from ..update import NaiveMCUpdate, StateUpdate
 
 
@@ -722,6 +733,92 @@ def test_create_IonicLiquid_residue():
     assert ionic_liquid.residues[0].original_name == "IM1H"
 
 
+def test_tosion_parameters_single():
+    from pprint import pprint
+
+    simulation = generate_single_im1h_oac_system()
+    allowed_updates = {}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
+
+    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+
+    ionic_liquid = IonicLiquidSystem(simulation, templates)
+
+    for residue in ionic_liquid.residues:
+        print(residue.current_name)
+        if residue.current_name == "IM1H":
+            p0_im1h = residue._get_PeriodicTorsionForce_parameters_at_lambda(0)
+            p1_im1 = residue._get_PeriodicTorsionForce_parameters_at_lambda(1)
+            residue._set_PeriodicTorsionForce_parameters(p1_im1)
+        if residue.current_name == "IM1":
+            p0_im1 = residue._get_PeriodicTorsionForce_parameters_at_lambda(0)
+            p1_im1h = residue._get_PeriodicTorsionForce_parameters_at_lambda(1)
+            residue._set_PeriodicTorsionForce_parameters(p1_im1h)
+        if residue.current_name == "OAC":
+            p0_oac = residue._get_PeriodicTorsionForce_parameters_at_lambda(0)
+            p1_hoac = residue._get_PeriodicTorsionForce_parameters_at_lambda(1)
+            residue._set_PeriodicTorsionForce_parameters(p1_hoac)
+        if residue.current_name == "HOAC":
+            p0_hoac = residue._get_PeriodicTorsionForce_parameters_at_lambda(0)
+            p1_oac = residue._get_PeriodicTorsionForce_parameters_at_lambda(1)
+            residue._set_PeriodicTorsionForce_parameters(p1_oac)
+    for i, j in zip(p0_im1h, p1_im1h):
+        assert i == j
+    for i, j in zip(p1_im1, p0_im1):
+        assert i == j
+    for i, j in zip(p0_oac, p1_oac):
+        assert i == j
+    for i, j in zip(p1_hoac, p0_hoac):
+        assert i == j
+    # for old, new in zip(p0_oac, p1_hoac):
+    #     print(
+    #         f"{old[2].in_units_of(kilocalories_per_mole)}, {new[2].in_units_of(kilocalories_per_mole)}"
+    #     )
+
+
+def test_bond_parameters_single():
+    from pprint import pprint
+
+    simulation = generate_single_im1h_oac_system()
+    allowed_updates = {}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
+
+    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+
+    ionic_liquid = IonicLiquidSystem(simulation, templates)
+
+    for residue in ionic_liquid.residues:
+        print(residue.current_name)
+        if residue.current_name == "IM1H":
+            p0_im1h = residue._get_HarmonicBondForce_parameters_at_lambda(0)
+            p1_im1 = residue._get_HarmonicBondForce_parameters_at_lambda(1)
+            residue._set_HarmonicBondForce_parameters(p1_im1)
+        if residue.current_name == "IM1":
+            p0_im1 = residue._get_HarmonicBondForce_parameters_at_lambda(0)
+            p1_im1h = residue._get_HarmonicBondForce_parameters_at_lambda(1)
+            residue._set_HarmonicBondForce_parameters(p1_im1h)
+        if residue.current_name == "OAC":
+            p0_oac = residue._get_HarmonicBondForce_parameters_at_lambda(0)
+            p1_hoac = residue._get_HarmonicBondForce_parameters_at_lambda(1)
+            residue._set_HarmonicBondForce_parameters(p1_hoac)
+        if residue.current_name == "HOAC":
+            p0_hoac = residue._get_HarmonicBondForce_parameters_at_lambda(0)
+            p1_oac = residue._get_HarmonicBondForce_parameters_at_lambda(1)
+            residue._set_HarmonicBondForce_parameters(p1_oac)
+    for i, j in zip(p0_im1h, p1_im1h):
+        assert i == j
+    for i, j in zip(p1_im1, p0_im1):
+        assert i == j
+    for i, j in zip(p0_oac, p1_oac):
+        assert i == j
+    for i, j in zip(p1_hoac, p0_hoac):
+        assert i == j
+    # for old, new in zip(p0_oac, p1_hoac):
+    #     print(f"{old[1]}, {new[1]}")
+
+
 # def test_save_load_residue_names():
 #     # obtain simulation object
 #     simulation = generate_im1h_oac_system()
@@ -867,6 +964,42 @@ def test_write_psf_save_load():
     os.remove("test3.psf")
     os.remove("state.rst")
     os.remove("checkpoint.rst")
+
+
+def test_single_harmonic_force(caplog):
+    caplog.set_level(logging.DEBUG)
+
+    sim0 = generate_single_im1h_oac_system()
+    allowed_updates = {}
+    # allowed updates according to simple protonation scheme
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {
+        "r_max": 0.17,
+        "prob": 1,
+    }
+    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+    ionic_liquid = IonicLiquidSystem(sim0, templates)
+    update = NaiveMCUpdate(ionic_liquid, all_forces=True)
+    state_update = StateUpdate(update)
+
+    for force in ionic_liquid.system.getForces():
+        if type(force).__name__ == "HarmonicBondForce" and force.getForceGroup() == 0:
+            print(force.getNumBonds())
+        if type(force).__name__ == "HarmonicBondForce" and force.getForceGroup() == 3:
+            print(force.getNumBonds())
+
+    for residue in ionic_liquid.residues:
+        print(residue.current_name)
+        params = residue.parameters[residue.current_name]["HarmonicBondForce"]
+        ub_forces = []
+        for force in ionic_liquid.system.getForces():
+            if force.getForceGroup() == 3:  # UreyBradley
+                for idx in range(force.getNumBonds()):
+                    f = force.getBondParameters(idx)
+                    for p in params:
+                        if f[0:2] == p[0:2]:
+                            ub_forces.append(f)
+                            print(f[3] / 2 / md_kilocalories * angstroms**2)
+        print(len(ub_forces))
 
 
 # def test_write_psf_long():
