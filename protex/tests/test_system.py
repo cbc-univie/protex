@@ -51,8 +51,9 @@ except ImportError:
     from simtk.openmm.app import Simulation
     from simtk.unit import angstroms, kelvin, picoseconds
 
-import protex
 import pytest
+
+import protex
 
 from ..reporter import ChargeReporter
 from ..system import IonicLiquidSystem, IonicLiquidTemplates
