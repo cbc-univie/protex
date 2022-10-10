@@ -51,10 +51,11 @@ except ImportError:
     from simtk.openmm.app import Simulation
     from simtk.unit import angstroms, kelvin, picoseconds
 
-import protex
 import pytest
 
-from ..reporter import ChargeReporter
+import protex
+
+from ..reporter import ChargeReporter, EnergyReporter
 from ..system import IonicLiquidSystem, IonicLiquidTemplates
 from ..testsystems import (
     IM1H_IM1,
@@ -909,6 +910,7 @@ def test_reporter_class():
             totalEnergy=True,
         )
     )
+    ionic_liquid.simulation.reporters.append(EnergyReporter("energy_1.out", 20))
 
     ionic_liquid.simulation.step(19)
     state_update.update(2)

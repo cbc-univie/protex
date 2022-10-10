@@ -17,8 +17,9 @@ except ImportError:
     from simtk.openmm import XmlSerializer, Platform, DrudeNoseHooverIntegrator
     from simtk.unit import angstroms, kelvin, picoseconds
 
-import protex
 from velocityverletplugin import VVIntegrator
+
+import protex
 
 from ..system import IonicLiquidSystem, IonicLiquidTemplates
 from ..testsystems import (
