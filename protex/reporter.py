@@ -86,6 +86,78 @@ class ChargeReporter:
         self._out.close()
 
 
+class EnergyReporter:
+    """Energy reporter reports the energy contributions to the potential energy"""
+
+    def __init__(
+        self,
+        file: str,
+        reportInterval: int,
+        append: bool = False,
+        header_data: dict = None,
+    ):
+        # allow for a header line with information
+        self._openedFile = isinstance(file, str)
+        if self._openedFile:
+            self._out = open(file, "a" if append else "w")
+        else:
+            self._out = file
+        self._hasInitialized = False
+        self.header_data = header_data
+        self._reportInterval = reportInterval
+
+    def describeNextReport(self, simulation):
+        """Get information about the next report this object will generate.
+        Parameters
+        ----------
+        simulation : Simulation
+            The Simulation to generate a report for
+        Returns
+        -------
+        tuple
+            A five element tuple. The first element is the number of steps
+            until the next report. The remaining elements specify whether
+            that report will require positions, velocities, forces, and
+            energies respectively.
+        """
+        steps = self._reportInterval - simulation.currentStep % self._reportInterval
+        return (steps, False, False, False, True)
+
+    def report(self, simulation, state):
+        tab = "\t"  # becuase: SyntaxError: f-string expression part cannot include a backslash
+        names = []
+        values = []
+        for f in simulation.system.getForces():
+            group = f.getForceGroup()
+            state = simulation.context.getState(getEnergy=True, groups={group})
+            names.append(f"{f.getName()} (kJ/mole)")
+            values.append(
+                state.getPotentialEnergy().value_in_unit(unit.kilojoules_per_mole)
+            )
+
+        if not self._hasInitialized:
+            self._hasInitialized = True
+            if isinstance(self.header_data, dict):
+                print(
+                    ", ".join(
+                        [f"{key}: {value}" for key, value in self.header_data.items()]
+                    ),
+                    file=self._out,
+                )
+            print(f"Step\t{tab.join(n for n in names)}", file=self._out)
+
+        print(
+            f"{simulation.currentStep}\t{tab.join(str(v) for v in values)}",
+            file=self._out,
+        )
+
+        if hasattr(self._out, "flush") and callable(self._out.flush):
+            self._out.flush()
+
+    def __del__(self):
+        self._out.close()
+
+
 # Reporter from https://github.com/z-gong/openmm-velocityVerlet/tree/master/examples/ommhelper/reporter
 class DrudeTemperatureReporter(object):
     """
