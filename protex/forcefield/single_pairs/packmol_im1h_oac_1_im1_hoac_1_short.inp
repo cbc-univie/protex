@@ -1,0 +1,26 @@
+tolerance 2.0
+seed -1
+
+
+filetype pdb
+output im1h_oac_1_im1_hoac_1_short_init.pdb
+
+structure toppar/im1h_short.pdb 
+  number 1 
+  inside box -3. -3. -3. 3. 3. 3.
+end structure
+
+structure toppar/oac_short.pdb
+  number 1
+  inside box -3. -3. -3. 3. 3. 3.
+end structure
+
+structure toppar/im1_short.pdb 
+  number 1 
+  inside box -3. -3. -3. 3. 3. 3.
+end structure
+
+structure toppar/hoac_short.pdb
+  number 1
+  inside box -3. -3. -3. 3. 3. 3.
+end structure
