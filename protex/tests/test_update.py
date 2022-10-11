@@ -1471,10 +1471,6 @@ def test_energy_before_after():
     ionic_liquid = IonicLiquidSystem(sim0, templates)
     update = NaiveMCUpdate(ionic_liquid, all_forces=True)
     state_update = StateUpdate(update)
-    # for force in ionic_liquid.system.getForces():
-    #     if type(force).__name__ == "CMMotionRemover":
-    #         force.setForceGroup(len(ionic_liquid.system.getForces()))
-    #         print(force.getForceGroup())
 
     t_tmp, e_tmp = get_time_energy(ionic_liquid.simulation, print=False)
     t0, e0 = get_time_energy(sim0)
@@ -1509,8 +1505,13 @@ def test_energy_before_after():
     save_il(ionic_liquid, 2)
     sim2_1 = load_sim("test_2.psf", "test_2.rst")
     t2_1, e2_1 = get_time_energy(sim2_1)
+    print("Orig")
+    print_force_contrib(ionic_liquid.simulation)
+    print("Loaded")
+    print_force_contrib(sim2_1)
+    print("######")
     assert t2 == t2_1
-    # assert e2 == e2_1, f"{e2=} should be equal to {e2_1=}" # fails because psf writing still not completely correct
+    assert e2 == e2_1, f"{e2=} should be equal to {e2_1=}"
 
 
 @pytest.mark.skipif(

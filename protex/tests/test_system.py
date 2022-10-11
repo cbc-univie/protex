@@ -1007,7 +1007,7 @@ def test_write_psf_save_load_single():
     # get ionic liquid templates
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.165, "prob": 1}
-    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.165, "prob": 1}
+    # allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.165, "prob": 1}
 
     templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
     # wrap system in IonicLiquidSystem
@@ -1023,10 +1023,10 @@ def test_write_psf_save_load_single():
 
     save_il(ionic_liquid, 1)
 
-    sim2_1 = load_sim("protex/forcefield/single_pairs/im1_hoac_2.psf", "test_2.rst")
-    sim_2_oldcoord = load_sim(
-        "protex/forcefield/single_pairs/im1_hoac_2.psf", "test_1.rst"
-    )
+    # sim2_1 = load_sim("protex/forcefield/single_pairs/im1_hoac_2.psf", "test_2.rst")
+    # sim_2_oldcoord = load_sim(
+    #    "protex/forcefield/single_pairs/im1_hoac_2.psf", "test_1.rst"
+    # )
 
 
 def test_single_harmonic_force(caplog):

@@ -175,8 +175,8 @@ def generate_im1h_oac_system(
         integrator.setMaxDrudeDistance(0.25 * angstroms)
         try:
             platform = Platform.getPlatformByName("CUDA")
-            # prop = dict(CudaPrecision="single")  # default is single
-            prop = dict(CudaPrecision="double")
+            prop = dict(CudaPrecision="single")  # default is single
+            # prop = dict(CudaPrecision="double")
             # Moved creating the simulation object inside the try...except block, because i.e.
             # Error loading CUDA module: CUDA_ERROR_INVALID_PTX (218)
             # message was only thrown during simulation creation not by specifying the platform
