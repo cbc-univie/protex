@@ -7,13 +7,9 @@ import pytest
 from scipy.spatial import distance_matrix
 
 try:
-    from openmm import DrudeNoseHooverIntegrator, Platform, XmlSerializer
-    from openmm.app import DCDReporter, PDBFile, Simulation, StateDataReporter
-    from openmm.unit import angstroms, kelvin, picoseconds
+    from openmm.app import DCDReporter, StateDataReporter
 except ImportError:
-    from simtk.openmm.app import StateDataReporter, DCDReporter, PDBFile, Simulation
-    from simtk.openmm import XmlSerializer, Platform, DrudeNoseHooverIntegrator
-    from simtk.unit import angstroms, kelvin, picoseconds
+    from simtk.openmm.app import StateDataReporter, DCDReporter
 
 import protex
 
