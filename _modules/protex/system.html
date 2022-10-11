@@ -600,6 +600,50 @@
                 <span class="n">pm_unique_residues</span><span class="p">[</span><span class="n">pm_residue</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">pm_residue</span>
                 <span class="n">residue_counts</span><span class="p">[</span><span class="n">pm_residue</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
 
+        <span class="c1"># get offset for lonepairs which are defined differently.</span>
+        <span class="c1"># dict with lists for each LocalCoordinates frame, there is one for each LP in the residue</span>
+        <span class="n">differences_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">pair</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">templates</span><span class="o">.</span><span class="n">pairs</span><span class="p">:</span>
+            <span class="n">name1</span><span class="p">,</span> <span class="n">name2</span> <span class="o">=</span> <span class="n">pair</span>
+            <span class="n">pm_res1</span> <span class="o">=</span> <span class="n">pm_unique_residues</span><span class="p">[</span><span class="n">name1</span><span class="p">]</span>
+            <span class="n">pm_res2</span> <span class="o">=</span> <span class="n">pm_unique_residues</span><span class="p">[</span><span class="n">name2</span><span class="p">]</span>
+            <span class="c1"># get first index to get relative difference</span>
+            <span class="n">at1_idx1</span> <span class="o">=</span> <span class="n">pm_res1</span><span class="o">.</span><span class="n">atoms</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">idx</span>
+            <span class="n">at2_idx1</span> <span class="o">=</span> <span class="n">pm_res2</span><span class="o">.</span><span class="n">atoms</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">idx</span>
+
+            <span class="n">differences_dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">([</span><span class="n">name1</span><span class="p">,</span> <span class="n">name2</span><span class="p">])]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">differences_dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">([</span><span class="n">name2</span><span class="p">,</span> <span class="n">name1</span><span class="p">])]</span> <span class="o">=</span> <span class="p">[]</span>
+
+            <span class="k">for</span> <span class="n">at1</span><span class="p">,</span> <span class="n">at2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">pm_res1</span><span class="p">,</span> <span class="n">pm_res2</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">at1</span><span class="p">,</span> <span class="n">parmed</span><span class="o">.</span><span class="n">topologyobjects</span><span class="o">.</span><span class="n">ExtraPoint</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span>
+                    <span class="n">at1</span><span class="o">.</span><span class="n">frame_type</span><span class="p">,</span> <span class="n">parmed</span><span class="o">.</span><span class="n">topologyobjects</span><span class="o">.</span><span class="n">LocalCoordinatesFrame</span>
+                <span class="p">):</span>
+                    <span class="n">frame_hosts1</span> <span class="o">=</span> <span class="p">[</span>
+                        <span class="n">fatom</span>
+                        <span class="k">for</span> <span class="n">fatom</span> <span class="ow">in</span> <span class="n">at1</span><span class="o">.</span><span class="n">frame_type</span><span class="o">.</span><span class="n">get_atoms</span><span class="p">()[</span>
+                            <span class="p">:</span> <span class="n">at1</span><span class="o">.</span><span class="n">frame_type</span><span class="o">.</span><span class="n">frame_size</span>
+                        <span class="p">]</span>
+                    <span class="p">]</span>
+                    <span class="n">frame_hosts2</span> <span class="o">=</span> <span class="p">[</span>
+                        <span class="n">fatom</span>
+                        <span class="k">for</span> <span class="n">fatom</span> <span class="ow">in</span> <span class="n">at2</span><span class="o">.</span><span class="n">frame_type</span><span class="o">.</span><span class="n">get_atoms</span><span class="p">()[</span>
+                            <span class="p">:</span> <span class="n">at2</span><span class="o">.</span><span class="n">frame_type</span><span class="o">.</span><span class="n">frame_size</span>
+                        <span class="p">]</span>
+                    <span class="p">]</span>
+                    <span class="n">relative_pos1</span> <span class="o">=</span> <span class="p">[</span><span class="n">fatom</span><span class="o">.</span><span class="n">idx</span> <span class="o">-</span> <span class="n">at1_idx1</span> <span class="k">for</span> <span class="n">fatom</span> <span class="ow">in</span> <span class="n">frame_hosts1</span><span class="p">]</span>
+                    <span class="n">relative_pos2</span> <span class="o">=</span> <span class="p">[</span><span class="n">fatom</span><span class="o">.</span><span class="n">idx</span> <span class="o">-</span> <span class="n">at2_idx1</span> <span class="k">for</span> <span class="n">fatom</span> <span class="ow">in</span> <span class="n">frame_hosts2</span><span class="p">]</span>
+                    <span class="n">differences</span> <span class="o">=</span> <span class="p">[</span>
+                        <span class="n">p1</span> <span class="o">-</span> <span class="n">p2</span> <span class="k">for</span> <span class="n">p1</span><span class="p">,</span> <span class="n">p2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">relative_pos1</span><span class="p">,</span> <span class="n">relative_pos2</span><span class="p">)</span>
+                    <span class="p">]</span>
+                    <span class="c1"># Depending on the direction of the tranfer we either need the positive or negative value</span>
+                    <span class="n">differences_dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">([</span><span class="n">name1</span><span class="p">,</span> <span class="n">name2</span><span class="p">])]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">differences</span><span class="p">)</span>
+                    <span class="n">differences_dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">([</span><span class="n">name2</span><span class="p">,</span> <span class="n">name1</span><span class="p">])]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">differences</span><span class="p">]</span>
+                    <span class="p">)</span>
+
+        <span class="c1"># either it is the same or just one group will be assumed. -&gt; Not best for proteins, but hopefully Parmed will release new version soon, so that we do not need all this hacks.</span>
+        <span class="n">n_residue_is_n_groups</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">psf</span><span class="o">.</span><span class="n">groups</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">psf</span><span class="o">.</span><span class="n">residues</span><span class="p">)</span>
+        <span class="n">group_iter</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">psf</span><span class="o">.</span><span class="n">groups</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">residue</span><span class="p">,</span> <span class="n">pm_residue</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">residues</span><span class="p">,</span> <span class="n">psf</span><span class="o">.</span><span class="n">residues</span><span class="p">):</span>
             <span class="c1"># if the new residue (residue.current_name) is different than the original one from the old psf (pm_residue.name)</span>
             <span class="c1"># a proton transfer occured and we want to change this in the new psf, which means overwriting the parmed residue instance</span>
@@ -607,6 +651,12 @@
             <span class="c1"># if residue.current_name != pm_residue.name:</span>
             <span class="c1"># do changes</span>
             <span class="n">name</span> <span class="o">=</span> <span class="n">residue</span><span class="o">.</span><span class="n">current_name</span>
+            <span class="n">name_change</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span><span class="n">name</span><span class="p">,</span> <span class="n">pm_residue</span><span class="o">.</span><span class="n">name</span><span class="p">])</span>
+            <span class="c1"># get the differences in LP position, make an iterator to yiled the next as needed</span>
+            <span class="n">diff_iter</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="n">name_change</span> <span class="ow">in</span> <span class="n">differences_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">differences_list</span> <span class="o">=</span> <span class="n">differences_dict</span><span class="p">[</span><span class="n">name_change</span><span class="p">]</span>
+                <span class="n">diff_iter</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">differences_list</span><span class="p">)</span>
             <span class="n">pm_residue</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
             <span class="n">pm_residue</span><span class="o">.</span><span class="n">chain</span> <span class="o">=</span> <span class="n">name</span>
             <span class="n">pm_residue</span><span class="o">.</span><span class="n">segid</span> <span class="o">=</span> <span class="n">name</span>
@@ -617,7 +667,64 @@
                 <span class="n">pm_atom</span><span class="o">.</span><span class="n">_charge</span> <span class="o">=</span> <span class="n">unique_atom</span><span class="o">.</span><span class="n">_charge</span>
                 <span class="n">pm_atom</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">unique_atom</span><span class="o">.</span><span class="n">type</span>
                 <span class="n">pm_atom</span><span class="o">.</span><span class="n">props</span> <span class="o">=</span> <span class="n">unique_atom</span><span class="o">.</span><span class="n">props</span>
+                <span class="c1"># NUMLP NUMLPH lonepair section update</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span>
+                    <span class="n">unique_atom</span><span class="p">,</span> <span class="n">parmed</span><span class="o">.</span><span class="n">topologyobjects</span><span class="o">.</span><span class="n">ExtraPoint</span>
+                <span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span>
+                    <span class="n">unique_atom</span><span class="o">.</span><span class="n">frame_type</span><span class="p">,</span> <span class="n">parmed</span><span class="o">.</span><span class="n">topologyobjects</span><span class="o">.</span><span class="n">LocalCoordinatesFrame</span>
+                <span class="p">):</span>
+                    <span class="n">pm_atom</span><span class="o">.</span><span class="n">frame_type</span><span class="o">.</span><span class="n">distance</span> <span class="o">=</span> <span class="n">unique_atom</span><span class="o">.</span><span class="n">frame_type</span><span class="o">.</span><span class="n">distance</span>
+                    <span class="n">pm_atom</span><span class="o">.</span><span class="n">frame_type</span><span class="o">.</span><span class="n">angle</span> <span class="o">=</span> <span class="n">unique_atom</span><span class="o">.</span><span class="n">frame_type</span><span class="o">.</span><span class="n">angle</span>
+                    <span class="n">pm_atom</span><span class="o">.</span><span class="n">frame_type</span><span class="o">.</span><span class="n">dihedral</span> <span class="o">=</span> <span class="n">unique_atom</span><span class="o">.</span><span class="n">frame_type</span><span class="o">.</span><span class="n">dihedral</span>
+                    <span class="c1"># if the positioning of the lonepair changes, update the corresponding atoms in the LocalCoordinateFrame</span>
+                    <span class="k">if</span> <span class="n">diff_iter</span><span class="p">:</span>
+                        <span class="n">differences</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">diff_iter</span><span class="p">)</span>
+                        <span class="n">first_idx</span> <span class="o">=</span> <span class="n">pm_residue</span><span class="o">.</span><span class="n">atoms</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">idx</span>
+
+                        <span class="c1"># normalize to the first idx in the list of atoms for one residue</span>
+                        <span class="n">current_idx1</span> <span class="o">=</span> <span class="n">pm_atom</span><span class="o">.</span><span class="n">frame_type</span><span class="o">.</span><span class="n">atom1</span><span class="o">.</span><span class="n">idx</span>
+                        <span class="c1"># print(f&quot;{current_idx1=}&quot;)</span>
+                        <span class="c1"># print(f&quot;{differences[0]=}&quot;)</span>
+                        <span class="n">pm_atom</span><span class="o">.</span><span class="n">frame_type</span><span class="o">.</span><span class="n">atom1</span> <span class="o">=</span> <span class="n">pm_residue</span><span class="o">.</span><span class="n">atoms</span><span class="p">[</span>
+                            <span class="n">current_idx1</span> <span class="o">-</span> <span class="n">first_idx</span> <span class="o">+</span> <span class="n">differences</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                        <span class="p">]</span>
+                        <span class="n">current_idx2</span> <span class="o">=</span> <span class="n">pm_atom</span><span class="o">.</span><span class="n">frame_type</span><span class="o">.</span><span class="n">atom2</span><span class="o">.</span><span class="n">idx</span>
+                        <span class="c1"># print(f&quot;{current_idx2=}&quot;)</span>
+                        <span class="c1"># print(f&quot;{differences[1]=}&quot;)</span>
+                        <span class="n">pm_atom</span><span class="o">.</span><span class="n">frame_type</span><span class="o">.</span><span class="n">atom2</span> <span class="o">=</span> <span class="n">pm_residue</span><span class="o">.</span><span class="n">atoms</span><span class="p">[</span>
+                            <span class="n">current_idx2</span> <span class="o">-</span> <span class="n">first_idx</span> <span class="o">+</span> <span class="n">differences</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                        <span class="p">]</span>
+                        <span class="n">current_idx3</span> <span class="o">=</span> <span class="n">pm_atom</span><span class="o">.</span><span class="n">frame_type</span><span class="o">.</span><span class="n">atom3</span><span class="o">.</span><span class="n">idx</span>
+                        <span class="c1"># print(f&quot;{current_idx3=}&quot;)</span>
+                        <span class="c1"># print(f&quot;{differences[2]=}&quot;)</span>
+                        <span class="n">pm_atom</span><span class="o">.</span><span class="n">frame_type</span><span class="o">.</span><span class="n">atom3</span> <span class="o">=</span> <span class="n">pm_residue</span><span class="o">.</span><span class="n">atoms</span><span class="p">[</span>
+                            <span class="n">current_idx3</span> <span class="o">-</span> <span class="n">first_idx</span> <span class="o">+</span> <span class="n">differences</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+                        <span class="p">]</span>
+
+                <span class="c1"># NUMANISO Section update</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">unique_atom</span><span class="p">,</span> <span class="n">parmed</span><span class="o">.</span><span class="n">topologyobjects</span><span class="o">.</span><span class="n">DrudeAtom</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">unique_atom</span><span class="o">.</span><span class="n">anisotropy</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">continue</span>
+                    <span class="n">pm_atom</span><span class="o">.</span><span class="n">anisotropy</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;k11&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">unique_atom</span><span class="o">.</span><span class="n">anisotropy</span><span class="o">.</span><span class="n">params</span><span class="p">[</span>
+                        <span class="s2">&quot;k11&quot;</span>
+                    <span class="p">]</span>
+                    <span class="n">pm_atom</span><span class="o">.</span><span class="n">anisotropy</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;k22&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">unique_atom</span><span class="o">.</span><span class="n">anisotropy</span><span class="o">.</span><span class="n">params</span><span class="p">[</span>
+                        <span class="s2">&quot;k22&quot;</span>
+                    <span class="p">]</span>
+                    <span class="n">pm_atom</span><span class="o">.</span><span class="n">anisotropy</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;k33&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">unique_atom</span><span class="o">.</span><span class="n">anisotropy</span><span class="o">.</span><span class="n">params</span><span class="p">[</span>
+                        <span class="s2">&quot;k33&quot;</span>
+                    <span class="p">]</span>
             <span class="n">residue_counts</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="k">if</span> <span class="n">n_residue_is_n_groups</span><span class="p">:</span>
+                <span class="n">group</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">group_iter</span><span class="p">)</span>
+                <span class="n">typ</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">charge</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">pm_residue</span><span class="o">.</span><span class="n">atoms</span><span class="p">))</span> <span class="o">&lt;</span> <span class="mf">1e-4</span> <span class="k">else</span> <span class="mi">2</span>
+                <span class="n">group</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">typ</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">n_residue_is_n_groups</span><span class="p">:</span>
+            <span class="c1"># Maybe a bit hacky to get Parmed to use all atoms as 1 group</span>
+            <span class="c1"># https://github.com/ParmEd/ParmEd/blob/master/parmed/formats/psf.py#L250</span>
+            <span class="n">psf</span><span class="o">.</span><span class="n">groups</span> <span class="o">=</span> <span class="p">[]</span>
 
         <span class="k">return</span> <span class="n">psf</span>
 
@@ -626,7 +733,6 @@
 <span class="sd">        write a new psf file, which reflects the occured transfer events and changed residues</span>
 <span class="sd">        to load the written psf create a new ionic_liquid instance and load the new psf via OpenMM</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">import</span> <span class="nn">parmed</span>
 
         <span class="n">pm_old_psf</span> <span class="o">=</span> <span class="n">parmed</span><span class="o">.</span><span class="n">charmm</span><span class="o">.</span><span class="n">CharmmPsfFile</span><span class="p">(</span><span class="n">old_psf_infname</span><span class="p">)</span>
         <span class="c1"># copying parmed structure did not work</span>
