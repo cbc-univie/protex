@@ -42,6 +42,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../documentation_pages/getting_started.html">Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../documentation_pages/quickstart.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../documentation_pages/detailed_example.html">Detailed Example</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../documentation_pages/use_cases.html">Use Cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../documentation_pages/api.html">API Documentation</a></li>
 </ul>
@@ -183,12 +184,6 @@
             <span class="nb">print</span><span class="p">(</span>
                 <span class="s2">&quot;Only contraints=None or constraints=HBonds (given as string in function call) implemented&quot;</span>
             <span class="p">)</span>
-
-        <span class="k">for</span> <span class="n">force</span> <span class="ow">in</span> <span class="n">system</span><span class="o">.</span><span class="n">getForces</span><span class="p">():</span>
-            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">force</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;CMMotionRemover&quot;</span><span class="p">:</span>
-                <span class="c1"># From OpenMM psf file it has automatically ForceGroup 0, which is already used for harmonic bond force</span>
-                <span class="n">force</span><span class="o">.</span><span class="n">setForceGroup</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">system</span><span class="o">.</span><span class="n">getForces</span><span class="p">())</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
-                <span class="c1"># print(force.getForceGroup())</span>
         <span class="k">return</span> <span class="n">system</span>
 
     <span class="k">def</span> <span class="nf">setup_simulation</span><span class="p">(</span>
@@ -249,7 +244,6 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="n">platform</span> <span class="o">=</span> <span class="n">Platform</span><span class="o">.</span><span class="n">getPlatformByName</span><span class="p">(</span><span class="s2">&quot;CUDA&quot;</span><span class="p">)</span>
             <span class="n">prop</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">CudaPrecision</span><span class="o">=</span><span class="s2">&quot;single&quot;</span><span class="p">)</span>  <span class="c1"># default is single</span>
-            <span class="c1"># prop = dict(CudaPrecision=&quot;double&quot;)</span>
             <span class="c1"># Moved creating the simulation object inside the try...except block, because i.e.</span>
             <span class="c1"># Error loading CUDA module: CUDA_ERROR_INVALID_PTX (218)</span>
             <span class="c1"># message was only thrown during simulation creation not by specifying the platform</span>
@@ -460,13 +454,13 @@
     <span class="k">return</span> <span class="n">setup_simulation</span><span class="p">()</span></div>
 
 
-<div class="viewcode-block" id="generate_single_im1h_oac_system"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.testsystems.generate_single_im1h_oac_system.html#protex.testsystems.generate_single_im1h_oac_system">[docs]</a><span class="k">def</span> <span class="nf">generate_single_im1h_oac_system</span><span class="p">(</span><span class="n">coll_freq</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">drude_coll_freq</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">psf_file</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="generate_single_im1h_oac_system"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.testsystems.generate_single_im1h_oac_system.html#protex.testsystems.generate_single_im1h_oac_system">[docs]</a><span class="k">def</span> <span class="nf">generate_single_im1h_oac_system</span><span class="p">(</span><span class="n">coll_freq</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">drude_coll_freq</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Sets up a system with 1 IM1H, 1OAC, 1IM1 and 1 HOAC</span>
 <span class="sd">    Was for testing the deformation of the imidazole ring -&gt; solved by adding the nonbonded exception to the updates</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">load_charmm_files</span><span class="p">(</span><span class="n">psf_file</span><span class="o">=</span><span class="n">psf_file</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">load_charmm_files</span><span class="p">():</span>
         <span class="c1"># =======================================================================</span>
         <span class="c1"># Force field</span>
         <span class="c1"># =======================================================================</span>
@@ -483,9 +477,8 @@
         <span class="n">params</span> <span class="o">=</span> <span class="n">CharmmParameterSet</span><span class="p">(</span>
             <span class="o">*</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">base</span><span class="si">}</span><span class="s2">/toppar/</span><span class="si">{</span><span class="n">para_files</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">para_files</span> <span class="ow">in</span> <span class="n">PARA_FILES</span><span class="p">]</span>
         <span class="p">)</span>
-        <span class="k">if</span> <span class="n">psf_file</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">psf_file</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">base</span><span class="si">}</span><span class="s2">/im1h_oac_im1_hoac_1_secondtry.psf&quot;</span>
-        <span class="n">psf</span> <span class="o">=</span> <span class="n">CharmmPsfFile</span><span class="p">(</span><span class="n">psf_file</span><span class="p">)</span>
+
+        <span class="n">psf</span> <span class="o">=</span> <span class="n">CharmmPsfFile</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">base</span><span class="si">}</span><span class="s2">/im1h_oac_im1_hoac_1_secondtry.psf&quot;</span><span class="p">)</span>
         <span class="n">xtl</span> <span class="o">=</span> <span class="mf">15.0</span> <span class="o">*</span> <span class="n">angstroms</span>
         <span class="n">psf</span><span class="o">.</span><span class="n">setBox</span><span class="p">(</span><span class="n">xtl</span><span class="p">,</span> <span class="n">xtl</span><span class="p">,</span> <span class="n">xtl</span><span class="p">)</span>
         <span class="c1"># cooridnates can be provieded by CharmmCrdFile, CharmmRstFile or PDBFile classes</span>
