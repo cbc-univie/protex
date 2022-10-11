@@ -568,6 +568,9 @@ class IonicLiquidSystem:
                         [-d for d in differences]
                     )
 
+        # either it is the same or just one group will be assumed. -> Not best for proteins, but hopefully Parmed will release new version soon, so that we do not need all this hacks.
+        n_residue_is_n_groups = len(psf.groups) == len(psf.residues)
+        group_iter = iter(psf.groups)
         for residue, pm_residue in zip(self.residues, psf.residues):
             # if the new residue (residue.current_name) is different than the original one from the old psf (pm_residue.name)
             # a proton transfer occured and we want to change this in the new psf, which means overwriting the parmed residue instance
@@ -639,6 +642,16 @@ class IonicLiquidSystem:
                         "k33"
                     ]
             residue_counts[name] += 1
+
+            if n_residue_is_n_groups:
+                group = next(group_iter)
+                typ = 1 if abs(sum(a.charge for a in pm_residue.atoms)) < 1e-4 else 2
+                group.type = typ
+
+        if not n_residue_is_n_groups:
+            # Maybe a bit hacky to get Parmed to use all atoms as 1 group
+            # https://github.com/ParmEd/ParmEd/blob/master/parmed/formats/psf.py#L250
+            psf.groups = []
 
         return psf
 
