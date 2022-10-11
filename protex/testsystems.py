@@ -387,13 +387,13 @@ def generate_hpts_system(
     return setup_simulation()
 
 
-def generate_single_im1h_oac_system(coll_freq=10, drude_coll_freq=100):
+def generate_single_im1h_oac_system(coll_freq=10, drude_coll_freq=100, psf_file=None):
     """
     Sets up a system with 1 IM1H, 1OAC, 1IM1 and 1 HOAC
     Was for testing the deformation of the imidazole ring -> solved by adding the nonbonded exception to the updates
     """
 
-    def load_charmm_files():
+    def load_charmm_files(psf_file=psf_file):
         # =======================================================================
         # Force field
         # =======================================================================
@@ -410,8 +410,9 @@ def generate_single_im1h_oac_system(coll_freq=10, drude_coll_freq=100):
         params = CharmmParameterSet(
             *[f"{base}/toppar/{para_files}" for para_files in PARA_FILES]
         )
-
-        psf = CharmmPsfFile(f"{base}/im1h_oac_im1_hoac_1_secondtry.psf")
+        if psf_file is None:
+            psf_file = f"{base}/im1h_oac_im1_hoac_1_secondtry.psf"
+        psf = CharmmPsfFile(psf_file)
         xtl = 15.0 * angstroms
         psf.setBox(xtl, xtl, xtl)
         # cooridnates can be provieded by CharmmCrdFile, CharmmRstFile or PDBFile classes
