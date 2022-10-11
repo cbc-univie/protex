@@ -183,6 +183,12 @@
             <span class="nb">print</span><span class="p">(</span>
                 <span class="s2">&quot;Only contraints=None or constraints=HBonds (given as string in function call) implemented&quot;</span>
             <span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">force</span> <span class="ow">in</span> <span class="n">system</span><span class="o">.</span><span class="n">getForces</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">force</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;CMMotionRemover&quot;</span><span class="p">:</span>
+                <span class="c1"># From OpenMM psf file it has automatically ForceGroup 0, which is already used for harmonic bond force</span>
+                <span class="n">force</span><span class="o">.</span><span class="n">setForceGroup</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">system</span><span class="o">.</span><span class="n">getForces</span><span class="p">())</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="c1"># print(force.getForceGroup())</span>
         <span class="k">return</span> <span class="n">system</span>
 
     <span class="k">def</span> <span class="nf">setup_simulation</span><span class="p">(</span>
@@ -242,7 +248,8 @@
         <span class="n">integrator</span><span class="o">.</span><span class="n">setMaxDrudeDistance</span><span class="p">(</span><span class="mf">0.25</span> <span class="o">*</span> <span class="n">angstroms</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">platform</span> <span class="o">=</span> <span class="n">Platform</span><span class="o">.</span><span class="n">getPlatformByName</span><span class="p">(</span><span class="s2">&quot;CUDA&quot;</span><span class="p">)</span>
-            <span class="n">prop</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">CudaPrecision</span><span class="o">=</span><span class="s2">&quot;single&quot;</span><span class="p">)</span>  <span class="c1"># default is single</span>
+            <span class="c1"># prop = dict(CudaPrecision=&quot;single&quot;)  # default is single</span>
+            <span class="n">prop</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">CudaPrecision</span><span class="o">=</span><span class="s2">&quot;double&quot;</span><span class="p">)</span>
             <span class="c1"># Moved creating the simulation object inside the try...except block, because i.e.</span>
             <span class="c1"># Error loading CUDA module: CUDA_ERROR_INVALID_PTX (218)</span>
             <span class="c1"># message was only thrown during simulation creation not by specifying the platform</span>

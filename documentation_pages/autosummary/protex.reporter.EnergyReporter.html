@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>protex.reporter.ChargeReporter &mdash; protex  documentation</title>
+  <title>protex.reporter.EnergyReporter &mdash; protex  documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/custom.css" type="text/css" />
@@ -21,8 +21,8 @@
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="protex.reporter.DrudeTemperatureReporter" href="protex.reporter.DrudeTemperatureReporter.html" />
-    <link rel="prev" title="protex.reporter" href="protex.reporter.html" /> 
+    <link rel="next" title="protex.residue" href="protex.residue.html" />
+    <link rel="prev" title="protex.reporter.DrudeTemperatureReporter" href="protex.reporter.DrudeTemperatureReporter.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -51,12 +51,12 @@
 <li class="toctree-l2"><a class="reference internal" href="protex.update.html">protex.update</a></li>
 <li class="toctree-l2"><a class="reference internal" href="protex.testsystems.html">protex.testsystems</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="protex.reporter.html">protex.reporter</a><ul class="current">
-<li class="toctree-l3 current"><a class="current reference internal" href="#">protex.reporter.ChargeReporter</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#protex.reporter.ChargeReporter"><code class="docutils literal notranslate"><span class="pre">ChargeReporter</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="protex.reporter.ChargeReporter.html">protex.reporter.ChargeReporter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="protex.reporter.DrudeTemperatureReporter.html">protex.reporter.DrudeTemperatureReporter</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">protex.reporter.EnergyReporter</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#protex.reporter.EnergyReporter"><code class="docutils literal notranslate"><span class="pre">EnergyReporter</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="protex.reporter.DrudeTemperatureReporter.html">protex.reporter.DrudeTemperatureReporter</a></li>
-<li class="toctree-l3"><a class="reference internal" href="protex.reporter.EnergyReporter.html">protex.reporter.EnergyReporter</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="protex.residue.html">protex.residue</a></li>
@@ -80,9 +80,9 @@
       <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
           <li><a href="../api.html">API Documentation</a> &raquo;</li>
           <li><a href="protex.reporter.html">protex.reporter</a> &raquo;</li>
-      <li>protex.reporter.ChargeReporter</li>
+      <li>protex.reporter.EnergyReporter</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../../_sources/documentation_pages/autosummary/protex.reporter.ChargeReporter.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../../_sources/documentation_pages/autosummary/protex.reporter.EnergyReporter.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -90,24 +90,13 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="protex-reporter-chargereporter">
-<h1>protex.reporter.ChargeReporter<a class="headerlink" href="#protex-reporter-chargereporter" title="Permalink to this heading"></a></h1>
+  <section id="protex-reporter-energyreporter">
+<h1>protex.reporter.EnergyReporter<a class="headerlink" href="#protex-reporter-energyreporter" title="Permalink to this heading"></a></h1>
 <dl class="py class">
-<dt class="sig sig-object py" id="protex.reporter.ChargeReporter">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">protex.reporter.</span></span><span class="sig-name descname"><span class="pre">ChargeReporter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reportInterval</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ionic_liquid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="protex.system.IonicLiquidSystem.html#protex.system.IonicLiquidSystem" title="protex.system.IonicLiquidSystem"><span class="pre">IonicLiquidSystem</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">append</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/protex/reporter.html#ChargeReporter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#protex.reporter.ChargeReporter" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="protex.reporter.EnergyReporter">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">protex.reporter.</span></span><span class="sig-name descname"><span class="pre">EnergyReporter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reportInterval</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">append</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/protex/reporter.html#EnergyReporter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#protex.reporter.EnergyReporter" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Charge Reporter reports the charges after an update intervals
-Used to reoprt the charge for each molecule in the system.
-Ideally call in conjunction with an update and report just when charge changed.
-i.e.
-ChargeReporter(file, 10)
-simulation.step(9)
-state_update.update(2)
-simulation.step(8)
-state_update.update(2)
-simulation.step(8)
-simulation.step(1)
-then the reporter is invoked directyl in the update, after the one step with the previous charge, but before any charge changes take effect.</p>
+<p>Energy reporter reports the energy contributions to the potential energy</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <colgroup>
@@ -115,7 +104,7 @@ then the reporter is invoked directyl in the update, after the one step with the
 <col style="width: 90%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#protex.reporter.ChargeReporter.describeNextReport" title="protex.reporter.ChargeReporter.describeNextReport"><code class="xref py py-obj docutils literal notranslate"><span class="pre">describeNextReport</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#protex.reporter.EnergyReporter.describeNextReport" title="protex.reporter.EnergyReporter.describeNextReport"><code class="xref py py-obj docutils literal notranslate"><span class="pre">describeNextReport</span></code></a></p></td>
 <td><p>Get information about the next report this object will generate.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">report</span></code></p></td>
@@ -124,8 +113,8 @@ then the reporter is invoked directyl in the update, after the one step with the
 </tbody>
 </table>
 <dl class="py method">
-<dt class="sig sig-object py" id="protex.reporter.ChargeReporter.describeNextReport">
-<span class="sig-name descname"><span class="pre">describeNextReport</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">simulation</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/protex/reporter.html#ChargeReporter.describeNextReport"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#protex.reporter.ChargeReporter.describeNextReport" title="Permalink to this definition"></a></dt>
+<dt class="sig sig-object py" id="protex.reporter.EnergyReporter.describeNextReport">
+<span class="sig-name descname"><span class="pre">describeNextReport</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">simulation</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/protex/reporter.html#EnergyReporter.describeNextReport"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#protex.reporter.EnergyReporter.describeNextReport" title="Permalink to this definition"></a></dt>
 <dd><p>Get information about the next report this object will generate.
 :Parameters: <strong>simulation</strong> (<em>Simulation</em>) – The Simulation to generate a report for</p>
 <dl class="field-list simple">
@@ -149,8 +138,8 @@ energies respectively.</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="protex.reporter.html" class="btn btn-neutral float-left" title="protex.reporter" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="protex.reporter.DrudeTemperatureReporter.html" class="btn btn-neutral float-right" title="protex.reporter.DrudeTemperatureReporter" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="protex.reporter.DrudeTemperatureReporter.html" class="btn btn-neutral float-left" title="protex.reporter.DrudeTemperatureReporter" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="protex.residue.html" class="btn btn-neutral float-right" title="protex.residue" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
