@@ -527,6 +527,47 @@ class IonicLiquidSystem:
                 pm_unique_residues[pm_residue.name] = pm_residue
                 residue_counts[pm_residue.name] = 1
 
+        # get offset for lonepairs which are defined differently.
+        # dict with lists for each LocalCoordinates frame, there is one for each LP in the residue
+        differences_dict: dict[tuple[str], list[list[int]]] = {}
+        for pair in self.templates.pairs:
+            name1, name2 = pair
+            pm_res1 = pm_unique_residues[name1]
+            pm_res2 = pm_unique_residues[name2]
+            # get first index to get relative difference
+            at1_idx1 = pm_res1.atoms[0].idx
+            at2_idx1 = pm_res2.atoms[0].idx
+
+            differences_dict[tuple([name1, name2])] = []
+            differences_dict[tuple([name2, name1])] = []
+
+            for at1, at2 in zip(pm_res1, pm_res2):
+                if isinstance(at1, parmed.topologyobjects.ExtraPoint) and isinstance(
+                    at1.frame_type, parmed.topologyobjects.LocalCoordinatesFrame
+                ):
+                    frame_hosts1 = [
+                        fatom
+                        for fatom in at1.frame_type.get_atoms()[
+                            : at1.frame_type.frame_size
+                        ]
+                    ]
+                    frame_hosts2 = [
+                        fatom
+                        for fatom in at2.frame_type.get_atoms()[
+                            : at2.frame_type.frame_size
+                        ]
+                    ]
+                    relative_pos1 = [fatom.idx - at1_idx1 for fatom in frame_hosts1]
+                    relative_pos2 = [fatom.idx - at2_idx1 for fatom in frame_hosts2]
+                    differences = [
+                        p1 - p2 for p1, p2 in zip(relative_pos1, relative_pos2)
+                    ]
+                    # Depending on the direction of the tranfer we either need the positive or negative value
+                    differences_dict[tuple([name1, name2])].append(differences)
+                    differences_dict[tuple([name2, name1])].append(
+                        [-d for d in differences]
+                    )
+
         for residue, pm_residue in zip(self.residues, psf.residues):
             # if the new residue (residue.current_name) is different than the original one from the old psf (pm_residue.name)
             # a proton transfer occured and we want to change this in the new psf, which means overwriting the parmed residue instance
@@ -534,6 +575,12 @@ class IonicLiquidSystem:
             # if residue.current_name != pm_residue.name:
             # do changes
             name = residue.current_name
+            name_change: tuple[str] = tuple([name, pm_residue.name])
+            # get the differences in LP position, make an iterator to yiled the next as needed
+            diff_iter = None
+            if name_change in differences_dict.keys():
+                differences_list = differences_dict[name_change]
+                diff_iter = iter(differences_list)
             pm_residue.name = name
             pm_residue.chain = name
             pm_residue.segid = name
@@ -544,6 +591,53 @@ class IonicLiquidSystem:
                 pm_atom._charge = unique_atom._charge
                 pm_atom.type = unique_atom.type
                 pm_atom.props = unique_atom.props
+                # NUMLP NUMLPH lonepair section update
+                if isinstance(
+                    unique_atom, parmed.topologyobjects.ExtraPoint
+                ) and isinstance(
+                    unique_atom.frame_type, parmed.topologyobjects.LocalCoordinatesFrame
+                ):
+                    pm_atom.frame_type.distance = unique_atom.frame_type.distance
+                    pm_atom.frame_type.angle = unique_atom.frame_type.angle
+                    pm_atom.frame_type.dihedral = unique_atom.frame_type.dihedral
+                    # if the positioning of the lonepair changes, update the corresponding atoms in the LocalCoordinateFrame
+                    if diff_iter:
+                        differences = next(diff_iter)
+                        first_idx = pm_residue.atoms[0].idx
+
+                        # normalize to the first idx in the list of atoms for one residue
+                        current_idx1 = pm_atom.frame_type.atom1.idx
+                        # print(f"{current_idx1=}")
+                        # print(f"{differences[0]=}")
+                        pm_atom.frame_type.atom1 = pm_residue.atoms[
+                            current_idx1 - first_idx + differences[0]
+                        ]
+                        current_idx2 = pm_atom.frame_type.atom2.idx
+                        # print(f"{current_idx2=}")
+                        # print(f"{differences[1]=}")
+                        pm_atom.frame_type.atom2 = pm_residue.atoms[
+                            current_idx2 - first_idx + differences[1]
+                        ]
+                        current_idx3 = pm_atom.frame_type.atom3.idx
+                        # print(f"{current_idx3=}")
+                        # print(f"{differences[2]=}")
+                        pm_atom.frame_type.atom3 = pm_residue.atoms[
+                            current_idx3 - first_idx + differences[2]
+                        ]
+
+                # NUMANISO Section update
+                if isinstance(unique_atom, parmed.topologyobjects.DrudeAtom):
+                    if unique_atom.anisotropy is None:
+                        continue
+                    pm_atom.anisotropy.params["k11"] = unique_atom.anisotropy.params[
+                        "k11"
+                    ]
+                    pm_atom.anisotropy.params["k22"] = unique_atom.anisotropy.params[
+                        "k22"
+                    ]
+                    pm_atom.anisotropy.params["k33"] = unique_atom.anisotropy.params[
+                        "k33"
+                    ]
             residue_counts[name] += 1
 
         return psf
@@ -553,7 +647,6 @@ class IonicLiquidSystem:
         write a new psf file, which reflects the occured transfer events and changed residues
         to load the written psf create a new ionic_liquid instance and load the new psf via OpenMM
         """
-        import parmed
 
         pm_old_psf = parmed.charmm.CharmmPsfFile(old_psf_infname)
         # copying parmed structure did not work
