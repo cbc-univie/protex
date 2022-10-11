@@ -110,6 +110,12 @@ def generate_im1h_oac_system(
             print(
                 "Only contraints=None or constraints=HBonds (given as string in function call) implemented"
             )
+
+        for force in system.getForces():
+            if type(force).__name__ == "CMMotionRemover":
+                # From OpenMM psf file it has automatically ForceGroup 0, which is already used for harmonic bond force
+                force.setForceGroup(len(system.getForces()) - 1)
+                # print(force.getForceGroup())
         return system
 
     def setup_simulation(
@@ -169,7 +175,8 @@ def generate_im1h_oac_system(
         integrator.setMaxDrudeDistance(0.25 * angstroms)
         try:
             platform = Platform.getPlatformByName("CUDA")
-            prop = dict(CudaPrecision="single")  # default is single
+            # prop = dict(CudaPrecision="single")  # default is single
+            prop = dict(CudaPrecision="double")
             # Moved creating the simulation object inside the try...except block, because i.e.
             # Error loading CUDA module: CUDA_ERROR_INVALID_PTX (218)
             # message was only thrown during simulation creation not by specifying the platform
