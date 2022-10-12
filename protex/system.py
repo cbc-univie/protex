@@ -259,7 +259,10 @@ class IonicLiquidSystem:
     def update_context(self, name: str):
         for force in self.system.getForces():
             if type(force).__name__ == name:
-                force.updateParametersInContext(self.simulation.context)
+                try:
+                    force.updateParametersInContext(self.simulation.context)
+                except openmm.OpenMMException:
+                    self.simulation.context.reinitialize()
 
     def _build_exclusion_list(self):
         pair_12_set = set()
