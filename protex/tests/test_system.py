@@ -51,15 +51,15 @@ except ImportError:
     from simtk.openmm.app import Simulation
     from simtk.unit import angstroms, kelvin, picoseconds
 
-import pytest
-
 import protex
+import pytest
 
 from ..reporter import ChargeReporter, EnergyReporter
 from ..system import IonicLiquidSystem, IonicLiquidTemplates
 from ..testsystems import (
     IM1H_IM1,
     OAC_HOAC,
+    generate_im1h_oac_dummy_system,
     generate_im1h_oac_system,
     generate_single_im1h_oac_system,
 )
@@ -1008,6 +1008,92 @@ def test_write_psf_save_load_single():
     # get ionic liquid templates
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.165, "prob": 1}
+    # allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.165, "prob": 1}
+
+    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+    # wrap system in IonicLiquidSystem
+    ionic_liquid = IonicLiquidSystem(simulation, templates)
+    # initialize update method
+    update = NaiveMCUpdate(ionic_liquid)
+    # initialize state update class
+    state_update = StateUpdate(update)
+
+    save_il(ionic_liquid, 0)
+
+    state_update.update(2)
+
+    save_il(ionic_liquid, 1)
+
+    # sim2_1 = load_sim("protex/forcefield/single_pairs/im1_hoac_2.psf", "test_2.rst")
+    # sim_2_oldcoord = load_sim(
+    #    "protex/forcefield/single_pairs/im1_hoac_2.psf", "test_1.rst"
+    # )
+
+
+@pytest.mark.skipif(
+    os.getenv("CI") == "true",
+    reason="Will fail sporadicaly.",
+)
+def test_dummy():
+    def get_time_energy(simulation, print=False):
+        time = simulation.context.getState().getTime()
+        e_pot = simulation.context.getState(getEnergy=True).getPotentialEnergy()
+        if print:
+            print(f"time: {time}, e_pot: {e_pot}")
+        return time, e_pot
+
+    def save_il(ionic_liquid, number):
+        ionic_liquid.write_psf(
+            f"protex/forcefield/dummy/im1h_oac_im1_hoac_1.psf",
+            f"test_{number}.psf",
+        )
+        ionic_liquid.saveCheckpoint(f"test_{number}.rst")
+
+    def load_sim(psf, rst):
+        sim = generate_single_im1h_oac_system(psf_file=psf)
+        sim.loadCheckpoint(rst)
+        return sim
+
+    def load_il(psf, rst, templates):
+        sim = generate_single_im1h_oac_system(psf_file=psf)
+        il = IonicLiquidSystem(sim, templates)
+        il.loadCheckpoint(rst)
+        return il
+
+    def print_force_contrib(simulation):
+        for i, f in enumerate(simulation.system.getForces()):
+            group = f.getForceGroup()
+            state = simulation.context.getState(getEnergy=True, groups={group})
+            print(f.getName(), state.getPotentialEnergy())
+
+    simulation = generate_im1h_oac_dummy_system()
+    nonbonded_force = [
+        f for f in simulation.system.getForces() if isinstance(f, mm.NonbondedForce)
+    ][0]
+    dummy_atoms = []
+    for atom in simulation.topology.atoms():
+        if atom.residue.name == "IM1" and atom.name == "H7":
+            dummy_atoms.append(atom.index)
+            print(atom)
+            print(nonbonded_force.getParticleParameters(atom.index))
+            # nonbonded_force.setParticleParameters(atom.index, 0.0, 0.0, 0.0)
+            # print(nonbonded_force.getParticleParameters(atom.index))
+        if atom.residue.name == "OAC" and atom.name == "H":
+            dummy_atoms.append(atom.index)
+            print(nonbonded_force.getParticleParameters(atom.index))
+            # nonbonded_force.setParticleParameters(atom.index, 0.0, 0.0, 0.0)
+    for exc_id in range(nonbonded_force.getNumExceptions()):
+        f = nonbonded_force.getExceptionParameters(exc_id)
+        idx1 = f[0]
+        idx2 = f[1]
+        chargeProd, sigma, epsilon = f[2:]
+        if idx1 in dummy_atoms or idx2 in dummy_atoms:
+            # nonbonded_force.setExceptionParameters(exc_id, idx1, idx2, 0.0, sigma, 0.0)
+            print(f)
+
+    # get ionic liquid templates
+    allowed_updates = {}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.785, "prob": 1}
     # allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.165, "prob": 1}
 
     templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
