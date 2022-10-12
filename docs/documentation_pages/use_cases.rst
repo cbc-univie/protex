@@ -3,7 +3,7 @@
 Use Cases
 =========
 
-A collection of some useful situation for PROTEX.
+A collection of some useful situations for PROTEX.
 
 HPTS
 ----
@@ -41,6 +41,21 @@ It is still under discussion, whether the deprotonated acid should accept any pr
 
     templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1, HPTSH_HPTS, MEOH_MEOH2], allowed_updates)
     ionic_liquid = IonicLiquidSystem(simulation, templates)
+  
+To carry out tests, the new template needs to be  added to the test system explicitly, with the residue names and the atoms that are involved in the proton transfer:
+
+.. code-block:: python
+    
+    HPTSH_HPTS = {
+       "HPTSH": {
+            "atom_name": "H7",
+            "canonical_name": "HPTS",
+        },
+        "HPTS": {
+            "atom_name": "O7",
+            "canonical_name": "HPTS",
+        },
+    }
 
 Carry out simulations as described before.
 
