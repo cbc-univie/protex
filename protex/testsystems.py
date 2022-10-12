@@ -110,6 +110,12 @@ def generate_im1h_oac_system(
             print(
                 "Only contraints=None or constraints=HBonds (given as string in function call) implemented"
             )
+
+        for force in system.getForces():
+            if type(force).__name__ == "CMMotionRemover":
+                # From OpenMM psf file it has automatically ForceGroup 0, which is already used for harmonic bond force
+                force.setForceGroup(len(system.getForces()) - 1)
+                # print(force.getForceGroup())
         return system
 
     def setup_simulation(
@@ -170,6 +176,7 @@ def generate_im1h_oac_system(
         try:
             platform = Platform.getPlatformByName("CUDA")
             prop = dict(CudaPrecision="single")  # default is single
+            # prop = dict(CudaPrecision="double")
             # Moved creating the simulation object inside the try...except block, because i.e.
             # Error loading CUDA module: CUDA_ERROR_INVALID_PTX (218)
             # message was only thrown during simulation creation not by specifying the platform
@@ -556,7 +563,7 @@ def generate_single_im1h_oac_system(coll_freq=10, drude_coll_freq=100):
     Was for testing the deformation of the imidazole ring -> solved by adding the nonbonded exception to the updates
     """
 
-    def load_charmm_files():
+    def load_charmm_files(psf_file=psf_file):
         # =======================================================================
         # Force field
         # =======================================================================
@@ -573,8 +580,9 @@ def generate_single_im1h_oac_system(coll_freq=10, drude_coll_freq=100):
         params = CharmmParameterSet(
             *[f"{base}/toppar/{para_files}" for para_files in PARA_FILES]
         )
-
-        psf = CharmmPsfFile(f"{base}/im1h_oac_im1_hoac_1_secondtry.psf")
+        if psf_file is None:
+            psf_file = f"{base}/im1h_oac_im1_hoac_1_secondtry.psf"
+        psf = CharmmPsfFile(psf_file)
         xtl = 15.0 * angstroms
         psf.setBox(xtl, xtl, xtl)
         # cooridnates can be provieded by CharmmCrdFile, CharmmRstFile or PDBFile classes
