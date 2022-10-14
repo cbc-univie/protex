@@ -1638,7 +1638,7 @@ def test_update_write_psf():
 
         i += 1
 
-    os.remove("old_psf.psf")
+    # os.remove("old_psf.psf")
     os.remove("state.rst")
-    os.remove("checkpoints.rst")
+    os.remove("checkpoint.rst")
     os.remove("test.psf")
