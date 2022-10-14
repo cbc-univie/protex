@@ -42,7 +42,6 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../documentation_pages/getting_started.html">Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../documentation_pages/quickstart.html">Quick Start Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../documentation_pages/detailed_example.html">Detailed Example</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../documentation_pages/use_cases.html">Use Cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../documentation_pages/api.html">API Documentation</a></li>
 </ul>
@@ -150,6 +149,78 @@
 
         <span class="nb">print</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">ionic_liquid</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">currentStep</span><span class="si">}</span><span class="se">\t</span><span class="si">{</span><span class="p">[</span><span class="n">residue</span><span class="o">.</span><span class="n">endstate_charge</span> <span class="k">for</span> <span class="n">residue</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ionic_liquid</span><span class="o">.</span><span class="n">residues</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">file</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_out</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_out</span><span class="p">,</span> <span class="s2">&quot;flush&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">callable</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_out</span><span class="o">.</span><span class="n">flush</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_out</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_out</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="EnergyReporter"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.reporter.EnergyReporter.html#protex.reporter.EnergyReporter">[docs]</a><span class="k">class</span> <span class="nc">EnergyReporter</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Energy reporter reports the energy contributions to the potential energy&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">reportInterval</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">append</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">header_data</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="c1"># allow for a header line with information</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_openedFile</span> <span class="o">=</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_openedFile</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_out</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span> <span class="k">if</span> <span class="n">append</span> <span class="k">else</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_out</span> <span class="o">=</span> <span class="n">file</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_hasInitialized</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">header_data</span> <span class="o">=</span> <span class="n">header_data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_reportInterval</span> <span class="o">=</span> <span class="n">reportInterval</span>
+
+<div class="viewcode-block" id="EnergyReporter.describeNextReport"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.reporter.EnergyReporter.html#protex.reporter.EnergyReporter.describeNextReport">[docs]</a>    <span class="k">def</span> <span class="nf">describeNextReport</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">simulation</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get information about the next report this object will generate.</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        simulation : Simulation</span>
+<span class="sd">            The Simulation to generate a report for</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple</span>
+<span class="sd">            A five element tuple. The first element is the number of steps</span>
+<span class="sd">            until the next report. The remaining elements specify whether</span>
+<span class="sd">            that report will require positions, velocities, forces, and</span>
+<span class="sd">            energies respectively.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">steps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reportInterval</span> <span class="o">-</span> <span class="n">simulation</span><span class="o">.</span><span class="n">currentStep</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reportInterval</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">steps</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">report</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">simulation</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="n">tab</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span>  <span class="c1"># becuase: SyntaxError: f-string expression part cannot include a backslash</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">simulation</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">getForces</span><span class="p">():</span>
+            <span class="n">group</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">getForceGroup</span><span class="p">()</span>
+            <span class="n">state</span> <span class="o">=</span> <span class="n">simulation</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">getState</span><span class="p">(</span><span class="n">getEnergy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">groups</span><span class="o">=</span><span class="p">{</span><span class="n">group</span><span class="p">})</span>
+            <span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">f</span><span class="o">.</span><span class="n">getName</span><span class="p">()</span><span class="si">}</span><span class="s2"> (kJ/mole)&quot;</span><span class="p">)</span>
+            <span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">state</span><span class="o">.</span><span class="n">getPotentialEnergy</span><span class="p">()</span><span class="o">.</span><span class="n">value_in_unit</span><span class="p">(</span><span class="n">unit</span><span class="o">.</span><span class="n">kilojoules_per_mole</span><span class="p">)</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hasInitialized</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_hasInitialized</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">header_data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                        <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">header_data</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
+                    <span class="p">),</span>
+                    <span class="n">file</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_out</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Step</span><span class="se">\t</span><span class="si">{</span><span class="n">tab</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">n</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">names</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_out</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">simulation</span><span class="o">.</span><span class="n">currentStep</span><span class="si">}</span><span class="se">\t</span><span class="si">{</span><span class="n">tab</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">values</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
             <span class="n">file</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_out</span><span class="p">,</span>
         <span class="p">)</span>
 

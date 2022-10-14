@@ -21,7 +21,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Detailed Example" href="detailed_example.html" />
+    <link rel="next" title="Use Cases" href="use_cases.html" />
     <link rel="prev" title="Getting Started" href="getting_started.html" /> 
 </head>
 
@@ -45,7 +45,6 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Quick Start Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="detailed_example.html">Detailed Example</a></li>
 <li class="toctree-l1"><a class="reference internal" href="use_cases.html">Use Cases</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API Documentation</a></li>
 </ul>
@@ -76,80 +75,33 @@
              
   <section id="quick-start-guide">
 <span id="id1"></span><h1>Quick Start Guide<a class="headerlink" href="#quick-start-guide" title="Permalink to this heading"></a></h1>
-<p>Here is how to easily set up your system and start with protex!</p>
-<div class="admonition important">
-<p class="admonition-title">Important</p>
-<p>If not already done, use the <a class="reference internal" href="getting_started.html#installation-instructions"><span class="std std-ref">installation instructions</span></a> to get protex.
-For purposes of this tutorial it is important to have the <a class="reference internal" href="getting_started.html#install-using-conda-env"><span class="std std-ref">VVIntegrator plugin</span></a> installed!</p>
-</div>
+<p>Here is how to easily set up your system and start with Protex!</p>
 <p><code class="docutils literal notranslate"><span class="pre">protex</span></code> works together with <a class="reference external" href="https://openmm.org">OpenMM</a> to allow bond breaking and formation (i.e. for a proton transfer) during MD Simulations.
-First, obtain an OpenMM <code class="docutils literal notranslate"><span class="pre">simulation</span></code> object. For purposes of this tutorial we will use a helper function.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">protex.testsystems</span> <span class="kn">import</span> <span class="n">generate_im1h_oac_system</span>
-
-<span class="n">simulation</span> <span class="o">=</span> <span class="n">generate_im1h_oac_system</span><span class="p">()</span>
-</pre></div>
+First, obtain an OpenMM <code class="docutils literal notranslate"><span class="pre">simulation</span></code> object (there are helper functions provided by protex- implement!).</p>
+<div class="admonition attention">
+<p class="admonition-title">Attention</p>
+<p>It is VERY important that the atom order of the protonated and deprotonated residues match exactly between the coordinate as well as topology/psf files!</p>
 </div>
-<p>Afterwards the main pathway is to specifiy the allowed transfers and which atoms are subject to the transfer using <code class="docutils literal notranslate"><span class="pre">IonicLiquidTemplates</span></code>.
-Then wrap the simulation and templates into an <code class="docutils literal notranslate"><span class="pre">IonicLiquidSystem</span></code>.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">protex.system</span> <span class="kn">import</span> <span class="n">IonicLiquidSystem</span><span class="p">,</span> <span class="n">IonicLiquidTemplates</span>
-
-<span class="n">allowed_updates</span> <span class="o">=</span> <span class="p">{}</span>
+<p>Afterwards the main pathway is to specifiy the allowed transfers using <code class="docutils literal notranslate"><span class="pre">IonicLiquidTemplates</span></code> and wrap the simulation and templates into an <code class="docutils literal notranslate"><span class="pre">IonicLiquidSystem</span></code>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">allowed_updates</span> <span class="o">=</span> <span class="p">{}</span>
 <span class="n">allowed_updates</span><span class="p">[</span><span class="nb">frozenset</span><span class="p">([</span><span class="s2">&quot;IM1H&quot;</span><span class="p">,</span> <span class="s2">&quot;OAC&quot;</span><span class="p">])]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;r_max&quot;</span><span class="p">:</span> <span class="mf">0.16</span><span class="p">,</span> <span class="s2">&quot;prob&quot;</span><span class="p">:</span> <span class="mf">0.994</span><span class="p">}</span>
 <span class="n">allowed_updates</span><span class="p">[</span><span class="nb">frozenset</span><span class="p">([</span><span class="s2">&quot;IM1&quot;</span><span class="p">,</span> <span class="s2">&quot;HOAC&quot;</span><span class="p">])]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;r_max&quot;</span><span class="p">:</span> <span class="mf">0.16</span><span class="p">,</span> <span class="s2">&quot;prob&quot;</span><span class="p">:</span> <span class="mf">0.098</span><span class="p">}</span>
 
-<span class="n">IM1H_IM1</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;IM1H&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;atom_name&quot;</span><span class="p">:</span> <span class="s2">&quot;H7&quot;</span><span class="p">,</span> <span class="s2">&quot;canonical_name&quot;</span><span class="p">:</span> <span class="s2">&quot;IM1&quot;</span><span class="p">},</span>
-             <span class="s2">&quot;IM1&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;atom_name&quot;</span><span class="p">:</span> <span class="s2">&quot;N2&quot;</span><span class="p">,</span> <span class="s2">&quot;canonical_name&quot;</span><span class="p">:</span> <span class="s2">&quot;IM1&quot;</span><span class="p">}}</span>
-
-<span class="n">OAC_HOAC</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;OAC&quot;</span> <span class="p">:</span> <span class="p">{</span><span class="s2">&quot;atom_name&quot;</span><span class="p">:</span> <span class="s2">&quot;O2&quot;</span><span class="p">,</span> <span class="s2">&quot;canonical_name&quot;</span><span class="p">:</span> <span class="s2">&quot;OAC&quot;</span><span class="p">},</span>
-            <span class="s2">&quot;HOAC&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;atom_name&quot;</span><span class="p">:</span> <span class="s2">&quot;H&quot;</span><span class="p">,</span> <span class="s2">&quot;canonical_name&quot;</span><span class="p">:</span> <span class="s2">&quot;OAC&quot;</span><span class="p">}}</span>
-
 <span class="n">templates</span> <span class="o">=</span> <span class="n">IonicLiquidTemplates</span><span class="p">([</span><span class="n">OAC_HOAC</span><span class="p">,</span> <span class="n">IM1H_IM1</span><span class="p">],</span> <span class="n">allowed_updates</span><span class="p">)</span>
-<span class="n">ionic_liquid</span> <span class="o">=</span> <span class="n">IonicLiquidSystem</span><span class="p">(</span><span class="n">simulation</span><span class="p">,</span> <span class="n">templates</span><span class="p">)</span>
+<span class="n">ionic_liquid</span> <span class="o">=</span> <span class="n">IonicLiquidSystem</span><span class="p">(</span><span class="n">simulation</span><span class="p">,</span> <span class="n">tempaltes</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Next define the update method.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">protex.update</span> <span class="kn">import</span> <span class="n">NaiveMCUpdate</span><span class="p">,</span> <span class="n">StateUpdate</span>
-
-<span class="n">update</span> <span class="o">=</span> <span class="n">NaiveMCUpdate</span><span class="p">(</span><span class="n">ionic_liquid</span><span class="p">)</span>
-<span class="n">state_update</span> <span class="o">=</span> <span class="n">StateUpdate</span><span class="p">(</span><span class="n">update</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>Optionally you can define reporters for the simulation. Protex has a built in <code class="docutils literal notranslate"><span class="pre">ChargeReporter</span></code> to report the current charges of all molecules which can just be added to the simulation like all other OpenMM reporters.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">protex.reporter</span> <span class="kn">import</span> <span class="n">ChargeReporter</span>
-
-<span class="n">save_freq</span> <span class="o">=</span> <span class="mi">200</span>
-<span class="n">charge_reporter</span> <span class="o">=</span> <span class="n">ChargeReporter</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;path/to/outfile&quot;</span><span class="p">,</span> <span class="n">save_freq</span><span class="p">,</span> <span class="n">ionic_liquid</span><span class="p">)</span>
-<span class="n">ionic_liquid</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">reporters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">charge_reporter</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>You can add additional OpenMM reporters to the ionic liquid object:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">openmm.app</span> <span class="kn">import</span> <span class="n">StateDataReporter</span><span class="p">,</span> <span class="n">DCDReporter</span>
-<span class="n">report_frequency</span> <span class="o">=</span> <span class="mi">200</span>
-<span class="n">ionic_liquid</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">reporters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">DCDReporter</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;traj.dcd&quot;</span><span class="p">,</span> <span class="n">report_frequency</span><span class="p">))</span>
-<span class="n">state_data_reporter</span><span class="o">=</span> <span class="n">StateDataReporter</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">,</span>
-    <span class="n">report_frequency</span><span class="p">,</span>
-    <span class="n">step</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="n">time</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="n">potentialEnergy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="n">kineticEnergy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="n">totalEnergy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="n">temperature</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="n">volume</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="n">density</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="n">ionic_liquid</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">reporters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">state_data_reporter</span><span class="p">)</span>
+<p>Then define the update method which suits you best (currently only monte carlo update based on distance and prob available TODO -&gt; fix and sort).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">update</span> <span class="o">=</span> <span class="n">NaiveMCUpdate</span><span class="p">(</span><span class="n">ionic_liquid</span><span class="p">)</span>
+<span class="n">state_update</span> <span class="o">=</span> <span class="n">StateUpdate</span><span class="p">(</span><span class="n">Update</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Now you are ready to run the simulation and just call the update method whenever you like.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
-    <span class="n">ionic_liquid</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span>
-    <span class="n">state_update</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">ionic_liquid</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span>
+<span class="n">state_update</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="successstyle admonition">
-<p class="admonition-title">🎊 Congratulations! 🎊</p>
-<p>You ran your first protex simulation and manged to break and build bonds during an MD Simulation!</p>
-</div>
+<p>There is also a <code class="docutils literal notranslate"><span class="pre">ChargeReporter</span></code>.</p>
 </section>
 
 
@@ -157,7 +109,7 @@ Then wrap the simulation and templates into an <code class="docutils literal not
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="getting_started.html" class="btn btn-neutral float-left" title="Getting Started" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="detailed_example.html" class="btn btn-neutral float-right" title="Detailed Example" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="use_cases.html" class="btn btn-neutral float-right" title="Use Cases" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

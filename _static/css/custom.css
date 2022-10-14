@@ -1,21 +1,17 @@
 /* search bar left side */
 .wy-side-nav-search input[type=text] {
-        border-color: #c1e1c1
+       border-color: #c1e1c1 
 }
-
 /* .wy-nav-top {
         background: #c1e1c1
 }*/
 /* CONTENTS: on left side */
-.wy-menu-vertical header,
-.wy-menu-vertical p.caption {
+.wy-menu-vertical header, .wy-menu-vertical p.caption {
         color: #c1e1c1
 }
-
-.wy-menu>.caption>span.caption-text {
+.wy-menu > .caption > span.caption-text {
         color: #c1e1c1
 }
-
 /* home icon, "view page source", headlines  
  * i think i have to specify in more detail what i want*/
 /*
@@ -33,26 +29,3 @@ a:visited {
 /* .wy-nav-side {
         background: #c1e1c1
 } */
-
-/* Custom styles for this info boxes in rst - they are called admonition
-I defined one in getting_started.rst with :class: successstyle */
-.rst-content .successstyle .admonition-title {
-        background: #F6A800
-}
-
-.rst-content .successstyle {
-        background: #f6a80042
-}
-
-.rst-content .recommendedstyle .admonition-title {
-        background: #11897A
-}
-
-.rst-content .recommendedstyle {
-        background: #c1e1c1
-}
-
-
-.logo-gif {
-        mix-blend-mode: multiply;
-}
