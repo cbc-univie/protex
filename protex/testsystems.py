@@ -387,7 +387,177 @@ def generate_hpts_system(
     return setup_simulation()
 
 
-def generate_single_im1h_oac_system(coll_freq=10, drude_coll_freq=100, psf_file=None):
+def generate_hpts_meoh_system(
+    psf_file: str = None,
+    crd_file: str = None,
+    restart_file: str = None,
+    constraints: str = None,
+    boxl: float = 70.0,
+    para_files: list[str] = None,
+    coll_freq=10,
+    drude_coll_freq=100,
+):
+    """
+    Sets up a solvated and paraterized system for IM1H/OAC/HPTS/MEOH
+    """
+
+    def load_charmm_files(
+        psf_file=psf_file, crd_file=crd_file, boxl=boxl, para_files=para_files
+    ):
+        # =======================================================================
+        # Force field
+        # =======================================================================
+        # Loading CHARMM files
+        print("Loading CHARMM files...")
+        if para_files is not None:
+            print("Using user supplied parameter files. Whole path must be given")
+            params = CharmmParameterSet(*para_files)
+        else:
+            PARA_FILES = [
+                "toppar_drude_master_protein_2013f_lj025_modhpts.str",
+                "hoac_d.str",
+                "im1h_d.str",
+                "im1_d.str",
+                "oac_d.str",
+                "hpts_d.str",
+                "hptsh_d.str",
+                "meoh_unscaled.str",
+                "meoh2_unscaled.str",
+            ]
+            base = f"{protex.__path__[0]}/forcefield"  # NOTE: this points now to the installed files!
+            params = CharmmParameterSet(
+                *[f"{base}/toppar/{para_files}" for para_files in PARA_FILES]
+            )
+        if psf_file is None:
+            psf_file = f"{base}/hpts.psf"
+        psf = CharmmPsfFile(psf_file)
+        xtl = boxl * angstroms
+        psf.setBox(xtl, xtl, xtl)
+        # cooridnates can be provieded by CharmmCrdFile, CharmmRstFile or PDBFile classes
+        if crd_file is None:
+            crd_file = f"{base}/hpts.crd"
+        crd = CharmmCrdFile(crd_file)
+        return psf, crd, params
+
+    def setup_system(constraints=constraints):
+        psf, crd, params = load_charmm_files()
+        if constraints is None:
+            system = psf.createSystem(
+                params,
+                nonbondedMethod=PME,
+                nonbondedCutoff=11.0 * angstroms,
+                switchDistance=10 * angstroms,
+                constraints=None,
+            )
+        elif constraints == "HBonds":
+            system = psf.createSystem(
+                params,
+                nonbondedMethod=PME,
+                nonbondedCutoff=11.0 * angstroms,
+                switchDistance=10 * angstroms,
+                constraints=HBonds,
+            )
+        else:
+            print(
+                "Only contraints=None or constraints=HBonds (given as string in function call) implemented"
+            )
+        return system
+
+    def setup_simulation(
+        restart_file=restart_file, coll_freq=coll_freq, drude_coll_freq=drude_coll_freq
+    ):
+
+        psf, crd, params = load_charmm_files()
+        system = setup_system()
+
+        # coll_freq = 10
+        # drude_coll_freq = 80
+
+        try:
+            # plugin
+            # https://github.com/z-gong/openmm-velocityVerlet
+            from velocityverletplugin import VVIntegrator
+
+            # temperature grouped nose hoover thermostat
+            integrator = VVIntegrator(
+                300 * kelvin,
+                coll_freq / picoseconds,
+                1 * kelvin,
+                drude_coll_freq / picoseconds,
+                0.0005 * picoseconds,
+            )
+            # test if platform and integrator are compatible -> VVIntegrator only works on cuda
+            # If we do not create a context it is not tested if there is cuda availabe for the plugin
+            context = Context(system, integrator)
+            del context
+            # afterwards the integrator is already bound to the context and we need a new one...
+            # is there something like integrator.reset()?
+            integrator = VVIntegrator(
+                300 * kelvin,
+                coll_freq / picoseconds,
+                1 * kelvin,
+                drude_coll_freq / picoseconds,
+                0.0005 * picoseconds,
+            )
+
+        except (ModuleNotFoundError, OpenMMException):
+            integrator = DrudeNoseHooverIntegrator(
+                300 * kelvin,
+                coll_freq / picoseconds,
+                1 * kelvin,
+                drude_coll_freq / picoseconds,
+                0.0005 * picoseconds,
+            )
+
+        print(
+            f"{coll_freq=}, {drude_coll_freq=}"
+        )  # tested with 20, 40, 80, 100, 120, 140, 160: 20,40 bad; 80 - 120 good; 140, 160 crashed
+        integrator.setMaxDrudeDistance(0.25 * angstroms)
+        try:
+            platform = Platform.getPlatformByName("CUDA")
+            prop = dict(CudaPrecision="single")  # default is single
+            # Moved creating the simulation object inside the try...except block, because i.e.
+            # Error loading CUDA module: CUDA_ERROR_INVALID_PTX (218)
+            # message was only thrown during simulation creation not by specifying the platform
+            simulation = Simulation(
+                psf.topology,
+                system,
+                integrator,
+                platform=platform,
+                platformProperties=prop,
+            )
+        except OpenMMException:
+            platform = Platform.getPlatformByName("CPU")
+            prop = dict()
+            simulation = Simulation(
+                psf.topology,
+                system,
+                integrator,
+                platform=platform,
+                platformProperties=prop,
+            )
+
+        simulation.context.setPositions(crd.positions)
+        # Try with positions from equilibrated system:
+        # if restart_file is None:
+        #     base = f"{protex.__path__[0]}/forcefield"
+        #     restart_file = f"{base}/traj/hpts_npt_7.rst"
+        if restart_file is not None:
+            with open(restart_file) as f:
+                print(f"Opening restart file {f}")
+                simulation.context.setState(XmlSerializer.deserialize(f.read()))
+            simulation.context.computeVirtualSites()
+        else:
+            print(f"No restart file found. Using initial coordinate file.")
+            simulation.context.computeVirtualSites()
+            simulation.context.setVelocitiesToTemperature(300 * kelvin)
+
+        return simulation
+
+    return setup_simulation()
+
+
+def generate_single_im1h_oac_system(coll_freq=10, drude_coll_freq=100):
     """
     Sets up a system with 1 IM1H, 1OAC, 1IM1 and 1 HOAC
     Was for testing the deformation of the imidazole ring -> solved by adding the nonbonded exception to the updates
@@ -540,5 +710,16 @@ HPTSH_HPTS = {
     "HPTS": {
         "atom_name": "O7",
         "canonical_name": "HPTS",
+    },
+}
+
+MEOH_MEOH2 = {
+    "MEOH": {
+        "atom_name": "O1",
+        "canonical_name": "MEOH",
+    },
+    "MEOH2": {
+        "atom_name": "HO2",
+        "canonical_name": "MEOH",
     },
 }
