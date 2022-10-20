@@ -50,9 +50,10 @@ except ImportError:
     from simtk.openmm.app import Simulation
     from simtk.unit import angstroms, kelvin, picoseconds
 
-import protex
 import pytest
 from scipy.spatial import distance_matrix
+
+import protex
 
 from ..reporter import ChargeReporter
 from ..residue import Residue
