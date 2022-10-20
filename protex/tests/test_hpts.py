@@ -775,6 +775,8 @@ def test_drude_forces():
     atom_names = defaultdict(list)  # store atom_names
     names = []  # store names
 
+    pair_12_13_list = ionic_liquid._build_exclusion_list(ionic_liquid.topology)
+
     # iterate over residues, select the first residue for HOAC and OAC and save the individual bonded forces
     for ridx, r in enumerate(topology.residues()):
         if r.name == "HOAC" and ridx == 657:  # match first HOAC residue
@@ -800,7 +802,7 @@ def test_drude_forces():
             print(drude_force.getNumScreenedPairs())
             for drude_id in range(drude_force.getNumScreenedPairs()):
                 f = drude_force.getScreenedPairParameters(drude_id)
-                parent1, parent2 = ionic_liquid.pair_12_13_list[drude_id]
+                parent1, parent2 = pair_12_13_list[drude_id]
                 drude1, drude2 = parent1 + 1, parent2 + 1
                 # print(f"thole {idx1=}, {idx2=}")
                 # print(f"{drude_id=}, {f=}")
@@ -831,7 +833,7 @@ def test_drude_forces():
             print(drude_force.getNumScreenedPairs())
             for drude_id in range(drude_force.getNumScreenedPairs()):
                 f = drude_force.getScreenedPairParameters(drude_id)
-                parent1, parent2 = ionic_liquid.pair_12_13_list[drude_id]
+                parent1, parent2 = pair_12_13_list[drude_id]
                 drude1, drude2 = parent1 + 1, parent2 + 1
                 # print(f"thole {idx1=}, {idx2=}")
                 # print(f"{drude_id=}, {f=}")
@@ -1083,7 +1085,7 @@ def test_write_psf_save_load():
 
 
 #####################
-# TEST UODATE
+# TEST UPDATE
 #######################
 
 
@@ -1628,6 +1630,7 @@ def test_update_write_psf():
         ionic_liquid.simulation.step(50)
         state_update.update(2)
 
+        # NOTE: psf_for_parameters missing
         ionic_liquid.write_psf("old_psf.psf", "test.psf")
         ionic_liquid.saveState("state.rst")
         ionic_liquid.saveCheckpoint("checkpoint.rst")

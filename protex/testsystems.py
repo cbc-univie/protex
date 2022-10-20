@@ -101,11 +101,11 @@ def generate_im1h_oac_system(
         # Charmm DUM atomtype has epsilon = 0, but problem with openmm during creatin of system/simulation
         # openmm.OpenMMException: updateParametersInContext: The set of non-excluded exceptions has changed
         # Therefore set it here non zero and zero afterwards
-        params.atom_types_str["DUM"].set_lj_params(
+        params.atom_types_str["DUMH"].set_lj_params(
             -0.00001,
-            params.atom_types_str["DUM"].rmin,
+            params.atom_types_str["DUMH"].rmin,
             -0.00001,
-            params.atom_types_str["DUM"].rmin_14,
+            params.atom_types_str["DUMH"].rmin_14,
         )
         if constraints is None:
             system = psf.createSystem(
@@ -313,13 +313,13 @@ def generate_hpts_system(
 
     def setup_system(constraints=constraints):
         psf, crd, params = load_charmm_files()
-        params.atom_types_str["DUM"].set_lj_params(
+        params.atom_types_str["DUMH"].set_lj_params(
             -0.00001,
-            params.atom_types_str["DUM"].rmin,
+            params.atom_types_str["DUMH"].rmin,
             -0.00001,
-            params.atom_types_str["DUM"].rmin_14,
+            params.atom_types_str["DUMH"].rmin_14,
         )
-        
+
         if constraints is None:
             system = psf.createSystem(
                 params,
@@ -340,13 +340,13 @@ def generate_hpts_system(
             print(
                 "Only contraints=None or constraints=HBonds (given as string in function call) implemented"
             )
-        
+
         for force in system.getForces():
             if type(force).__name__ == "CMMotionRemover":
                 # From OpenMM psf file it has automatically ForceGroup 0, which is already used for harmonic bond force
                 force.setForceGroup(len(system.getForces()) - 1)
                 # print(force.getForceGroup())
-        
+
         return system
 
     def setup_simulation(
@@ -677,7 +677,7 @@ def generate_hpts_meoh_system(
     return setup_simulation()
 
 
-def generate_single_im1h_oac_system(coll_freq=10, drude_coll_freq=100):
+def generate_single_im1h_oac_system(coll_freq=10, drude_coll_freq=100, psf_file=None):
     """
     Sets up a system with 1 IM1H, 1OAC, 1IM1 and 1 HOAC
     Was for testing the deformation of the imidazole ring -> solved by adding the nonbonded exception to the updates
@@ -856,11 +856,11 @@ def generate_im1h_oac_dummy_system(
         # print(params.atom_types_str["DUM"].rmin_14)
         # print(params.atom_types_str["DUM"].nbfix)
         # print(params.atom_types_str["DUM"].nbthole)
-        params.atom_types_str["DUM"].set_lj_params(
+        params.atom_types_str["DUMH"].set_lj_params(
             -0.00001,
-            params.atom_types_str["DUM"].rmin,
+            params.atom_types_str["DUMH"].rmin,
             -0.00001,
-            params.atom_types_str["DUM"].rmin_14,
+            params.atom_types_str["DUMH"].rmin_14,
         )
         # print(params.atom_types_str["DUM"].epsilon)
         # print(params.atom_types_str["DUM"].rmin)
