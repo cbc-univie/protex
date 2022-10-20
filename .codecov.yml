@@ -5,6 +5,9 @@ coverage:
     project:
       default:
         threshold: 50%
+ignore:
+  - "protex/__init__.py"
+  - "protex/protex.py"
 comment:
   layout: "header"
   require_changes: false
