@@ -616,6 +616,7 @@ def test_drude_forces():
     atom_idxs = defaultdict(list)  # store atom_idxs
     atom_names = defaultdict(list)  # store atom_names
     names = []  # store names
+    pair_12_13_list = ionic_liquid._build_exclusion_list(ionic_liquid.topology)
 
     # iterate over residues, select the first residue for HOAC and OAC and save the individual bonded forces
     for ridx, r in enumerate(topology.residues()):
@@ -637,12 +638,11 @@ def test_drude_forces():
                 if idx1 in atom_idxs[r.name] and idx2 in atom_idxs[r.name]:
                     print(f)
                     force_state[r.name].append(f)
-
             print("thole")
             print(drude_force.getNumScreenedPairs())
             for drude_id in range(drude_force.getNumScreenedPairs()):
                 f = drude_force.getScreenedPairParameters(drude_id)
-                parent1, parent2 = ionic_liquid.pair_12_13_list[drude_id]
+                parent1, parent2 = pair_12_13_list[drude_id]
                 drude1, drude2 = parent1 + 1, parent2 + 1
                 # print(f"thole {idx1=}, {idx2=}")
                 # print(f"{drude_id=}, {f=}")
@@ -673,7 +673,7 @@ def test_drude_forces():
             print(drude_force.getNumScreenedPairs())
             for drude_id in range(drude_force.getNumScreenedPairs()):
                 f = drude_force.getScreenedPairParameters(drude_id)
-                parent1, parent2 = ionic_liquid.pair_12_13_list[drude_id]
+                parent1, parent2 = pair_12_13_list[drude_id]
                 drude1, drude2 = parent1 + 1, parent2 + 1
                 # print(f"thole {idx1=}, {idx2=}")
                 # print(f"{drude_id=}, {f=}")
