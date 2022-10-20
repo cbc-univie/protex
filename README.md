@@ -2,7 +2,7 @@ protex
 ==============================
 [//]: # (Badges)
 [![GitHub Actions Build Status](https://github.com/florianjoerg/protex/workflows/CI/badge.svg)](https://github.com/florianjoerg/protex/actions?query=workflow%3ACI)
-[![codecov](https://codecov.io/gh/florianj77/protex/branch/main/graph/badge.svg?token=ddqu0BzewU)](https://codecov.io/gh/florianj77/protex)
+[![codecov](https://codecov.io/gh/florianjoerg/protex/branch/main/graph/badge.svg?token=ddqu0BzewU)](https://codecov.io/gh/florianjoerg/protex)
 [![Github release](https://badgen.net/github/release/florianjoerg/protex)](https://github.com/florianjoerg/protex/releases/)
 [![GitHub license](https://img.shields.io/github/license/florianjoerg/protex?color=green)](https://github.com/florianjoerg/protex/blob/main/LICENSE)
 [![GH Pages](https://github.com/florianj77/protex/actions/workflows/gh_pages.yml/badge.svg)](https://github.com/florianj77/protex/actions/workflows/gh_pages.yml)
@@ -12,6 +12,7 @@ protex
 [//]: <[![Github tag](https://badgen.net/github/tag/florianj77/protex)](https://github.com/florianj77/protex/tags/)>
 [//]: <[![GitHub issues](https://img.shields.io/github/issues/florianj77/protex?style=flat)](https://github.com/florianj77/protex/issues)>
 [//]: <[![GitHub stars](https://img.shields.io/github/stars/florianj77/protex)](https://github.com/florianj77/protex/stargazers)>
+[//]: <[![codecov](https://codecov.io/gh/florianj77/protex/branch/main/graph/badge.svg?token=ddqu0BzewU)](https://codecov.io/gh/florianj77/protex)>
 
 
 Proton exchange using MC and openMM for ionic liquids
