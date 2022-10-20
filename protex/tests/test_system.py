@@ -51,9 +51,8 @@ except ImportError:
     from simtk.openmm.app import Simulation
     from simtk.unit import angstroms, kelvin, picoseconds
 
-import pytest
-
 import protex
+import pytest
 
 from ..reporter import ChargeReporter, EnergyReporter
 from ..system import IonicLiquidSystem, IonicLiquidTemplates
@@ -1106,6 +1105,10 @@ def test_dummy():
     state_update = StateUpdate(update)
 
     save_il(ionic_liquid, 0)
+    # for i in range(5):
+    #     state_update.update(2)
+    #     ionic_liquid.simulation.step(10)
+    #     print(ionic_liquid.simulation.context.getPlatform().getName())
 
     state_update.update(2)
 

@@ -101,11 +101,11 @@ def generate_im1h_oac_system(
         # Charmm DUM atomtype has epsilon = 0, but problem with openmm during creatin of system/simulation
         # openmm.OpenMMException: updateParametersInContext: The set of non-excluded exceptions has changed
         # Therefore set it here non zero and zero afterwards
-        params.atom_types_str["DUM"].set_lj_params(
+        params.atom_types_str["DUMH"].set_lj_params(
             -0.00001,
-            params.atom_types_str["DUM"].rmin,
+            params.atom_types_str["DUMH"].rmin,
             -0.00001,
-            params.atom_types_str["DUM"].rmin_14,
+            params.atom_types_str["DUMH"].rmin_14,
         )
         if constraints is None:
             system = psf.createSystem(
@@ -313,11 +313,11 @@ def generate_hpts_system(
 
     def setup_system(constraints=constraints):
         psf, crd, params = load_charmm_files()
-        params.atom_types_str["DUM"].set_lj_params(
+        params.atom_types_str["DUMH"].set_lj_params(
             -0.00001,
-            params.atom_types_str["DUM"].rmin,
+            params.atom_types_str["DUMH"].rmin,
             -0.00001,
-            params.atom_types_str["DUM"].rmin_14,
+            params.atom_types_str["DUMH"].rmin_14,
         )
 
         if constraints is None:
@@ -822,14 +822,12 @@ def generate_im1h_oac_dummy_system(
         # print(params.atom_types_str["DUM"].rmin_14)
         # print(params.atom_types_str["DUM"].nbfix)
         # print(params.atom_types_str["DUM"].nbthole)
-
-        # params.atom_types_str["DUM"].set_lj_params(
-        #     -0.00001,
-        #     params.atom_types_str["DUM"].rmin,
-        #     -0.00001,
-        #     params.atom_types_str["DUM"].rmin_14,
-        # )
-
+        params.atom_types_str["DUMH"].set_lj_params(
+            -0.00001,
+            params.atom_types_str["DUMH"].rmin,
+            -0.00001,
+            params.atom_types_str["DUMH"].rmin_14,
+        )
         # print(params.atom_types_str["DUM"].epsilon)
         # print(params.atom_types_str["DUM"].rmin)
         # print(params.atom_types_str["DUM"].epsilon_14)
@@ -958,26 +956,26 @@ def generate_im1h_oac_dummy_system(
         #    simulation.context.computeVirtualSites()
         #    simulation.context.setVelocitiesToTemperature(300 * kelvin)
 
-        # nonbonded_force = [
-        #     f for f in simulation.system.getForces() if isinstance(f, mm.NonbondedForce)
-        # ][0]
-        # dummy_atoms = []
-        # for atom in simulation.topology.atoms():
-        #     if atom.residue.name == "IM1" and atom.name == "H7":
-        #         dummy_atoms.append(atom.index)
-        #         nonbonded_force.setParticleParameters(atom.index, 0.0, 0.0, 0.0)
-        #     if atom.residue.name == "OAC" and atom.name == "H":
-        #         dummy_atoms.append(atom.index)
-        #         nonbonded_force.setParticleParameters(atom.index, 0.0, 0.0, 0.0)
-        # for exc_id in range(nonbonded_force.getNumExceptions()):
-        #     f = nonbonded_force.getExceptionParameters(exc_id)
-        #     idx1 = f[0]
-        #     idx2 = f[1]
-        #     chargeProd, sigma, epsilon = f[2:]
-        #     if idx1 in dummy_atoms or idx2 in dummy_atoms:
-        #         nonbonded_force.setExceptionParameters(
-        #             exc_id, idx1, idx2, 0.0, sigma, 0.0
-        #         )
+        nonbonded_force = [
+            f for f in simulation.system.getForces() if isinstance(f, mm.NonbondedForce)
+        ][0]
+        dummy_atoms = []
+        for atom in simulation.topology.atoms():
+            if atom.residue.name == "IM1" and atom.name == "H7":
+                dummy_atoms.append(atom.index)
+                nonbonded_force.setParticleParameters(atom.index, 0.0, 0.0, 0.0)
+            if atom.residue.name == "OAC" and atom.name == "H":
+                dummy_atoms.append(atom.index)
+                nonbonded_force.setParticleParameters(atom.index, 0.0, 0.0, 0.0)
+        for exc_id in range(nonbonded_force.getNumExceptions()):
+            f = nonbonded_force.getExceptionParameters(exc_id)
+            idx1 = f[0]
+            idx2 = f[1]
+            chargeProd, sigma, epsilon = f[2:]
+            if idx1 in dummy_atoms or idx2 in dummy_atoms:
+                nonbonded_force.setExceptionParameters(
+                    exc_id, idx1, idx2, 0.0, sigma, 0.0
+                )
 
         return simulation
 
