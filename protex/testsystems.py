@@ -455,9 +455,6 @@ def generate_hpts_system(
             if atom.residue.name == "HPTS" and atom.name == "H7":
                 dummy_atoms.append(atom.index)
                 nonbonded_force.setParticleParameters(atom.index, 0.0, 0.0, 0.0)
-            if atom.residue.name == "MEOH" and atom.name == "HO2":
-                dummy_atoms.append(atom.index)
-                nonbonded_force.setParticleParameters(atom.index, 0.0, 0.0, 0.0)
         for exc_id in range(nonbonded_force.getNumExceptions()):
             f = nonbonded_force.getExceptionParameters(exc_id)
             idx1 = f[0]
@@ -503,11 +500,11 @@ def generate_hpts_meoh_system(
                 "toppar_drude_master_protein_2013f_lj025_modhpts.str",
                 "hoac_d.str",
                 "im1h_d.str",
-                "im1_d.str",
-                "oac_d.str",
-                "hpts_d.str",
+                "im1_dummy_d.str",
+                "oac_dummy_d.str",
+                "hpts_dummy_d.str",
                 "hptsh_d.str",
-                "meoh_unscaled.str",
+                "meoh_dummy.str",
                 "meoh2_unscaled.str",
             ]
             base = f"{protex.__path__[0]}/forcefield"  # NOTE: this points now to the installed files!
@@ -527,6 +524,13 @@ def generate_hpts_meoh_system(
 
     def setup_system(constraints=constraints):
         psf, crd, params = load_charmm_files()
+        params.atom_types_str["DUM"].set_lj_params(
+            -0.00001,
+            params.atom_types_str["DUM"].rmin,
+            -0.00001,
+            params.atom_types_str["DUM"].rmin_14,
+        )
+
         if constraints is None:
             system = psf.createSystem(
                 params,
@@ -637,6 +641,36 @@ def generate_hpts_meoh_system(
             print(f"No restart file found. Using initial coordinate file.")
             simulation.context.computeVirtualSites()
             simulation.context.setVelocitiesToTemperature(300 * kelvin)
+
+        # set nonbonded parameters including dummy zero again.
+        # had to be  zero durin creating becuase of:
+        # openmm.OpenMMException: updateParametersInContext: The set of non-excluded exceptions has changed
+        nonbonded_force = [
+            f for f in simulation.system.getForces() if isinstance(f, mm.NonbondedForce)
+        ][0]
+        dummy_atoms = []
+        for atom in simulation.topology.atoms():
+            if atom.residue.name == "IM1" and atom.name == "H7":
+                dummy_atoms.append(atom.index)
+                nonbonded_force.setParticleParameters(atom.index, 0.0, 0.0, 0.0)
+            if atom.residue.name == "OAC" and atom.name == "H":
+                dummy_atoms.append(atom.index)
+                nonbonded_force.setParticleParameters(atom.index, 0.0, 0.0, 0.0)
+            if atom.residue.name == "HPTS" and atom.name == "H7":
+                dummy_atoms.append(atom.index)
+                nonbonded_force.setParticleParameters(atom.index, 0.0, 0.0, 0.0)
+            if atom.residue.name == "MEOH" and atom.name == "HO2":
+                dummy_atoms.append(atom.index)
+                nonbonded_force.setParticleParameters(atom.index, 0.0, 0.0, 0.0)
+        for exc_id in range(nonbonded_force.getNumExceptions()):
+            f = nonbonded_force.getExceptionParameters(exc_id)
+            idx1 = f[0]
+            idx2 = f[1]
+            chargeProd, sigma, epsilon = f[2:]
+            if idx1 in dummy_atoms or idx2 in dummy_atoms:
+                nonbonded_force.setExceptionParameters(
+                    exc_id, idx1, idx2, 0.0, sigma, 0.0
+                )
 
         return simulation
 
