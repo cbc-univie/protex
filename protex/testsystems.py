@@ -557,7 +557,7 @@ def generate_hpts_meoh_system(
     return setup_simulation()
 
 
-def generate_single_im1h_oac_system(coll_freq=10, drude_coll_freq=100):
+def generate_single_im1h_oac_system(coll_freq=10, drude_coll_freq=100, psf_file=None):
     """
     Sets up a system with 1 IM1H, 1OAC, 1IM1 and 1 HOAC
     Was for testing the deformation of the imidazole ring -> solved by adding the nonbonded exception to the updates
