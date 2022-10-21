@@ -7,6 +7,9 @@ import os
 from collections import defaultdict
 from sys import stdout
 
+import protex
+import pytest
+
 try:  # Syntax changed in OpenMM 7.6
     import openmm as mm
     from openmm import (
@@ -50,9 +53,6 @@ except ImportError:
     from simtk.openmm.app import PME, HBonds
     from simtk.openmm.app import Simulation
     from simtk.unit import angstroms, kelvin, picoseconds
-
-import protex
-import pytest
 
 from ..reporter import ChargeReporter, EnergyReporter
 from ..system import IonicLiquidSystem, IonicLiquidTemplates
