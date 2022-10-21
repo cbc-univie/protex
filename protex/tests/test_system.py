@@ -7,8 +7,9 @@ import os
 from collections import defaultdict
 from sys import stdout
 
-import protex
 import pytest
+
+import protex
 
 try:  # Syntax changed in OpenMM 7.6
     import openmm as mm
