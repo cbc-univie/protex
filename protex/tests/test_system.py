@@ -968,6 +968,7 @@ def test_write_psf_save_load():
     os.remove("state.rst")
     os.remove("checkpoint.rst")
 
+
 @pytest.mark.skipif(
     os.getenv("CI") == "true",
     reason="Needs local files",
