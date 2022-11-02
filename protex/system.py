@@ -279,7 +279,7 @@ class IonicLiquidSystem:
                 if len(shared) == 1:
                     pair = tuple(sorted(set(list(a) + list(b)) - shared))
                     pair_13_set.add(pair)
-                    # there were duplicates in pair_13_set, e.q. (1,3) and (3,1), needs to be sorted
+                    # there were duplicates in pair_13_set, e.g. (1,3) and (3,1), needs to be sorted
 
         # self.pair_12_list = list(sorted(pair_12_set))
         # self.pair_13_list = list(sorted(pair_13_set - pair_12_set))

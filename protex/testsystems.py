@@ -762,11 +762,11 @@ def generate_hpts_meoh_system(
 
     def setup_system(constraints=constraints):
         psf, crd, params = load_charmm_files()
-        params.atom_types_str["DUM"].set_lj_params(
+        params.atom_types_str["DUMH"].set_lj_params(
             -0.00001,
-            params.atom_types_str["DUM"].rmin,
+            params.atom_types_str["DUMH"].rmin,
             -0.00001,
-            params.atom_types_str["DUM"].rmin_14,
+            params.atom_types_str["DUMH"].rmin_14,
         )
 
         if constraints is None:
