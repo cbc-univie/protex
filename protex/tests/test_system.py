@@ -7,9 +7,8 @@ import os
 from collections import defaultdict
 from sys import stdout
 
-import pytest
-
 import protex
+import pytest
 
 try:  # Syntax changed in OpenMM 7.6
     import openmm as mm
@@ -969,13 +968,16 @@ def test_write_psf_save_load():
     os.remove("state.rst")
     os.remove("checkpoint.rst")
 
-
+@pytest.mark.skipif(
+    os.getenv("CI") == "true",
+    reason="Needs local files",
+)
 def test_write_psf_save_load_clap():
     psf = "/site/raid3/florian/clap/b3lyp/im1h_oac_150_im1_hoac_350.psf"
     crd = "/site/raid3/florian/clap/b3lyp/im1h_oac_150_im1_hoac_350.crd"
     PARA_FILES = [
-        "polarizable_flo_dummy.rtf",
-        "polarizable_flo_dummy.prm",
+        "polarizable_flo_dummy_nolj.rtf",
+        "polarizable_flo_dummy_nolj.prm",
     ]
     para_files = [
         f"/site/raid3/florian/clap/toppar/{para_file}" for para_file in PARA_FILES
