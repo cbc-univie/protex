@@ -2007,3 +2007,168 @@ def test_ubforce_update(caplog):
         #    force.updateParametersInContext(ionic_liquid.simulation.context)
 
     print_force_contrib(ionic_liquid.simulation)
+
+
+def test_single_energy_molecule(caplog):
+    caplog.set_level(logging.DEBUG)
+
+    def get_time_energy(simulation, print=False):
+        time = simulation.context.getState().getTime()
+        e_pot = simulation.context.getState(getEnergy=True).getPotentialEnergy()
+        if print:
+            print(f"time: {time}, e_pot: {e_pot}")
+        return time, e_pot
+
+    def print_force_contrib(simulation):
+        for i, f in enumerate(simulation.system.getForces()):
+            group = f.getForceGroup()
+            state = simulation.context.getState(getEnergy=True, groups={group})
+            print(f.getName(), state.getPotentialEnergy())
+
+    def get_ub_contrib_from_(ionic_liquid, name=None):
+        force_index = 2  # assuming that urey bradly term is the second force...
+        ub_force = ionic_liquid.system.getForce(force_index)
+        force_group = ub_force.getForceGroup()
+        # print(force_group)
+        # print(ub_force)
+
+        if name is None:
+            state = ionic_liquid.simulation.context.getState(
+                getEnergy=True, groups={force_group}
+            )
+            print("ALL", ub_force.getName(), state.getPotentialEnergy())
+            return state.getPotentialEnergy()
+
+        orig_values = []
+        for bondid in range(ub_force.getNumBonds()):
+            f = ub_force.getBondParameters(bondid)
+            idx1, idx2 = f[0:2]
+            for residue in ionic_liquid.residues:
+                if residue.current_name != name:
+                    if idx1 in residue.atom_idxs and idx2 in residue.atom_idxs:
+                        orig_values.append([f[2], f[3]])
+                        f[2] = 0
+                        f[3] = 0
+                        ub_force.setBondParameters(bondid, *f)
+                        # break
+        ub_force.updateParametersInContext(ionic_liquid.simulation.context)
+        state = ionic_liquid.simulation.context.getState(
+            getEnergy=True, groups={force_group}
+        )
+        print(name, ub_force.getName(), state.getPotentialEnergy())
+        # reset
+        orig_values = iter(orig_values)
+        for bondid in range(ub_force.getNumBonds()):
+            f = ub_force.getBondParameters(bondid)
+            idx1, idx2 = f[0:2]
+            for residue in ionic_liquid.residues:
+                if residue.current_name != name:
+                    if idx1 in residue.atom_idxs and idx2 in residue.atom_idxs:
+                        orig_value = next(orig_values)
+                        f[2] = orig_value[0]
+                        f[3] = orig_value[1]
+                        ub_force.setBondParameters(bondid, *f)
+                        # break
+        ub_force.updateParametersInContext(ionic_liquid.simulation.context)
+        return (
+            state.getPotentialEnergy()
+        )  # E_pot from ub with only the contributions from "name"
+
+    def get_angle_contrib_from_(ionic_liquid, name=None):
+        force_index = 1  # assuming that angle term is the second force...
+        force = ionic_liquid.system.getForce(force_index)
+        force_group = force.getForceGroup()
+        # print(force_group)
+        # print(ub_force)
+
+        if name is None:
+            state = ionic_liquid.simulation.context.getState(
+                getEnergy=True, groups={force_group}
+            )
+            print("ALL", force.getName(), state.getPotentialEnergy())
+            return state.getPotentialEnergy()
+
+        orig_values = []
+        for bondid in range(force.getNumAngles()):
+            f = force.getAngleParameters(bondid)
+            idx1, idx2, idx3 = f[0:3]
+            for residue in ionic_liquid.residues:
+                if residue.current_name != name:
+                    if (
+                        idx1 in residue.atom_idxs
+                        and idx2 in residue.atom_idxs
+                        and idx3 in residue.atom_idxs
+                    ):
+                        orig_values.append([f[3], f[4]])
+                        f[3] = 0
+                        f[4] = 0
+                        force.setAngleParameters(bondid, *f)
+                        # break
+        force.updateParametersInContext(ionic_liquid.simulation.context)
+        state = ionic_liquid.simulation.context.getState(
+            getEnergy=True, groups={force_group}
+        )
+        print(name, force.getName(), state.getPotentialEnergy())
+        # reset
+        orig_values = iter(orig_values)
+        for bondid in range(force.getNumAngles()):
+            f = force.getAngleParameters(bondid)
+            idx1, idx2, idx3 = f[0:3]
+            for residue in ionic_liquid.residues:
+                if residue.current_name != name:
+                    if (
+                        idx1 in residue.atom_idxs
+                        and idx2 in residue.atom_idxs
+                        and idx3 in residue.atom_idxs
+                    ):
+                        orig_value = next(orig_values)
+                        f[3] = orig_value[0]
+                        f[4] = orig_value[1]
+                        force.setAngleParameters(bondid, *f)
+                        # break
+        force.updateParametersInContext(ionic_liquid.simulation.context)
+        return (
+            state.getPotentialEnergy()
+        )  # E_pot from angle with only the contributions from "name"
+
+    # integrator = VVIntegrator(
+    integrator = DrudeNoseHooverIntegrator(
+        300 * kelvin,
+        10 / picoseconds,
+        1 * kelvin,
+        100 / picoseconds,
+        0.0005 * picoseconds,
+    )
+    integrator.setMaxDrudeDistance(0.25 * angstroms)
+    platform = Platform.getPlatformByName("CUDA")
+    prop = dict(CudaPrecision="single")  # default is single
+
+    # sim0 = generate_single_im1h_oac_system()
+    sim0 = generate_im1h_oac_system()
+    allowed_updates = {}
+    # allowed updates according to simple protonation scheme
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {
+        "r_max": 0.17,
+        "prob": 1,
+    }
+    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+    ionic_liquid = IonicLiquidSystem(sim0, templates)
+
+    print_force_contrib(ionic_liquid.simulation)
+    # zero forces
+    # all = get_ub_contrib_from_(ionic_liquid)
+    # im1h = get_ub_contrib_from_(ionic_liquid, name="IM1H")
+    # im1 = get_ub_contrib_from_(ionic_liquid, name="IM1")
+    # oac = get_ub_contrib_from_(ionic_liquid, name="OAC")
+    # hoac = get_ub_contrib_from_(ionic_liquid, name="HOAC")
+
+    all = get_angle_contrib_from_(ionic_liquid)
+    im1h = get_angle_contrib_from_(ionic_liquid, name="IM1H")
+    im1 = get_angle_contrib_from_(ionic_liquid, name="IM1")
+    oac = get_angle_contrib_from_(ionic_liquid, name="OAC")
+    hoac = get_angle_contrib_from_(ionic_liquid, name="HOAC")
+
+    # print_force_contrib(ionic_liquid.simulation)
+
+    # update = NaiveMCUpdate(ionic_liquid, all_forces=True)
+    # state_update = StateUpdate(update)

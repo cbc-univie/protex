@@ -7,6 +7,10 @@ import os
 from collections import defaultdict
 from sys import stdout
 
+import pytest
+
+import protex
+
 try:  # Syntax changed in OpenMM 7.6
     import openmm as mm
     from openmm import (
@@ -51,9 +55,6 @@ except ImportError:
     from simtk.openmm.app import Simulation
     from simtk.unit import angstroms, kelvin, picoseconds
 
-import protex
-import pytest
-
 from ..reporter import ChargeReporter, EnergyReporter
 from ..system import IonicLiquidSystem, IonicLiquidTemplates
 from ..testsystems import (
@@ -61,6 +62,7 @@ from ..testsystems import (
     OAC_HOAC,
     generate_im1h_oac_dummy_system,
     generate_im1h_oac_system,
+    generate_im1h_oac_system_clap,
     generate_single_im1h_oac_system,
 )
 from ..update import NaiveMCUpdate, StateUpdate
@@ -966,6 +968,63 @@ def test_write_psf_save_load():
     os.remove("test3.psf")
     os.remove("state.rst")
     os.remove("checkpoint.rst")
+
+
+def test_write_psf_save_load_clap():
+    psf = "/site/raid3/florian/clap/b3lyp/im1h_oac_150_im1_hoac_350.psf"
+    crd = "/site/raid3/florian/clap/b3lyp/im1h_oac_150_im1_hoac_350.crd"
+    PARA_FILES = [
+        "polarizable_flo_dummy.rtf",
+        "polarizable_flo_dummy.prm",
+    ]
+    para_files = [
+        f"/site/raid3/florian/clap/toppar/{para_file}" for para_file in PARA_FILES
+    ]
+
+    simulation = generate_im1h_oac_system_clap(
+        psf_file=psf, crd_file=crd, para_files=para_files, dummy_atom_type="DUM"
+    )
+    # get ionic liquid templates
+    allowed_updates = {}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.145, "prob": 1}
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.145, "prob": 1}
+
+    IM1H_IM1 = {"IM1H": {"atom_name": "HN1"}, "IM1": {"atom_name": "NA1"}}
+    OAC_HOAC = {"OAC": {"atom_name": "O1"}, "HOAC": {"atom_name": "H3"}}
+
+    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+    # wrap system in IonicLiquidSystem
+    ionic_liquid = IonicLiquidSystem(simulation, templates)
+    # initialize update method
+    update = NaiveMCUpdate(ionic_liquid)
+    # initialize state update class
+    state_update = StateUpdate(update)
+
+    old_psf_file = psf
+    ionic_liquid.write_psf(old_psf_file, "test1.psf")
+
+    # ionic_liquid.simulation.step(50)
+    state_update.update(2)
+
+    ionic_liquid.write_psf(old_psf_file, "test2.psf")
+
+    ionic_liquid.simulation.step(10)
+    state_update.update(2)
+
+    ionic_liquid.write_psf(old_psf_file, "test3.psf")
+
+    ionic_liquid.saveState("state.rst")
+    ionic_liquid.saveCheckpoint("checkpoint.rst")
+
+    ionic_liquid2 = ionic_liquid  # copy.deepcopy(ionic_liquid)
+    ionic_liquid.loadState("state.rst")
+    ionic_liquid2.loadCheckpoint("checkpoint.rst")
+
+    # os.remove("test1.psf")
+    # os.remove("test2.psf")
+    # os.remove("test3.psf")
+    # os.remove("state.rst")
+    # os.remove("checkpoint.rst")
 
 
 @pytest.mark.skipif(
