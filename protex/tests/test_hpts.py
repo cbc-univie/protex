@@ -195,7 +195,9 @@ def test_run_simulation():
     restart_file = f"{protex.__path__[0]}/forcefield/traj/hpts_npt_7.rst"
 
     simulation = generate_hpts_meoh_system(psf_file=psf_file, restart_file=restart_file)
-    simulation_for_parameters = generate_hpts_meoh_system(psf_file=psf_for_parameters, crd_file=crd_for_parameters)
+    simulation_for_parameters = generate_hpts_meoh_system(
+        psf_file=psf_for_parameters, crd_file=crd_for_parameters
+    )
     print("Minimizing...")
     simulation.minimizeEnergy(maxIterations=50)
     simulation.reporters.append(PDBReporter("output.pdb", 50))
@@ -229,14 +231,13 @@ def test_create_IonicLiquidTemplate():
     allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000}
     allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
     allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
-    #allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.155, "prob": 1.000} 
-    #allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.155, "prob": 1.000} 
-    #allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
-    allowed_updates[frozenset(["HPTSH", "MEOH"])] = {"r_max": 0.155, "prob": 1.000} 
-    allowed_updates[frozenset(["MEOH2", "MEOH"])] = {"r_max": 0.155, "prob": 1.000} 
-    allowed_updates[frozenset(["MEOH2", "IM1"])] = {"r_max": 0.155, "prob": 1.000} 
-    allowed_updates[frozenset(["MEOH2", "OAC"])] = {"r_max": 0.155, "prob": 1.000} 
-    
+    # allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
+    # allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
+    # allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["HPTSH", "MEOH"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "MEOH"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "IM1"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "OAC"])] = {"r_max": 0.155, "prob": 1.000}
 
     templates = IonicLiquidTemplates(
         [OAC_HOAC, IM1H_IM1, HPTSH_HPTS, MEOH_MEOH2], (allowed_updates)
@@ -254,7 +255,12 @@ def test_create_IonicLiquidTemplate():
     assert r == "MEOH2"
 
     print("###################")
-    assert templates.pairs == [["OAC", "HOAC"], ["IM1H", "IM1"], ["HPTSH", "HPTS"], ["MEOH", "MEOH2"]]
+    assert templates.pairs == [
+        ["OAC", "HOAC"],
+        ["IM1H", "IM1"],
+        ["HPTSH", "HPTS"],
+        ["MEOH", "MEOH2"],
+    ]
     assert templates.states["IM1H"]["atom_name"] == "H7"
     assert templates.states["IM1"]["atom_name"] == "N2"
     assert templates.states["HPTS"]["atom_name"] == "O7"
@@ -283,7 +289,9 @@ def test_create_IonicLiquid():
     psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
 
     simulation = generate_hpts_meoh_system(psf_file=psf_file)
-    simulation_for_parameters = generate_hpts_meoh_system(crd_file=crd_for_parameters, psf_file=psf_for_parameters)
+    simulation_for_parameters = generate_hpts_meoh_system(
+        crd_file=crd_for_parameters, psf_file=psf_for_parameters
+    )
 
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
@@ -295,14 +303,13 @@ def test_create_IonicLiquid():
     allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000}
     allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
     allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
-    #allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.155, "prob": 1.000} 
-    #allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.155, "prob": 1.000} 
-    #allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
-    allowed_updates[frozenset(["HPTSH", "MEOH"])] = {"r_max": 0.155, "prob": 1.000} 
-    allowed_updates[frozenset(["MEOH2", "MEOH"])] = {"r_max": 0.155, "prob": 1.000} 
-    allowed_updates[frozenset(["MEOH2", "IM1"])] = {"r_max": 0.155, "prob": 1.000} 
-    allowed_updates[frozenset(["MEOH2", "OAC"])] = {"r_max": 0.155, "prob": 1.000} 
-    
+    # allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
+    # allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
+    # allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["HPTSH", "MEOH"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "MEOH"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "IM1"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "OAC"])] = {"r_max": 0.155, "prob": 1.000}
 
     templates = IonicLiquidTemplates(
         [OAC_HOAC, IM1H_IM1, HPTSH_HPTS, MEOH_MEOH2], (allowed_updates)
@@ -569,7 +576,9 @@ def test_forces():
     psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
 
     simulation = generate_hpts_meoh_system(psf_file=psf_file)
-    simulation_for_parameters = generate_hpts_meoh_system(crd_file=crd_for_parameters, psf_file=psf_for_parameters)
+    simulation_for_parameters = generate_hpts_meoh_system(
+        crd_file=crd_for_parameters, psf_file=psf_for_parameters
+    )
     system = simulation.system
     topology = simulation.topology
     force_state = defaultdict(list)  # store bond force
@@ -642,7 +651,9 @@ def test_torsion_forces():
     psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
 
     simulation = generate_hpts_meoh_system(psf_file=psf_file)
-    simulation_for_parameters = generate_hpts_meoh_system(crd_file=crd_for_parameters, psf_file=psf_for_parameters)
+    simulation_for_parameters = generate_hpts_meoh_system(
+        crd_file=crd_for_parameters, psf_file=psf_for_parameters
+    )
     system = simulation.system
     topology = simulation.topology
     force_state = defaultdict(list)  # store bond force
@@ -650,9 +661,8 @@ def test_torsion_forces():
     atom_names = {}  # store atom_names
     names = []  # store residue names
 
-    
     for ridx, r in enumerate(topology.residues()):
-        if r.name == "OAC" and ridx == 147:  
+        if r.name == "OAC" and ridx == 147:
             names.append(r.name)
             atom_idxs[r.name] = [atom.index for atom in r.atoms()]
             atom_names[r.name] = [atom.name for atom in r.atoms()]
@@ -721,9 +731,8 @@ def test_torsion_forces():
         for f in force_state[names[1]]:
             print(f)
 
-    
     for ridx, r in enumerate(topology.residues()):
-        if r.name == "OAC" and ridx == 147:  
+        if r.name == "OAC" and ridx == 147:
             names.append(r.name)
             atom_idxs[r.name] = [atom.index for atom in r.atoms()]
             atom_names[r.name] = [atom.name for atom in r.atoms()]
@@ -802,7 +811,9 @@ def test_drude_forces():
     psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
 
     simulation = generate_hpts_meoh_system(psf_file=psf_file)
-    simulation_for_parameters = generate_hpts_meoh_system(crd_file=crd_for_parameters, psf_file=psf_for_parameters)
+    simulation_for_parameters = generate_hpts_meoh_system(
+        crd_file=crd_for_parameters, psf_file=psf_for_parameters
+    )
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
@@ -813,14 +824,13 @@ def test_drude_forces():
     allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000}
     allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
     allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
-    #allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.155, "prob": 1.000} 
-    #allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.155, "prob": 1.000} 
-    #allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
-    allowed_updates[frozenset(["HPTSH", "MEOH"])] = {"r_max": 0.155, "prob": 1.000} 
-    allowed_updates[frozenset(["MEOH2", "MEOH"])] = {"r_max": 0.155, "prob": 1.000} 
-    allowed_updates[frozenset(["MEOH2", "IM1"])] = {"r_max": 0.155, "prob": 1.000} 
-    allowed_updates[frozenset(["MEOH2", "OAC"])] = {"r_max": 0.155, "prob": 1.000} 
-    
+    # allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
+    # allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
+    # allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["HPTSH", "MEOH"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "MEOH"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "IM1"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "OAC"])] = {"r_max": 0.155, "prob": 1.000}
 
     templates = IonicLiquidTemplates(
         [OAC_HOAC, IM1H_IM1, HPTSH_HPTS, MEOH_MEOH2], (allowed_updates)
@@ -934,7 +944,9 @@ def test_create_IonicLiquid_residue():
     psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
 
     simulation = generate_hpts_meoh_system(psf_file=psf_file)
-    simulation_for_parameters = generate_hpts_meoh_system(crd_file=crd_for_parameters, psf_file=psf_for_parameters)
+    simulation_for_parameters = generate_hpts_meoh_system(
+        crd_file=crd_for_parameters, psf_file=psf_for_parameters
+    )
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
@@ -945,14 +957,13 @@ def test_create_IonicLiquid_residue():
     allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000}
     allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
     allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
-    #allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.155, "prob": 1.000} 
-    #allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.155, "prob": 1.000} 
-    #allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
-    allowed_updates[frozenset(["HPTSH", "MEOH"])] = {"r_max": 0.155, "prob": 1.000} 
-    allowed_updates[frozenset(["MEOH2", "MEOH"])] = {"r_max": 0.155, "prob": 1.000} 
-    allowed_updates[frozenset(["MEOH2", "IM1"])] = {"r_max": 0.155, "prob": 1.000} 
-    allowed_updates[frozenset(["MEOH2", "OAC"])] = {"r_max": 0.155, "prob": 1.000} 
-    
+    # allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
+    # allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
+    # allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["HPTSH", "MEOH"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "MEOH"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "IM1"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "OAC"])] = {"r_max": 0.155, "prob": 1.000}
 
     templates = IonicLiquidTemplates(
         [OAC_HOAC, IM1H_IM1, HPTSH_HPTS, MEOH_MEOH2], (allowed_updates)
@@ -1068,7 +1079,9 @@ def test_reporter_class():
     restart_file = f"{protex.__path__[0]}/forcefield/traj/hpts_npt_7.rst"
 
     simulation = generate_hpts_meoh_system(psf_file=psf_file, restart_file=restart_file)
-    simulation_for_parameters = generate_hpts_meoh_system(crd_file=crd_for_parameters, psf_file=psf_for_parameters)
+    simulation_for_parameters = generate_hpts_meoh_system(
+        crd_file=crd_for_parameters, psf_file=psf_for_parameters
+    )
     # get ionic liquid templates
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
@@ -1080,14 +1093,13 @@ def test_reporter_class():
     allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000}
     allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
     allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
-    #allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.155, "prob": 1.000} 
-    #allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.155, "prob": 1.000} 
-    #allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
-    allowed_updates[frozenset(["HPTSH", "MEOH"])] = {"r_max": 0.155, "prob": 1.000} 
-    allowed_updates[frozenset(["MEOH2", "MEOH"])] = {"r_max": 0.155, "prob": 1.000} 
-    allowed_updates[frozenset(["MEOH2", "IM1"])] = {"r_max": 0.155, "prob": 1.000} 
-    allowed_updates[frozenset(["MEOH2", "OAC"])] = {"r_max": 0.155, "prob": 1.000} 
-    
+    # allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
+    # allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
+    # allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["HPTSH", "MEOH"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "MEOH"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "IM1"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "OAC"])] = {"r_max": 0.155, "prob": 1.000}
 
     templates = IonicLiquidTemplates(
         [OAC_HOAC, IM1H_IM1, HPTSH_HPTS, MEOH_MEOH2], (allowed_updates)
@@ -1133,7 +1145,9 @@ def test_write_psf_save_load():
     psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
 
     simulation = generate_hpts_meoh_system(psf_file=psf_file)
-    simulation_for_parameters = generate_hpts_meoh_system(psf_file=psf_for_parameters, crd_file=crd_for_parameters)
+    simulation_for_parameters = generate_hpts_meoh_system(
+        psf_file=psf_for_parameters, crd_file=crd_for_parameters
+    )
 
     # get ionic liquid templates
     allowed_updates = {}
@@ -1146,14 +1160,13 @@ def test_write_psf_save_load():
     allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000}
     allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
     allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
-    #allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.155, "prob": 1.000} 
-    #allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.155, "prob": 1.000} 
-    #allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
-    allowed_updates[frozenset(["HPTSH", "MEOH"])] = {"r_max": 0.155, "prob": 1.000} 
-    allowed_updates[frozenset(["MEOH2", "MEOH"])] = {"r_max": 0.155, "prob": 1.000} 
-    allowed_updates[frozenset(["MEOH2", "IM1"])] = {"r_max": 0.155, "prob": 1.000} 
-    allowed_updates[frozenset(["MEOH2", "OAC"])] = {"r_max": 0.155, "prob": 1.000} 
-    
+    # allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
+    # allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
+    # allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["HPTSH", "MEOH"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "MEOH"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "IM1"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "OAC"])] = {"r_max": 0.155, "prob": 1.000}
 
     templates = IonicLiquidTemplates(
         [OAC_HOAC, IM1H_IM1, HPTSH_HPTS, MEOH_MEOH2], (allowed_updates)
@@ -1198,7 +1211,9 @@ def test_updates(caplog):
     restart_file = f"{protex.__path__[0]}/forcefield/traj/hpts_npt_7.rst"
 
     simulation = generate_hpts_meoh_system(psf_file=psf_file, restart_file=restart_file)
-    simulation_for_parameters = generate_hpts_meoh_system(psf_file=psf_for_parameters, crd_file=crd_for_parameters)
+    simulation_for_parameters = generate_hpts_meoh_system(
+        psf_file=psf_for_parameters, crd_file=crd_for_parameters
+    )
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
@@ -1209,14 +1224,13 @@ def test_updates(caplog):
     allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000}
     allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
     allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
-    #allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.155, "prob": 1.000} 
-    #allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.155, "prob": 1.000} 
-    #allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
-    allowed_updates[frozenset(["HPTSH", "MEOH"])] = {"r_max": 0.155, "prob": 1.000} 
-    allowed_updates[frozenset(["MEOH2", "MEOH"])] = {"r_max": 0.155, "prob": 1.000} 
-    allowed_updates[frozenset(["MEOH2", "IM1"])] = {"r_max": 0.155, "prob": 1.000} 
-    allowed_updates[frozenset(["MEOH2", "OAC"])] = {"r_max": 0.155, "prob": 1.000} 
-    
+    # allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
+    # allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
+    # allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["HPTSH", "MEOH"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "MEOH"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "IM1"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "OAC"])] = {"r_max": 0.155, "prob": 1.000}
 
     templates = IonicLiquidTemplates(
         [OAC_HOAC, IM1H_IM1, HPTSH_HPTS, MEOH_MEOH2], (allowed_updates)
@@ -1255,7 +1269,9 @@ def test_pbc():
     psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
 
     simulation = generate_hpts_meoh_system(psf_file=psf_file)
-    simulation_for_parameters = generate_hpts_meoh_system(psf_file=psf_for_parameters, crd_file=crd_for_parameters)
+    simulation_for_parameters = generate_hpts_meoh_system(
+        psf_file=psf_for_parameters, crd_file=crd_for_parameters
+    )
     # get ionic liquid templates
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
@@ -1267,14 +1283,13 @@ def test_pbc():
     allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000}
     allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
     allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
-    #allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.155, "prob": 1.000} 
-    #allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.155, "prob": 1.000} 
-    #allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
-    allowed_updates[frozenset(["HPTSH", "MEOH"])] = {"r_max": 0.155, "prob": 1.000} 
-    allowed_updates[frozenset(["MEOH2", "MEOH"])] = {"r_max": 0.155, "prob": 1.000} 
-    allowed_updates[frozenset(["MEOH2", "IM1"])] = {"r_max": 0.155, "prob": 1.000} 
-    allowed_updates[frozenset(["MEOH2", "OAC"])] = {"r_max": 0.155, "prob": 1.000} 
-    
+    # allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
+    # allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
+    # allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["HPTSH", "MEOH"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "MEOH"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "IM1"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "OAC"])] = {"r_max": 0.155, "prob": 1.000}
 
     templates = IonicLiquidTemplates(
         [OAC_HOAC, IM1H_IM1, HPTSH_HPTS, MEOH_MEOH2], (allowed_updates)
@@ -1327,7 +1342,9 @@ def test_residue_forces():
     psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
 
     simulation = generate_hpts_meoh_system(psf_file=psf_file)
-    simulation_for_parameters = generate_hpts_meoh_system(crd_file=crd_for_parameters, psf_file=psf_for_parameters)
+    simulation_for_parameters = generate_hpts_meoh_system(
+        crd_file=crd_for_parameters, psf_file=psf_for_parameters
+    )
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
@@ -1338,14 +1355,13 @@ def test_residue_forces():
     allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000}
     allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
     allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
-    #allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.155, "prob": 1.000} 
-    #allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.155, "prob": 1.000} 
-    #allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
-    allowed_updates[frozenset(["HPTSH", "MEOH"])] = {"r_max": 0.155, "prob": 1.000} 
-    allowed_updates[frozenset(["MEOH2", "MEOH"])] = {"r_max": 0.155, "prob": 1.000} 
-    allowed_updates[frozenset(["MEOH2", "IM1"])] = {"r_max": 0.155, "prob": 1.000} 
-    allowed_updates[frozenset(["MEOH2", "OAC"])] = {"r_max": 0.155, "prob": 1.000} 
-    
+    # allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
+    # allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
+    # allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["HPTSH", "MEOH"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "MEOH"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "IM1"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "OAC"])] = {"r_max": 0.155, "prob": 1.000}
 
     templates = IonicLiquidTemplates(
         [OAC_HOAC, IM1H_IM1, HPTSH_HPTS, MEOH_MEOH2], (allowed_updates)
@@ -1363,78 +1379,128 @@ def test_residue_forces():
 
     resi = meoh
     pair = meoh2
-    
+
     offset = resi._get_offset(resi.current_name)
     offset_pair = pair._get_offset(pair.current_name)
 
     ### test if number of forces are equal
-    for force in ("NonbondedForce", "HarmonicBondForce", "HarmonicAngleForce", "PeriodicTorsionForce", "CustomTorsionForce", "DrudeForce"):
+    for force in (
+        "NonbondedForce",
+        "HarmonicBondForce",
+        "HarmonicAngleForce",
+        "PeriodicTorsionForce",
+        "CustomTorsionForce",
+        "DrudeForce",
+    ):
         print(f"{force=}")
         par1 = resi.parameters[resi.current_name][force]
         par2 = pair.parameters[pair.current_name][force]
         assert len(par1) == len(par2)
-    
+
     ### test indices
 
     print("force=HarmonicBondForce")
-    for old_idx, old_parm in enumerate(resi.parameters[resi.current_name]["HarmonicBondForce"]):
+    for old_idx, old_parm in enumerate(
+        resi.parameters[resi.current_name]["HarmonicBondForce"]
+    ):
         idx1, idx2 = old_parm[0], old_parm[1]
-        for new_idx, new_parm in enumerate(pair.parameters[pair.current_name]["HarmonicBondForce"]):
-            if set(
-                [new_parm[0] - offset_pair, new_parm[1] - offset_pair]
-            ) == set([idx1 - offset, idx2 - offset]):
+        for new_idx, new_parm in enumerate(
+            pair.parameters[pair.current_name]["HarmonicBondForce"]
+        ):
+            if set([new_parm[0] - offset_pair, new_parm[1] - offset_pair]) == set(
+                [idx1 - offset, idx2 - offset]
+            ):
                 if old_idx != new_idx:
                     print(old_idx, new_idx)
                     raise RuntimeError(
-                            "Odering is different between the two topologies."
+                        "Odering is different between the two topologies."
                     )
 
     print("force=DrudeForce")
-    for old_idx, old_parm in enumerate(resi.parameters[resi.current_name]["DrudeForce"]):
+    for old_idx, old_parm in enumerate(
+        resi.parameters[resi.current_name]["DrudeForce"]
+    ):
         idx1, idx2 = old_parm[0], old_parm[1]
-        for new_idx, new_parm in enumerate(pair.parameters[pair.current_name]["DrudeForce"]):
-            if set(
-                [new_parm[0] - offset_pair, new_parm[1] - offset_pair]
-            ) == set([idx1 - offset, idx2 - offset]):
+        for new_idx, new_parm in enumerate(
+            pair.parameters[pair.current_name]["DrudeForce"]
+        ):
+            if set([new_parm[0] - offset_pair, new_parm[1] - offset_pair]) == set(
+                [idx1 - offset, idx2 - offset]
+            ):
                 if old_idx != new_idx:
                     raise RuntimeError(
-                            "Odering is different between the two topologies."
+                        "Odering is different between the two topologies."
                     )
 
     print("force=HarmonicAngleForce")
-    for old_idx, old_parm in enumerate(resi.parameters[resi.current_name]["HarmonicAngleForce"]):
-            idx1, idx2, idx3 = old_parm[0], old_parm[1], old_parm[2]
-            for new_idx, new_parm in enumerate(pair.parameters[pair.current_name]["HarmonicAngleForce"]):
-                if set(
-                    [new_parm[0] - offset_pair, new_parm[1] - offset_pair, new_parm[2] - offset_pair]
-                ) == set([idx1 - offset, idx2 - offset, idx3 - offset]):
-                    if old_idx != new_idx:
-                        raise RuntimeError(
-                             "Odering is different between the two topologies."
-                        )
-
-    print("force=PeriodicTorsionForce")
-    for old_idx, old_parm in enumerate(resi.parameters[resi.current_name]["PeriodicTorsionForce"]):
-        idx1, idx2, idx3, idx4, idx5 = old_parm[0], old_parm[1], old_parm[2], old_parm[3], old_parm[4]
-        for new_idx, new_parm in enumerate(pair.parameters[pair.current_name]["PeriodicTorsionForce"]):
+    for old_idx, old_parm in enumerate(
+        resi.parameters[resi.current_name]["HarmonicAngleForce"]
+    ):
+        idx1, idx2, idx3 = old_parm[0], old_parm[1], old_parm[2]
+        for new_idx, new_parm in enumerate(
+            pair.parameters[pair.current_name]["HarmonicAngleForce"]
+        ):
             if set(
-                [new_parm[0] - offset_pair, new_parm[1] - offset_pair, new_parm[2] - offset_pair, new_parm[3] - offset_pair, new_parm[4]]
-            ) == set([idx1 - offset, idx2 - offset, idx3 - offset, idx4 - offset, idx5]):
+                [
+                    new_parm[0] - offset_pair,
+                    new_parm[1] - offset_pair,
+                    new_parm[2] - offset_pair,
+                ]
+            ) == set([idx1 - offset, idx2 - offset, idx3 - offset]):
                 if old_idx != new_idx:
                     raise RuntimeError(
-                            "Odering is different between the two topologies."
+                        "Odering is different between the two topologies."
+                    )
+
+    print("force=PeriodicTorsionForce")
+    for old_idx, old_parm in enumerate(
+        resi.parameters[resi.current_name]["PeriodicTorsionForce"]
+    ):
+        idx1, idx2, idx3, idx4, idx5 = (
+            old_parm[0],
+            old_parm[1],
+            old_parm[2],
+            old_parm[3],
+            old_parm[4],
+        )
+        for new_idx, new_parm in enumerate(
+            pair.parameters[pair.current_name]["PeriodicTorsionForce"]
+        ):
+            if set(
+                [
+                    new_parm[0] - offset_pair,
+                    new_parm[1] - offset_pair,
+                    new_parm[2] - offset_pair,
+                    new_parm[3] - offset_pair,
+                    new_parm[4],
+                ]
+            ) == set(
+                [idx1 - offset, idx2 - offset, idx3 - offset, idx4 - offset, idx5]
+            ):
+                if old_idx != new_idx:
+                    raise RuntimeError(
+                        "Odering is different between the two topologies."
                     )
 
     print("force=CustomTorsionForce")
-    for old_idx, old_parm in enumerate(resi.parameters[resi.current_name]["CustomTorsionForce"]):
+    for old_idx, old_parm in enumerate(
+        resi.parameters[resi.current_name]["CustomTorsionForce"]
+    ):
         idx1, idx2, idx3, idx4 = old_parm[0], old_parm[1], old_parm[2], old_parm[3]
-        for new_idx, new_parm in enumerate(pair.parameters[pair.current_name]["CustomTorsionForce"]):
+        for new_idx, new_parm in enumerate(
+            pair.parameters[pair.current_name]["CustomTorsionForce"]
+        ):
             if set(
-                [new_parm[0] - offset_pair, new_parm[1] - offset_pair, new_parm[2] - offset_pair, new_parm[3] - offset_pair]
+                [
+                    new_parm[0] - offset_pair,
+                    new_parm[1] - offset_pair,
+                    new_parm[2] - offset_pair,
+                    new_parm[3] - offset_pair,
+                ]
             ) == set([idx1 - offset, idx2 - offset, idx3 - offset, idx4 - offset]):
                 if old_idx != new_idx:
                     raise RuntimeError(
-                            "Odering is different between the two topologies."
+                        "Odering is different between the two topologies."
                     )
 
 
@@ -1444,7 +1510,9 @@ def test_list_torsionforce():
     psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
 
     simulation = generate_hpts_meoh_system(psf_file=psf_file)
-    simulation_for_parameters = generate_hpts_meoh_system(crd_file=crd_for_parameters, psf_file=psf_for_parameters)
+    simulation_for_parameters = generate_hpts_meoh_system(
+        crd_file=crd_for_parameters, psf_file=psf_for_parameters
+    )
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
@@ -1455,14 +1523,13 @@ def test_list_torsionforce():
     allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000}
     allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
     allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
-    #allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.155, "prob": 1.000} 
-    #allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.155, "prob": 1.000} 
-    #allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
-    allowed_updates[frozenset(["HPTSH", "MEOH"])] = {"r_max": 0.155, "prob": 1.000} 
-    allowed_updates[frozenset(["MEOH2", "MEOH"])] = {"r_max": 0.155, "prob": 1.000} 
-    allowed_updates[frozenset(["MEOH2", "IM1"])] = {"r_max": 0.155, "prob": 1.000} 
-    allowed_updates[frozenset(["MEOH2", "OAC"])] = {"r_max": 0.155, "prob": 1.000} 
-    
+    # allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
+    # allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
+    # allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["HPTSH", "MEOH"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "MEOH"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "IM1"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "OAC"])] = {"r_max": 0.155, "prob": 1.000}
 
     templates = IonicLiquidTemplates(
         [OAC_HOAC, IM1H_IM1, HPTSH_HPTS, MEOH_MEOH2], (allowed_updates)
@@ -1547,7 +1614,9 @@ def test_count_forces():
     psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
 
     simulation = generate_hpts_meoh_system(psf_file=psf_file)
-    simulation_for_parameters = generate_hpts_meoh_system(crd_file=crd_for_parameters, psf_file=psf_for_parameters)
+    simulation_for_parameters = generate_hpts_meoh_system(
+        crd_file=crd_for_parameters, psf_file=psf_for_parameters
+    )
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
@@ -1558,14 +1627,13 @@ def test_count_forces():
     allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000}
     allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
     allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
-    #allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.155, "prob": 1.000} 
-    #allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.155, "prob": 1.000} 
-    #allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
-    allowed_updates[frozenset(["HPTSH", "MEOH"])] = {"r_max": 0.155, "prob": 1.000} 
-    allowed_updates[frozenset(["MEOH2", "MEOH"])] = {"r_max": 0.155, "prob": 1.000} 
-    allowed_updates[frozenset(["MEOH2", "IM1"])] = {"r_max": 0.155, "prob": 1.000} 
-    allowed_updates[frozenset(["MEOH2", "OAC"])] = {"r_max": 0.155, "prob": 1.000} 
-    
+    # allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
+    # allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
+    # allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["HPTSH", "MEOH"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "MEOH"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "IM1"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "OAC"])] = {"r_max": 0.155, "prob": 1.000}
 
     templates = IonicLiquidTemplates(
         [OAC_HOAC, IM1H_IM1, HPTSH_HPTS, MEOH_MEOH2], (allowed_updates)
@@ -1747,7 +1815,9 @@ def test_update_write_psf():
     crd_for_parameters = f"{protex.__path__[0]}/forcefield/crd_for_parameters.crd"
 
     simulation = generate_hpts_meoh_system(psf_file=psf_file)
-    simulation_for_parameters = generate_hpts_meoh_system(psf_file=psf_for_parameters, crd_file=crd_for_parameters)
+    simulation_for_parameters = generate_hpts_meoh_system(
+        psf_file=psf_for_parameters, crd_file=crd_for_parameters
+    )
 
     # get ionic liquid templates
     allowed_updates = {}
@@ -1760,14 +1830,13 @@ def test_update_write_psf():
     allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000}
     allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
     allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
-    #allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.155, "prob": 1.000} 
-    #allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.155, "prob": 1.000} 
-    #allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
-    allowed_updates[frozenset(["HPTSH", "MEOH"])] = {"r_max": 0.155, "prob": 1.000} 
-    allowed_updates[frozenset(["MEOH2", "MEOH"])] = {"r_max": 0.155, "prob": 1.000} 
-    allowed_updates[frozenset(["MEOH2", "IM1"])] = {"r_max": 0.155, "prob": 1.000} 
-    allowed_updates[frozenset(["MEOH2", "OAC"])] = {"r_max": 0.155, "prob": 1.000} 
-    
+    # allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
+    # allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
+    # allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["HPTSH", "MEOH"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "MEOH"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "IM1"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "OAC"])] = {"r_max": 0.155, "prob": 1.000}
 
     templates = IonicLiquidTemplates(
         [OAC_HOAC, IM1H_IM1, HPTSH_HPTS, MEOH_MEOH2], (allowed_updates)
