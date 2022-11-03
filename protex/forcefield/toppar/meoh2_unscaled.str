@@ -1,0 +1,73 @@
+* Toppar stream file copied from meoh_unscaled.str
+* partial charges from ffparam with Gaussian cc-pvQZ
+*
+
+ioformat extended
+
+read rtf card append
+* Topologies copied
+* For use with Drude force field
+*
+44
+
+AUTO ANGL DIHE DRUD
+
+RESI MEOH2          1.000 ! methanol 
+! 
+!  H1A        HO2
+!     \      /
+! H1B--C1--O1  (+)
+!     /      \ 
+!  H1C       HO1 
+! 
+GROUP 
+ATOM C1   CD33B   -0.138  ALPHA -1.000  THOLE 1.3 
+ATOM O1   OD31H    0.000  ALPHA -1.028  THOLE 1.3 
+ATOM HO1  HDP1A    0.481 
+ATOM HO2  HDP1A    0.481 
+ATOM H1A  HDA3B    0.194 
+ATOM H1B  HDA3B    0.194 
+ATOM H1C  HDA3B    0.194 
+ATOM LP1A LPD     -0.203 
+ATOM LP1B LPD     -0.203 
+ 
+BOND C1  O1   O1 HO1  O1 HO2
+BOND C1  H1A  C1 H1B  C1  H1C 
+BOND O1  LP1A O1 LP1B 
+ 
+LONEPAIR relative LP1A O1 C1 HO1 distance 0.35 angle 110.0 dihe  91.0 
+LONEPAIR relative LP1B O1 C1 HO1 distance 0.35 angle 110.0 dihe 269.0 
+ANISOTROPY O1 C1 LP1A LP1B A11 0.8108 A22 1.2162 
+END
+
+read param card append
+* Parameters from master stream file
+* For use with Drude force field
+*
+
+
+BONDS
+!OD31H    CD33B    430.00      1.425 ! MEOH, methanol 
+!OD31H    HDP1A    536.50      0.970 ! MEOH, methanol 
+!CD33B    HDA3B    322.00      1.111 ! alkanes, 4/98, MEOH, methanol special case 
+!OD31H    LPD        0.00      0.000 ! from master_protein str ETOH 
+
+ANGLES                                                                            
+!HDA3B CD33B HDA3B  35.50  108.4000  5.4000  1.8020
+HDP1A OD31H HDP1A  35.50  120.0000  5.4000  1.8020 ! Marta, guess
+!CD33B OD31H HDP1A  58.20  106.0000  0.0000  0.0000
+!OD31H CD33B HDA3B  61.00  108.8900  0.0000  0.0000
+
+DIHEDRALS
+!HDP1A    OD31H    CD33B    HDA3B       0.179    3     0.00 ! MEOH, methanol 
+
+NONBONDED nbxmod  5 atom vatom cdiel vdistance switch vswitch - 
+cutnb 16.0 ctofnb 12.0 ctonnb 10.0 eps 1.0 e14fac 1.0 wmin 1.5 
+!HDP1A    0.0   -0.0100     0.4000    ! polar hydrogen, adm jr. and va 
+!CD33B    0.0   -0.1100      2.0400  !0.0 -0.0075 1.425   ! special methyl C for MEOH, methanol  
+!OD31H    0.0   -0.1500      1.7650   ! atom type, 
+!HDA3B    0.0   -0.0350     1.3400   ! special methyl H for MEOH, methanol 
+
+
+END
+RETURN

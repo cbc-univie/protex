@@ -263,7 +263,7 @@ MASS  164 DF2      0.00000 H   ! F  drude
 MASS  165 DCL2     0.00000 H   ! CL drude 
 MASS  166 DCL3     0.00000 H   ! CL drude 
 MASS  167 DBR2     0.00000 H   ! BR drude 
-MASS  268 DI2      0.00000 H   ! I  drude 
+MASS  168 DI2      0.00000 H   ! I  drude 
 ! own atom types (veronika)
 MASS  169 CD2R6L   15.99940 C  ! aromatic bridge Cs in biphenyl
 MASS  170 CD2R6M   15.99940 C  ! 
@@ -271,6 +271,9 @@ MASS  170 CD2R6M   15.99940 C  !
 MASS  171 CD2O3C   12.0110 C ! same as CD2O3A but for htfa
 MASS  172 CD33F    12.0110 C ! same as CD33A but for CH3 of IM1H 
 MASS  173 CD33G    12.0110 C ! same as CD33A but for CH3 of IM1
+! own atom types (Marta)
+MASS  174 OD31H    15.99900 O  ! same as OD31A, for MEOH, so that OD31A for HPTSH and HOAC don't have to be changed
+MASS  175 DUMH      1.00800 H  ! dummy H
 
 DECL -CA 
 DECL -C 
@@ -7769,7 +7772,7 @@ CD325B   0.0   -0.0600     2.0200  0.0 -0.01 1.9 ! THF, tetrahydrofuran, from CP
 CD326A   0.0   -0.0560     2.1000  0.0 -0.01 1.9 ! CHEX, from CD32A, 9/09, cmb 
 CD326B   0.0   -0.0560     2.0100  0.0 -0.01 1.9 ! THP, tetrahydropyran, viv 
 CD33A  0.0  -0.0337  2.0400  0.0  -0.01  1.9  !  ETHA,  ethane,  4/98,  yin,  adm  jr.
-CD33B    0.0   -0.1100     2.0400  0.0 -0.01 1.9 ! special methyl C for MEOH, methanol 
+!CD33B    0.0   -0.1100     2.0400  0.0 -0.01 1.9 ! special methyl C for MEOH, methanol Marta, LJ scaling in meoh_d.str
 CD33C  0.0  -0.0195  1.9400  !  special  methyl  C  for  amides
 CD33D    0.0   -0.0780     1.9400 ! special methyl C for MAS, CT1, lipid conflict
 CD33E    0.0   -0.1040     2.0000  0.0 -0.01 1.9 ! DMET, ethers, cmb 11/08 
@@ -7895,6 +7898,7 @@ DI2      0.0   -0.0000    0.0100 ! I  Drude
 
 !! Rare gas parameters 
 DUM      0.0   -0.0000    0.0100 ! dummy atom
+DUMH     0.0   -0.0000    0.0100 ! dummy atom
 XED      0.0   -0.02127   1.4800 ! HE, helium, experimental pot. energy surface, adm jr., 12/95 
 NED      0.0   -0.0860    1.5300 ! NE, neon, semiempirical pot. energy surface, adm jr., 12/95 
 !Do NOT put atom type with all zero values as the last LJ parameter due to a bug in CHARMM
