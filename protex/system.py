@@ -279,7 +279,7 @@ class IonicLiquidSystem:
                 if len(shared) == 1:
                     pair = tuple(sorted(set(list(a) + list(b)) - shared))
                     pair_13_set.add(pair)
-                    # there were duplicates in pair_13_set, e.q. (1,3) and (3,1), needs to be sorted
+                    # there were duplicates in pair_13_set, e.g. (1,3) and (3,1), needs to be sorted
 
         # self.pair_12_list = list(sorted(pair_12_set))
         # self.pair_13_list = list(sorted(pair_13_set - pair_12_set))
@@ -531,7 +531,6 @@ class IonicLiquidSystem:
     def _adapt_parmed_psf_file(
         self,
         psf: parmed.charmm.CharmmPsfFile,
-        psf_copy: parmed.charmm.CharmmPsfFile,
         parameters: parmed.charmm.CharmmPsfFile,
     ) -> parmed.charmm.CharmmPsfFile:
         """
@@ -681,20 +680,37 @@ class IonicLiquidSystem:
         return psf
 
     def write_psf(
-        self, old_psf_infname: str, new_psf_outfname: str, psf_for_parameters: str
+        self,
+        old_psf_infname: str,
+        new_psf_outfname: str,
+        psf_for_parameters: str = None,
     ) -> None:
         """
         write a new psf file, which reflects the occured transfer events and changed residues
         to load the written psf create a new ionic_liquid instance and load the new psf via OpenMM
+
+        Parameters
+        ----------
+        old_psf_infname:
+            Name of the old psf_file, which serves for the basic strucutre, same number of atoms, same bonds, angles, ...
+        new_psf_outfname:
+            Name of the new psf that will be written
+        psf_for_parameters:
+            Optional psf file which contains all possible molecules/states, if they are not represented by the old_psf_infname.
+            I.e. one species gets protonated and is not present anymore, this file can be used to have all potential states.
+
+        Returns
+        -------
+        None
         """
+        if psf_for_parameters is None:
+            psf_for_parameters = old_psf_infname
 
         pm_old_psf = parmed.charmm.CharmmPsfFile(old_psf_infname)
         # copying parmed structure did not work
-        pm_old_psf_copy = parmed.charmm.CharmmPsfFile(old_psf_infname)
+        # pm_old_psf_copy = parmed.charmm.CharmmPsfFile(old_psf_infname)
         pm_parameters = parmed.charmm.CharmmPsfFile(psf_for_parameters)
-        pm_new_psf = self._adapt_parmed_psf_file(
-            pm_old_psf, pm_old_psf_copy, pm_parameters
-        )
+        pm_new_psf = self._adapt_parmed_psf_file(pm_old_psf, pm_parameters)
         pm_new_psf.write_psf(new_psf_outfname)
 
     # possibly in future when parmed and openmm drude connection is working

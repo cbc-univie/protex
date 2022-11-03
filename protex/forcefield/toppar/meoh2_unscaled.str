@@ -54,7 +54,7 @@ BONDS
 
 ANGLES                                                                            
 !HDA3B CD33B HDA3B  35.50  108.4000  5.4000  1.8020
-!HDP1A OD31H HDP1A  35.50  120.0000  5.4000  1.8020 ! Marta, guess
+HDP1A OD31H HDP1A  35.50  120.0000  5.4000  1.8020 ! Marta, guess
 !CD33B OD31H HDP1A  58.20  106.0000  0.0000  0.0000
 !OD31H CD33B HDA3B  61.00  108.8900  0.0000  0.0000
 
