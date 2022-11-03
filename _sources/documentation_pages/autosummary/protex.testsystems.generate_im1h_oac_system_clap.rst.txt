@@ -1,0 +1,6 @@
+protex.testsystems.generate\_im1h\_oac\_system\_clap
+====================================================
+
+.. currentmodule:: protex.testsystems
+
+.. autofunction:: generate_im1h_oac_system_clap

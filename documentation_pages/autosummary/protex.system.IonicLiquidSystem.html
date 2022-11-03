@@ -45,7 +45,6 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quick Start Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../detailed_example.html">Detailed Example</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../use_cases.html">Use Cases</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../api.html">API Documentation</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="protex.system.html">protex.system</a><ul class="current">
@@ -77,10 +76,10 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../api.html">API Documentation</a> &raquo;</li>
-          <li><a href="protex.system.html">protex.system</a> &raquo;</li>
-      <li>protex.system.IonicLiquidSystem</li>
+      <li><a href="../../index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="../api.html">API Documentation</a></li>
+          <li class="breadcrumb-item"><a href="protex.system.html">protex.system</a></li>
+      <li class="breadcrumb-item active">protex.system.IonicLiquidSystem</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../../_sources/documentation_pages/autosummary/protex.system.IonicLiquidSystem.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -216,9 +215,22 @@ filename</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="protex.system.IonicLiquidSystem.write_psf">
-<span class="sig-name descname"><span class="pre">write_psf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">old_psf_infname</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_psf_outfname</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/protex/system.html#IonicLiquidSystem.write_psf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#protex.system.IonicLiquidSystem.write_psf" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">write_psf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">old_psf_infname</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_psf_outfname</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">psf_for_parameters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/protex/system.html#IonicLiquidSystem.write_psf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#protex.system.IonicLiquidSystem.write_psf" title="Permalink to this definition"></a></dt>
 <dd><p>write a new psf file, which reflects the occured transfer events and changed residues
 to load the written psf create a new ionic_liquid instance and load the new psf via OpenMM</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>old_psf_infname</strong> – Name of the old psf_file, which serves for the basic strucutre, same number of atoms, same bonds, angles, …</p></li>
+<li><p><strong>new_psf_outfname</strong> – Name of the new psf that will be written</p></li>
+<li><p><strong>psf_for_parameters</strong> – Optional psf file which contains all possible molecules/states, if they are not represented by the old_psf_infname.
+I.e. one species gets protonated and is not present anymore, this file can be used to have all potential states.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
