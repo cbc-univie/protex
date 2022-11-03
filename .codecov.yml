@@ -8,6 +8,8 @@ coverage:
 ignore:
   - "protex/__init__.py"
   - "protex/protex.py"
+  - "protex/testsystems.py"
+  - "protex/reporter.py"
 comment:
   layout: "header"
   require_changes: false
