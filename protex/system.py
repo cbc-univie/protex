@@ -10,6 +10,11 @@ import parmed
 import yaml
 
 try:
+    import tomllib
+except ModuleNotFoundError:
+    import toml as tomllib
+
+try:
     import openmm
 except ImportError:
     import simtk.openmm
@@ -77,6 +82,35 @@ class IonicLiquidTemplates:
         self.overall_max_distance: float = max(
             [value["r_max"] for value in self.allowed_updates.values()]
         )
+
+    @classmethod
+    def from_config(cls, file: str):
+        config = tomllib.load(file)
+        try:
+            config["states"]
+            config["updates"]
+        except KeyError as e:
+            e.args = (
+                *e.args,
+                "the config file must contain arrays named 'states' and 'updates'",
+            )
+            raise
+
+        state_list = []
+        for state in config["states"]:
+            s = {}
+            s[state["donor"]] = {"donor_name": state["donor_name"]}
+            s[state["acceptor"]] = {"acceptor_name": state["acceptor_name"]}
+            state_list.append(s)
+
+        allowed_updates = {}
+        for update in config["updates"]:
+            allowed_updates[frozenset(update["reaction"])] = {
+                "r_max": update["r_max"],
+                "prob": update["prob"],
+            }
+
+        return cls(state_list, allowed_updates)
 
     def get_update_value_for(self, residue_set: frozenset[str], property: str) -> float:
         """

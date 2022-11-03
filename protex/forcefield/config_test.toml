@@ -1,0 +1,36 @@
+name = "Config for IM1H OAC System"
+
+[forcefield]
+
+
+[[states]] # array of tables
+donor = "IM1H"
+donor_name = "H7"
+acceptor = "IM1"
+acceptor_name = "N2"
+
+[[states]]
+donor = "HOAC"
+donor_name = "H"
+acceptor = "OAC"
+acceptor_name = "O2"
+
+[[updates]]
+reaction = ["IM1H", "OAC"]
+r_max = 0.155
+prob = 0.994
+
+[[updates]]
+reaction = ["IM1H", "OAC"]
+r_max = 0.155
+prob = 0.994
+
+[[updates]]
+reaction = ["IM1H", "OAC"]
+r_max = 0.155
+prob = 0.994
+
+[[updates]]
+reaction = ["IM1H", "OAC"]
+r_max = 0.155
+prob = 0.994
