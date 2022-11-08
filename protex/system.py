@@ -424,7 +424,7 @@ class IonicLiquidSystem:
                 logger.critical(f"{name}:{forces_state1[force_name][-1]}")
                 logger.critical(f"{name_of_paired_ion}:{forces_state2[force_name][-1]}")
 
-                raise AssertionError("ohoh")
+                raise AssertionError("There are not the same number of forces or a wrong order. Possible Problems: Bond/Angle/... is missing. Urey_Bradley Term is not defined for both states, ...)")
 
     def _set_initial_states(self) -> list:
         """

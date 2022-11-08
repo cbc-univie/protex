@@ -698,7 +698,9 @@ class Residue:
             if query_atom_name == atom_name:
                 return idx
         else:
-            raise RuntimeError()
+            raise RuntimeError(
+                f"Atom name '{query_atom_name}' not in atom names of residue '{self.current_name}'."
+            )
 
     @property
     def endstate_charge(self) -> int:
