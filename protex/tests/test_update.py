@@ -2176,3 +2176,37 @@ def test_single_energy_molecule(caplog):
 
     # update = NaiveMCUpdate(ionic_liquid, all_forces=True)
     # state_update = StateUpdate(update)
+
+
+@pytest.mark.skipif(
+    os.getenv("CI") == "true",
+    reason="Will fail sporadicaly.",
+)
+def test_wrong_atom_name(caplog):
+    caplog.set_level(logging.DEBUG)
+
+    simulation = generate_im1h_oac_system()
+    allowed_updates = {}
+    # allowed updates according to simple protonation scheme
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {
+        "r_max": 0.16,
+        "prob": 1,
+    }  # r_max in nanometer, prob between 0 and 1
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.16, "prob": 1}
+    # get ionic liquid templates
+    IM1H_IM1 = {"IM1H": {"atom_name": "H72313"}, "IM1": {"atom_name": "wrong_name"}}
+    OAC_HOAC = {"OAC": {"atom_name": "O2"}, "HOAC": {"atom_name": "H"}}
+    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+    # wrap system in IonicLiquidSystem
+    ionic_liquid = IonicLiquidSystem(simulation, templates)
+    update = NaiveMCUpdate(ionic_liquid)
+    # initialize state update class
+    state_update = StateUpdate(update)
+    # ionic_liquid.simulation.minimizeEnergy(maxIterations=200)
+    try:
+        state_update.update(2)
+    except RuntimeError as e:
+        print("This is fine. Atom name is not present")
+        print(e)
