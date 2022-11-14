@@ -772,7 +772,9 @@
             <span class="k">if</span> <span class="n">query_atom_name</span> <span class="o">==</span> <span class="n">atom_name</span><span class="p">:</span>
                 <span class="k">return</span> <span class="n">idx</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">()</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Atom name &#39;</span><span class="si">{</span><span class="n">query_atom_name</span><span class="si">}</span><span class="s2">&#39; not in atom names of residue &#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">current_name</span><span class="si">}</span><span class="s2">&#39;.&quot;</span>
+            <span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">endstate_charge</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
