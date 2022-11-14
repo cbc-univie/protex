@@ -6,7 +6,7 @@ import numpy as np
 from scipy.spatial import distance_matrix
 
 from protex.residue import Residue
-from protex.system import IonicLiquidSystem
+from protex.system import ProtexSystem
 
 logger = logging.getLogger(__name__)
 
@@ -23,10 +23,10 @@ class Update:
 
     def __init__(
         self,
-        ionic_liquid: IonicLiquidSystem,
+        ionic_liquid: ProtexSystem,
         to_adapt=None,
     ) -> None:
-        self.ionic_liquid: IonicLiquidSystem = ionic_liquid
+        self.ionic_liquid: ProtexSystem = ionic_liquid
         self.to_adapt: list[tuple[str, int, frozenset[str]]] = to_adapt
 
 
@@ -42,7 +42,7 @@ class NaiveMCUpdate(Update):
 
     def __init__(
         self,
-        ionic_liquid: IonicLiquidSystem,
+        ionic_liquid: ProtexSystem,
         all_forces: bool = False,
         to_adapt: list[tuple[str, int, frozenset[str]]] = None,
     ) -> None:
@@ -195,11 +195,11 @@ class StateUpdate:
 
     def __init__(self, updateMethod: Update) -> None:
         self.updateMethod: Update = updateMethod
-        self.ionic_liquid: IonicLiquidSystem = self.updateMethod.ionic_liquid
+        self.ionic_liquid: ProtexSystem = self.updateMethod.ionic_liquid
         self.history: list = []
         self.update_trial: int = 0
 
-    def write_charges(self, filename: str):
+    def write_charges(self, filename: str) -> None:
 
         par = self.get_charges()
         with open(filename, "w+") as f:
@@ -220,6 +220,7 @@ class StateUpdate:
                     charge, _, _ = force.getParticleParameters(idx)
                     par.append((idx, atom, charge))
                 return par
+        raise RuntimeError("Something went wrong. There was no NonbondedForce")
 
     def get_num_residues(self) -> dict:
         res_dict = {"IM1H": 0, "OAC": 0, "IM1": 0, "HOAC": 0, "HPTS": 0, "HPTSH": 0}
@@ -248,7 +249,7 @@ class StateUpdate:
             """
         )
 
-    def update(self, nr_of_steps: int = 2) -> tuple:
+    def update(self, nr_of_steps: int = 2) -> list[tuple[Residue, Residue]]:
         """
         updates the current state using the method defined in the UpdateMethod class
         """
@@ -277,8 +278,8 @@ class StateUpdate:
         return candidate_pairs
 
     def _propose_candidate_pair(
-        self, pos_list: list, res_list: list, use_pbc: bool = True
-    ) -> list[tuple[Residue]]:
+        self, pos_list: list[float], res_list: list[Residue], use_pbc: bool = True
+    ) -> list[tuple[Residue, Residue]]:
         """
         Takes the return value of _get_positions_of_mutation_sites
 
@@ -320,8 +321,8 @@ class StateUpdate:
         used_residues = []
         # check if charge transfer is possible
         for candidate_idx1, candidate_idx2 in idx:
-            residue1 = res_list[candidate_idx1]
-            residue2 = res_list[candidate_idx2]
+            residue1: Residue = res_list[candidate_idx1]
+            residue2: Residue = res_list[candidate_idx2]
             # is this combination allowed?
             if (
                 frozenset([residue1.current_name, residue2.current_name])
@@ -378,7 +379,7 @@ class StateUpdate:
                 # return proposed_candidate_pair
         return proposed_candidate_pairs
 
-    def _get_positions_for_mutation_sites(self) -> tuple[dict, dict]:
+    def _get_positions_for_mutation_sites(self) -> tuple[list[float], list[Residue]]:
         """
         _get_positions_for_mutation_sites returns
         """

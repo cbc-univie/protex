@@ -7,7 +7,7 @@ except ImportError:
     import simtk.openmm as openmm
     import simtk.unit as unit
 
-from protex.system import IonicLiquidSystem
+from protex.system import ProtexSystem
 
 
 class ChargeReporter:
@@ -30,7 +30,7 @@ class ChargeReporter:
         self,
         file: str,
         reportInterval: int,
-        ionic_liquid: IonicLiquidSystem,
+        ionic_liquid: ProtexSystem,
         append: bool = False,
         header_data: dict = None,
     ):

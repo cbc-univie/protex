@@ -4,7 +4,7 @@ from sys import stdout
 import pytest
 
 from ..reporter import ChargeReporter, DrudeTemperatureReporter, EnergyReporter
-from ..system import IonicLiquidSystem, IonicLiquidTemplates
+from ..system import ProtexSystem, ProtexTemplates
 from ..testsystems import IM1H_IM1, OAC_HOAC, generate_im1h_oac_system
 from ..update import NaiveMCUpdate, StateUpdate
 
@@ -34,9 +34,9 @@ def test_outline():
     # allowed_updates[set(["IM1H", "IM1"])] = {"r_max": 0.2, "prob": 1}
     # allowed_updates[set(["HOAC", "OAC"])] = {"r_max": 0.2, "prob": 1}
     # get ionic liquid templates
-    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
     # wrap system in IonicLiquidSystem
-    ionic_liquid = IonicLiquidSystem(simulation, templates)
+    ionic_liquid = ProtexSystem(simulation, templates)
     # initialize update method
     update = NaiveMCUpdate(ionic_liquid, all_forces=True)
     # initialize state update class
