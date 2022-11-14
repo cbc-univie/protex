@@ -7,9 +7,8 @@ import os
 from collections import defaultdict
 from sys import stdout
 
-import pytest
-
 import protex
+import pytest
 
 try:  # Syntax changed in OpenMM 7.6
     import openmm as mm
@@ -1011,30 +1010,30 @@ def test_write_psf_save_load_clap():
     state_update = StateUpdate(update)
 
     old_psf_file = psf
-    ionic_liquid.write_psf(old_psf_file, "test1.psf")
+    ionic_liquid.write_psf(old_psf_file, "testc1.psf")
 
     # ionic_liquid.simulation.step(50)
     state_update.update(2)
 
-    ionic_liquid.write_psf(old_psf_file, "test2.psf")
+    ionic_liquid.write_psf(old_psf_file, "testc2.psf")
 
     ionic_liquid.simulation.step(10)
     state_update.update(2)
 
-    ionic_liquid.write_psf(old_psf_file, "test3.psf")
+    ionic_liquid.write_psf(old_psf_file, "testc3.psf")
 
-    ionic_liquid.saveState("state.rst")
-    ionic_liquid.saveCheckpoint("checkpoint.rst")
+    ionic_liquid.saveState("statec.rst")
+    ionic_liquid.saveCheckpoint("checkpointc.rst")
 
     ionic_liquid2 = ionic_liquid  # copy.deepcopy(ionic_liquid)
-    ionic_liquid.loadState("state.rst")
-    ionic_liquid2.loadCheckpoint("checkpoint.rst")
+    ionic_liquid.loadState("statec.rst")
+    ionic_liquid2.loadCheckpoint("checkpointc.rst")
 
-    # os.remove("test1.psf")
-    # os.remove("test2.psf")
-    # os.remove("test3.psf")
-    # os.remove("state.rst")
-    # os.remove("checkpoint.rst")
+    os.remove("test1c.psf")
+    os.remove("test2c.psf")
+    os.remove("test3c.psf")
+    os.remove("statec.rst")
+    os.remove("checkpointc.rst")
 
 
 @pytest.mark.skipif(
