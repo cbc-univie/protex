@@ -93,9 +93,9 @@
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="IonicLiquidTemplates"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.IonicLiquidTemplates.html#protex.system.IonicLiquidTemplates">[docs]</a><span class="k">class</span> <span class="nc">IonicLiquidTemplates</span><span class="p">:</span>
+<div class="viewcode-block" id="ProtexTemplates"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.ProtexTemplates.html#protex.system.ProtexTemplates">[docs]</a><span class="k">class</span> <span class="nc">ProtexTemplates</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Creates the basic foundation for the Ionic Liquid System.</span>
+<span class="sd">    Creates the basic foundation for the Protex System.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    -----------</span>
@@ -152,7 +152,7 @@
             <span class="p">[</span><span class="n">value</span><span class="p">[</span><span class="s2">&quot;r_max&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">allowed_updates</span><span class="o">.</span><span class="n">values</span><span class="p">()]</span>
         <span class="p">)</span>
 
-<div class="viewcode-block" id="IonicLiquidTemplates.get_update_value_for"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.IonicLiquidTemplates.html#protex.system.IonicLiquidTemplates.get_update_value_for">[docs]</a>    <span class="k">def</span> <span class="nf">get_update_value_for</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">residue_set</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">property</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<div class="viewcode-block" id="ProtexTemplates.get_update_value_for"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.ProtexTemplates.html#protex.system.ProtexTemplates.get_update_value_for">[docs]</a>    <span class="k">def</span> <span class="nf">get_update_value_for</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">residue_set</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">property</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        returns the value in the allowed updates dictionary</span>
 
@@ -183,7 +183,7 @@
                 <span class="s2">&quot;You tried to access a residue_set or property key which is not defined&quot;</span>
             <span class="p">)</span></div>
 
-<div class="viewcode-block" id="IonicLiquidTemplates.set_update_value_for"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.IonicLiquidTemplates.html#protex.system.IonicLiquidTemplates.set_update_value_for">[docs]</a>    <span class="k">def</span> <span class="nf">set_update_value_for</span><span class="p">(</span>
+<div class="viewcode-block" id="ProtexTemplates.set_update_value_for"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.ProtexTemplates.html#protex.system.ProtexTemplates.set_update_value_for">[docs]</a>    <span class="k">def</span> <span class="nf">set_update_value_for</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">residue_set</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">property</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">float</span>
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -236,7 +236,7 @@
     <span class="c1">#         if name in state:</span>
     <span class="c1">#             return self.states[name][&quot;canonical_name&quot;]</span>
 
-<div class="viewcode-block" id="IonicLiquidTemplates.get_residue_name_for_coupled_state"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.IonicLiquidTemplates.html#protex.system.IonicLiquidTemplates.get_residue_name_for_coupled_state">[docs]</a>    <span class="k">def</span> <span class="nf">get_residue_name_for_coupled_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<div class="viewcode-block" id="ProtexTemplates.get_residue_name_for_coupled_state"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.ProtexTemplates.html#protex.system.ProtexTemplates.get_residue_name_for_coupled_state">[docs]</a>    <span class="k">def</span> <span class="nf">get_residue_name_for_coupled_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        get_residue_name_of_paired_ion returns the paired residue name given a reisue name</span>
 
@@ -267,7 +267,7 @@
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;something went wrong&quot;</span><span class="p">)</span></div>
 
     <span class="c1"># Not used</span>
-<div class="viewcode-block" id="IonicLiquidTemplates.get_charge_template_for"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.IonicLiquidTemplates.html#protex.system.IonicLiquidTemplates.get_charge_template_for">[docs]</a>    <span class="k">def</span> <span class="nf">get_charge_template_for</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<div class="viewcode-block" id="ProtexTemplates.get_charge_template_for"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.ProtexTemplates.html#protex.system.ProtexTemplates.get_charge_template_for">[docs]</a>    <span class="k">def</span> <span class="nf">get_charge_template_for</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        get_charge_template_for returns the charge template for a residue</span>
 
@@ -291,7 +291,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s2">&quot;charge&quot;</span><span class="p">]</span></div></div>
 
 
-<div class="viewcode-block" id="IonicLiquidSystem"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.IonicLiquidSystem.html#protex.system.IonicLiquidSystem">[docs]</a><span class="k">class</span> <span class="nc">IonicLiquidSystem</span><span class="p">:</span>
+<div class="viewcode-block" id="ProtexSystem"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.ProtexSystem.html#protex.system.ProtexSystem">[docs]</a><span class="k">class</span> <span class="nc">ProtexSystem</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This class defines the full system, performs the MD steps and offers an</span>
 <span class="sd">    interface for protonation state updates.</span>
@@ -311,13 +311,13 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">simulation</span><span class="p">:</span> <span class="n">openmm</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">Simulation</span><span class="p">,</span>
-        <span class="n">templates</span><span class="p">:</span> <span class="n">IonicLiquidTemplates</span><span class="p">,</span>
+        <span class="n">templates</span><span class="p">:</span> <span class="n">ProtexTemplates</span><span class="p">,</span>
         <span class="n">simulation_for_parameters</span><span class="p">:</span> <span class="n">openmm</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">Simulation</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="p">:</span> <span class="n">openmm</span><span class="o">.</span><span class="n">openmm</span><span class="o">.</span><span class="n">System</span> <span class="o">=</span> <span class="n">simulation</span><span class="o">.</span><span class="n">system</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">topology</span><span class="p">:</span> <span class="n">openmm</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">topology</span><span class="o">.</span><span class="n">Topology</span> <span class="o">=</span> <span class="n">simulation</span><span class="o">.</span><span class="n">topology</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">simulation</span><span class="p">:</span> <span class="n">openmm</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">Simulation</span> <span class="o">=</span> <span class="n">simulation</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">templates</span><span class="p">:</span> <span class="n">IonicLiquidTemplates</span> <span class="o">=</span> <span class="n">templates</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">templates</span><span class="p">:</span> <span class="n">ProtexTemplates</span> <span class="o">=</span> <span class="n">templates</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">simulation_for_parameters</span> <span class="o">=</span> <span class="n">simulation_for_parameters</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">residues</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Residue</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set_initial_states</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">boxlength</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="p">(</span>
@@ -755,7 +755,7 @@
 
         <span class="k">return</span> <span class="n">psf</span>
 
-<div class="viewcode-block" id="IonicLiquidSystem.write_psf"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.IonicLiquidSystem.html#protex.system.IonicLiquidSystem.write_psf">[docs]</a>    <span class="k">def</span> <span class="nf">write_psf</span><span class="p">(</span>
+<div class="viewcode-block" id="ProtexSystem.write_psf"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.ProtexSystem.html#protex.system.ProtexSystem.write_psf">[docs]</a>    <span class="k">def</span> <span class="nf">write_psf</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">old_psf_infname</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">new_psf_outfname</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -802,7 +802,7 @@
     <span class="c1">#     struct = parmed.openmm.load_topology(self.topology, self.system)</span>
     <span class="c1">#     struct.save(fname, format=None, overwrite=False, **kwargs)</span>
 
-<div class="viewcode-block" id="IonicLiquidSystem.saveCheckpoint"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.IonicLiquidSystem.html#protex.system.IonicLiquidSystem.saveCheckpoint">[docs]</a>    <span class="k">def</span> <span class="nf">saveCheckpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="ProtexSystem.saveCheckpoint"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.ProtexSystem.html#protex.system.ProtexSystem.saveCheckpoint">[docs]</a>    <span class="k">def</span> <span class="nf">saveCheckpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object</span>
 
@@ -814,7 +814,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">saveCheckpoint</span><span class="p">(</span><span class="n">file</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="IonicLiquidSystem.loadCheckpoint"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.IonicLiquidSystem.html#protex.system.IonicLiquidSystem.loadCheckpoint">[docs]</a>    <span class="k">def</span> <span class="nf">loadCheckpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="ProtexSystem.loadCheckpoint"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.ProtexSystem.html#protex.system.ProtexSystem.loadCheckpoint">[docs]</a>    <span class="k">def</span> <span class="nf">loadCheckpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object</span>
 
 <span class="sd">        Parameters</span>
@@ -825,7 +825,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">loadCheckpoint</span><span class="p">(</span><span class="n">file</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="IonicLiquidSystem.saveState"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.IonicLiquidSystem.html#protex.system.IonicLiquidSystem.saveState">[docs]</a>    <span class="k">def</span> <span class="nf">saveState</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="ProtexSystem.saveState"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.ProtexSystem.html#protex.system.ProtexSystem.saveState">[docs]</a>    <span class="k">def</span> <span class="nf">saveState</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object</span>
 
 <span class="sd">        Parameters</span>
@@ -836,7 +836,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">saveState</span><span class="p">(</span><span class="n">file</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="IonicLiquidSystem.loadState"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.IonicLiquidSystem.html#protex.system.IonicLiquidSystem.loadState">[docs]</a>    <span class="k">def</span> <span class="nf">loadState</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="ProtexSystem.loadState"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.ProtexSystem.html#protex.system.ProtexSystem.loadState">[docs]</a>    <span class="k">def</span> <span class="nf">loadState</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object</span>
 
 <span class="sd">        Parameters</span>
@@ -847,7 +847,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">loadState</span><span class="p">(</span><span class="n">file</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="IonicLiquidSystem.save_updates"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.IonicLiquidSystem.html#protex.system.IonicLiquidSystem.save_updates">[docs]</a>    <span class="k">def</span> <span class="nf">save_updates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="ProtexSystem.save_updates"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.ProtexSystem.html#protex.system.ProtexSystem.save_updates">[docs]</a>    <span class="k">def</span> <span class="nf">save_updates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Save the current update values into a yaml file. Used to have the current probability values.</span>
 
@@ -863,7 +863,7 @@
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">yaml</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">default_flow_style</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="IonicLiquidSystem.load_updates"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.IonicLiquidSystem.html#protex.system.IonicLiquidSystem.load_updates">[docs]</a>    <span class="k">def</span> <span class="nf">load_updates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="ProtexSystem.load_updates"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.ProtexSystem.html#protex.system.ProtexSystem.load_updates">[docs]</a>    <span class="k">def</span> <span class="nf">load_updates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Load the current update values from a yaml file, which was generated using &quot;save_updates&quot;.</span>
 

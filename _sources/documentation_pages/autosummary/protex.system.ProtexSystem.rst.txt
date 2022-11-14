@@ -1,0 +1,33 @@
+protex.system.ProtexSystem
+==========================
+
+.. currentmodule:: protex.system
+
+.. autoclass:: ProtexSystem
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~ProtexSystem.get_current_number_of_each_residue_type
+      ~ProtexSystem.loadCheckpoint
+      ~ProtexSystem.loadState
+      ~ProtexSystem.load_updates
+      ~ProtexSystem.saveCheckpoint
+      ~ProtexSystem.saveState
+      ~ProtexSystem.save_updates
+      ~ProtexSystem.update_context
+      ~ProtexSystem.write_psf
+   
+   
+
+   
+   
+   

@@ -81,7 +81,7 @@
     <span class="kn">import</span> <span class="nn">simtk.openmm</span> <span class="k">as</span> <span class="nn">openmm</span>
     <span class="kn">import</span> <span class="nn">simtk.unit</span> <span class="k">as</span> <span class="nn">unit</span>
 
-<span class="kn">from</span> <span class="nn">protex.system</span> <span class="kn">import</span> <span class="n">IonicLiquidSystem</span>
+<span class="kn">from</span> <span class="nn">protex.system</span> <span class="kn">import</span> <span class="n">ProtexSystem</span>
 
 
 <div class="viewcode-block" id="ChargeReporter"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.reporter.ChargeReporter.html#protex.reporter.ChargeReporter">[docs]</a><span class="k">class</span> <span class="nc">ChargeReporter</span><span class="p">:</span>
@@ -104,7 +104,7 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">reportInterval</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-        <span class="n">ionic_liquid</span><span class="p">:</span> <span class="n">IonicLiquidSystem</span><span class="p">,</span>
+        <span class="n">ionic_liquid</span><span class="p">:</span> <span class="n">ProtexSystem</span><span class="p">,</span>
         <span class="n">append</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">header_data</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
