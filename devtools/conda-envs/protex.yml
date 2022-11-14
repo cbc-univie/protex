@@ -1,4 +1,4 @@
-name: docs
+name: protex
 channels:
   - conda-forge
   - defaults
@@ -11,19 +11,8 @@ dependencies:
   - numpy
   - parmed
   - pyyaml
-  
-  # Documentation
-  - sphinx
-  - sphinx_rtd_theme
-
-    # Testing
-  #- pytest
-  #- pytest-cov
-  #- codecov
 
     # Pip-only installs
   - pip:
     - git+https://github.com/ParmEd/ParmEd.git
-    # Doku emojis
-    - sphinxemoji
-    
+

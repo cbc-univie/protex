@@ -52,6 +52,7 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx.ext.intersphinx",
     "sphinx.ext.extlinks",
+    "sphinxemoji.sphinxemoji"
     #'sphinx_autodoc_typehints',
 ]
 
@@ -61,6 +62,7 @@ napoleon_google_docstring = False
 napoleon_use_param = False
 napoleon_use_ivar = True
 numpydoc_show_class_members = False
+# sphinxemoji_style = "twemoji"
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
@@ -112,7 +114,11 @@ html_theme = "sphinx_rtd_theme"
 # documentation.
 #
 html_logo = "assets/images/protex_logo.png"
-html_theme_options = {"logo_only": True,"style_nav_header_background": "#c1e1c1", "navigation_depth": 4}
+html_theme_options = {
+    "logo_only": True,
+    "style_nav_header_background": "#c1e1c1",
+    "navigation_depth": 4,
+}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -122,7 +128,7 @@ html_static_path = ["_static"]
 # These paths are either relative to html_static_path
 # or fully qualified paths (eg. https://...)
 html_css_files = ["css/custom.css"]
-#html_js_files = ["js/custom.js"]
+# html_js_files = ["js/custom.js"]
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
