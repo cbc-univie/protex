@@ -1,5 +1,4 @@
 import argparse
-
 import os
 import re
 import sys
@@ -7,9 +6,10 @@ import time
 import warnings
 from pathlib import Path
 
+import numpy as np
+
 #import MDAnalysis
 
-import numpy as np
 #import tidynamics
 
 try:

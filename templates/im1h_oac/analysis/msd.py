@@ -1,17 +1,17 @@
-import MDAnalysis
-import numpy as np
-
+import argparse
 import os
+import re
 import sys
 import time
 from pathlib import Path
-import re
-import argparse
+
+import MDAnalysis
+import numpy as np
 import tidynamics
 
 try:
-    from cbchelpers.helpers import msd_com
     from cbchelpers.cond_helpers import Charges
+    from cbchelpers.helpers import msd_com
 except ModuleNotFoundError as e:
     print("Did you install the cbchelpers in your protex environment?")
     print("git clone git@github.com:florianjoerg/cbchelpers.git")
