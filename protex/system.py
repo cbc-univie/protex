@@ -19,9 +19,9 @@ from protex.residue import Residue
 logger = logging.getLogger(__name__)
 
 
-class IonicLiquidTemplates:
+class ProtexTemplates:
     """
-    Creates the basic foundation for the Ionic Liquid System.
+    Creates the basic foundation for the Protex System.
 
     Parameters
     -----------
@@ -217,7 +217,7 @@ class IonicLiquidTemplates:
         return self.states[name]["charge"]
 
 
-class IonicLiquidSystem:
+class ProtexSystem:
     """
     This class defines the full system, performs the MD steps and offers an
     interface for protonation state updates.
@@ -237,13 +237,13 @@ class IonicLiquidSystem:
     def __init__(
         self,
         simulation: openmm.app.simulation.Simulation,
-        templates: IonicLiquidTemplates,
+        templates: ProtexTemplates,
         simulation_for_parameters: openmm.app.simulation.Simulation = None,
     ) -> None:
         self.system: openmm.openmm.System = simulation.system
         self.topology: openmm.app.topology.Topology = simulation.topology
         self.simulation: openmm.app.simulation.Simulation = simulation
-        self.templates: IonicLiquidTemplates = templates
+        self.templates: ProtexTemplates = templates
         self.simulation_for_parameters = simulation_for_parameters
         self.residues: list[Residue] = self._set_initial_states()
         self.boxlength: float = (

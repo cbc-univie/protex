@@ -17,7 +17,7 @@ except ImportError:
 
 import protex
 
-from ..system import IonicLiquidSystem, IonicLiquidTemplates
+from ..system import ProtexSystem, ProtexTemplates
 from ..testsystems import (
     IM1H_IM1,
     OAC_HOAC,
@@ -39,9 +39,9 @@ def test_distance_calculation():
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
 
-    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
     # wrap system in IonicLiquidSystem
-    ionic_liquid = IonicLiquidSystem(simulation, templates)
+    ionic_liquid = ProtexSystem(simulation, templates)
 
     update = NaiveMCUpdate(ionic_liquid)
     # initialize state update class
@@ -84,9 +84,9 @@ def test_get_and_interpolate_forces():
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
 
-    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
     # wrap system in IonicLiquidSystem
-    ionic_liquid = IonicLiquidSystem(simulation, templates)
+    ionic_liquid = ProtexSystem(simulation, templates)
 
     # test _get*_parameters
     int_force_0 = ionic_liquid.residues[0]._get_NonbondedForce_parameters_at_lambda(0.0)
@@ -180,12 +180,12 @@ def test_setting_forces():
     allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 1}
     allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.16, "prob": 1}
     # get ionic liquid templates
-    templates = IonicLiquidTemplates(
+    templates = ProtexTemplates(
         [OAC_HOAC, IM1H_IM1],
         (allowed_updates),
     )
     # wrap system in IonicLiquidSystem
-    ionic_liquid = IonicLiquidSystem(simulation, templates)
+    ionic_liquid = ProtexSystem(simulation, templates)
 
     ##################################################
     ##################################################
@@ -588,9 +588,9 @@ def test_single_update(caplog):
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
 
-    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
     # wrap system in IonicLiquidSystem
-    ionic_liquid = IonicLiquidSystem(simulation, templates)
+    ionic_liquid = ProtexSystem(simulation, templates)
     ionic_liquid.simulation.minimizeEnergy(maxIterations=500)
     ionic_liquid.simulation.step(500)
 
@@ -661,9 +661,9 @@ def test_check_updated_charges(caplog):
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
 
-    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
     # wrap system in IonicLiquidSystem
-    ionic_liquid = IonicLiquidSystem(simulation, templates)
+    ionic_liquid = ProtexSystem(simulation, templates)
 
     update = NaiveMCUpdate(ionic_liquid)
     # initialize state update class
@@ -727,9 +727,9 @@ def test_transfer_with_distance_matrix():
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
 
-    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
     # wrap system in IonicLiquidSystem
-    ionic_liquid = IonicLiquidSystem(simulation, templates)
+    ionic_liquid = ProtexSystem(simulation, templates)
 
     update = NaiveMCUpdate(ionic_liquid)
     # initialize state update class
@@ -837,9 +837,9 @@ def test_updates(caplog):
     allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.16, "prob": 1}
     print(allowed_updates.keys())
     # get ionic liquid templates
-    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
     # wrap system in IonicLiquidSystem
-    ionic_liquid = IonicLiquidSystem(simulation, templates)
+    ionic_liquid = ProtexSystem(simulation, templates)
     pars = []
     update = NaiveMCUpdate(ionic_liquid)
     # initialize state update class
@@ -865,9 +865,9 @@ def test_adapt_probabilities(caplog):
     }  # r_max in nanometer, prob between 0 and 1
     # allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
     # get ionic liquid templates
-    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
     # wrap system in IonicLiquidSystem
-    ionic_liquid = IonicLiquidSystem(simulation, templates)
+    ionic_liquid = ProtexSystem(simulation, templates)
     caplog.set_level(logging.DEBUG)
     # check that residue and frozeset match
     try:
@@ -914,13 +914,13 @@ def test_dry_updates(caplog):
     allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 1}
     allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.16, "prob": 1}
     print(allowed_updates.keys())
-    templates = IonicLiquidTemplates(
+    templates = ProtexTemplates(
         # [OAC_HOAC_chelpg, IM1H_IM1_chelpg], (set(["IM1H", "OAC"]), set(["IM1", "HOAC"]))
         [OAC_HOAC, IM1H_IM1],
         (allowed_updates),
     )
     # wrap system in IonicLiquidSystem
-    ionic_liquid = IonicLiquidSystem(simulation, templates)
+    ionic_liquid = ProtexSystem(simulation, templates)
     pars = []
     update = NaiveMCUpdate(ionic_liquid)
     # initialize state update class
@@ -951,9 +951,9 @@ def test_parameters_after_update():
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
 
-    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
     # wrap system in IonicLiquidSystem
-    ionic_liquid = IonicLiquidSystem(simulation, templates)
+    ionic_liquid = ProtexSystem(simulation, templates)
     ionic_liquid.simulation.reporters.append(DCDReporter(f"test_transfer.dcd", 1))
     ionic_liquid.simulation.reporters.append(
         StateDataReporter(
@@ -1194,9 +1194,9 @@ def test_pbc():
     # allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 1}
     # allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.16, "prob": 1}
 
-    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
     # wrap system in IonicLiquidSystem
-    ionic_liquid = IonicLiquidSystem(simulation, templates)
+    ionic_liquid = ProtexSystem(simulation, templates)
 
     boxl = ionic_liquid.boxlength
     print(f"{boxl=}")
@@ -1255,9 +1255,9 @@ def test_single_im1h_oac():
         "prob": 1,
     }  # distance is about 0.18 -> verformt sich total
 
-    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
     # wrap system in IonicLiquidSystem
-    ionic_liquid = IonicLiquidSystem(simulation, templates)
+    ionic_liquid = ProtexSystem(simulation, templates)
     ionic_liquid.simulation.reporters.append(
         DCDReporter(f"{base}/test_single_im1h_oac.dcd", 10)
     )
@@ -1372,9 +1372,9 @@ def test_force_selection():
     # allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "delta_e": 1.78}
     # allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.16, "delta_e": 0.68}
     # get ionic liquid templates
-    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
     # wrap system in IonicLiquidSystem
-    ionic_liquid = IonicLiquidSystem(simulation, templates)
+    ionic_liquid = ProtexSystem(simulation, templates)
     update = NaiveMCUpdate(ionic_liquid)
     assert update.allowed_forces == ["NonbondedForce", "DrudeForce"]
     update = NaiveMCUpdate(ionic_liquid, all_forces=False)
@@ -1409,9 +1409,9 @@ def test_update_all_forces(caplog):
     allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.16, "prob": 1}
     print(allowed_updates.keys())
     # get ionic liquid templates
-    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
     # wrap system in IonicLiquidSystem
-    ionic_liquid = IonicLiquidSystem(simulation, templates)
+    ionic_liquid = ProtexSystem(simulation, templates)
     # pars = []
     update = NaiveMCUpdate(ionic_liquid, all_forces=True)
     # initialize state update class
@@ -1452,7 +1452,7 @@ def test_energy_before_after():
 
     def load_il(psf, rst, templates):
         sim = generate_im1h_oac_system(psf_file=psf)
-        il = IonicLiquidSystem(sim, templates)
+        il = ProtexSystem(sim, templates)
         il.loadCheckpoint(rst)
         return il
 
@@ -1469,8 +1469,8 @@ def test_energy_before_after():
         "r_max": 0.17,
         "prob": 1,
     }
-    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
-    ionic_liquid = IonicLiquidSystem(sim0, templates)
+    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+    ionic_liquid = ProtexSystem(sim0, templates)
     update = NaiveMCUpdate(ionic_liquid, all_forces=True)
     state_update = StateUpdate(update)
 
@@ -1550,7 +1550,7 @@ def test_single_energy_before_after(caplog):
 
     def load_il(psf, rst, templates):
         sim = generate_single_im1h_oac_system(psf_file=psf)
-        il = IonicLiquidSystem(sim, templates)
+        il = ProtexSystem(sim, templates)
         il.loadCheckpoint(rst)
         return il
 
@@ -1588,8 +1588,8 @@ def test_single_energy_before_after(caplog):
         "r_max": 0.17,
         "prob": 1,
     }
-    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
-    ionic_liquid = IonicLiquidSystem(sim0, templates)
+    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+    ionic_liquid = ProtexSystem(sim0, templates)
     update = NaiveMCUpdate(ionic_liquid, all_forces=True)
     state_update = StateUpdate(update)
 
@@ -1700,7 +1700,7 @@ def test_dummy_energy_before_after(caplog):
 
     def load_il(psf, rst, templates):
         sim = generate_im1h_oac_dummy_system(psf_file=psf)
-        il = IonicLiquidSystem(sim, templates)
+        il = ProtexSystem(sim, templates)
         il.loadCheckpoint(rst)
         return il
 
@@ -1738,8 +1738,8 @@ def test_dummy_energy_before_after(caplog):
         "r_max": 0.17,
         "prob": 1,
     }
-    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
-    ionic_liquid = IonicLiquidSystem(sim0, templates)
+    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+    ionic_liquid = ProtexSystem(sim0, templates)
     update = NaiveMCUpdate(ionic_liquid, all_forces=True)
     state_update = StateUpdate(update)
 
@@ -1850,7 +1850,7 @@ def test_periodictorsionforce_energy(caplog):
 
     def load_il(psf, rst, templates):
         sim = generate_single_im1h_oac_system(psf_file=psf)
-        il = IonicLiquidSystem(sim, templates)
+        il = ProtexSystem(sim, templates)
         il.loadCheckpoint(rst)
         return il
 
@@ -1884,8 +1884,8 @@ def test_periodictorsionforce_energy(caplog):
         "r_max": 0.17,
         "prob": 1,
     }
-    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
-    ionic_liquid = IonicLiquidSystem(sim0, templates)
+    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+    ionic_liquid = ProtexSystem(sim0, templates)
     update = NaiveMCUpdate(ionic_liquid, all_forces=True)
     state_update = StateUpdate(update)
 
@@ -1967,8 +1967,8 @@ def test_ubforce_update(caplog):
         "r_max": 0.17,
         "prob": 1,
     }
-    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
-    ionic_liquid = IonicLiquidSystem(sim0, templates)
+    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+    ionic_liquid = ProtexSystem(sim0, templates)
 
     print_force_contrib(ionic_liquid.simulation)
     for force in ionic_liquid.system.getForces():
@@ -2155,8 +2155,8 @@ def test_single_energy_molecule(caplog):
         "r_max": 0.17,
         "prob": 1,
     }
-    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
-    ionic_liquid = IonicLiquidSystem(sim0, templates)
+    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+    ionic_liquid = ProtexSystem(sim0, templates)
 
     print_force_contrib(ionic_liquid.simulation)
     # zero forces
@@ -2198,9 +2198,9 @@ def test_wrong_atom_name(caplog):
     # get ionic liquid templates
     IM1H_IM1 = {"IM1H": {"atom_name": "H72313"}, "IM1": {"atom_name": "wrong_name"}}
     OAC_HOAC = {"OAC": {"atom_name": "O2"}, "HOAC": {"atom_name": "H"}}
-    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
     # wrap system in IonicLiquidSystem
-    ionic_liquid = IonicLiquidSystem(simulation, templates)
+    ionic_liquid = ProtexSystem(simulation, templates)
     update = NaiveMCUpdate(ionic_liquid)
     # initialize state update class
     state_update = StateUpdate(update)
