@@ -438,4 +438,18 @@ class StateUpdate:
                     residue
                 )  # add second time the residue to have same length of pos_list and res_list
 
+            if residue.current_name == "OAC" and self.updateMethod.meoh2:
+                pos_list.append(
+                    pos[
+                        residue.get_idx_for_atom_name(
+                            self.ionic_liquid.templates.states[residue.current_name][
+                                "other_o"
+                            ]
+                        )
+                    ]
+                )
+                res_list.append(
+                    residue
+                )  # add second time the residue to have same length of pos_list and res_list
+
         return pos_list, res_list
