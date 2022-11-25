@@ -1117,11 +1117,7 @@ def test_reporter_class():
     ionic_liquid.simulation.reporters.append(charge_reporter)
     ionic_liquid.simulation.reporters.append(
         StateDataReporter(
-            stdout,
-            report_interval,
-            step=True,
-            time=True,
-            totalEnergy=True,
+            stdout, report_interval, step=True, time=True, totalEnergy=True,
         )
     )
 
@@ -1136,8 +1132,7 @@ def test_reporter_class():
 
 
 @pytest.mark.skipif(
-    os.getenv("CI") == "true",
-    reason="Will fail sporadicaly.",
+    os.getenv("CI") == "true", reason="Will fail sporadicaly.",
 )
 def test_write_psf_save_load():
     psf_for_parameters = f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
@@ -1199,8 +1194,7 @@ def test_write_psf_save_load():
 
 
 @pytest.mark.skipif(
-    os.getenv("CI") == "true",
-    reason="Will fail sporadicaly.",
+    os.getenv("CI") == "true", reason="Will fail sporadicaly.",
 )
 def test_updates(caplog):
     caplog.set_level(logging.DEBUG)
@@ -1259,8 +1253,7 @@ def test_updates(caplog):
 
 
 @pytest.mark.skipif(
-    os.getenv("CI") == "true",
-    reason="Will fail sporadicaly.",
+    os.getenv("CI") == "true", reason="Will fail sporadicaly.",
 )
 def test_pbc():
 
@@ -1333,8 +1326,7 @@ def test_pbc():
 
 
 @pytest.mark.skipif(
-    os.getenv("CI") == "true",
-    reason="Will fail sporadicaly.",
+    os.getenv("CI") == "true", reason="Will fail sporadicaly.",
 )
 def test_residue_forces():
     psf_for_parameters = f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
@@ -1806,8 +1798,7 @@ def test_count_forces():
 
 
 @pytest.mark.skipif(
-    os.getenv("CI") == "true",
-    reason="Will fail sporadicaly.",
+    os.getenv("CI") == "true", reason="Will fail sporadicaly.",
 )
 def test_update_write_psf():
     psf_for_parameters = f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
@@ -1886,3 +1877,88 @@ def test_update_write_psf():
     os.remove("state.rst")
     os.remove("checkpoint.rst")
     os.remove("test.psf")
+
+
+def test_meoh2_update():
+    psf_for_parameters = f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
+    psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
+    crd_for_parameters = f"{protex.__path__[0]}/forcefield/crd_for_parameters.crd"
+
+    simulation = generate_hpts_meoh_system(psf_file=psf_file)
+    simulation_for_parameters = generate_hpts_meoh_system(
+        psf_file=psf_for_parameters, crd_file=crd_for_parameters
+    )
+
+    # get ionic liquid templates
+    allowed_updates = {}
+    # allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
+    # allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
+    # allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 0.201}  # 1+2
+    # allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 0.684}  # 3+4
+    # allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000}
+    # allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
+    # allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000}
+    # allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
+    # allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
+    ## allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
+    ## allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
+    ## allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["HPTSH", "MEOH"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "MEOH"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "IM1"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "OAC"])] = {"r_max": 0.155, "prob": 1.000}
+
+    templates = ProtexTemplates(
+        [OAC_HOAC, IM1H_IM1, HPTSH_HPTS, MEOH_MEOH2], (allowed_updates)
+    )
+    # wrap system in IonicLiquidSystem
+    ionic_liquid = ProtexSystem(simulation, templates, simulation_for_parameters)
+    # initialize update method
+    update = NaiveMCUpdate(ionic_liquid, meoh2=True)
+    # initialize state update class
+    state_update = StateUpdate(update)
+
+    # old_psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
+    # ionic_liquid.write_psf(old_psf_file, "test.psf", psf_for_parameters)
+
+    print(state_update.updateMethod.meoh2)
+    print("Finished")
+    assert False
+
+    # state_update.update(2)
+
+    # i = 0
+    # while i < 20:
+    #     sum_charge = 0
+    #     for x in range(0, 4457):
+    #         resi = ionic_liquid.residues[x]
+    #         sum_charge = sum_charge + resi.current_charge
+    #     print(sum_charge)
+    #     if sum_charge != 0:
+    #         raise RuntimeError("Error in run", i)
+
+    #     os.rename("test.psf", "old_psf.psf")
+
+    #     simulation = generate_hpts_meoh_system(psf_file="old_psf.psf")
+    #     ionic_liquid = ProtexSystem(simulation, templates, simulation_for_parameters)
+    #     update = NaiveMCUpdate(ionic_liquid)
+    #     state_update = StateUpdate(update)
+
+    #     ionic_liquid.simulation.step(50)
+    #     state_update.update(2)
+
+    #     # NOTE: psf_for_parameters missing
+    #     ionic_liquid.write_psf("old_psf.psf", "test.psf", psf_for_parameters)
+    #     ionic_liquid.saveState("state.rst")
+    #     ionic_liquid.saveCheckpoint("checkpoint.rst")
+
+    #     ionic_liquid2 = ionic_liquid  # copy.deepcopy(ionic_liquid)
+    #     ionic_liquid.loadState("state.rst")
+    #     ionic_liquid2.loadCheckpoint("checkpoint.rst")
+
+    #     i += 1
+
+    # # os.remove("old_psf.psf")
+    # os.remove("state.rst")
+    # os.remove("checkpoint.rst")
+    # os.remove("test.psf")

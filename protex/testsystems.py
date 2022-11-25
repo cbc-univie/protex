@@ -1294,6 +1294,7 @@ MEOH_MEOH2 = {
     },
     "MEOH2": {
         "atom_name": "HO2",
+        "other_h": "HO1",
         "canonical_name": "MEOH",
     },
 }

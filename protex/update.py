@@ -21,11 +21,7 @@ class Update:
         Needs the IonicLiquidSystem
     """
 
-    def __init__(
-        self,
-        ionic_liquid: ProtexSystem,
-        to_adapt=None,
-    ) -> None:
+    def __init__(self, ionic_liquid: ProtexSystem, to_adapt=None,) -> None:
         self.ionic_liquid: ProtexSystem = ionic_liquid
         self.to_adapt: list[tuple[str, int, frozenset[str]]] = to_adapt
 
@@ -45,6 +41,7 @@ class NaiveMCUpdate(Update):
         ionic_liquid: ProtexSystem,
         all_forces: bool = False,
         to_adapt: list[tuple[str, int, frozenset[str]]] = None,
+        meoh2: bool = False,
     ) -> None:
         super().__init__(ionic_liquid, to_adapt)
         self.allowed_forces: list[str] = [  # change charges only
@@ -60,6 +57,7 @@ class NaiveMCUpdate(Update):
                     "CustomTorsionForce",
                 ]
             )
+        self.meoh2 = meoh2
 
     def _update(self, candidates: list[tuple], nr_of_steps: int):
         logger.info("called _update")
@@ -223,7 +221,16 @@ class StateUpdate:
         raise RuntimeError("Something went wrong. There was no NonbondedForce")
 
     def get_num_residues(self) -> dict:
-        res_dict = {"IM1H": 0, "OAC": 0, "IM1": 0, "HOAC": 0, "HPTS": 0, "HPTSH": 0, "MEOH": 0, "MEOH2": 0}
+        res_dict = {
+            "IM1H": 0,
+            "OAC": 0,
+            "IM1": 0,
+            "HOAC": 0,
+            "HPTS": 0,
+            "HPTSH": 0,
+            "MEOH": 0,
+            "MEOH2": 0,
+        }
         for residue in self.ionic_liquid.residues:
             res_dict[residue.current_name] += 1
         return res_dict
@@ -284,6 +291,9 @@ class StateUpdate:
         Takes the return value of _get_positions_of_mutation_sites
 
         """
+        assert len(pos_list) == len(
+            res_list
+        ), "Should be equal length and same order, because residue is found by index of pos list"
 
         from scipy.spatial.distance import cdist
 
@@ -409,5 +419,19 @@ class StateUpdate:
                 ]
             )
             res_list.append(residue)
+
+            if residue.current_name == "MEOH2" and self.updateMethod.meoh2:
+                pos_list.append(
+                    pos[
+                        residue.get_idx_for_atom_name(
+                            self.ionic_liquid.templates.states[residue.current_name][
+                                "other_h"
+                            ]
+                        )
+                    ]
+                )
+                res_list.append(
+                    residue
+                )  # add second time the residue to have same length of pos_list and res_list
 
         return pos_list, res_list

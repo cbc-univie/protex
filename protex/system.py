@@ -12,7 +12,7 @@ import yaml
 try:
     import openmm
 except ImportError:
-    import simtk.openmm
+    import simtk.openmm as openmm
 
 from protex.residue import Residue
 
