@@ -21,7 +21,11 @@ class Update:
         Needs the IonicLiquidSystem
     """
 
-    def __init__(self, ionic_liquid: ProtexSystem, to_adapt=None,) -> None:
+    def __init__(
+        self,
+        ionic_liquid: ProtexSystem,
+        to_adapt=None,
+    ) -> None:
         self.ionic_liquid: ProtexSystem = ionic_liquid
         self.to_adapt: list[tuple[str, int, frozenset[str]]] = to_adapt
 

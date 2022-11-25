@@ -1117,7 +1117,11 @@ def test_reporter_class():
     ionic_liquid.simulation.reporters.append(charge_reporter)
     ionic_liquid.simulation.reporters.append(
         StateDataReporter(
-            stdout, report_interval, step=True, time=True, totalEnergy=True,
+            stdout,
+            report_interval,
+            step=True,
+            time=True,
+            totalEnergy=True,
         )
     )
 
@@ -1132,7 +1136,8 @@ def test_reporter_class():
 
 
 @pytest.mark.skipif(
-    os.getenv("CI") == "true", reason="Will fail sporadicaly.",
+    os.getenv("CI") == "true",
+    reason="Will fail sporadicaly.",
 )
 def test_write_psf_save_load():
     psf_for_parameters = f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
@@ -1194,7 +1199,8 @@ def test_write_psf_save_load():
 
 
 @pytest.mark.skipif(
-    os.getenv("CI") == "true", reason="Will fail sporadicaly.",
+    os.getenv("CI") == "true",
+    reason="Will fail sporadicaly.",
 )
 def test_updates(caplog):
     caplog.set_level(logging.DEBUG)
@@ -1253,7 +1259,8 @@ def test_updates(caplog):
 
 
 @pytest.mark.skipif(
-    os.getenv("CI") == "true", reason="Will fail sporadicaly.",
+    os.getenv("CI") == "true",
+    reason="Will fail sporadicaly.",
 )
 def test_pbc():
 
@@ -1326,7 +1333,8 @@ def test_pbc():
 
 
 @pytest.mark.skipif(
-    os.getenv("CI") == "true", reason="Will fail sporadicaly.",
+    os.getenv("CI") == "true",
+    reason="Will fail sporadicaly.",
 )
 def test_residue_forces():
     psf_for_parameters = f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
@@ -1798,7 +1806,8 @@ def test_count_forces():
 
 
 @pytest.mark.skipif(
-    os.getenv("CI") == "true", reason="Will fail sporadicaly.",
+    os.getenv("CI") == "true",
+    reason="Will fail sporadicaly.",
 )
 def test_update_write_psf():
     psf_for_parameters = f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
