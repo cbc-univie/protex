@@ -57,6 +57,7 @@ class Residue:
         alternativ_parameters,
         # canonical_name,
         pair_12_13_exclusion_list,
+        has_equivalent_atom,
     ) -> None:
 
         self.residue = residue
@@ -73,6 +74,9 @@ class Residue:
         self.system = system
         self.record_charge_state.append(self.endstate_charge)  # Not used anywhere?
         self.pair_12_13_list = pair_12_13_exclusion_list
+        self.has_equivalent_atom: bool = has_equivalent_atom
+        self.equivalent_atom_pos_in_list: int = None
+        self.used_equivalent_atom: bool = False
 
     @property
     def alternativ_name(self):

@@ -1290,11 +1290,9 @@ HPTSH_HPTS = {
 MEOH_MEOH2 = {
     "MEOH": {
         "atom_name": "O1",
-        "canonical_name": "MEOH",
     },
     "MEOH2": {
         "atom_name": "HO2",
-        "other_h": "HO1",
-        "canonical_name": "MEOH",
+        "equivalent_atom": "HO1",
     },
 }
