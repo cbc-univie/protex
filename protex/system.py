@@ -77,6 +77,18 @@ class ProtexTemplates:
         self.overall_max_distance: float = max(
             [value["r_max"] for value in self.allowed_updates.values()]
         )
+        # store names in variables, in case syntax for states dict changes
+        self._atom_name: str = "atom_name"
+        self._equivalent_atom: str = "equivalent_atom"
+
+    def get_atom_name_for(self, resname: str) -> str:
+        return self.states[resname][self._atom_name]
+
+    def has_equivalent_atom(self, resname: str) -> bool:
+        return self._equivalent_atom in self.states[resname]
+
+    def get_equivalent_atom_for(self, resname: str) -> str:
+        return self.states[resname][self._equivalent_atom]
 
     def get_update_value_for(self, residue_set: frozenset[str], property: str) -> float:
         """
@@ -484,6 +496,7 @@ class ProtexSystem:
                         parameters_state2,
                         # self.templates.get_canonical_name(name),
                         pair_12_13_list,
+                        self.templates.has_equivalent_atom(name)
                     )
                 )
                 residues[
