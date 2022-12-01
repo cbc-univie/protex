@@ -63,8 +63,28 @@ class NaiveMCUpdate(Update):
             )
         self.meoh2 = meoh2
 
-    def _reorient_atoms(self):
+    def _reorient_atoms(self, candidate):
         # Function to reorient atoms if the equivalent atom was used for shortest distance
+        # something like: getPositions, change coordinates of dummy and real H, setPositions -> only works for MEOH
+    
+        positions = self.ionic_liquid.simulation.context.getState(
+            getPositions=True
+        ).getPositions(asNumpy=True)
+
+        atom_idx = candidate.get_idx_for_atom_name(self.ionic_liquid.templates.get_atom_name_for(candidate.current_name))
+        equivalent_idx = candidate.get_idx_for_atom_name(self.ionic_liquid.templates.get_equivalent_atom_for(candidate.current_name))
+        pos_atom = positions[atom_idx]
+        pos_equivalent = positions[equivalent_idx]
+
+        positions[atom_idx] = pos_equivalent
+        positions[equivalent_idx] = pos_atom
+
+        self.ionic_liquid.simulation.context.setPositions(positions)
+
+        # rotation needed for HOAC -> 180° around C-C bond
+        # new idea: update position of dummy H to that of H on the other partner -> would be more like reality for pt in general
+        # only exchange positions of Os
+
         pass
 
     def _update(self, candidates: list[tuple], nr_of_steps: int):
@@ -78,10 +98,10 @@ class NaiveMCUpdate(Update):
                 )
             if candidate1_residue.used_equivalent_atom:
                 candidate1_residue.used_equivalent_atom = False # reset for next update round
-                self._reorient_atoms()
+                self._reorient_atoms(candidate1_residue)
             if candidate2_residue.used_equivalent_atom:
                 candidate2_residue.used_equivalent_atom = False
-                self._reorient_atoms()
+                self._reorient_atoms(candidate2_residue)
 
         # get current state
         state = self.ionic_liquid.simulation.context.getState(getEnergy=True)
@@ -457,18 +477,5 @@ class StateUpdate:
                     residue
                 )  # add second time the residue to have same length of pos_list and res_list
 
-            if residue.current_name == "OAC" and self.updateMethod.meoh2:
-                pos_list.append(
-                    pos[
-                        residue.get_idx_for_atom_name(
-                            self.ionic_liquid.templates.states[residue.current_name][
-                                "other_o"
-                            ]
-                        )
-                    ]
-                )
-                res_list.append(
-                    residue
-                )  # add second time the residue to have same length of pos_list and res_list
 
         return pos_list, res_list
