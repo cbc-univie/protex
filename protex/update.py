@@ -66,13 +66,17 @@ class NaiveMCUpdate(Update):
     def _reorient_atoms(self, candidate):
         # Function to reorient atoms if the equivalent atom was used for shortest distance
         # something like: getPositions, change coordinates of dummy and real H, setPositions -> only works for MEOH
-    
+
         positions = self.ionic_liquid.simulation.context.getState(
             getPositions=True
         ).getPositions(asNumpy=True)
 
-        atom_idx = candidate.get_idx_for_atom_name(self.ionic_liquid.templates.get_atom_name_for(candidate.current_name))
-        equivalent_idx = candidate.get_idx_for_atom_name(self.ionic_liquid.templates.get_equivalent_atom_for(candidate.current_name))
+        atom_idx = candidate.get_idx_for_atom_name(
+            self.ionic_liquid.templates.get_atom_name_for(candidate.current_name)
+        )
+        equivalent_idx = candidate.get_idx_for_atom_name(
+            self.ionic_liquid.templates.get_equivalent_atom_for(candidate.current_name)
+        )
         pos_atom = positions[atom_idx]
         pos_equivalent = positions[equivalent_idx]
 
@@ -94,10 +98,12 @@ class NaiveMCUpdate(Update):
         # TODO:
         for candidate in candidates:
             candidate1_residue, candidate2_residue = sorted(
-                    candidate, key=lambda candidate: candidate.current_name
-                )
+                candidate, key=lambda candidate: candidate.current_name
+            )
             if candidate1_residue.used_equivalent_atom:
-                candidate1_residue.used_equivalent_atom = False # reset for next update round
+                candidate1_residue.used_equivalent_atom = (
+                    False  # reset for next update round
+                )
                 self._reorient_atoms(candidate1_residue)
             if candidate2_residue.used_equivalent_atom:
                 candidate2_residue.used_equivalent_atom = False
@@ -404,7 +410,9 @@ class StateUpdate:
                     proposed_candidate_pair = (residue1, residue2)
                     # reject if already used in this transfer call
                     # print(f"{residue1=}, {residue2=}")
-                    if residue1 in used_residues or residue2 in used_residues: #TODO: is this working with changing some variables in the classes?
+                    if (
+                        residue1 in used_residues or residue2 in used_residues
+                    ):  # TODO: is this working with changing some variables in the classes?
                         logger.debug(
                             f"{residue1.current_name}:{residue1.residue.id}:{charge_candidate_idx1}-{residue2.current_name}:{residue2.residue.id}:{charge_candidate_idx2} pair rejected, bc used this transfer call ..."
                         )
@@ -418,7 +426,9 @@ class StateUpdate:
                         continue
                     # accept otherwise
                     proposed_candidate_pairs.append(proposed_candidate_pair)
-                    if candidate_idx1 == residue1.equivalent_atom_pos_in_list: # check if we used the actual atom or onyl the equivalent
+                    if (
+                        candidate_idx1 == residue1.equivalent_atom_pos_in_list
+                    ):  # check if we used the actual atom or onyl the equivalent
                         residue1.used_equivalent_atom = True
                     if candidate_idx2 == residue2.equivalent_atom_pos_in_list:
                         residue2.used_equivalent_atom = True
@@ -455,7 +465,9 @@ class StateUpdate:
             pos_list.append(
                 pos[
                     residue.get_idx_for_atom_name(
-                        self.ionic_liquid.templates.get_atom_name_for(residue.current_name)
+                        self.ionic_liquid.templates.get_atom_name_for(
+                            residue.current_name
+                        )
                     )
                     # this needs the atom idx to be the same for both topologies
                     # TODO: maybe get rid of this caveat
@@ -468,14 +480,17 @@ class StateUpdate:
                 pos_list.append(
                     pos[
                         residue.get_idx_for_atom_name(
-                            self.ionic_liquid.templates.get_equivalent_atom_for(residue.current_name)
+                            self.ionic_liquid.templates.get_equivalent_atom_for(
+                                residue.current_name
+                            )
                         )
                     ]
                 )
-                residue.equivalent_atom_pos_in_list = len(res_list) # store idx to know which coordinates where used for distance
+                residue.equivalent_atom_pos_in_list = len(
+                    res_list
+                )  # store idx to know which coordinates where used for distance
                 res_list.append(
                     residue
                 )  # add second time the residue to have same length of pos_list and res_list
-
 
         return pos_list, res_list
