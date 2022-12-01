@@ -1258,6 +1258,7 @@ def test_updates(caplog):
     os.remove("hpts_new.psf")
 
 
+
 @pytest.mark.skipif(
     os.getenv("CI") == "true",
     reason="Will fail sporadicaly.",
@@ -1971,3 +1972,63 @@ def test_meoh2_update():
     # os.remove("state.rst")
     # os.remove("checkpoint.rst")
     # os.remove("test.psf")
+
+@pytest.mark.skipif(
+    os.getenv("CI") == "true",
+    reason="Will fail sporadicaly.",
+)
+def test_updates_with_reorient():
+   # caplog.set_level(logging.DEBUG)
+
+    psf_for_parameters = f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
+    crd_for_parameters = f"{protex.__path__[0]}/forcefield/crd_for_parameters.crd"
+    psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
+    restart_file = f"{protex.__path__[0]}/forcefield/traj/hpts_npt_7.rst"
+
+    simulation = generate_hpts_meoh_system(psf_file=psf_file, restart_file=restart_file)
+    simulation_for_parameters = generate_hpts_meoh_system(
+        psf_file=psf_for_parameters, crd_file=crd_for_parameters
+    )
+    allowed_updates = {}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 0.201}  # 1+2
+    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 0.684}  # 3+4
+    allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000}
+    # allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000}
+    # allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
+    # allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
+    # allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
+    # allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
+    # allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["HPTSH", "MEOH"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "MEOH"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "IM1"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "OAC"])] = {"r_max": 0.155, "prob": 1.000}
+
+    templates = ProtexTemplates(
+        [OAC_HOAC, IM1H_IM1, HPTSH_HPTS, MEOH_MEOH2], (allowed_updates)
+    )
+    # wrap system in IonicLiquidSystem
+    ionic_liquid = ProtexSystem(simulation, templates, simulation_for_parameters)
+    pars = []
+    update = NaiveMCUpdate(ionic_liquid, meoh2 = True)
+    # initialize state update class
+    state_update = StateUpdate(update)
+    # ionic_liquid.simulation.minimizeEnergy(maxIterations=200)
+    ionic_liquid.simulation.step(50)
+
+    for _ in range(5):
+        ionic_liquid.simulation.step(18)
+        pars.append(state_update.get_charges())
+        candidate_pairs = state_update.update(2)
+
+        print(candidate_pairs)
+
+    # test whether the update changed the psf
+    old_psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
+    ionic_liquid.write_psf(old_psf_file, "hpts_new.psf", psf_for_parameters)
+
+    os.remove("hpts_new.psf")
+
