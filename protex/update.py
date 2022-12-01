@@ -88,13 +88,21 @@ class NaiveMCUpdate(Update):
         # TODO:
         for candidate in candidates:
             candidate1_residue, candidate2_residue = sorted(
-                    candidate, key=lambda candidate: candidate.current_name
-                )
+                candidate, key=lambda candidate: candidate.current_name
+            )
         positions = self.ionic_liquid.simulation.context.getState(
             getPositions=True
         ).getPositions(asNumpy=True)
 
-        if "H" in self.ionic_liquid.templates.get_atom_name_for(candidate1_residue.current_name) or (candidate1_residue.has_equivalent_atom == True and "H" in self.ionic_liquid.templates.get_equivalent_atom_for(candidate1_residue.current_name)):
+        if "H" in self.ionic_liquid.templates.get_atom_name_for(
+            candidate1_residue.current_name
+        ) or (
+            candidate1_residue.has_equivalent_atom == True
+            and "H"
+            in self.ionic_liquid.templates.get_equivalent_atom_for(
+                candidate1_residue.current_name
+            )
+        ):
             donor = candidate1_residue
             acceptor = candidate2_residue
         else:
@@ -102,9 +110,19 @@ class NaiveMCUpdate(Update):
             acceptor = candidate1_residue
 
         if donor.used_equivalent_atom == True:
-            pos_donated_H = positions[donor.get_idx_for_atom_name(self.ionic_liquid.templates.get_equivalent_atom_for(donor.current_name))]
+            pos_donated_H = positions[
+                donor.get_idx_for_atom_name(
+                    self.ionic_liquid.templates.get_equivalent_atom_for(
+                        donor.current_name
+                    )
+                )
+            ]
         else:
-            pos_donated_H = positions[donor.get_idx_for_atom_name(self.ionic_liquid.templates.get_atom_name_for(donor.current_name))]
+            pos_donated_H = positions[
+                donor.get_idx_for_atom_name(
+                    self.ionic_liquid.templates.get_atom_name_for(donor.current_name)
+                )
+            ]
 
         # get current state
         state = self.ionic_liquid.simulation.context.getState(getEnergy=True)
@@ -142,16 +160,16 @@ class NaiveMCUpdate(Update):
             for force_to_be_updated in self.allowed_forces:
                 self.ionic_liquid.update_context(force_to_be_updated)
 
-
             # reorient equivalent atoms if needed
 
             if candidate1_residue.used_equivalent_atom:
-                candidate1_residue.used_equivalent_atom = False # reset for next update round
+                candidate1_residue.used_equivalent_atom = (
+                    False  # reset for next update round
+                )
                 self._reorient_atoms(candidate1_residue, positions)
             if candidate2_residue.used_equivalent_atom:
                 candidate2_residue.used_equivalent_atom = False
                 self._reorient_atoms(candidate2_residue, positions)
-
 
             # get new energy
             state = self.ionic_liquid.simulation.context.getState(getEnergy=True)
@@ -167,8 +185,10 @@ class NaiveMCUpdate(Update):
             # also update has_equivalent_atom
             for candidate_residue in (candidate1_residue, candidate2_residue):
                 if candidate_residue.current_name in ("MEOH2", "MEOH", "HOAC", "OAC"):
-                    candidate_residue.has_equivalent_atom = not candidate_residue.has_equivalent_atom
-            
+                    candidate_residue.has_equivalent_atom = (
+                        not candidate_residue.has_equivalent_atom
+                    )
+
             # after the update is finished the current_name attribute is updated (and since alternative_name depends on current_name it too is updated)
             candidate1_residue.current_name = candidate1_residue.alternativ_name
             candidate2_residue.current_name = candidate2_residue.alternativ_name
@@ -176,15 +196,15 @@ class NaiveMCUpdate(Update):
             assert candidate1_residue.current_name != candidate1_residue.alternativ_name
             assert candidate2_residue.current_name != candidate2_residue.alternativ_name
 
-    
         # acceptor current name refers now to a donor -> atom name is the H that can be given on -> this used to be the dummy H
-        idx_accepted_H = acceptor.get_idx_for_atom_name(self.ionic_liquid.templates.get_atom_name_for(acceptor.current_name))
+        idx_accepted_H = acceptor.get_idx_for_atom_name(
+            self.ionic_liquid.templates.get_atom_name_for(acceptor.current_name)
+        )
 
         # update position of the once-dummy H to that of the donated H
         positions[idx_accepted_H] = pos_donated_H
         self.ionic_liquid.simulation.context.setPositions(positions)
         # NOTE: should this happen after the simulation step(s) within the update?
-
 
         # get new energy
         state = self.ionic_liquid.simulation.context.getState(getEnergy=True)

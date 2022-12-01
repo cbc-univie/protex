@@ -1258,7 +1258,6 @@ def test_updates(caplog):
     os.remove("hpts_new.psf")
 
 
-
 @pytest.mark.skipif(
     os.getenv("CI") == "true",
     reason="Will fail sporadicaly.",
@@ -1973,12 +1972,13 @@ def test_meoh2_update():
     # os.remove("checkpoint.rst")
     # os.remove("test.psf")
 
+
 @pytest.mark.skipif(
     os.getenv("CI") == "true",
     reason="Will fail sporadicaly.",
 )
 def test_updates_with_reorient():
-   # caplog.set_level(logging.DEBUG)
+    # caplog.set_level(logging.DEBUG)
 
     psf_for_parameters = f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
     crd_for_parameters = f"{protex.__path__[0]}/forcefield/crd_for_parameters.crd"
@@ -2013,7 +2013,7 @@ def test_updates_with_reorient():
     # wrap system in IonicLiquidSystem
     ionic_liquid = ProtexSystem(simulation, templates, simulation_for_parameters)
     pars = []
-    update = NaiveMCUpdate(ionic_liquid, meoh2 = True)
+    update = NaiveMCUpdate(ionic_liquid, meoh2=True)
     # initialize state update class
     state_update = StateUpdate(update)
     # ionic_liquid.simulation.minimizeEnergy(maxIterations=200)
@@ -2031,4 +2031,3 @@ def test_updates_with_reorient():
     ionic_liquid.write_psf(old_psf_file, "hpts_new.psf", psf_for_parameters)
 
     os.remove("hpts_new.psf")
-
