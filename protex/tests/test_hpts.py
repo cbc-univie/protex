@@ -2032,6 +2032,7 @@ def test_updates_with_reorient():
 
     os.remove("hpts_new.psf")
 
+
 @pytest.mark.skipif(
     os.getenv("CI") == "true",
     reason="Will fail sporadicaly.",
@@ -2064,14 +2065,13 @@ def test_manipulating_coordinates():
     # wrap system in IonicLiquidSystem
     ionic_liquid = ProtexSystem(simulation, templates, simulation_for_parameters)
 
-    positions =  ionic_liquid.simulation.context.getState(
-            getPositions=True
-        ).getPositions(asNumpy=True)
+    positions = ionic_liquid.simulation.context.getState(
+        getPositions=True
+    ).getPositions(asNumpy=True)
 
     a = positions[0]
     print(a)
     b = positions[1]
     print(b)
-    c = a-0.9*(a-b)
+    c = a - 0.9 * (a - b)
     print(c)
-    

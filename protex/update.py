@@ -80,10 +80,11 @@ class NaiveMCUpdate(Update):
 
         positions[atom_idx] = pos_equivalent
         positions[equivalent_idx] = pos_atom
-        
 
         self.ionic_liquid.simulation.context.setPositions(positions)
-        print(f"setting position of {self.ionic_liquid.templates.get_atom_name_for(candidate.current_name)} to {positions[atom_idx]} and {self.ionic_liquid.templates.get_equivalent_atom_for(candidate.current_name)} to {positions[equivalent_idx]}")
+        print(
+            f"setting position of {self.ionic_liquid.templates.get_atom_name_for(candidate.current_name)} to {positions[atom_idx]} and {self.ionic_liquid.templates.get_equivalent_atom_for(candidate.current_name)} to {positions[equivalent_idx]}"
+        )
 
     def _update(self, candidates: list[tuple], nr_of_steps: int):
         logger.info("called _update")
@@ -92,17 +93,17 @@ class NaiveMCUpdate(Update):
             getPositions=True
         ).getPositions(asNumpy=True)
 
-        donors = [] # determine which candidate was the H-donor / acceptor
-        acceptors = [] 
-        pos_donated_Hs = [] # collect the positions of the real Hs at transfer
-        pos_accepted_Hs = [] # can't put new H on top of dummy H -> put it a little bit closer to the acceptor
-        
+        donors = []  # determine which candidate was the H-donor / acceptor
+        acceptors = []
+        pos_donated_Hs = []  # collect the positions of the real Hs at transfer
+        pos_accepted_Hs = (
+            []
+        )  # can't put new H on top of dummy H -> put it a little bit closer to the acceptor
 
         for candidate in candidates:
             candidate1_residue, candidate2_residue = sorted(
                 candidate, key=lambda candidate: candidate.current_name
             )
-            
 
             if "H" in self.ionic_liquid.templates.get_atom_name_for(
                 candidate1_residue.current_name
@@ -115,14 +116,13 @@ class NaiveMCUpdate(Update):
             ):
                 donor = candidate1_residue
                 acceptor = candidate2_residue
-                
+
             else:
                 donor = candidate2_residue
                 acceptor = candidate1_residue
-            
+
             donors.append(donor)
             acceptors.append(acceptor)
-            
 
             if donor.used_equivalent_atom == True:
                 pos_donated_H = positions[
@@ -135,29 +135,34 @@ class NaiveMCUpdate(Update):
             else:
                 pos_donated_H = positions[
                     donor.get_idx_for_atom_name(
-                        self.ionic_liquid.templates.get_atom_name_for(donor.current_name)
+                        self.ionic_liquid.templates.get_atom_name_for(
+                            donor.current_name
+                        )
                     )
                 ]
-            
+
             pos_donated_Hs.append(pos_donated_H)
 
             if acceptor.used_equivalent_atom == True:
                 pos_acceptor_atom = positions[
                     acceptor.get_idx_for_atom_name(
-                        self.ionic_liquid.templates.get_equivalent_atom_for(acceptor.current_name)
+                        self.ionic_liquid.templates.get_equivalent_atom_for(
+                            acceptor.current_name
+                        )
                     )
                 ]
 
             else:
                 pos_acceptor_atom = positions[
                     acceptor.get_idx_for_atom_name(
-                        self.ionic_liquid.templates.get_atom_name_for(acceptor.current_name)
+                        self.ionic_liquid.templates.get_atom_name_for(
+                            acceptor.current_name
+                        )
                     )
                 ]
 
-            pos_accepted_H = pos_donated_H - 0.99*(pos_donated_H-pos_acceptor_atom)
+            pos_accepted_H = pos_donated_H - 0.99 * (pos_donated_H - pos_acceptor_atom)
             pos_accepted_Hs.append(pos_accepted_H)
-        
 
         # get current state
         state = self.ionic_liquid.simulation.context.getState(getEnergy=True)
@@ -230,19 +235,20 @@ class NaiveMCUpdate(Update):
 
             assert candidate1_residue.current_name != candidate1_residue.alternativ_name
             assert candidate2_residue.current_name != candidate2_residue.alternativ_name
-           
+
             # acceptor current name refers now to a future donor -> atom name is the H that can be given on -> this used to be the dummy H
             acceptor = acceptors[candidates.index(candidate)]
             idx_accepted_H = acceptor.get_idx_for_atom_name(
                 self.ionic_liquid.templates.get_atom_name_for(acceptor.current_name)
             )
-            
 
             # update position of the once-dummy H to that of the donated H (a bit closer to the acceptor to avoid LJ collusion with the now dummy H)
             positions[idx_accepted_H] = pos_accepted_Hs[candidates.index(candidate)]
-            print(f"setting position of {self.ionic_liquid.templates.get_atom_name_for(acceptor.current_name)} of {acceptor.current_name}:{acceptor.residue.index} to {pos_accepted_Hs[candidates.index(candidate)]} from {pos_donated_Hs[candidates.index(candidate)]}")
-            
-        self.ionic_liquid.simulation.context.setPositions(positions) 
+            print(
+                f"setting position of {self.ionic_liquid.templates.get_atom_name_for(acceptor.current_name)} of {acceptor.current_name}:{acceptor.residue.index} to {pos_accepted_Hs[candidates.index(candidate)]} from {pos_donated_Hs[candidates.index(candidate)]}"
+            )
+
+        self.ionic_liquid.simulation.context.setPositions(positions)
         # NOTE: should this happen directly after the simulation steps if there are multiple steps within the update?
         # NOTE: should this happen before or after forces are updated?
 
