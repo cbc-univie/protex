@@ -1,6 +1,7 @@
 import logging
 import random
 from collections import Counter
+from abc import ABC, abstractmethod
 
 import numpy as np
 from scipy.spatial import distance_matrix
@@ -11,7 +12,7 @@ from protex.system import ProtexSystem
 logger = logging.getLogger(__name__)
 
 
-class Update:
+class Update(ABC):
     """
     ABC for implementing different Update Methods
 
@@ -24,30 +25,15 @@ class Update:
     def __init__(
         self,
         ionic_liquid: ProtexSystem,
-        to_adapt=None,
+        to_adapt: list[tuple[str, int, frozenset[str]]],
+        all_forces: bool,
+        include_equivalent_atom: bool,
+        reorient: bool,
     ) -> None:
         self.ionic_liquid: ProtexSystem = ionic_liquid
         self.to_adapt: list[tuple[str, int, frozenset[str]]] = to_adapt
-
-
-class NaiveMCUpdate(Update):
-    """
-    NaiveMCUpdate Performs naive MC update on molecule pairs in close proximity
-
-    Parameters
-    ----------
-    UpdateMethod : [type]
-        [description]
-    """
-
-    def __init__(
-        self,
-        ionic_liquid: ProtexSystem,
-        all_forces: bool = False,
-        to_adapt: list[tuple[str, int, frozenset[str]]] = None,
-        meoh2: bool = False,
-    ) -> None:
-        super().__init__(ionic_liquid, to_adapt)
+        self.include_equivalent_atom = include_equivalent_atom
+        self.reorient = reorient
         self.allowed_forces: list[str] = [  # change charges only
             "NonbondedForce",  # BUG: Charge stored in the DrudeForce does NOT get updated, probably you want to allow DrudeForce as well!
             "DrudeForce",
@@ -61,7 +47,88 @@ class NaiveMCUpdate(Update):
                     "CustomTorsionForce",
                 ]
             )
-        self.meoh2 = meoh2
+
+    @abstractmethod
+    def _update(self, candidates: list[tuple], nr_of_steps: int) -> None:
+        pass
+
+    def _adapt_probabilities(
+        self, to_adapt=list[tuple[str, int, frozenset[str]]]
+    ) -> None:
+        """
+        Adapt the probability for certain events depending on the current equilibrium, in order to stay close to a given reference
+        i.e. prob_neu = prob_orig + K*( x(t) - x(eq) )^3 where x(t) is the current percentage in the system of one species
+
+        Parameters:
+        -----------
+        to_adapt: List of tuples with first the residue name of the species,
+            the number of residues of this species in the system
+            and the specific reaction in which this species occurs and the probability should be updated
+        """
+        # check that there are not duplicate frozen sets
+        counts = Counter(s[2] for s in to_adapt)
+        assert (
+            len([e for e, c in counts.items() if c > 1]) == 0
+        ), "No duplicates for the transfer reactions allowed!"
+
+        K = 300
+        current_numbers: dict[
+            str, int
+        ] = self.ionic_liquid.get_current_number_of_each_residue_type()
+        for entry_tuple in to_adapt:
+            res_name, initial_number, update_set = (
+                entry_tuple[0],
+                entry_tuple[1],
+                entry_tuple[2],
+            )
+            assert res_name in update_set, "Resname not in update set"
+            try:
+                current_number = current_numbers[res_name]
+            except KeyError as e:
+                print(
+                    "The given name is not a valid residue name. Is it present in the psf file? Typo?"
+                )
+                print(e)
+            logger.debug(
+                f"{res_name=}, {initial_number=}, {current_number=}, {update_set=}"
+            )
+            perc_change = current_number / initial_number
+            factor = K * (perc_change - 1) ** 3
+            logger.debug(f"{perc_change=}, {factor=}")
+            new_prob = (
+                self.ionic_liquid.templates.get_update_value_for(update_set, "prob")
+                + factor
+            )
+            if new_prob > 1:
+                logger.info(
+                    f"Probability set to 1, cannot be greater. (Was: {new_prob})"
+                )
+                new_prob = 1
+            if new_prob < 0:
+                logger.info(
+                    f"Probability set to 0, cannot be smaller. (Was: {new_prob})"
+                )
+                new_prob = 0
+            self.ionic_liquid.templates.set_update_value_for(
+                update_set, "prob", new_prob
+            )
+            print(f"New Prob for {update_set}: {new_prob}")
+
+
+class KeepHUpdate(Update):
+    """
+    KeepHUpdate performs updates but uses the original H position
+    keep the position of the original H when switching from dummy to real H
+    """
+    def __init__(
+        self,
+        ionic_liquid: ProtexSystem,
+        all_forces: bool = False,
+        to_adapt: list[tuple[str, int, frozenset[str]]] = None,
+        include_equivalent_atom: bool = False, 
+        reorient: bool = False,
+    ) -> None:
+        super().__init__(ionic_liquid, to_adapt, all_forces, include_equivalent_atom, reorient)
 
     def _reorient_atoms(self, candidate, positions):
         # Function to reorient atoms if the equivalent atom was used for shortest distance
@@ -86,7 +153,7 @@ class NaiveMCUpdate(Update):
             f"setting position of {self.ionic_liquid.templates.get_atom_name_for(candidate.current_name)} to {positions[atom_idx]} and {self.ionic_liquid.templates.get_equivalent_atom_for(candidate.current_name)} to {positions[equivalent_idx]}"
         )
 
-    def _update(self, candidates: list[tuple], nr_of_steps: int):
+    def _update(self, candidates: list[tuple], nr_of_steps: int) -> None:
         logger.info("called _update")
 
         positions = self.ionic_liquid.simulation.context.getState(
@@ -223,11 +290,12 @@ class NaiveMCUpdate(Update):
                 self._reorient_atoms(candidate2_residue, positions)
 
             # also update has_equivalent_atom
-            for candidate_residue in (candidate1_residue, candidate2_residue):
-                if candidate_residue.current_name in ("MEOH2", "MEOH", "HOAC", "OAC"):
-                    candidate_residue.has_equivalent_atom = (
-                        not candidate_residue.has_equivalent_atom
-                    )
+            #TODO: adapt somehow in residue class, need information if current name or alternativ name have equivalent atom and adjust accordingly to current name!
+            #for candidate_residue in (candidate1_residue, candidate2_residue):
+            #    if candidate_residue.current_name in ("MEOH2", "MEOH", "HOAC", "OAC"):
+            #        candidate_residue.has_equivalent_atom = (
+            #            not candidate_residue.has_equivalent_atom
+            #        )
 
             # after the update is finished the current_name attribute is updated (and since alternative_name depends on current_name it too is updated)
             candidate1_residue.current_name = candidate1_residue.alternativ_name
@@ -261,68 +329,91 @@ class NaiveMCUpdate(Update):
         #    300.0 * unit.kelvin
         # )
 
-    def _adapt_probabilities(
-        self, to_adapt=list[tuple[str, int, frozenset[str]]]
+class NaiveMCUpdate(Update):
+    """
+    NaiveMCUpdate Performs naive MC update on molecule pairs in close proximity
+
+    Parameters
+    ----------
+    UpdateMethod : [type]
+        [description]
+    """
+
+    def __init__(
+        self,
+        ionic_liquid: ProtexSystem,
+        all_forces: bool = False,
+        to_adapt: list[tuple[str, int, frozenset[str]]] = None,
+        include_equivalent_atom: bool = False,
+        reorient: bool = False
     ) -> None:
-        """
-        Adapt the probability for certain events depending on the current equilibrium, in order to stay close to a given reference
-        i.e. prob_neu = prob_orig + K*( x(t) - x(eq) )^3 where x(t) is the current percentage in the system of one species
+        super().__init__(ionic_liquid, to_adapt, all_forces, include_equivalent_atom, reorient)
+        if reorient:
+            raise NotImplementedError("Currently reorienting atoms if equivalent atoms are used is not implemented. Set reorient=False.")
 
-        Parameters:
-        -----------
-        to_adapt: List of tuples with first the residue name of the species,
-            the number of residues of this species in the system
-            and the specific reaction in which this species occurs and the probability should be updated
-        """
-        # check that there are not duplicate frozen sets
-        counts = Counter(s[2] for s in to_adapt)
-        assert (
-            len([e for e, c in counts.items() if c > 1]) == 0
-        ), "No duplicates for the transfer reactions allowed!"
+    def _update(self, candidates: list[tuple], nr_of_steps: int) -> None:
+        logger.info("called _update")
+        # get current state
+        state = self.ionic_liquid.simulation.context.getState(getEnergy=True)
+        # get initial energy
+        initial_e = state.getPotentialEnergy()
+        if np.isnan(initial_e._value):
+            raise RuntimeError(f"Energy is {initial_e}")
 
-        K = 300
-        current_numbers: dict[
-            str, int
-        ] = self.ionic_liquid.get_current_number_of_each_residue_type()
-        for entry_tuple in to_adapt:
-            res_name, initial_number, update_set = (
-                entry_tuple[0],
-                entry_tuple[1],
-                entry_tuple[2],
-            )
-            assert res_name in update_set, "Resname not in update set"
-            try:
-                current_number = current_numbers[res_name]
-            except KeyError as e:
+        logger.info("Start changing states ...")
+        assert nr_of_steps > 1, "Use an update step number of at least 2."
+        for lamb in np.linspace(0, 1, nr_of_steps):
+            # for lamb in reversed(np.linspace(1, 0, nr_of_steps, endpoint=False)):
+            for candidate in candidates:
+                # retrive residue instances
+                candidate1_residue, candidate2_residue = sorted(
+                    candidate, key=lambda candidate: candidate.current_name
+                )
+
                 print(
-                    "The given name is not a valid residue name. Is it present in the psf file? Typo?"
+                    f"{lamb}: candiadate_1: {candidate1_residue.current_name}; charge:{candidate1_residue.current_charge}: candiadate_2: {candidate2_residue.current_name}; charge:{candidate2_residue.current_charge}"
                 )
-                print(e)
-            logger.debug(
-                f"{res_name=}, {initial_number=}, {current_number=}, {update_set=}"
-            )
-            perc_change = current_number / initial_number
-            factor = K * (perc_change - 1) ** 3
-            logger.debug(f"{perc_change=}, {factor=}")
-            new_prob = (
-                self.ionic_liquid.templates.get_update_value_for(update_set, "prob")
-                + factor
-            )
-            if new_prob > 1:
-                logger.info(
-                    f"Probability set to 1, cannot be greater. (Was: {new_prob})"
-                )
-                new_prob = 1
-            if new_prob < 0:
-                logger.info(
-                    f"Probability set to 0, cannot be smaller. (Was: {new_prob})"
-                )
-                new_prob = 0
-            self.ionic_liquid.templates.set_update_value_for(
-                update_set, "prob", new_prob
-            )
-            print(f"New Prob for {update_set}: {new_prob}")
 
+                for force_to_be_updated in self.allowed_forces:
+                    ######################
+                    # candidate1
+                    ######################
+                    candidate1_residue.update(force_to_be_updated, lamb)
+
+                    ######################
+                    # candidate2
+                    ######################
+                    candidate2_residue.update(force_to_be_updated, lamb)
+
+            # update the context to include the new parameters
+            for force_to_be_updated in self.allowed_forces:
+                self.ionic_liquid.update_context(force_to_be_updated)
+
+            # get new energy
+            state = self.ionic_liquid.simulation.context.getState(getEnergy=True)
+            new_e = state.getPotentialEnergy()
+            if np.isnan(new_e._value):
+                raise RuntimeError(f"Energy is {new_e}")
+
+            self.ionic_liquid.simulation.step(1)
+
+        for candidate in candidates:
+            candidate1_residue, candidate2_residue = candidate
+            # after the update is finished the current_name attribute is updated (and since alternative_name depends on current_name it too is updated)
+            candidate1_residue.current_name = candidate1_residue.alternativ_name
+            candidate2_residue.current_name = candidate2_residue.alternativ_name
+
+            assert candidate1_residue.current_name != candidate1_residue.alternativ_name
+            assert candidate2_residue.current_name != candidate2_residue.alternativ_name
+
+        # get new energy
+        state = self.ionic_liquid.simulation.context.getState(getEnergy=True)
+        new_e = state.getPotentialEnergy()
+        logger.info(f"Energy before/after state change:{initial_e}/{new_e}")
+
+        # self.ionic_liquid.simulation.context.setVelocitiesToTemperature(
+        #    300.0 * unit.kelvin
+        # )
 
 class StateUpdate:
     """
@@ -566,7 +657,7 @@ class StateUpdate:
             )
             res_list.append(residue)
 
-            if residue.has_equivalent_atom:
+            if self.updateMethod.include_equivalent_atom and residue.has_equivalent_atom:
                 pos_list.append(
                     pos[
                         residue.get_idx_for_atom_name(

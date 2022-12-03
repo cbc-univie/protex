@@ -496,7 +496,7 @@ class ProtexSystem:
                         parameters_state2,
                         # self.templates.get_canonical_name(name),
                         pair_12_13_list,
-                        self.templates.has_equivalent_atom(name),
+                        (self.templates.has_equivalent_atom(name),self.templates.has_equivalent_atom(name_of_paired_ion)),
                     )
                 )
                 residues[
