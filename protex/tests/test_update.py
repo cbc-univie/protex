@@ -25,7 +25,7 @@ from ..testsystems import (
     generate_im1h_oac_system,
     generate_single_im1h_oac_system,
 )
-from ..update import Update, NaiveMCUpdate, KeepHUpdate, StateUpdate
+from ..update import KeepHUpdate, NaiveMCUpdate, StateUpdate, Update
 
 
 def test_create_update():

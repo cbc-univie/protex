@@ -1,7 +1,7 @@
 import logging
 import random
-from collections import Counter
 from abc import ABC, abstractmethod
+from collections import Counter
 
 import numpy as np
 from scipy.spatial import distance_matrix
