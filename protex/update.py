@@ -120,15 +120,18 @@ class KeepHUpdate(Update):
     KeepHUpdate performs updates but uses the original H position
     keep the position of the original H when switching from dummy to real H
     """
+
     def __init__(
         self,
         ionic_liquid: ProtexSystem,
         all_forces: bool = False,
         to_adapt: list[tuple[str, int, frozenset[str]]] = None,
-        include_equivalent_atom: bool = False, 
+        include_equivalent_atom: bool = False,
         reorient: bool = False,
     ) -> None:
-        super().__init__(ionic_liquid, to_adapt, all_forces, include_equivalent_atom, reorient)
+        super().__init__(
+            ionic_liquid, to_adapt, all_forces, include_equivalent_atom, reorient
+        )
 
     def _reorient_atoms(self, candidate, positions):
         # Function to reorient atoms if the equivalent atom was used for shortest distance
@@ -290,8 +293,9 @@ class KeepHUpdate(Update):
                 self._reorient_atoms(candidate2_residue, positions)
 
             # also update has_equivalent_atom
-            #TODO: adapt somehow in residue class, need information if current name or alternativ name have equivalent atom and adjust accordingly to current name!
-            #for candidate_residue in (candidate1_residue, candidate2_residue):
+            # TODO: adapt somehow in residue class, need information if current name or alternativ name have equivalent atom and adjust accordingly to current name! ->
+            # residue.has_equivalent_atom now give the information depending on the current name.
+            # for candidate_residue in (candidate1_residue, candidate2_residue):
             #    if candidate_residue.current_name in ("MEOH2", "MEOH", "HOAC", "OAC"):
             #        candidate_residue.has_equivalent_atom = (
             #            not candidate_residue.has_equivalent_atom
@@ -329,6 +333,7 @@ class KeepHUpdate(Update):
         #    300.0 * unit.kelvin
         # )
 
+
 class NaiveMCUpdate(Update):
     """
     NaiveMCUpdate Performs naive MC update on molecule pairs in close proximity
@@ -345,11 +350,15 @@ class NaiveMCUpdate(Update):
         all_forces: bool = False,
         to_adapt: list[tuple[str, int, frozenset[str]]] = None,
         include_equivalent_atom: bool = False,
-        reorient: bool = False
+        reorient: bool = False,
     ) -> None:
-        super().__init__(ionic_liquid, to_adapt, all_forces, include_equivalent_atom, reorient)
+        super().__init__(
+            ionic_liquid, to_adapt, all_forces, include_equivalent_atom, reorient
+        )
         if reorient:
-            raise NotImplementedError("Currently reorienting atoms if equivalent atoms are used is not implemented. Set reorient=False.")
+            raise NotImplementedError(
+                "Currently reorienting atoms if equivalent atoms are used is not implemented. Set reorient=False."
+            )
 
     def _update(self, candidates: list[tuple], nr_of_steps: int) -> None:
         logger.info("called _update")
@@ -414,6 +423,7 @@ class NaiveMCUpdate(Update):
         # self.ionic_liquid.simulation.context.setVelocitiesToTemperature(
         #    300.0 * unit.kelvin
         # )
+
 
 class StateUpdate:
     """
@@ -657,7 +667,10 @@ class StateUpdate:
             )
             res_list.append(residue)
 
-            if self.updateMethod.include_equivalent_atom and residue.has_equivalent_atom:
+            if (
+                self.updateMethod.include_equivalent_atom
+                and residue.has_equivalent_atom
+            ):
                 pos_list.append(
                     pos[
                         residue.get_idx_for_atom_name(
