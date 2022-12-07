@@ -2031,6 +2031,3 @@ def test_updates_with_reorient():
     ionic_liquid.write_psf(old_psf_file, "hpts_new.psf", psf_for_parameters)
 
     os.remove("hpts_new.psf")
-
-
- 
