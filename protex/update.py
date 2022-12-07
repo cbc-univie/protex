@@ -73,9 +73,10 @@ class NaiveMCUpdate(Update):
         equivalent_idx = candidate.get_idx_for_atom_name(
             self.ionic_liquid.templates.get_equivalent_atom_for(candidate.current_name)
         )
-        pos_atom = positions[atom_idx]
+        positions_copy = positions.copy()
+        pos_atom = positions_copy[atom_idx]
         print(f"{pos_atom=}")
-        pos_equivalent = positions[equivalent_idx]
+        pos_equivalent = positions_copy[equivalent_idx]
         print(f"{pos_equivalent=}")
 
         positions[atom_idx] = pos_equivalent
