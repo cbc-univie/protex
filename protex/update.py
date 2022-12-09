@@ -1,6 +1,7 @@
 import logging
 import random
 from collections import Counter
+import copy
 
 import numpy as np
 from scipy.spatial import distance_matrix
@@ -63,7 +64,7 @@ class NaiveMCUpdate(Update):
             )
         self.meoh2 = meoh2
 
-    def _reorient_atoms(self, candidate, positions):
+    def _reorient_atoms(self, candidate):
         # Function to reorient atoms if the equivalent atom was used for shortest distance
         # exchange positions of atom and equivalent atom
 
@@ -73,7 +74,13 @@ class NaiveMCUpdate(Update):
         equivalent_idx = candidate.get_idx_for_atom_name(
             self.ionic_liquid.templates.get_equivalent_atom_for(candidate.current_name)
         )
-        positions_copy = positions.copy()
+
+        positions = self.ionic_liquid.simulation.context.getState(
+            getPositions=True
+        ).getPositions(asNumpy=False) 
+
+        positions_copy = copy.deepcopy(positions)
+
         pos_atom = positions_copy[atom_idx]
         print(f"{pos_atom=}")
         pos_equivalent = positions_copy[equivalent_idx]
@@ -164,6 +171,17 @@ class NaiveMCUpdate(Update):
                 ]
 
             pos_acceptor_atoms.append(pos_acceptor_atom)
+
+            # account for PBC
+            boxl_vec = self.ionic_liquid.boxlength*pos_donated_H[0]/pos_donated_H[0]._value # very stupid workaround to get a quantity with unit from a number
+
+            for i in range(0,3):
+                if abs(pos_acceptor_atom[i] - pos_donated_H[i]) > boxl_vec/2: # could also be some other value
+                    if pos_acceptor_atom[i] > pos_donated_H[i]:
+                        pos_donated_H[i] = pos_donated_H[i] + boxl_vec
+                    else:
+                        pos_donated_H[i] = pos_donated_H[i] - boxl_vec
+
             pos_accepted_H = pos_donated_H - 0.01 * (pos_donated_H - pos_acceptor_atom)
             pos_accepted_Hs.append(pos_accepted_H)
 
