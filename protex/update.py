@@ -97,9 +97,8 @@ class NaiveMCUpdate(Update):
         donors = []  # determine which candidate was the H-donor / acceptor
         acceptors = []
         pos_donated_Hs = []  # collect the positions of the real Hs at transfer
-        pos_accepted_Hs = (
-            []
-        )  # can't put new H on top of dummy H -> put it a little bit closer to the acceptor
+        pos_accepted_Hs = [] # can't put new H on top of dummy H -> put it a little bit closer to the acceptor
+        pos_acceptor_atoms = []
 
         for candidate in candidates:
             candidate1_residue, candidate2_residue = sorted(
@@ -162,7 +161,8 @@ class NaiveMCUpdate(Update):
                     )
                 ]
 
-            pos_accepted_H = pos_donated_H - 0.99 * (pos_donated_H - pos_acceptor_atom)
+            pos_acceptor_atoms.append(pos_acceptor_atom)
+            pos_accepted_H = pos_donated_H - 0.01 * (pos_donated_H - pos_acceptor_atom)
             pos_accepted_Hs.append(pos_accepted_H)
 
         # get current state
@@ -245,8 +245,9 @@ class NaiveMCUpdate(Update):
 
             # update position of the once-dummy H to that of the donated H (a bit closer to the acceptor to avoid LJ collusion with the now dummy H)
             positions[idx_accepted_H] = pos_accepted_Hs[candidates.index(candidate)]
+            print(f"acceptor: {pos_acceptor_atoms[candidates.index(candidate)]}, donor_H: {pos_donated_Hs[candidates.index(candidate)]}")
             print(
-                f"setting position of {self.ionic_liquid.templates.get_atom_name_for(acceptor.current_name)} of {acceptor.current_name}:{acceptor.residue.index} to {pos_accepted_Hs[candidates.index(candidate)]} from {pos_donated_Hs[candidates.index(candidate)]}"
+                f"setting position of {self.ionic_liquid.templates.get_atom_name_for(acceptor.current_name)} of {acceptor.current_name}:{acceptor.residue.index} to {pos_accepted_Hs[candidates.index(candidate)]}"
             )
 
         self.ionic_liquid.simulation.context.setPositions(positions)
