@@ -1,7 +1,7 @@
+import copy
 import logging
 import random
 from collections import Counter
-import copy
 
 import numpy as np
 from scipy.spatial import distance_matrix
