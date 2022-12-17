@@ -2031,3 +2031,49 @@ def test_updates_with_reorient():
     ionic_liquid.write_psf(old_psf_file, "hpts_new.psf", psf_for_parameters)
 
     os.remove("hpts_new.psf")
+
+
+def test_manipulating_coordinates():
+    psf_for_parameters = f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
+    crd_for_parameters = f"{protex.__path__[0]}/forcefield/crd_for_parameters.crd"
+    psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
+    restart_file = f"{protex.__path__[0]}/forcefield/traj/hpts_npt_7.rst"
+
+    simulation = generate_hpts_meoh_system(psf_file=psf_file, restart_file=restart_file)
+    simulation_for_parameters = generate_hpts_meoh_system(
+        psf_file=psf_for_parameters, crd_file=crd_for_parameters
+    )
+    allowed_updates = {}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 0.201}  # 1+2
+    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 0.684}  # 3+4
+    allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["HPTSH", "MEOH"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "MEOH"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "IM1"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "OAC"])] = {"r_max": 0.155, "prob": 1.000}
+
+    templates = ProtexTemplates(
+        [OAC_HOAC, IM1H_IM1, HPTSH_HPTS, MEOH_MEOH2], (allowed_updates)
+    )
+    # wrap system in IonicLiquidSystem
+    ionic_liquid = ProtexSystem(simulation, templates, simulation_for_parameters)
+    boxl=ionic_liquid.boxlength
+
+    positions = ionic_liquid.simulation.context.getState(
+        getPositions=True
+    ).getPositions(asNumpy=False)
+
+    positions_copy = copy.deepcopy(positions)
+    x1 = positions_copy[0]
+    x2 = positions_copy[10]
+
+    print(f'{x1=}, {x2=}')
+    positions[0] = x2
+    positions[10]= x1
+
+    ionic_liquid.simulation.context.setPositions(positions)
+
+    print(f'{positions[0]=}, {positions[10]=}')

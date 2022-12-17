@@ -97,93 +97,7 @@ class NaiveMCUpdate(Update):
     def _update(self, candidates: list[tuple], nr_of_steps: int):
         logger.info("called _update")
 
-        positions = self.ionic_liquid.simulation.context.getState(
-            getPositions=True
-        ).getPositions(asNumpy=True)
-
-        donors = []  # determine which candidate was the H-donor / acceptor
-        acceptors = []
-        pos_donated_Hs = []  # collect the positions of the real Hs at transfer
-        pos_accepted_Hs = (
-            []
-        )  # can't put new H on top of dummy H -> put it a little bit closer to the acceptor
-        pos_acceptor_atoms = []
-
-        for candidate in candidates:
-            candidate1_residue, candidate2_residue = sorted(
-                candidate, key=lambda candidate: candidate.current_name
-            )
-
-            if "H" in self.ionic_liquid.templates.get_atom_name_for(
-                candidate1_residue.current_name
-            ) or (
-                candidate1_residue.has_equivalent_atom == True
-                and "H"
-                in self.ionic_liquid.templates.get_equivalent_atom_for(
-                    candidate1_residue.current_name
-                )
-            ):
-                donor = candidate1_residue
-                acceptor = candidate2_residue
-
-            else:
-                donor = candidate2_residue
-                acceptor = candidate1_residue
-
-            donors.append(donor)
-            acceptors.append(acceptor)
-
-            if donor.used_equivalent_atom == True:
-                pos_donated_H = positions[
-                    donor.get_idx_for_atom_name(
-                        self.ionic_liquid.templates.get_equivalent_atom_for(
-                            donor.current_name
-                        )
-                    )
-                ]
-            else:
-                pos_donated_H = positions[
-                    donor.get_idx_for_atom_name(
-                        self.ionic_liquid.templates.get_atom_name_for(
-                            donor.current_name
-                        )
-                    )
-                ]
-
-            pos_donated_Hs.append(pos_donated_H)
-
-            if acceptor.used_equivalent_atom == True:
-                pos_acceptor_atom = positions[
-                    acceptor.get_idx_for_atom_name(
-                        self.ionic_liquid.templates.get_equivalent_atom_for(
-                            acceptor.current_name
-                        )
-                    )
-                ]
-
-            else:
-                pos_acceptor_atom = positions[
-                    acceptor.get_idx_for_atom_name(
-                        self.ionic_liquid.templates.get_atom_name_for(
-                            acceptor.current_name
-                        )
-                    )
-                ]
-
-            pos_acceptor_atoms.append(pos_acceptor_atom)
-
-            # account for PBC
-            boxl_vec = self.ionic_liquid.boxlength*pos_donated_H[0]/pos_donated_H[0]._value # very stupid workaround to get a quantity with unit from a number
-
-            for i in range(0,3):
-                if abs(pos_acceptor_atom[i] - pos_donated_H[i]) > boxl_vec/2: # could also be some other value
-                    if pos_acceptor_atom[i] > pos_donated_H[i]:
-                        pos_donated_H[i] = pos_donated_H[i] + boxl_vec
-                    else:
-                        pos_donated_H[i] = pos_donated_H[i] - boxl_vec
-
-            pos_accepted_H = pos_donated_H - 0.01 * (pos_donated_H - pos_acceptor_atom)
-            pos_accepted_Hs.append(pos_accepted_H)
+       
 
         # get current state
         state = self.ionic_liquid.simulation.context.getState(getEnergy=True)
@@ -229,26 +143,151 @@ class NaiveMCUpdate(Update):
 
             self.ionic_liquid.simulation.step(1)
 
+        # idea: get positions after simulation steps in update
+        positions = self.ionic_liquid.simulation.context.getState(
+            getPositions=True
+        ).getPositions(asNumpy=True)
+
+        positions_copy = copy.deepcopy(positions)
+
+        donors = []  # determine which candidate was the H-donor / acceptor
+        acceptors = []
+        pos_donated_Hs = []  # collect the positions of the real Hs at transfer
+        pos_accepted_Hs = (
+            []
+        )  # can't put new H on top of dummy H -> put it a little bit closer to the acceptor
+        pos_acceptor_atoms = []
+        # all these lists are not needed, if contents used in the same loop (as it is currently)
+
         for candidate in candidates:
-            candidate1_residue, candidate2_residue = candidate
+            candidate1_residue, candidate2_residue = candidate 
+
+            if "H" in self.ionic_liquid.templates.get_atom_name_for(
+                candidate1_residue.current_name
+            ) or (
+                candidate1_residue.has_equivalent_atom == True
+                and "H"
+                in self.ionic_liquid.templates.get_equivalent_atom_for(
+                    candidate1_residue.current_name
+                )
+            ):
+                donor = candidate1_residue
+                acceptor = candidate2_residue
+
+            else:
+                donor = candidate2_residue
+                acceptor = candidate1_residue
+
+            donors.append(donor)
+            acceptors.append(acceptor)
+
+            if donor.used_equivalent_atom == True:
+                pos_donated_H = positions_copy[
+                    donor.get_idx_for_atom_name(
+                        self.ionic_liquid.templates.get_equivalent_atom_for(
+                            donor.current_name
+                        )
+                    )
+                ]
+            else:
+                pos_donated_H = positions_copy[
+                    donor.get_idx_for_atom_name(
+                        self.ionic_liquid.templates.get_atom_name_for(
+                            donor.current_name
+                        )
+                    )
+                ]
+
+        
+
+            if acceptor.used_equivalent_atom == True:
+                pos_acceptor_atom = positions_copy[
+                    acceptor.get_idx_for_atom_name(
+                        self.ionic_liquid.templates.get_equivalent_atom_for(
+                            acceptor.current_name
+                        )
+                    )
+                ]
+
+            else:
+                pos_acceptor_atom = positions_copy[
+                    acceptor.get_idx_for_atom_name(
+                        self.ionic_liquid.templates.get_atom_name_for(
+                            acceptor.current_name
+                        )
+                    )
+                ]
+
+            pos_acceptor_atoms.append(pos_acceptor_atom)
+
+            # account for PBC
+            boxl_vec = self.ionic_liquid.boxlength*pos_donated_H[0]/pos_donated_H[0]._value # very stupid workaround to get a quantity with unit from a number
+
+            for i in range(0,3):
+                if abs(pos_acceptor_atom[i] - pos_donated_H[i]) > boxl_vec/2: # could also be some other value
+                    if pos_acceptor_atom[i] > pos_donated_H[i]:
+                        pos_donated_H[i] = pos_donated_H[i] + boxl_vec
+                    else:
+                        pos_donated_H[i] = pos_donated_H[i] - boxl_vec
+
+            pos_donated_Hs.append(pos_donated_H)
+            pos_accepted_H = pos_donated_H - 0.33 * (pos_donated_H - pos_acceptor_atom) # set position at ca. 1 angstrom from acceptor -> maybe more stable?
+            pos_accepted_Hs.append(pos_accepted_H)
+            ###
 
             # reorient equivalent atoms if needed
-
             if candidate1_residue.used_equivalent_atom:
                 candidate1_residue.used_equivalent_atom = (
-                    False  # reset for next update round
+                False  # reset for next update round
+            )
+                self._reorient_atoms(candidate1_residue)
+                # troubleshooting reorient
+                atom_idx = candidate1_residue.get_idx_for_atom_name(
+                self.ionic_liquid.templates.get_atom_name_for(candidate1_residue.current_name)
                 )
-                self._reorient_atoms(candidate1_residue, positions)
+                equivalent_idx = candidate1_residue.get_idx_for_atom_name(
+                    self.ionic_liquid.templates.get_equivalent_atom_for(candidate1_residue.current_name)
+                )
+
+                positions = self.ionic_liquid.simulation.context.getState(
+                    getPositions=True
+                ).getPositions(asNumpy=False) 
+
+                print(
+                f"position of {self.ionic_liquid.templates.get_atom_name_for(candidate1_residue.current_name)} : {positions[atom_idx]} and {self.ionic_liquid.templates.get_equivalent_atom_for(candidate1_residue.current_name)} : {positions[equivalent_idx]}"
+                )
+                # troubleshoot end
+
             if candidate2_residue.used_equivalent_atom:
                 candidate2_residue.used_equivalent_atom = False
-                self._reorient_atoms(candidate2_residue, positions)
+                self._reorient_atoms(candidate2_residue)
+                # troubleshooting reorient
+                atom_idx = candidate2_residue.get_idx_for_atom_name(
+                self.ionic_liquid.templates.get_atom_name_for(candidate2_residue.current_name)
+                )
+                equivalent_idx = candidate2_residue.get_idx_for_atom_name(
+                    self.ionic_liquid.templates.get_equivalent_atom_for(candidate2_residue.current_name)
+                )
+
+                positions = self.ionic_liquid.simulation.context.getState(
+                    getPositions=True
+                ).getPositions(asNumpy=False) 
+
+                print(
+                f"position of {self.ionic_liquid.templates.get_atom_name_for(candidate2_residue.current_name)} : {positions[atom_idx]} and {self.ionic_liquid.templates.get_equivalent_atom_for(candidate2_residue.current_name)} : {positions[equivalent_idx]}"
+                )
+                # troubleshoot end
 
             # also update has_equivalent_atom
-            for candidate_residue in (candidate1_residue, candidate2_residue):
-                if candidate_residue.current_name in ("MEOH2", "MEOH", "HOAC", "OAC"):
-                    candidate_residue.has_equivalent_atom = (
-                        not candidate_residue.has_equivalent_atom
-                    )
+            if candidate1_residue.current_name in ("MEOH2", "MEOH", "HOAC", "OAC"):
+                candidate1_residue.has_equivalent_atom = (
+                    not candidate1_residue.has_equivalent_atom
+                )
+
+            if candidate2_residue.current_name in ("MEOH2", "MEOH", "HOAC", "OAC"):
+                candidate2_residue.has_equivalent_atom = (
+                    not candidate2_residue.has_equivalent_atom
+                )
 
             # after the update is finished the current_name attribute is updated (and since alternative_name depends on current_name it too is updated)
             candidate1_residue.current_name = candidate1_residue.alternativ_name
