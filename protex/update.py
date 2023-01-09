@@ -163,7 +163,10 @@ class NaiveMCUpdate(Update):
             if "H" in self.ionic_liquid.templates.get_atom_name_for(
                 candidate1_residue.current_name
             ) or (
-                self.ionic_liquid.templates.has_equivalent_atom(candidate1_residue.current_name) == True
+                self.ionic_liquid.templates.has_equivalent_atom(
+                    candidate1_residue.current_name
+                )
+                == True
                 and "H"
                 in self.ionic_liquid.templates.get_equivalent_atom_for(
                     candidate1_residue.current_name
@@ -657,7 +660,7 @@ class StateUpdate:
                 residue.equivalent_atom_pos_in_list = len(
                     res_list
                 )  # store idx to know which coordinates where used for distance
-                
+
                 res_list.append(
                     residue
                 )  # add second time the residue to have same length of pos_list and res_list
