@@ -90,9 +90,9 @@ class NaiveMCUpdate(Update):
         positions[equivalent_idx] = pos_atom
 
         self.ionic_liquid.simulation.context.setPositions(positions)
-        print(
-            f"setting position of {self.ionic_liquid.templates.get_atom_name_for(candidate.current_name)} to {positions[atom_idx]} and {self.ionic_liquid.templates.get_equivalent_atom_for(candidate.current_name)} to {positions[equivalent_idx]}"
-        )
+        # print(
+        #     f"setting position of {self.ionic_liquid.templates.get_atom_name_for(candidate.current_name)} to {positions[atom_idx]} and {self.ionic_liquid.templates.get_equivalent_atom_for(candidate.current_name)} to {positions[equivalent_idx]}"
+        # )
 
     def _update(self, candidates: list[tuple], nr_of_steps: int):
         logger.info("called _update")
@@ -178,8 +178,8 @@ class NaiveMCUpdate(Update):
 
             donors.append(donor)
             acceptors.append(acceptor)
-            print(f'{donor.current_name=}, {self.ionic_liquid.templates.has_equivalent_atom(donor.current_name)=}, {acceptor.current_name=}, {self.ionic_liquid.templates.has_equivalent_atom(acceptor.current_name)=}')
-            print(f'{donor.used_equivalent_atom=}, {acceptor.used_equivalent_atom=}')
+            # print(f'{donor.current_name=}, {self.ionic_liquid.templates.has_equivalent_atom(donor.current_name)=}, {acceptor.current_name=}, {self.ionic_liquid.templates.has_equivalent_atom(acceptor.current_name)=}')
+            # print(f'{donor.used_equivalent_atom=}, {acceptor.used_equivalent_atom=}')
 
             if donor.used_equivalent_atom == True:
                 pos_donated_H = positions_copy[
