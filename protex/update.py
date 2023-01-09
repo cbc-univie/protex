@@ -165,7 +165,7 @@ class NaiveMCUpdate(Update):
             if "H" in self.ionic_liquid.templates.get_atom_name_for(
                 candidate1_residue.current_name
             ) or (
-                candidate1_residue.has_equivalent_atom == True
+                self.ionic_liquid.templates.has_equivalent_atom(candidate1_residue.current_name) == True
                 and "H"
                 in self.ionic_liquid.templates.get_equivalent_atom_for(
                     candidate1_residue.current_name
@@ -180,6 +180,8 @@ class NaiveMCUpdate(Update):
 
             donors.append(donor)
             acceptors.append(acceptor)
+            print(f'{donor.current_name=}, {self.ionic_liquid.templates.has_equivalent_atom(donor.current_name)=}, {acceptor.current_name=}, {self.ionic_liquid.templates.has_equivalent_atom(acceptor.current_name)=}')
+            print(f'{donor.used_equivalent_atom=}, {acceptor.used_equivalent_atom=}')
 
             if donor.used_equivalent_atom == True:
                 pos_donated_H = positions_copy[
@@ -237,9 +239,7 @@ class NaiveMCUpdate(Update):
 
             # reorient equivalent atoms if needed
             if candidate1_residue.used_equivalent_atom:
-                candidate1_residue.used_equivalent_atom = (
-                False  # reset for next update round
-            )
+                candidate1_residue.used_equivalent_atom = False  # reset for next update round
                 self._reorient_atoms(candidate1_residue)
                 # troubleshooting reorient
                 atom_idx = candidate1_residue.get_idx_for_atom_name(
@@ -278,16 +278,16 @@ class NaiveMCUpdate(Update):
                 )
                 # troubleshoot end
 
-            # also update has_equivalent_atom
-            if candidate1_residue.current_name in ("MEOH2", "MEOH", "HOAC", "OAC"):
-                candidate1_residue.has_equivalent_atom = (
-                    not candidate1_residue.has_equivalent_atom
-                )
+            # # also update has_equivalent_atom
+            # if candidate1_residue.current_name in ("MEOH2", "MEOH", "HOAC", "OAC"):
+            #     candidate1_residue.has_equivalent_atom = (
+            #         not candidate1_residue.has_equivalent_atom
+            #     )
 
-            if candidate2_residue.current_name in ("MEOH2", "MEOH", "HOAC", "OAC"):
-                candidate2_residue.has_equivalent_atom = (
-                    not candidate2_residue.has_equivalent_atom
-                )
+            # if candidate2_residue.current_name in ("MEOH2", "MEOH", "HOAC", "OAC"):
+            #     candidate2_residue.has_equivalent_atom = (
+            #         not candidate2_residue.has_equivalent_atom
+            #    )
 
             # after the update is finished the current_name attribute is updated (and since alternative_name depends on current_name it too is updated)
             candidate1_residue.current_name = candidate1_residue.alternativ_name
@@ -612,6 +612,7 @@ class StateUpdate:
 
         # loop over all residues and add the positions of the atoms that can be updated to the pos_dict
         for residue in self.ionic_liquid.residues:
+            residue.equivalent_atom_pos_in_list = None
             assert residue.current_name in self.ionic_liquid.templates.names
             # get the position of the atom (Hydrogen or the possible acceptor)
             # new idea: just make one list with all positions and then calc distances of everything with everything... -> not so fast, but i need i.e. IM1H-IM1
@@ -629,7 +630,7 @@ class StateUpdate:
             )
             res_list.append(residue)
 
-            if residue.has_equivalent_atom:
+            if self.ionic_liquid.templates.has_equivalent_atom(residue.current_name):
                 pos_list.append(
                     pos[
                         residue.get_idx_for_atom_name(
@@ -642,6 +643,7 @@ class StateUpdate:
                 residue.equivalent_atom_pos_in_list = len(
                     res_list
                 )  # store idx to know which coordinates where used for distance
+                
                 res_list.append(
                     residue
                 )  # add second time the residue to have same length of pos_list and res_list
