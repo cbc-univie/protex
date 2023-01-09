@@ -2060,7 +2060,7 @@ def test_manipulating_coordinates():
     )
     # wrap system in IonicLiquidSystem
     ionic_liquid = ProtexSystem(simulation, templates, simulation_for_parameters)
-    boxl=ionic_liquid.boxlength
+    boxl = ionic_liquid.boxlength
 
     positions = ionic_liquid.simulation.context.getState(
         getPositions=True
@@ -2070,10 +2070,10 @@ def test_manipulating_coordinates():
     x1 = positions_copy[0]
     x2 = positions_copy[10]
 
-    print(f'{x1=}, {x2=}')
+    print(f"{x1=}, {x2=}")
     positions[0] = x2
-    positions[10]= x1
+    positions[10] = x1
 
     ionic_liquid.simulation.context.setPositions(positions)
 
-    print(f'{positions[0]=}, {positions[10]=}')
+    print(f"{positions[0]=}, {positions[10]=}")
