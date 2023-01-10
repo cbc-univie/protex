@@ -373,8 +373,8 @@ class KeepHUpdate(Update):
             #     candidate2_residue.has_equivalent_atom = (
             #         not candidate2_residue.has_equivalent_atom
             #    )
-            
-            #### update refactor orig 
+
+            #### update refactor orig
             #    self._reorient_atoms(candidate2_residue, positions) #from update refactor orig
 
             # also update has_equivalent_atom
@@ -385,7 +385,7 @@ class KeepHUpdate(Update):
             #        candidate_residue.has_equivalent_atom = (
             #            not candidate_residue.has_equivalent_atom
             #        )
-            
+
             #### update refactor ende
 
             # after the update is finished the current_name attribute is updated (and since alternative_name depends on current_name it too is updated)
@@ -762,7 +762,9 @@ class StateUpdate:
 
             if (
                 self.updateMethod.include_equivalent_atom
-                and self.ionic_liquid.templates.has_equivalent_atom(residue.current_name)
+                and self.ionic_liquid.templates.has_equivalent_atom(
+                    residue.current_name
+                )
             ):
                 pos_list.append(
                     pos[
