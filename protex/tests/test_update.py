@@ -25,7 +25,55 @@ from ..testsystems import (
     generate_im1h_oac_system,
     generate_single_im1h_oac_system,
 )
-from ..update import NaiveMCUpdate, StateUpdate
+from ..update import KeepHUpdate, NaiveMCUpdate, StateUpdate, Update
+
+
+def test_create_update():
+    simulation = generate_im1h_oac_system()
+    allowed_updates = {}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
+    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+    ionic_liquid = ProtexSystem(simulation, templates)
+    try:
+        update = Update(ionic_liquid)
+    except TypeError:
+        print("All fine, should raise TypeError, because abstract class")
+        pass
+
+    to_adapt = [("OAC", 150, frozenset(["IM1H", "OAC"]))]
+    try:
+        update = NaiveMCUpdate(
+            ionic_liquid,
+            all_forces=True,
+            to_adapt=to_adapt,
+            include_equivalent_atom=True,
+            # reorient=True,
+        )
+    except NotImplementedError as e:
+        pass
+
+    update = NaiveMCUpdate(
+        ionic_liquid,
+        all_forces=True,
+        to_adapt=to_adapt,
+        include_equivalent_atom=True,
+        # reorient=False,
+    )
+
+    state_update = StateUpdate(update)
+    state_update.update(2)
+
+    update = KeepHUpdate(
+        ionic_liquid,
+        all_forces=True,
+        to_adapt=to_adapt,
+        include_equivalent_atom=True,
+        reorient=False,
+    )
+
+    state_update = StateUpdate(update)
+    state_update.update(2)
 
 
 @pytest.mark.skipif(
@@ -1131,9 +1179,12 @@ def test_parameters_after_update():
 
     print(f"{imp_before_list=}, {imp_after_list=}")
 
-    for pos, (
-        (b_drude, b_parent, _, _, _, b_charge, b_pol, _, _),
-        (a_drude, a_parent, _, _, _, a_charge, a_pol, _, _),
+    for (
+        pos,
+        (
+            (b_drude, b_parent, _, _, _, b_charge, b_pol, _, _),
+            (a_drude, a_parent, _, _, _, a_charge, a_pol, _, _),
+        ),
     ) in enumerate(zip(drude_before_list, drude_after_list)):
         if b_charge != a_charge:
             print(f"Charge changed: {pos=}, {b_charge=}, {a_charge=}")
@@ -1146,9 +1197,12 @@ def test_parameters_after_update():
     ):
         if b_thole != a_thole:
             print(f"Thole changed: {pos=}, {b_thole=}, {a_thole=}")
-    for pos, (
-        (b1, b2, b3, b4, (b_k, b_psi0)),
-        (a1, a2, a3, a4, (a_k, a_psi0)),
+    for (
+        pos,
+        (
+            (b1, b2, b3, b4, (b_k, b_psi0)),
+            (a1, a2, a3, a4, (a_k, a_psi0)),
+        ),
     ) in enumerate(zip(imp_before_list, imp_after_list)):
         if b_k != a_k:
             print(f"k changed: {pos=}, {b_k=}, {a_k=}")
