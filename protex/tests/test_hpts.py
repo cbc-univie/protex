@@ -2033,10 +2033,6 @@ def test_updates_with_reorient():
     os.remove("hpts_new.psf")
 
 
-@pytest.mark.skipif(
-    os.getenv("CI") == "true",
-    reason="Will fail sporadicaly.",
-)
 def test_manipulating_coordinates():
     psf_for_parameters = f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
     crd_for_parameters = f"{protex.__path__[0]}/forcefield/crd_for_parameters.crd"
@@ -2064,14 +2060,20 @@ def test_manipulating_coordinates():
     )
     # wrap system in IonicLiquidSystem
     ionic_liquid = ProtexSystem(simulation, templates, simulation_for_parameters)
+    boxl = ionic_liquid.boxlength
 
     positions = ionic_liquid.simulation.context.getState(
         getPositions=True
-    ).getPositions(asNumpy=True)
+    ).getPositions(asNumpy=False)
 
-    a = positions[0]
-    print(a)
-    b = positions[1]
-    print(b)
-    c = a - 0.9 * (a - b)
-    print(c)
+    positions_copy = copy.deepcopy(positions)
+    x1 = positions_copy[0]
+    x2 = positions_copy[10]
+
+    print(f"{x1=}, {x2=}")
+    positions[0] = x2
+    positions[10] = x1
+
+    ionic_liquid.simulation.context.setPositions(positions)
+
+    print(f"{positions[0]=}, {positions[10]=}")
