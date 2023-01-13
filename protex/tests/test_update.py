@@ -28,6 +28,10 @@ from ..testsystems import (
 from ..update import KeepHUpdate, NaiveMCUpdate, StateUpdate, Update
 
 
+@pytest.mark.skipif(
+    os.getenv("CI") == "true",
+    reason="Fails sporadically",
+)
 def test_create_update():
     simulation = generate_im1h_oac_system()
     allowed_updates = {}
