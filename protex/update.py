@@ -1,9 +1,16 @@
+import copy
 import logging
 import random
+from abc import ABC, abstractmethod
 from collections import Counter
 
 import numpy as np
 from scipy.spatial import distance_matrix
+
+try:
+    from openmm.unit import nanometers
+except ImportError:
+    from simtk.unit import nanometers
 
 from protex.residue import Residue
 from protex.system import ProtexSystem
@@ -11,7 +18,7 @@ from protex.system import ProtexSystem
 logger = logging.getLogger(__name__)
 
 
-class Update:
+class Update(ABC):
     """
     ABC for implementing different Update Methods
 
@@ -24,29 +31,15 @@ class Update:
     def __init__(
         self,
         ionic_liquid: ProtexSystem,
-        to_adapt=None,
+        to_adapt: list[tuple[str, int, frozenset[str]]],
+        all_forces: bool,
+        include_equivalent_atom: bool,
+        reorient: bool,
     ) -> None:
         self.ionic_liquid: ProtexSystem = ionic_liquid
         self.to_adapt: list[tuple[str, int, frozenset[str]]] = to_adapt
-
-
-class NaiveMCUpdate(Update):
-    """
-    NaiveMCUpdate Performs naive MC update on molecule pairs in close proximity
-
-    Parameters
-    ----------
-    UpdateMethod : [type]
-        [description]
-    """
-
-    def __init__(
-        self,
-        ionic_liquid: ProtexSystem,
-        all_forces: bool = False,
-        to_adapt: list[tuple[str, int, frozenset[str]]] = None,
-    ) -> None:
-        super().__init__(ionic_liquid, to_adapt)
+        self.include_equivalent_atom = include_equivalent_atom
+        self.reorient = reorient
         self.allowed_forces: list[str] = [  # change charges only
             "NonbondedForce",  # BUG: Charge stored in the DrudeForce does NOT get updated, probably you want to allow DrudeForce as well!
             "DrudeForce",
@@ -61,69 +54,9 @@ class NaiveMCUpdate(Update):
                 ]
             )
 
-    def _update(self, candidates: list[tuple], nr_of_steps: int):
-        logger.info("called _update")
-        # get current state
-        state = self.ionic_liquid.simulation.context.getState(getEnergy=True)
-        # get initial energy
-        initial_e = state.getPotentialEnergy()
-        if np.isnan(initial_e._value):
-            raise RuntimeError(f"Energy is {initial_e}")
-
-        logger.info("Start changing states ...")
-        assert nr_of_steps > 1, "Use an update step number of at least 2."
-        for lamb in np.linspace(0, 1, nr_of_steps):
-            # for lamb in reversed(np.linspace(1, 0, nr_of_steps, endpoint=False)):
-            for candidate in candidates:
-                # retrive residue instances
-                candidate1_residue, candidate2_residue = sorted(
-                    candidate, key=lambda candidate: candidate.current_name
-                )
-
-                print(
-                    f"{lamb}: candiadate_1: {candidate1_residue.current_name}; charge:{candidate1_residue.current_charge}: candiadate_2: {candidate2_residue.current_name}; charge:{candidate2_residue.current_charge}"
-                )
-
-                for force_to_be_updated in self.allowed_forces:
-                    ######################
-                    # candidate1
-                    ######################
-                    candidate1_residue.update(force_to_be_updated, lamb)
-
-                    ######################
-                    # candidate2
-                    ######################
-                    candidate2_residue.update(force_to_be_updated, lamb)
-
-            # update the context to include the new parameters
-            for force_to_be_updated in self.allowed_forces:
-                self.ionic_liquid.update_context(force_to_be_updated)
-
-            # get new energy
-            state = self.ionic_liquid.simulation.context.getState(getEnergy=True)
-            new_e = state.getPotentialEnergy()
-            if np.isnan(new_e._value):
-                raise RuntimeError(f"Energy is {new_e}")
-
-            self.ionic_liquid.simulation.step(1)
-
-        for candidate in candidates:
-            candidate1_residue, candidate2_residue = candidate
-            # after the update is finished the current_name attribute is updated (and since alternative_name depends on current_name it too is updated)
-            candidate1_residue.current_name = candidate1_residue.alternativ_name
-            candidate2_residue.current_name = candidate2_residue.alternativ_name
-
-            assert candidate1_residue.current_name != candidate1_residue.alternativ_name
-            assert candidate2_residue.current_name != candidate2_residue.alternativ_name
-
-        # get new energy
-        state = self.ionic_liquid.simulation.context.getState(getEnergy=True)
-        new_e = state.getPotentialEnergy()
-        logger.info(f"Energy before/after state change:{initial_e}/{new_e}")
-
-        # self.ionic_liquid.simulation.context.setVelocitiesToTemperature(
-        #    300.0 * unit.kelvin
-        # )
+    @abstractmethod
+    def _update(self, candidates: list[tuple], nr_of_steps: int) -> None:
+        pass
 
     def _adapt_probabilities(
         self, to_adapt=list[tuple[str, int, frozenset[str]]]
@@ -188,6 +121,344 @@ class NaiveMCUpdate(Update):
             print(f"New Prob for {update_set}: {new_prob}")
 
 
+class KeepHUpdate(Update):
+    """
+    KeepHUpdate performs updates but uses the original H position
+    keep the position of the original H when switching from dummy to real H
+    """
+
+    def __init__(
+        self,
+        ionic_liquid: ProtexSystem,
+        all_forces: bool = False,
+        to_adapt: list[tuple[str, int, frozenset[str]]] or None = None,
+        include_equivalent_atom: bool = False,
+        reorient: bool = False,
+    ) -> None:
+        super().__init__(
+            ionic_liquid, to_adapt, all_forces, include_equivalent_atom, reorient
+        )
+
+    def _reorient_atoms(self, candidate):
+        # Function to reorient atoms if the equivalent atom was used for shortest distance
+        # exchange positions of atom and equivalent atom
+
+        atom_idx = candidate.get_idx_for_atom_name(
+            self.ionic_liquid.templates.get_atom_name_for(candidate.current_name)
+        )
+        equivalent_idx = candidate.get_idx_for_atom_name(
+            self.ionic_liquid.templates.get_equivalent_atom_for(candidate.current_name)
+        )
+
+        positions = self.ionic_liquid.simulation.context.getState(
+            getPositions=True
+        ).getPositions(asNumpy=False)
+
+        positions_copy = copy.deepcopy(positions)
+
+        pos_atom = positions_copy[atom_idx]
+        print(f"{pos_atom=}")
+        pos_equivalent = positions_copy[equivalent_idx]
+        print(f"{pos_equivalent=}")
+
+        positions[atom_idx] = pos_equivalent
+        positions[equivalent_idx] = pos_atom
+
+        self.ionic_liquid.simulation.context.setPositions(positions)
+        # print(
+        #     f"setting position of {self.ionic_liquid.templates.get_atom_name_for(candidate.current_name)} to {positions[atom_idx]} and {self.ionic_liquid.templates.get_equivalent_atom_for(candidate.current_name)} to {positions[equivalent_idx]}"
+        # )
+
+    def _update(self, candidates: list[tuple], nr_of_steps: int) -> None:
+        logger.info("called _update")
+
+        # get current state
+        state = self.ionic_liquid.simulation.context.getState(getEnergy=True)
+        # get initial energy
+        initial_e = state.getPotentialEnergy()
+        if np.isnan(initial_e._value):
+            raise RuntimeError(f"Energy is {initial_e}")
+
+        logger.info("Start changing states ...")
+        assert nr_of_steps > 1, "Use an update step number of at least 2."
+        for lamb in np.linspace(0, 1, nr_of_steps):
+            # for lamb in reversed(np.linspace(1, 0, nr_of_steps, endpoint=False)):
+            for candidate in candidates:
+                # retrive residue instances
+                candidate1_residue, candidate2_residue = sorted(
+                    candidate, key=lambda candidate: candidate.current_name
+                )
+
+                print(
+                    f"{lamb}: candiadate_1: {candidate1_residue.current_name}; charge:{candidate1_residue.current_charge}: candiadate_2: {candidate2_residue.current_name}; charge:{candidate2_residue.current_charge}"
+                )
+
+                for force_to_be_updated in self.allowed_forces:
+                    ######################
+                    # candidate1
+                    ######################
+                    candidate1_residue.update(force_to_be_updated, lamb)
+
+                    ######################
+                    # candidate2
+                    ######################
+                    candidate2_residue.update(force_to_be_updated, lamb)
+
+            # update the context to include the new parameters
+            for force_to_be_updated in self.allowed_forces:
+                self.ionic_liquid.update_context(force_to_be_updated)
+
+            # get new energy
+            state = self.ionic_liquid.simulation.context.getState(getEnergy=True)
+            new_e = state.getPotentialEnergy()
+            if np.isnan(new_e._value):
+                raise RuntimeError(f"Energy is {new_e}")
+
+            self.ionic_liquid.simulation.step(1)
+
+        # idea: get positions after simulation steps in update
+        positions = self.ionic_liquid.simulation.context.getState(
+            getPositions=True
+        ).getPositions(asNumpy=True)
+
+        positions_copy = copy.deepcopy(positions)
+
+        donors = []  # determine which candidate was the H-donor / acceptor
+        acceptors = []
+        pos_donated_Hs = []  # collect the positions of the real Hs at transfer
+        pos_accepted_Hs = (
+            []
+        )  # can't put new H on top of dummy H -> put it a little bit closer to the acceptor
+        pos_acceptor_atoms = []
+        # all these lists are not needed, if contents used in the same loop (as it is currently)
+
+        for candidate in candidates:
+            candidate1_residue, candidate2_residue = candidate
+
+            if "H" in self.ionic_liquid.templates.get_atom_name_for(
+                candidate1_residue.current_name
+            ) or (
+                self.ionic_liquid.templates.has_equivalent_atom(
+                    candidate1_residue.current_name
+                )
+                == True
+                and "H"
+                in self.ionic_liquid.templates.get_equivalent_atom_for(
+                    candidate1_residue.current_name
+                )
+            ):
+                donor = candidate1_residue
+                acceptor = candidate2_residue
+
+            else:
+                donor = candidate2_residue
+                acceptor = candidate1_residue
+
+            donors.append(donor)
+            acceptors.append(acceptor)
+
+            if donor.used_equivalent_atom == True:
+                pos_donated_H = positions_copy[
+                    donor.get_idx_for_atom_name(
+                        self.ionic_liquid.templates.get_equivalent_atom_for(
+                            donor.current_name
+                        )
+                    )
+                ]
+            else:
+                pos_donated_H = positions_copy[
+                    donor.get_idx_for_atom_name(
+                        self.ionic_liquid.templates.get_atom_name_for(
+                            donor.current_name
+                        )
+                    )
+                ]
+
+            if acceptor.used_equivalent_atom == True:
+                pos_acceptor_atom = positions_copy[
+                    acceptor.get_idx_for_atom_name(
+                        self.ionic_liquid.templates.get_equivalent_atom_for(
+                            acceptor.current_name
+                        )
+                    )
+                ]
+
+            else:
+                pos_acceptor_atom = positions_copy[
+                    acceptor.get_idx_for_atom_name(
+                        self.ionic_liquid.templates.get_atom_name_for(
+                            acceptor.current_name
+                        )
+                    )
+                ]
+
+            pos_acceptor_atoms.append(pos_acceptor_atom)
+
+            # account for PBC
+            boxl_vec = (
+                self.ionic_liquid.boxlength
+            )  # changed to store boxl as quantity in system class
+
+            for i in range(0, 3):
+                if (
+                    abs(pos_acceptor_atom[i] - pos_donated_H[i]) > boxl_vec / 2
+                ):  # could also be some other value
+                    if pos_acceptor_atom[i] > pos_donated_H[i]:
+                        pos_donated_H[i] = pos_donated_H[i] + boxl_vec
+                    else:
+                        pos_donated_H[i] = pos_donated_H[i] - boxl_vec
+
+            pos_donated_Hs.append(pos_donated_H)
+            pos_accepted_H = pos_donated_H - 0.33 * (
+                pos_donated_H - pos_acceptor_atom
+            )  # set position at ca. 1 angstrom from acceptor -> maybe more stable?
+            pos_accepted_Hs.append(pos_accepted_H)
+            ###
+
+            # reorient equivalent atoms if needed
+            if candidate1_residue.used_equivalent_atom:
+                candidate1_residue.used_equivalent_atom = (
+                    False  # reset for next update round
+                )
+                self._reorient_atoms(candidate1_residue)
+
+            if candidate2_residue.used_equivalent_atom:
+                candidate2_residue.used_equivalent_atom = False
+                self._reorient_atoms(candidate2_residue)
+
+            # also update has_equivalent_atom (not needed if has_equivalent_atom updated via self.ionic_liquid.templates.has_equivalent_atom(residue.current_name))
+
+            #### update refactor orig
+            #    self._reorient_atoms(candidate2_residue, positions) #from update refactor orig
+
+            # also update has_equivalent_atom
+            # TODO: adapt somehow in residue class, need information if current name or alternativ name have equivalent atom and adjust accordingly to current name! ->
+            # residue.has_equivalent_atom now give the information depending on the current name.
+            # for candidate_residue in (candidate1_residue, candidate2_residue):
+            #    if candidate_residue.current_name in ("MEOH2", "MEOH", "HOAC", "OAC"):
+            #        candidate_residue.has_equivalent_atom = (
+            #            not candidate_residue.has_equivalent_atom
+            #        )
+
+            #### update refactor ende
+
+            # after the update is finished the current_name attribute is updated (and since alternative_name depends on current_name it too is updated)
+            candidate1_residue.current_name = candidate1_residue.alternativ_name
+            candidate2_residue.current_name = candidate2_residue.alternativ_name
+
+            assert candidate1_residue.current_name != candidate1_residue.alternativ_name
+            assert candidate2_residue.current_name != candidate2_residue.alternativ_name
+
+            # acceptor current name refers now to a future donor -> atom name is the H that can be given on -> this used to be the dummy H
+            acceptor = acceptors[candidates.index(candidate)]
+            idx_accepted_H = acceptor.get_idx_for_atom_name(
+                self.ionic_liquid.templates.get_atom_name_for(acceptor.current_name)
+            )
+
+            # update position of the once-dummy H to that of the donated H (a bit closer to the acceptor to avoid LJ collusion with the now dummy H)
+            positions[idx_accepted_H] = pos_accepted_Hs[candidates.index(candidate)]
+
+        self.ionic_liquid.simulation.context.setPositions(positions)
+        # NOTE: should this happen directly after the simulation steps if there are multiple steps within the update?
+        # NOTE: should this happen before or after forces are updated?
+
+        # get new energy
+        state = self.ionic_liquid.simulation.context.getState(getEnergy=True)
+        new_e = state.getPotentialEnergy()
+        logger.info(f"Energy before/after state change:{initial_e}/{new_e}")
+
+
+class NaiveMCUpdate(Update):
+    """
+    NaiveMCUpdate Performs naive MC update on molecule pairs in close proximity
+
+    Parameters
+    ----------
+    UpdateMethod : [type]
+        [description]
+    """
+
+    def __init__(
+        self,
+        ionic_liquid: ProtexSystem,
+        all_forces: bool = False,
+        to_adapt: list[tuple[str, int, frozenset[str]]] or None = None,
+        include_equivalent_atom: bool = False,
+        reorient: bool = False,
+    ) -> None:
+        super().__init__(
+            ionic_liquid, to_adapt, all_forces, include_equivalent_atom, reorient
+        )
+        if reorient:
+            raise NotImplementedError(
+                "Currently reorienting atoms if equivalent atoms are used is not implemented. Set reorient=False."
+            )
+
+    def _update(self, candidates: list[tuple], nr_of_steps: int) -> None:
+        logger.info("called _update")
+        # get current state
+        state = self.ionic_liquid.simulation.context.getState(getEnergy=True)
+        # get initial energy
+        initial_e = state.getPotentialEnergy()
+        if np.isnan(initial_e._value):
+            raise RuntimeError(f"Energy is {initial_e}")
+
+        logger.info("Start changing states ...")
+        assert nr_of_steps > 1, "Use an update step number of at least 2."
+        for lamb in np.linspace(0, 1, nr_of_steps):
+            # for lamb in reversed(np.linspace(1, 0, nr_of_steps, endpoint=False)):
+            for candidate in candidates:
+                # retrive residue instances
+                candidate1_residue, candidate2_residue = sorted(
+                    candidate, key=lambda candidate: candidate.current_name
+                )
+
+                print(
+                    f"{lamb}: candiadate_1: {candidate1_residue.current_name}; charge:{candidate1_residue.current_charge}: candiadate_2: {candidate2_residue.current_name}; charge:{candidate2_residue.current_charge}"
+                )
+
+                for force_to_be_updated in self.allowed_forces:
+                    ######################
+                    # candidate1
+                    ######################
+                    candidate1_residue.update(force_to_be_updated, lamb)
+
+                    ######################
+                    # candidate2
+                    ######################
+                    candidate2_residue.update(force_to_be_updated, lamb)
+
+            # update the context to include the new parameters
+            for force_to_be_updated in self.allowed_forces:
+                self.ionic_liquid.update_context(force_to_be_updated)
+
+            # get new energy
+            state = self.ionic_liquid.simulation.context.getState(getEnergy=True)
+            new_e = state.getPotentialEnergy()
+            if np.isnan(new_e._value):
+                raise RuntimeError(f"Energy is {new_e}")
+
+            self.ionic_liquid.simulation.step(1)
+
+        for candidate in candidates:
+            candidate1_residue, candidate2_residue = candidate
+            # after the update is finished the current_name attribute is updated (and since alternative_name depends on current_name it too is updated)
+            candidate1_residue.current_name = candidate1_residue.alternativ_name
+            candidate2_residue.current_name = candidate2_residue.alternativ_name
+
+            assert candidate1_residue.current_name != candidate1_residue.alternativ_name
+            assert candidate2_residue.current_name != candidate2_residue.alternativ_name
+
+        # get new energy
+        state = self.ionic_liquid.simulation.context.getState(getEnergy=True)
+        new_e = state.getPotentialEnergy()
+        logger.info(f"Energy before/after state change:{initial_e}/{new_e}")
+
+        # self.ionic_liquid.simulation.context.setVelocitiesToTemperature(
+        #    300.0 * unit.kelvin
+        # )
+
+
 class StateUpdate:
     """
     Controls the update sheme and proposes the residues that need an update
@@ -223,7 +494,16 @@ class StateUpdate:
         raise RuntimeError("Something went wrong. There was no NonbondedForce")
 
     def get_num_residues(self) -> dict:
-        res_dict = {"IM1H": 0, "OAC": 0, "IM1": 0, "HOAC": 0, "HPTS": 0, "HPTSH": 0, "MEOH": 0, "MEOH2": 0}
+        res_dict = {
+            "IM1H": 0,
+            "OAC": 0,
+            "IM1": 0,
+            "HOAC": 0,
+            "HPTS": 0,
+            "HPTSH": 0,
+            "MEOH": 0,
+            "MEOH2": 0,
+        }
         for residue in self.ionic_liquid.residues:
             res_dict[residue.current_name] += 1
         return res_dict
@@ -284,10 +564,15 @@ class StateUpdate:
         Takes the return value of _get_positions_of_mutation_sites
 
         """
+        assert len(pos_list) == len(
+            res_list
+        ), "Should be equal length and same order, because residue is found by index of pos list"
 
         from scipy.spatial.distance import cdist
 
-        def _rPBC(coor1, coor2, boxl=self.ionic_liquid.boxlength):
+        def _rPBC(
+            coor1, coor2, boxl=self.ionic_liquid.boxlength.value_in_unit(nanometers)
+        ):
             dx = abs(coor1[0] - coor2[0])
             if dx > boxl / 2:
                 dx = boxl - dx
@@ -352,7 +637,9 @@ class StateUpdate:
                     proposed_candidate_pair = (residue1, residue2)
                     # reject if already used in this transfer call
                     # print(f"{residue1=}, {residue2=}")
-                    if residue1 in used_residues or residue2 in used_residues:
+                    if (
+                        residue1 in used_residues or residue2 in used_residues
+                    ):  # TODO: is this working with changing some variables in the classes?
                         logger.debug(
                             f"{residue1.current_name}:{residue1.residue.id}:{charge_candidate_idx1}-{residue2.current_name}:{residue2.residue.id}:{charge_candidate_idx2} pair rejected, bc used this transfer call ..."
                         )
@@ -366,6 +653,12 @@ class StateUpdate:
                         continue
                     # accept otherwise
                     proposed_candidate_pairs.append(proposed_candidate_pair)
+                    if (
+                        candidate_idx1 == residue1.equivalent_atom_pos_in_list
+                    ):  # check if we used the actual atom or onyl the equivalent
+                        residue1.used_equivalent_atom = True
+                    if candidate_idx2 == residue2.equivalent_atom_pos_in_list:
+                        residue2.used_equivalent_atom = True
                     used_residues.append(residue1)
                     used_residues.append(residue2)
                     self.history.append(set(proposed_candidate_pair))
@@ -393,15 +686,16 @@ class StateUpdate:
 
         # loop over all residues and add the positions of the atoms that can be updated to the pos_dict
         for residue in self.ionic_liquid.residues:
+            residue.equivalent_atom_pos_in_list = None
             assert residue.current_name in self.ionic_liquid.templates.names
             # get the position of the atom (Hydrogen or the possible acceptor)
             # new idea: just make one list with all positions and then calc distances of everything with everything... -> not so fast, but i need i.e. IM1H-IM1
             pos_list.append(
                 pos[
                     residue.get_idx_for_atom_name(
-                        self.ionic_liquid.templates.states[residue.current_name][
-                            "atom_name"
-                        ]  # BUG: residue.original_name?
+                        self.ionic_liquid.templates.get_atom_name_for(
+                            residue.current_name
+                        )
                     )
                     # this needs the atom idx to be the same for both topologies
                     # TODO: maybe get rid of this caveat
@@ -409,5 +703,28 @@ class StateUpdate:
                 ]
             )
             res_list.append(residue)
+
+            if (
+                self.updateMethod.include_equivalent_atom
+                and self.ionic_liquid.templates.has_equivalent_atom(
+                    residue.current_name
+                )
+            ):
+                pos_list.append(
+                    pos[
+                        residue.get_idx_for_atom_name(
+                            self.ionic_liquid.templates.get_equivalent_atom_for(
+                                residue.current_name
+                            )
+                        )
+                    ]
+                )
+                residue.equivalent_atom_pos_in_list = len(
+                    res_list
+                )  # store idx to know which coordinates where used for distance
+
+                res_list.append(
+                    residue
+                )  # add second time the residue to have same length of pos_list and res_list
 
         return pos_list, res_list

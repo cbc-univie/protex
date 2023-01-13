@@ -33,7 +33,7 @@ try:  # Syntax changed in OpenMM 7.6
         Simulation,
         StateDataReporter,
     )
-    from openmm.unit import angstroms, kelvin, picoseconds
+    from openmm.unit import angstroms, kelvin, nanometers, picoseconds
 except ImportError:
     import simtk.openmm as mm
     from simtk.openmm import (
@@ -48,7 +48,7 @@ except ImportError:
     from simtk.openmm.app import CharmmCrdFile, CharmmParameterSet, CharmmPsfFile
     from simtk.openmm.app import PME, HBonds
     from simtk.openmm.app import Simulation
-    from simtk.unit import angstroms, kelvin, picoseconds
+    from simtk.unit import angstroms, kelvin, picoseconds, nanometers
 
 import pytest
 from scipy.spatial import distance_matrix
@@ -65,7 +65,7 @@ from ..testsystems import (  # generate_single_hpts_system,
     OAC_HOAC,
     generate_hpts_meoh_system,
 )
-from ..update import NaiveMCUpdate, StateUpdate
+from ..update import KeepHUpdate, NaiveMCUpdate, StateUpdate
 
 ############################
 # TEST SYSTEM
@@ -1312,7 +1312,7 @@ def test_pbc():
 
     from scipy.spatial.distance import cdist
 
-    def _rPBC(coor1, coor2, boxl=boxl):
+    def _rPBC(coor1, coor2, boxl=ionic_liquid.boxlength.value_in_unit(nanometers)):
         dx = abs(coor1[0] - coor2[0])
         if dx > boxl / 2:
             dx = boxl - dx
@@ -1328,7 +1328,7 @@ def test_pbc():
     # print(f"{distance_pbc[0]=}")
     # print(f"{distance_pbc[distance_pbc>boxl]=}")
     assert (
-        len(distance_pbc[distance_pbc > boxl]) == 0
+        len(distance_pbc[distance_pbc > boxl.value_in_unit(nanometers)]) == 0
     ), "After correcting for PBC no distance should be larger than the boxlength"
 
 
@@ -1886,3 +1886,195 @@ def test_update_write_psf():
     os.remove("state.rst")
     os.remove("checkpoint.rst")
     os.remove("test.psf")
+
+
+def test_meoh2_update():
+    psf_for_parameters = f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
+    psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
+    crd_for_parameters = f"{protex.__path__[0]}/forcefield/crd_for_parameters.crd"
+
+    simulation = generate_hpts_meoh_system(psf_file=psf_file)
+    simulation_for_parameters = generate_hpts_meoh_system(
+        psf_file=psf_for_parameters, crd_file=crd_for_parameters
+    )
+
+    # get ionic liquid templates
+    allowed_updates = {}
+    # allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
+    # allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
+    # allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 0.201}  # 1+2
+    # allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 0.684}  # 3+4
+    # allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000}
+    # allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
+    # allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000}
+    # allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
+    # allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
+    ## allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
+    ## allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
+    ## allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["HPTSH", "MEOH"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "MEOH"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "IM1"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "OAC"])] = {"r_max": 0.155, "prob": 1.000}
+
+    templates = ProtexTemplates(
+        [OAC_HOAC, IM1H_IM1, HPTSH_HPTS, MEOH_MEOH2], (allowed_updates)
+    )
+    # wrap system in IonicLiquidSystem
+    ionic_liquid = ProtexSystem(simulation, templates, simulation_for_parameters)
+    # initialize update method
+    # update = NaiveMCUpdate(ionic_liquid, meoh2=True)
+    update = KeepHUpdate(ionic_liquid, include_equivalent_atom=True, reorient=True)
+    # initialize state update class
+    state_update = StateUpdate(update)
+
+    # old_psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
+    # ionic_liquid.write_psf(old_psf_file, "test.psf", psf_for_parameters)
+
+    # print(state_update.updateMethod.meoh2)
+    print("Finished")
+    # assert False
+
+    # state_update.update(2)
+
+    # i = 0
+    # while i < 20:
+    #     sum_charge = 0
+    #     for x in range(0, 4457):
+    #         resi = ionic_liquid.residues[x]
+    #         sum_charge = sum_charge + resi.current_charge
+    #     print(sum_charge)
+    #     if sum_charge != 0:
+    #         raise RuntimeError("Error in run", i)
+
+    #     os.rename("test.psf", "old_psf.psf")
+
+    #     simulation = generate_hpts_meoh_system(psf_file="old_psf.psf")
+    #     ionic_liquid = ProtexSystem(simulation, templates, simulation_for_parameters)
+    #     update = NaiveMCUpdate(ionic_liquid)
+    #     state_update = StateUpdate(update)
+
+    #     ionic_liquid.simulation.step(50)
+    #     state_update.update(2)
+
+    #     # NOTE: psf_for_parameters missing
+    #     ionic_liquid.write_psf("old_psf.psf", "test.psf", psf_for_parameters)
+    #     ionic_liquid.saveState("state.rst")
+    #     ionic_liquid.saveCheckpoint("checkpoint.rst")
+
+    #     ionic_liquid2 = ionic_liquid  # copy.deepcopy(ionic_liquid)
+    #     ionic_liquid.loadState("state.rst")
+    #     ionic_liquid2.loadCheckpoint("checkpoint.rst")
+
+    #     i += 1
+
+    # # os.remove("old_psf.psf")
+    # os.remove("state.rst")
+    # os.remove("checkpoint.rst")
+    # os.remove("test.psf")
+
+
+@pytest.mark.skipif(
+    os.getenv("CI") == "true",
+    reason="Will fail sporadicaly.",
+)
+def test_updates_with_reorient():
+    # caplog.set_level(logging.DEBUG)
+
+    psf_for_parameters = f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
+    crd_for_parameters = f"{protex.__path__[0]}/forcefield/crd_for_parameters.crd"
+    psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
+    restart_file = f"{protex.__path__[0]}/forcefield/traj/hpts_npt_7.rst"
+
+    simulation = generate_hpts_meoh_system(psf_file=psf_file, restart_file=restart_file)
+    simulation_for_parameters = generate_hpts_meoh_system(
+        psf_file=psf_for_parameters, crd_file=crd_for_parameters
+    )
+    allowed_updates = {}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 0.201}  # 1+2
+    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 0.684}  # 3+4
+    allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000}
+    # allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000}
+    # allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
+    # allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
+    # allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
+    # allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
+    # allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["HPTSH", "MEOH"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "MEOH"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "IM1"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "OAC"])] = {"r_max": 0.155, "prob": 1.000}
+
+    templates = ProtexTemplates(
+        [OAC_HOAC, IM1H_IM1, HPTSH_HPTS, MEOH_MEOH2], (allowed_updates)
+    )
+    # wrap system in IonicLiquidSystem
+    ionic_liquid = ProtexSystem(simulation, templates, simulation_for_parameters)
+    pars = []
+    # update = NaiveMCUpdate(ionic_liquid, meoh2=True)
+    update = KeepHUpdate(ionic_liquid, include_equivalent_atom=True, reorient=True)
+    # initialize state update class
+    state_update = StateUpdate(update)
+    # ionic_liquid.simulation.minimizeEnergy(maxIterations=200)
+    ionic_liquid.simulation.step(50)
+
+    for _ in range(5):
+        ionic_liquid.simulation.step(18)
+        pars.append(state_update.get_charges())
+        candidate_pairs = state_update.update(2)
+
+        print(candidate_pairs)
+
+    # test whether the update changed the psf
+    old_psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
+    ionic_liquid.write_psf(old_psf_file, "hpts_new.psf", psf_for_parameters)
+
+    os.remove("hpts_new.psf")
+
+
+def test_manipulating_coordinates():
+    psf_for_parameters = f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
+    crd_for_parameters = f"{protex.__path__[0]}/forcefield/crd_for_parameters.crd"
+    psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
+    restart_file = f"{protex.__path__[0]}/forcefield/traj/hpts_npt_7.rst"
+
+    simulation = generate_hpts_meoh_system(psf_file=psf_file, restart_file=restart_file)
+    simulation_for_parameters = generate_hpts_meoh_system(
+        psf_file=psf_for_parameters, crd_file=crd_for_parameters
+    )
+    allowed_updates = {}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 0.201}  # 1+2
+    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 0.684}  # 3+4
+    allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["HPTSH", "MEOH"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "MEOH"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "IM1"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "OAC"])] = {"r_max": 0.155, "prob": 1.000}
+
+    templates = ProtexTemplates(
+        [OAC_HOAC, IM1H_IM1, HPTSH_HPTS, MEOH_MEOH2], (allowed_updates)
+    )
+    # wrap system in IonicLiquidSystem
+    ionic_liquid = ProtexSystem(simulation, templates, simulation_for_parameters)
+
+    positions = ionic_liquid.simulation.context.getState(
+        getPositions=True
+    ).getPositions(asNumpy=False)
+
+    positions_copy = copy.deepcopy(positions)
+    x1 = positions_copy[0]
+    x2 = positions_copy[10]
+
+    print(f"{x1=}, {x2=}")
+    positions[0] = x2
+    positions[10] = x1
+
+    ionic_liquid.simulation.context.setPositions(positions)
+
+    print(f"{positions[0]=}, {positions[10]=}")

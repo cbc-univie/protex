@@ -37,6 +37,7 @@ try:  # Syntax changed in OpenMM 7.6
         kelvin,
         kilocalories_per_mole,
         md_kilocalories,
+        nanometers,
         picoseconds,
     )
 except ImportError:
@@ -53,7 +54,7 @@ except ImportError:
     from simtk.openmm.app import CharmmCrdFile, CharmmParameterSet, CharmmPsfFile
     from simtk.openmm.app import PME, HBonds
     from simtk.openmm.app import Simulation
-    from simtk.unit import angstroms, kelvin, picoseconds
+    from simtk.unit import angstroms, kelvin, picoseconds, nanometers
 
 from ..reporter import ChargeReporter, EnergyReporter
 from ..system import ProtexSystem, ProtexTemplates
@@ -246,6 +247,7 @@ def test_create_IonicLiquid():
 
     count = defaultdict(int)
     ionic_liquid = ProtexSystem(simulation, templates)
+    print(ionic_liquid.boxlength.value_in_unit(nanometers))
 
     assert len(ionic_liquid.residues) == 1000
     for idx, residue in enumerate(ionic_liquid.residues):
@@ -1011,17 +1013,17 @@ def test_write_psf_save_load_clap():
     state_update = StateUpdate(update)
 
     old_psf_file = psf
-    ionic_liquid.write_psf(old_psf_file, "testc1.psf")
+    ionic_liquid.write_psf(old_psf_file, "test1c.psf")
 
     # ionic_liquid.simulation.step(50)
     state_update.update(2)
 
-    ionic_liquid.write_psf(old_psf_file, "testc2.psf")
+    ionic_liquid.write_psf(old_psf_file, "test2c.psf")
 
     ionic_liquid.simulation.step(10)
     state_update.update(2)
 
-    ionic_liquid.write_psf(old_psf_file, "testc3.psf")
+    ionic_liquid.write_psf(old_psf_file, "test3c.psf")
 
     ionic_liquid.saveState("statec.rst")
     ionic_liquid.saveCheckpoint("checkpointc.rst")

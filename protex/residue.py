@@ -23,6 +23,8 @@ class Residue:
         A general name for both states (protonated/deprotonated)
     pair_12_13_exclusion_list: list
         1-2 and 1-3 exclusions in the system
+    equivalent_atoms: tuple
+        if current name and alternative name have equivalent atoms
 
     Attributes
     -----------
@@ -46,6 +48,8 @@ class Residue:
         The system generated with openMM, where all residues are in
     pair_12_13_list: list
          1-2 and 1-3 exclusions in the system
+    has_equivalent_atoms: tuple(bool)
+        if orignal_name and alternative name have equivalent atoms
     """
 
     def __init__(
@@ -57,6 +61,8 @@ class Residue:
         alternativ_parameters,
         # canonical_name,
         pair_12_13_exclusion_list,
+        # has_equivalent_atom,
+        has_equivalent_atoms,
     ) -> None:
 
         self.residue = residue
@@ -73,6 +79,21 @@ class Residue:
         self.system = system
         self.record_charge_state.append(self.endstate_charge)  # Not used anywhere?
         self.pair_12_13_list = pair_12_13_exclusion_list
+        # self.has_equivalent_atom: bool = has_equivalent_atom
+        self.equivalent_atoms: dict[str, bool] = {
+            self.original_name: has_equivalent_atoms[0],
+            self.alternativ_name: has_equivalent_atoms[1],
+        }
+        self.equivalent_atom_pos_in_list: int = None
+        self.used_equivalent_atom: bool = False
+
+    @property
+    def has_equivalent_atom(self):
+        """
+        Determines if the current residue has an equivalent atom defined.
+        It depends i.e if the residue is currently OAC (-> two equivalent O's) or HOAC (no equivlent O's).
+        """
+        return self.equivalent_atoms[self.current_name]
 
     @property
     def alternativ_name(self):

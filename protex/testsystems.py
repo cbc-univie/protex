@@ -1268,6 +1268,7 @@ IM1H_IM1 = {
 OAC_HOAC = {
     "OAC": {
         "atom_name": "O2",
+        "equivalent_atom": "O1",
         "canonical_name": "OAC",  # Not needed?
     },
     "HOAC": {
@@ -1290,10 +1291,9 @@ HPTSH_HPTS = {
 MEOH_MEOH2 = {
     "MEOH": {
         "atom_name": "O1",
-        "canonical_name": "MEOH",
     },
     "MEOH2": {
         "atom_name": "HO2",
-        "canonical_name": "MEOH",
+        "equivalent_atom": "HO1",
     },
 }
