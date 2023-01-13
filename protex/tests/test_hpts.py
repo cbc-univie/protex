@@ -65,7 +65,7 @@ from ..testsystems import (  # generate_single_hpts_system,
     OAC_HOAC,
     generate_hpts_meoh_system,
 )
-from ..update import NaiveMCUpdate, StateUpdate
+from ..update import KeepHUpdate, NaiveMCUpdate, StateUpdate
 
 ############################
 # TEST SYSTEM
@@ -1923,16 +1923,17 @@ def test_meoh2_update():
     # wrap system in IonicLiquidSystem
     ionic_liquid = ProtexSystem(simulation, templates, simulation_for_parameters)
     # initialize update method
-    update = NaiveMCUpdate(ionic_liquid, meoh2=True)
+    # update = NaiveMCUpdate(ionic_liquid, meoh2=True)
+    update = KeepHUpdate(ionic_liquid, include_equivalent_atom=True, reorient=True)
     # initialize state update class
     state_update = StateUpdate(update)
 
     # old_psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
     # ionic_liquid.write_psf(old_psf_file, "test.psf", psf_for_parameters)
 
-    print(state_update.updateMethod.meoh2)
+    # print(state_update.updateMethod.meoh2)
     print("Finished")
-    assert False
+    # assert False
 
     # state_update.update(2)
 
