@@ -1328,7 +1328,7 @@ def test_pbc():
     # print(f"{distance_pbc[0]=}")
     # print(f"{distance_pbc[distance_pbc>boxl]=}")
     assert (
-        len(distance_pbc[distance_pbc > boxl]) == 0
+        len(distance_pbc[distance_pbc > boxl.value_in_unit(nanometers)]) == 0
     ), "After correcting for PBC no distance should be larger than the boxlength"
 
 

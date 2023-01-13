@@ -1013,17 +1013,17 @@ def test_write_psf_save_load_clap():
     state_update = StateUpdate(update)
 
     old_psf_file = psf
-    ionic_liquid.write_psf(old_psf_file, "testc1.psf")
+    ionic_liquid.write_psf(old_psf_file, "test1c.psf")
 
     # ionic_liquid.simulation.step(50)
     state_update.update(2)
 
-    ionic_liquid.write_psf(old_psf_file, "testc2.psf")
+    ionic_liquid.write_psf(old_psf_file, "test2c.psf")
 
     ionic_liquid.simulation.step(10)
     state_update.update(2)
 
-    ionic_liquid.write_psf(old_psf_file, "testc3.psf")
+    ionic_liquid.write_psf(old_psf_file, "test3c.psf")
 
     ionic_liquid.saveState("statec.rst")
     ionic_liquid.saveCheckpoint("checkpointc.rst")
