@@ -1,4 +1,4 @@
-protex.residue.Residue
+﻿protex.residue.Residue
 ======================
 
 .. currentmodule:: protex.residue
@@ -30,5 +30,6 @@ protex.residue.Residue
       ~Residue.alternativ_name
       ~Residue.current_charge
       ~Residue.endstate_charge
+      ~Residue.has_equivalent_atom
    
    

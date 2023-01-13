@@ -1,35 +1,71 @@
+
+
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8" />
+  
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
   <title>protex.reporter &mdash; protex  documentation</title>
-      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="../../_static/css/custom.css" type="text/css" />
+  
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/custom.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
         <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../_static/doctools.js"></script>
         <script src="../../_static/sphinx_highlight.js"></script>
-    <script src="../../_static/js/theme.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
 </head>
 
-<body class="wy-body-for-nav"> 
+<body class="wy-body-for-nav">
+
+   
   <div class="wy-grid-for-nav">
+    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search"  style="background: #c1e1c1" >
-            <a href="../../index.html">
-            <img src="../../_static/protex_logo.png" class="logo" alt="Logo"/>
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> protex
+          
+
+          
           </a>
+
+          
+            
+            
+          
+
+          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -37,7 +73,18 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../documentation_pages/getting_started.html">Getting Started</a></li>
@@ -47,30 +94,69 @@
 <li class="toctree-l1"><a class="reference internal" href="../../documentation_pages/api.html">API Documentation</a></li>
 </ul>
 
+            
+          
         </div>
+        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #c1e1c1" >
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="../../index.html">protex</a>
+        
       </nav>
 
+
       <div class="wy-nav-content">
+        
         <div class="rst-content">
-          <div role="navigation" aria-label="Page navigation">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-      <li><a href="../../index.html" class="icon icon-home"></a></li>
-          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
-      <li class="breadcrumb-item active">protex.reporter</li>
+    
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>protex.reporter</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
+        
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-             
+            
   <h1>Source code for protex.reporter</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
@@ -85,7 +171,7 @@
 
 
 <div class="viewcode-block" id="ChargeReporter"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.reporter.ChargeReporter.html#protex.reporter.ChargeReporter">[docs]</a><span class="k">class</span> <span class="nc">ChargeReporter</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Charge Reporter reports the charges after an update intervals</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Charge Reporter reports the charges after an update intervals</span>
 <span class="sd">    Used to reoprt the charge for each molecule in the system.</span>
 <span class="sd">    Ideally call in conjunction with an update and report just when charge changed.</span>
 <span class="sd">    i.e.</span>
@@ -120,7 +206,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_reportInterval</span> <span class="o">=</span> <span class="n">reportInterval</span>
 
 <div class="viewcode-block" id="ChargeReporter.describeNextReport"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.reporter.ChargeReporter.html#protex.reporter.ChargeReporter.describeNextReport">[docs]</a>    <span class="k">def</span> <span class="nf">describeNextReport</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">simulation</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Get information about the next report this object will generate.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get information about the next report this object will generate.</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        simulation : Simulation</span>
@@ -149,7 +235,7 @@
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Step</span><span class="se">\t</span><span class="s2">Charges&quot;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_out</span><span class="p">)</span>
 
         <span class="nb">print</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">ionic_liquid</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">currentStep</span><span class="si">}</span><span class="se">\t</span><span class="si">{</span><span class="p">[</span><span class="n">residue</span><span class="o">.</span><span class="n">endstate_charge</span> <span class="k">for</span> <span class="n">residue</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ionic_liquid</span><span class="o">.</span><span class="n">residues</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">ionic_liquid</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">currentStep</span><span class="si">}</span><span class="se">\t</span><span class="si">{</span><span class="p">[</span><span class="n">residue</span><span class="o">.</span><span class="n">endstate_charge</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">residue</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">ionic_liquid</span><span class="o">.</span><span class="n">residues</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
             <span class="n">file</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_out</span><span class="p">,</span>
         <span class="p">)</span>
 
@@ -161,7 +247,7 @@
 
 
 <div class="viewcode-block" id="EnergyReporter"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.reporter.EnergyReporter.html#protex.reporter.EnergyReporter">[docs]</a><span class="k">class</span> <span class="nc">EnergyReporter</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Energy reporter reports the energy contributions to the potential energy&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Energy reporter reports the energy contributions to the potential energy&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -181,7 +267,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_reportInterval</span> <span class="o">=</span> <span class="n">reportInterval</span>
 
 <div class="viewcode-block" id="EnergyReporter.describeNextReport"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.reporter.EnergyReporter.html#protex.reporter.EnergyReporter.describeNextReport">[docs]</a>    <span class="k">def</span> <span class="nf">describeNextReport</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">simulation</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Get information about the next report this object will generate.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get information about the next report this object will generate.</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        simulation : Simulation</span>
@@ -218,10 +304,10 @@
                     <span class="p">),</span>
                     <span class="n">file</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_out</span><span class="p">,</span>
                 <span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Step</span><span class="se">\t</span><span class="si">{</span><span class="n">tab</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">n</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">names</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_out</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Step</span><span class="se">\t</span><span class="si">{</span><span class="n">tab</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">n</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">names</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_out</span><span class="p">)</span>
 
         <span class="nb">print</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">simulation</span><span class="o">.</span><span class="n">currentStep</span><span class="si">}</span><span class="se">\t</span><span class="si">{</span><span class="n">tab</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">values</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">simulation</span><span class="o">.</span><span class="n">currentStep</span><span class="si">}</span><span class="se">\t</span><span class="si">{</span><span class="n">tab</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">v</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">values</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
             <span class="n">file</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_out</span><span class="p">,</span>
         <span class="p">)</span>
 
@@ -234,7 +320,7 @@
 
 <span class="c1"># Reporter from https://github.com/z-gong/openmm-velocityVerlet/tree/master/examples/ommhelper/reporter</span>
 <div class="viewcode-block" id="DrudeTemperatureReporter"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.reporter.DrudeTemperatureReporter.html#protex.reporter.DrudeTemperatureReporter">[docs]</a><span class="k">class</span> <span class="nc">DrudeTemperatureReporter</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    DrudeTemperatureReporter reports the temperatures of different DOFs in a Drude simulation system.</span>
 
 <span class="sd">    The temperatures for three sets of degrees of freedom are reported</span>
@@ -260,7 +346,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_hasInitialized</span> <span class="o">=</span> <span class="kc">False</span>
 
 <div class="viewcode-block" id="DrudeTemperatureReporter.describeNextReport"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.reporter.DrudeTemperatureReporter.html#protex.reporter.DrudeTemperatureReporter.describeNextReport">[docs]</a>    <span class="k">def</span> <span class="nf">describeNextReport</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">simulation</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Get information about the next report this object will generate.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get information about the next report this object will generate.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -280,7 +366,7 @@
         <span class="k">return</span> <span class="p">(</span><span class="n">steps</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="DrudeTemperatureReporter.report"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.reporter.DrudeTemperatureReporter.html#protex.reporter.DrudeTemperatureReporter.report">[docs]</a>    <span class="k">def</span> <span class="nf">report</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">simulation</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Generate a report.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Generate a report.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -406,30 +492,46 @@
 </pre></div>
 
            </div>
+           
           </div>
           <footer>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2022, Florian Joerg &amp; Marcus Wieder. Project structure based on the Computational Molecular Science Python Cookiecutter version 1.5.</p>
-  </div>
+    <p>
+        &#169; Copyright 2022, Florian Joerg &amp; Marcus Wieder. Project structure based on the Computational Molecular Science Python Cookiecutter version 1.5.
 
-  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    provided by <a href="https://readthedocs.org">Read the Docs</a>.
-   
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
         </div>
       </div>
+
     </section>
+
   </div>
-  <script>
+  
+
+  <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+
+  
+  
+    
+   
 
 </body>
 </html>

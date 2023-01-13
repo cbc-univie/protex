@@ -16,9 +16,12 @@ protex.system.ProtexTemplates
    .. autosummary::
       :nosignatures:
    
+      ~ProtexTemplates.get_atom_name_for
       ~ProtexTemplates.get_charge_template_for
+      ~ProtexTemplates.get_equivalent_atom_for
       ~ProtexTemplates.get_residue_name_for_coupled_state
       ~ProtexTemplates.get_update_value_for
+      ~ProtexTemplates.has_equivalent_atom
       ~ProtexTemplates.set_allowed_updates
       ~ProtexTemplates.set_update_value_for
    
