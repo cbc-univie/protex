@@ -33,7 +33,7 @@ try:  # Syntax changed in OpenMM 7.6
         Simulation,
         StateDataReporter,
     )
-    from openmm.unit import angstroms, kelvin, picoseconds
+    from openmm.unit import angstroms, kelvin, nanometers, picoseconds
 except ImportError:
     import simtk.openmm as mm
     from simtk.openmm import (
@@ -48,7 +48,7 @@ except ImportError:
     from simtk.openmm.app import CharmmCrdFile, CharmmParameterSet, CharmmPsfFile
     from simtk.openmm.app import PME, HBonds
     from simtk.openmm.app import Simulation
-    from simtk.unit import angstroms, kelvin, picoseconds
+    from simtk.unit import angstroms, kelvin, picoseconds, nanometers
 
 import pytest
 from scipy.spatial import distance_matrix
@@ -1312,7 +1312,7 @@ def test_pbc():
 
     from scipy.spatial.distance import cdist
 
-    def _rPBC(coor1, coor2, boxl=boxl):
+    def _rPBC(coor1, coor2, boxl=ionic_liquid.boxlength.value_in_unit(nanometers)):
         dx = abs(coor1[0] - coor2[0])
         if dx > boxl / 2:
             dx = boxl - dx
@@ -2014,7 +2014,8 @@ def test_updates_with_reorient():
     # wrap system in IonicLiquidSystem
     ionic_liquid = ProtexSystem(simulation, templates, simulation_for_parameters)
     pars = []
-    update = NaiveMCUpdate(ionic_liquid, meoh2=True)
+    # update = NaiveMCUpdate(ionic_liquid, meoh2=True)
+    update = KeepHUpdate(ionic_liquid, include_equivalent_atom=True, reorient=True)
     # initialize state update class
     state_update = StateUpdate(update)
     # ionic_liquid.simulation.minimizeEnergy(maxIterations=200)
@@ -2061,7 +2062,6 @@ def test_manipulating_coordinates():
     )
     # wrap system in IonicLiquidSystem
     ionic_liquid = ProtexSystem(simulation, templates, simulation_for_parameters)
-    boxl = ionic_liquid.boxlength
 
     positions = ionic_liquid.simulation.context.getState(
         getPositions=True

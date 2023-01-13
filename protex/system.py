@@ -258,8 +258,8 @@ class ProtexSystem:
         self.templates: ProtexTemplates = templates
         self.simulation_for_parameters = simulation_for_parameters
         self.residues: list[Residue] = self._set_initial_states()
-        self.boxlength: float = (
-            simulation.context.getState().getPeriodicBoxVectors()[0][0]._value
+        self.boxlength: openmm.Quantity = (
+            simulation.context.getState().getPeriodicBoxVectors()[0][0]
         )  # NOTE: supports only cubic boxes
 
     def get_current_number_of_each_residue_type(self) -> dict[str, int]:

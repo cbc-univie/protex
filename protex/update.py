@@ -7,6 +7,11 @@ from collections import Counter
 import numpy as np
 from scipy.spatial import distance_matrix
 
+try:
+    from openmm.unit import nanometers
+except ImportError:
+    from simtk.unit import nanometers
+
 from protex.residue import Residue
 from protex.system import ProtexSystem
 
@@ -126,7 +131,7 @@ class KeepHUpdate(Update):
         self,
         ionic_liquid: ProtexSystem,
         all_forces: bool = False,
-        to_adapt: list[tuple[str, int, frozenset[str]]] = None,
+        to_adapt: list[tuple[str, int, frozenset[str]]] or None = None,
         include_equivalent_atom: bool = False,
         reorient: bool = False,
     ) -> None:
@@ -292,9 +297,12 @@ class KeepHUpdate(Update):
             pos_acceptor_atoms.append(pos_acceptor_atom)
 
             # account for PBC
+            # boxl_vec = (
+            #     self.ionic_liquid.boxlength * pos_donated_H[0] / pos_donated_H[0]._value
+            # )  # very stupid workaround to get a quantity with unit from a number
             boxl_vec = (
-                self.ionic_liquid.boxlength * pos_donated_H[0] / pos_donated_H[0]._value
-            )  # very stupid workaround to get a quantity with unit from a number
+                self.ionic_liquid.boxlength
+            )  # changed to store boxl as quantity in system class
 
             for i in range(0, 3):
                 if (
@@ -440,7 +448,7 @@ class NaiveMCUpdate(Update):
         self,
         ionic_liquid: ProtexSystem,
         all_forces: bool = False,
-        to_adapt: list[tuple[str, int, frozenset[str]]] = None,
+        to_adapt: list[tuple[str, int, frozenset[str]]] or None = None,
         include_equivalent_atom: bool = False,
         reorient: bool = False,
     ) -> None:
@@ -628,7 +636,9 @@ class StateUpdate:
 
         from scipy.spatial.distance import cdist
 
-        def _rPBC(coor1, coor2, boxl=self.ionic_liquid.boxlength):
+        def _rPBC(
+            coor1, coor2, boxl=self.ionic_liquid.boxlength.value_in_unit(nanometers)
+        ):
             dx = abs(coor1[0] - coor2[0])
             if dx > boxl / 2:
                 dx = boxl - dx

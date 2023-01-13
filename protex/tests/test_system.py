@@ -37,6 +37,7 @@ try:  # Syntax changed in OpenMM 7.6
         kelvin,
         kilocalories_per_mole,
         md_kilocalories,
+        nanometers,
         picoseconds,
     )
 except ImportError:
@@ -53,7 +54,7 @@ except ImportError:
     from simtk.openmm.app import CharmmCrdFile, CharmmParameterSet, CharmmPsfFile
     from simtk.openmm.app import PME, HBonds
     from simtk.openmm.app import Simulation
-    from simtk.unit import angstroms, kelvin, picoseconds
+    from simtk.unit import angstroms, kelvin, picoseconds, nanometers
 
 from ..reporter import ChargeReporter, EnergyReporter
 from ..system import ProtexSystem, ProtexTemplates
@@ -246,6 +247,7 @@ def test_create_IonicLiquid():
 
     count = defaultdict(int)
     ionic_liquid = ProtexSystem(simulation, templates)
+    print(ionic_liquid.boxlength.value_in_unit(nanometers))
 
     assert len(ionic_liquid.residues) == 1000
     for idx, residue in enumerate(ionic_liquid.residues):
