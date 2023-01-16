@@ -65,7 +65,7 @@ from ..testsystems import (  # generate_single_hpts_system,
     OAC_HOAC,
     generate_hpts_meoh_system,
 )
-from ..update import NaiveMCUpdate, StateUpdate
+from ..update import NaiveMCUpdate, StateUpdate, KeepHUpdate
 
 ############################
 # TEST SYSTEM
