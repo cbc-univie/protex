@@ -48,6 +48,8 @@ class Residue:
         The system generated with openMM, where all residues are in
     pair_12_13_list: list
          1-2 and 1-3 exclusions in the system
+    has_equivalent_atoms: tuple(bool)
+        if orignal_name and alternative name have equivalent atoms
     """
 
     def __init__(
@@ -60,7 +62,7 @@ class Residue:
         # canonical_name,
         pair_12_13_exclusion_list,
         # has_equivalent_atom,
-        equivalent_atoms,
+        has_equivalent_atoms,
     ) -> None:
 
         self.residue = residue
@@ -79,8 +81,8 @@ class Residue:
         self.pair_12_13_list = pair_12_13_exclusion_list
         # self.has_equivalent_atom: bool = has_equivalent_atom
         self.equivalent_atoms: dict[str, bool] = {
-            self.original_name: equivalent_atoms[0],
-            self.alternativ_name: equivalent_atoms[1],
+            self.original_name: has_equivalent_atoms[0],
+            self.alternativ_name: has_equivalent_atoms[1],
         }
         self.equivalent_atom_pos_in_list: int = None
         self.used_equivalent_atom: bool = False

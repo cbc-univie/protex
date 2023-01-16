@@ -33,7 +33,7 @@ try:  # Syntax changed in OpenMM 7.6
         Simulation,
         StateDataReporter,
     )
-    from openmm.unit import angstroms, kelvin, picoseconds
+    from openmm.unit import angstroms, kelvin, nanometers, picoseconds
 except ImportError:
     import simtk.openmm as mm
     from simtk.openmm import (
@@ -48,7 +48,7 @@ except ImportError:
     from simtk.openmm.app import CharmmCrdFile, CharmmParameterSet, CharmmPsfFile
     from simtk.openmm.app import PME, HBonds
     from simtk.openmm.app import Simulation
-    from simtk.unit import angstroms, kelvin, picoseconds
+    from simtk.unit import angstroms, kelvin, picoseconds, nanometers
 
 import pytest
 from scipy.spatial import distance_matrix
@@ -65,7 +65,7 @@ from ..testsystems import (  # generate_single_hpts_system,
     OAC_HOAC,
     generate_hpts_meoh_system,
 )
-from ..update import NaiveMCUpdate, StateUpdate, KeepHUpdate
+from ..update import KeepHUpdate, NaiveMCUpdate, StateUpdate
 
 ############################
 # TEST SYSTEM
@@ -1312,7 +1312,7 @@ def test_pbc():
 
     from scipy.spatial.distance import cdist
 
-    def _rPBC(coor1, coor2, boxl=boxl):
+    def _rPBC(coor1, coor2, boxl=ionic_liquid.boxlength.value_in_unit(nanometers)):
         dx = abs(coor1[0] - coor2[0])
         if dx > boxl / 2:
             dx = boxl - dx
@@ -1328,7 +1328,7 @@ def test_pbc():
     # print(f"{distance_pbc[0]=}")
     # print(f"{distance_pbc[distance_pbc>boxl]=}")
     assert (
-        len(distance_pbc[distance_pbc > boxl]) == 0
+        len(distance_pbc[distance_pbc > boxl.value_in_unit(nanometers)]) == 0
     ), "After correcting for PBC no distance should be larger than the boxlength"
 
 
@@ -1923,16 +1923,17 @@ def test_meoh2_update():
     # wrap system in IonicLiquidSystem
     ionic_liquid = ProtexSystem(simulation, templates, simulation_for_parameters)
     # initialize update method
-    update = NaiveMCUpdate(ionic_liquid, meoh2=True)
+    # update = NaiveMCUpdate(ionic_liquid, meoh2=True)
+    update = KeepHUpdate(ionic_liquid, include_equivalent_atom=True, reorient=True)
     # initialize state update class
     state_update = StateUpdate(update)
 
     # old_psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
     # ionic_liquid.write_psf(old_psf_file, "test.psf", psf_for_parameters)
 
-    print(state_update.updateMethod.meoh2)
+    # print(state_update.updateMethod.meoh2)
     print("Finished")
-    assert False
+    # assert False
 
     # state_update.update(2)
 
@@ -2013,7 +2014,8 @@ def test_updates_with_reorient():
     # wrap system in IonicLiquidSystem
     ionic_liquid = ProtexSystem(simulation, templates, simulation_for_parameters)
     pars = []
-    update = NaiveMCUpdate(ionic_liquid, meoh2=True)
+    # update = NaiveMCUpdate(ionic_liquid, meoh2=True)
+    update = KeepHUpdate(ionic_liquid, include_equivalent_atom=True, reorient=True)
     # initialize state update class
     state_update = StateUpdate(update)
     # ionic_liquid.simulation.minimizeEnergy(maxIterations=200)
@@ -2060,7 +2062,6 @@ def test_manipulating_coordinates():
     )
     # wrap system in IonicLiquidSystem
     ionic_liquid = ProtexSystem(simulation, templates, simulation_for_parameters)
-    boxl = ionic_liquid.boxlength
 
     positions = ionic_liquid.simulation.context.getState(
         getPositions=True
