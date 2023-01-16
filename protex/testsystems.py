@@ -735,13 +735,13 @@ def generate_hpts_meoh_system(
             params = CharmmParameterSet(*para_files)
         else:
             PARA_FILES = [
-                "toppar_drude_master_protein_2013f_lj025_modhpts.str",
+                "toppar_drude_master_protein_2013f_lj025_modhpts_chelpg.str",
                 "hoac_d.str",
                 "im1h_d.str",
                 "im1_dummy_d.str",
                 "oac_dummy_d.str",
-                "hpts_dummy_d.str",
-                "hptsh_d.str",
+                "hpts_dummy_d_chelpg.str",
+                "hptsh_d_chelpg.str",
                 "meoh_dummy.str",
                 "meoh2_unscaled.str",
             ]
