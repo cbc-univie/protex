@@ -2,7 +2,7 @@ import copy
 import logging
 import random
 from abc import ABC, abstractmethod
-from collections import Counter
+from collections import Counter, deque
 
 import numpy as np
 from scipy.spatial import distance_matrix
@@ -467,7 +467,7 @@ class StateUpdate:
     def __init__(self, updateMethod: Update) -> None:
         self.updateMethod: Update = updateMethod
         self.ionic_liquid: ProtexSystem = self.updateMethod.ionic_liquid
-        self.history: list = []
+        self.history: deque(maxlen=10)
         self.update_trial: int = 0
 
     def write_charges(self, filename: str) -> None:
@@ -603,6 +603,7 @@ class StateUpdate:
         # print(f"{idx=}")
 
         proposed_candidate_pairs = []
+        proposed_candidate_pair_sets = [] # didn't want to make sets from proposed_candidate_pairs altogether, second list for basically same information may be superfluous
         used_residues = []
         # check if charge transfer is possible
         for candidate_idx1, candidate_idx2 in idx:
@@ -645,7 +646,7 @@ class StateUpdate:
                         )
                         continue
                     # reject if already in last 10 updates
-                    if set(proposed_candidate_pair) in self.history[-10:]:
+                    if any(set(proposed_candidate_pair) in sublist for sublist in self.history):
                         logger.debug(
                             f"{residue1.current_name}:{residue1.residue.id}:{charge_candidate_idx1}-{residue2.current_name}:{residue2.residue.id}:{charge_candidate_idx2} pair rejected, bc in history ..."
                         )
@@ -661,7 +662,7 @@ class StateUpdate:
                         residue2.used_equivalent_atom = True
                     used_residues.append(residue1)
                     used_residues.append(residue2)
-                    self.history.append(set(proposed_candidate_pair))
+                    proposed_candidate_pair_sets.append(set(proposed_candidate_pair))
                     print(
                         f"{residue1.current_name}:{residue1.residue.id}:{charge_candidate_idx1}-{residue2.current_name}:{residue2.residue.id}:{charge_candidate_idx2} pair accepted ..."
                     )
@@ -670,6 +671,10 @@ class StateUpdate:
                         f"UpdatePair:{residue1.current_name}:{residue1.residue.index}:{charge_candidate_idx1}:{residue2.current_name}:{residue2.residue.index}:{charge_candidate_idx2}"
                     )
                 # return proposed_candidate_pair
+        if len(proposed_candidate_pair_sets) == 0:
+            self.history.append([])
+        else:
+            self.history.append(proposed_candidate_pair_sets)
         return proposed_candidate_pairs
 
     def _get_positions_for_mutation_sites(self) -> tuple[list[float], list[Residue]]:
