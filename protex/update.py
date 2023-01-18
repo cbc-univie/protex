@@ -56,7 +56,9 @@ class Update(ABC):
                     "CustomTorsionForce",
                 ]
             )
-        self.reject_length: int = 10  # specify the number of update steps the same residue will be rejected
+        self.reject_length: int = (
+            10  # specify the number of update steps the same residue will be rejected
+        )
 
     @abstractmethod
     def _update(self, candidates: list[tuple], nr_of_steps: int) -> None:
