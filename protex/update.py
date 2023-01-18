@@ -467,7 +467,7 @@ class StateUpdate:
     def __init__(self, updateMethod: Update) -> None:
         self.updateMethod: Update = updateMethod
         self.ionic_liquid: ProtexSystem = self.updateMethod.ionic_liquid
-        self.history: deque(maxlen=10)
+        self.history: deque = deque(maxlen=10)
         self.update_trial: int = 0
 
     def write_charges(self, filename: str) -> None:
