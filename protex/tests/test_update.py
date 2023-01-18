@@ -29,8 +29,7 @@ from ..update import KeepHUpdate, NaiveMCUpdate, StateUpdate, Update
 
 
 @pytest.mark.skipif(
-    os.getenv("CI") == "true",
-    reason="Fails sporadically",
+    os.getenv("CI") == "true", reason="Fails sporadically",
 )
 def test_create_update():
     simulation = generate_im1h_oac_system()
@@ -232,10 +231,7 @@ def test_setting_forces():
     allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 1}
     allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.16, "prob": 1}
     # get ionic liquid templates
-    templates = ProtexTemplates(
-        [OAC_HOAC, IM1H_IM1],
-        (allowed_updates),
-    )
+    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates),)
     # wrap system in IonicLiquidSystem
     ionic_liquid = ProtexSystem(simulation, templates)
 
@@ -279,9 +275,7 @@ def test_setting_forces():
     int_force_0a = ionic_liquid.residues[0]._get_HarmonicBondForce_parameters_at_lambda(
         1.0
     )
-    ionic_liquid.residues[0]._set_HarmonicBondForce_parameters(
-        int_force_0a,
-    )
+    ionic_liquid.residues[0]._set_HarmonicBondForce_parameters(int_force_0a,)
     print("Lambda: 1.0")
     parm_lambda_10 = []
     for force in ionic_liquid.system.getForces():
@@ -469,9 +463,7 @@ def test_setting_forces():
     int_force_0a = ionic_liquid.residues[
         200
     ]._get_CustomTorsionForce_parameters_at_lambda(0.5)
-    ionic_liquid.residues[200]._set_CustomTorsionForce_parameters(
-        int_force_0a,
-    )
+    ionic_liquid.residues[200]._set_CustomTorsionForce_parameters(int_force_0a,)
     print("Lambda: 0.5")
     parm_lambda_05 = []
     for force in ionic_liquid.system.getForces():
@@ -494,9 +486,7 @@ def test_setting_forces():
     int_force_0a = ionic_liquid.residues[
         200
     ]._get_CustomTorsionForce_parameters_at_lambda(1.0)
-    ionic_liquid.residues[200]._set_CustomTorsionForce_parameters(
-        int_force_0a,
-    )
+    ionic_liquid.residues[200]._set_CustomTorsionForce_parameters(int_force_0a,)
     print("Lambda: 1.0")
     parm_lambda_10 = []
     for force in ionic_liquid.system.getForces():
@@ -553,9 +543,7 @@ def test_setting_forces():
 
     # update DrudeForce
     int_force_0a = ionic_liquid.residues[0]._get_DrudeForce_parameters_at_lambda(0.5)
-    ionic_liquid.residues[0]._set_DrudeForce_parameters(
-        int_force_0a,
-    )
+    ionic_liquid.residues[0]._set_DrudeForce_parameters(int_force_0a,)
     print("Lambda: 0.5")
     parm_lambda_05_charges_pol = []
     parm_lambda_05_thole = []
@@ -586,9 +574,7 @@ def test_setting_forces():
 
     # update DrudeForce
     int_force_0a = ionic_liquid.residues[0]._get_DrudeForce_parameters_at_lambda(1.0)
-    ionic_liquid.residues[0]._set_DrudeForce_parameters(
-        int_force_0a,
-    )
+    ionic_liquid.residues[0]._set_DrudeForce_parameters(int_force_0a,)
     print("Lambda: 1.0")
     parm_lambda_10_charges_pol = []
     parm_lambda_10_thole = []
@@ -628,8 +614,7 @@ def test_setting_forces():
 
 
 @pytest.mark.skipif(
-    os.getenv("CI") == "true",
-    reason="Will fail sporadicaly.",
+    os.getenv("CI") == "true", reason="Will fail sporadicaly.",
 )
 def test_single_update(caplog):
     # caplog.set_level(logging.DEBUG)
@@ -701,8 +686,7 @@ def test_single_update(caplog):
 
 
 @pytest.mark.skipif(
-    os.getenv("CI") == "true",
-    reason="Will fail sporadicaly.",
+    os.getenv("CI") == "true", reason="Will fail sporadicaly.",
 )
 def test_check_updated_charges(caplog):
     caplog.set_level(logging.DEBUG)
@@ -768,8 +752,7 @@ def test_check_updated_charges(caplog):
 
 
 @pytest.mark.skipif(
-    os.getenv("CI") == "true",
-    reason="Takes too long for github actions",
+    os.getenv("CI") == "true", reason="Takes too long for github actions",
 )
 def test_transfer_with_distance_matrix():
 
@@ -871,8 +854,7 @@ def test_transfer_with_distance_matrix():
 
 
 @pytest.mark.skipif(
-    os.getenv("CI") == "true",
-    reason="Will fail sporadicaly.",
+    os.getenv("CI") == "true", reason="Will fail sporadicaly.",
 )
 def test_updates(caplog):
     caplog.set_level(logging.DEBUG)
@@ -992,8 +974,7 @@ def test_dry_updates(caplog):
 
 
 @pytest.mark.skipif(
-    os.getenv("CI") == "true",
-    reason="Will fail sporadicaly.",
+    os.getenv("CI") == "true", reason="Will fail sporadicaly.",
 )
 def test_parameters_after_update():
 
@@ -1203,10 +1184,7 @@ def test_parameters_after_update():
             print(f"Thole changed: {pos=}, {b_thole=}, {a_thole=}")
     for (
         pos,
-        (
-            (b1, b2, b3, b4, (b_k, b_psi0)),
-            (a1, a2, a3, a4, (a_k, a_psi0)),
-        ),
+        ((b1, b2, b3, b4, (b_k, b_psi0)), (a1, a2, a3, a4, (a_k, a_psi0)),),
     ) in enumerate(zip(imp_before_list, imp_after_list)):
         if b_k != a_k:
             print(f"k changed: {pos=}, {b_k=}, {a_k=}")
@@ -1239,8 +1217,7 @@ def test_parameters_after_update():
 
 
 @pytest.mark.skipif(
-    os.getenv("CI") == "true",
-    reason="Will fail sporadicaly.",
+    os.getenv("CI") == "true", reason="Will fail sporadicaly.",
 )
 def test_pbc():
 
@@ -1292,8 +1269,7 @@ def test_pbc():
 
 
 @pytest.mark.skipif(
-    os.getenv("CI") == "true",
-    reason="Will fail sporadicaly.",
+    os.getenv("CI") == "true", reason="Will fail sporadicaly.",
 )
 def test_single_im1h_oac():
 
@@ -1449,8 +1425,7 @@ def test_force_selection():
 
 
 @pytest.mark.skipif(
-    os.getenv("CI") == "true",
-    reason="Will fail sporadicaly.",
+    os.getenv("CI") == "true", reason="Will fail sporadicaly.",
 )
 def test_update_all_forces(caplog):
     caplog.set_level(logging.DEBUG)
@@ -1485,8 +1460,7 @@ def test_update_all_forces(caplog):
 
 
 @pytest.mark.skipif(
-    os.getenv("CI") == "true",
-    reason="Will fail sporadicaly.",
+    os.getenv("CI") == "true", reason="Will fail sporadicaly.",
 )
 def test_energy_before_after():
     def get_time_energy(simulation, print=False):
@@ -1581,8 +1555,7 @@ def test_energy_before_after():
 
 
 @pytest.mark.skipif(
-    os.getenv("CI") == "true",
-    reason="Will fail sporadicaly.",
+    os.getenv("CI") == "true", reason="Will fail sporadicaly.",
 )
 def test_single_energy_before_after(caplog):
     caplog.set_level(logging.DEBUG)
@@ -1731,8 +1704,7 @@ def test_single_energy_before_after(caplog):
 
 
 @pytest.mark.skipif(
-    os.getenv("CI") == "true",
-    reason="Will fail sporadicaly.",
+    os.getenv("CI") == "true", reason="Will fail sporadicaly.",
 )
 def test_dummy_energy_before_after(caplog):
     caplog.set_level(logging.DEBUG)
@@ -1746,8 +1718,7 @@ def test_dummy_energy_before_after(caplog):
 
     def save_il(ionic_liquid, number):
         ionic_liquid.write_psf(
-            f"protex/forcefield/dummy/im1h_oac_im1_hoac_1.psf",
-            f"test_{number}.psf",
+            f"protex/forcefield/dummy/im1h_oac_im1_hoac_1.psf", f"test_{number}.psf",
         )
         ionic_liquid.saveCheckpoint(f"test_{number}.rst")
 
@@ -1881,8 +1852,7 @@ def test_dummy_energy_before_after(caplog):
 
 
 @pytest.mark.skipif(
-    os.getenv("CI") == "true",
-    reason="Will fail sporadicaly.",
+    os.getenv("CI") == "true", reason="Will fail sporadicaly.",
 )
 def test_periodictorsionforce_energy(caplog):
     # caplog.set_level(logging.DEBUG)
@@ -2068,8 +2038,7 @@ def test_ubforce_update(caplog):
 
 
 @pytest.mark.skipif(
-    os.getenv("CI") == "true",
-    reason="Will fail sporadicaly.",
+    os.getenv("CI") == "true", reason="Will fail sporadicaly.",
 )
 def test_single_energy_molecule(caplog):
     caplog.set_level(logging.DEBUG)
@@ -2237,8 +2206,7 @@ def test_single_energy_molecule(caplog):
 
 
 @pytest.mark.skipif(
-    os.getenv("CI") == "true",
-    reason="Will fail sporadicaly.",
+    os.getenv("CI") == "true", reason="Will fail sporadicaly.",
 )
 def test_wrong_atom_name(caplog):
     caplog.set_level(logging.DEBUG)
@@ -2268,3 +2236,36 @@ def test_wrong_atom_name(caplog):
     except RuntimeError as e:
         print("This is fine. Atom name is not present")
         print(e)
+
+
+def test_save_load_updates(caplog):
+    caplog.set_level(logging.DEBUG)
+
+    simulation = generate_im1h_oac_system()
+    # get ionic liquid templates
+    allowed_updates = {}
+    # allowed updates according to simple protonation scheme
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.16, "prob": 1}
+    print(allowed_updates.keys())
+    templates = ProtexTemplates(
+        # [OAC_HOAC_chelpg, IM1H_IM1_chelpg], (set(["IM1H", "OAC"]), set(["IM1", "HOAC"]))
+        [OAC_HOAC, IM1H_IM1],
+        (allowed_updates),
+    )
+    # wrap system in IonicLiquidSystem
+    ionic_liquid = ProtexSystem(simulation, templates)
+    pars = []
+    update = NaiveMCUpdate(ionic_liquid)
+    # initialize state update class
+    state_update = StateUpdate(update)
+    state_update.update_trial = 100
+
+    # idea:
+    state_update.dump("update.pkl")
+    del state_update
+    state_update = StateUpdate.load("update.pkl", update)
+    assert state_update.update_trial == 100
+    os.remove("update.pkl")

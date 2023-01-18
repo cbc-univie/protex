@@ -1,8 +1,10 @@
+from __future__ import annotations
 import copy
 import logging
 import random
 from abc import ABC, abstractmethod
 from collections import Counter
+import pickle
 
 import numpy as np
 from scipy.spatial import distance_matrix
@@ -38,8 +40,8 @@ class Update(ABC):
     ) -> None:
         self.ionic_liquid: ProtexSystem = ionic_liquid
         self.to_adapt: list[tuple[str, int, frozenset[str]]] = to_adapt
-        self.include_equivalent_atom = include_equivalent_atom
-        self.reorient = reorient
+        self.include_equivalent_atom: bool = include_equivalent_atom
+        self.reorient: bool = reorient
         self.allowed_forces: list[str] = [  # change charges only
             "NonbondedForce",  # BUG: Charge stored in the DrudeForce does NOT get updated, probably you want to allow DrudeForce as well!
             "DrudeForce",
@@ -53,6 +55,7 @@ class Update(ABC):
                     "CustomTorsionForce",
                 ]
             )
+        self.reject_length: int = 10  # specify the number of update steps the same residue will be rejected
 
     @abstractmethod
     def _update(self, candidates: list[tuple], nr_of_steps: int) -> None:
@@ -464,11 +467,28 @@ class StateUpdate:
     Controls the update sheme and proposes the residues that need an update
     """
 
+    @staticmethod
+    def load(fname, updateMethod: Update) -> StateUpdate:
+        state_update = StateUpdate(updateMethod)
+        with open(fname, "rb") as inp:
+            from_pickle = pickle.load(inp)  # ensure correct order of arguments
+        state_update.history = from_pickle[0]
+        state_update.update_trial = from_pickle[1]
+        return state_update
+
     def __init__(self, updateMethod: Update) -> None:
         self.updateMethod: Update = updateMethod
         self.ionic_liquid: ProtexSystem = self.updateMethod.ionic_liquid
         self.history: list = []
         self.update_trial: int = 0
+
+    def dump(self, fname: str) -> None:
+        to_pickle = [
+            self.history,
+            self.update_trial,
+        ]  # enusre correct order of arguments
+        with open(fname, "wb") as outp:
+            pickle.dump(to_pickle, outp, pickle.HIGHEST_PROTOCOL)
 
     def write_charges(self, filename: str) -> None:
 
