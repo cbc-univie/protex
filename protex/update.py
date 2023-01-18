@@ -1,10 +1,11 @@
 from __future__ import annotations
+
 import copy
 import logging
+import pickle
 import random
 from abc import ABC, abstractmethod
 from collections import Counter
-import pickle
 
 import numpy as np
 from scipy.spatial import distance_matrix
