@@ -603,7 +603,9 @@ class StateUpdate:
         # print(f"{idx=}")
 
         proposed_candidate_pairs = []
-        proposed_candidate_pair_sets = [] # didn't want to make sets from proposed_candidate_pairs altogether, second list for basically same information may be superfluous
+        proposed_candidate_pair_sets = (
+            []
+        )  # didn't want to make sets from proposed_candidate_pairs altogether, second list for basically same information may be superfluous
         used_residues = []
         # check if charge transfer is possible
         for candidate_idx1, candidate_idx2 in idx:
@@ -646,7 +648,10 @@ class StateUpdate:
                         )
                         continue
                     # reject if already in last 10 updates
-                    if any(set(proposed_candidate_pair) in sublist for sublist in self.history):
+                    if any(
+                        set(proposed_candidate_pair) in sublist
+                        for sublist in self.history
+                    ):
                         logger.debug(
                             f"{residue1.current_name}:{residue1.residue.id}:{charge_candidate_idx1}-{residue2.current_name}:{residue2.residue.id}:{charge_candidate_idx2} pair rejected, bc in history ..."
                         )
