@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 import itertools
 import json
 import logging
+import pickle
 from collections import ChainMap, defaultdict, deque
 from copy import deepcopy
 from pdb import pm
@@ -64,12 +67,19 @@ class ProtexTemplates:
         the longest allowed distance for a possible transfer between two updates
     """
 
+    @staticmethod
+    def load(fname) -> ProtexTemplates:
+        with open(fname, "rb") as inp:
+            templates = pickle.load(inp)
+        return templates
+
     def __init__(
         self,
         states: list[dict[str, dict[str, str]]],
         allowed_updates: dict[frozenset[str], dict[str, float]],
     ) -> None:
 
+        self.__states = states
         self.pairs: list[list[str]] = [list(i.keys()) for i in states]
         self.states: dict[str, dict[str, str]] = dict(ChainMap(*states))
         self.names: list[str] = list(itertools.chain(*self.pairs))
@@ -80,6 +90,10 @@ class ProtexTemplates:
         # store names in variables, in case syntax for states dict changes
         self._atom_name: str = "atom_name"
         self._equivalent_atom: str = "equivalent_atom"
+
+    def dump(self, fname: str) -> None:
+        with open(fname, "wb") as outp:
+            pickle.dump(self, outp, pickle.HIGHEST_PROTOCOL)
 
     def get_atom_name_for(self, resname: str) -> str:
         return self.states[resname][self._atom_name]
@@ -246,6 +260,20 @@ class ProtexSystem:
 
     """
 
+    @staticmethod
+    def load(
+        fname,
+        simulation: openmm.app.simulation.Simulation,
+        simulation_for_parameters: openmm.app.simulation.Simulation = None,
+    ) -> ProtexSystem:
+        with open(fname, "rb") as inp:
+            from_pickle = pickle.load(inp)  # ensure correct order of arguments
+        protex_system = ProtexSystem(
+            simulation, from_pickle[0], simulation_for_parameters
+        )
+        protex_system.residues = from_pickle[1]
+        return protex_system
+
     def __init__(
         self,
         simulation: openmm.app.simulation.Simulation,
@@ -261,6 +289,11 @@ class ProtexSystem:
         self.boxlength: openmm.Quantity = (
             simulation.context.getState().getPeriodicBoxVectors()[0][0]
         )  # NOTE: supports only cubic boxes
+
+    def dump(self, fname: str) -> None:
+        to_pickle = [self.templates, self.residues]  # enusre correct order of arguments
+        with open(fname, "wb") as outp:
+            pickle.dump(to_pickle, outp, pickle.HIGHEST_PROTOCOL)
 
     def get_current_number_of_each_residue_type(self) -> dict[str, int]:
         current_number_of_each_residue_type: dict[str, int] = defaultdict(int)

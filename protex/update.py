@@ -31,6 +31,11 @@ class Update(ABC):
         Needs the IonicLiquidSystem
     """
 
+    @staticmethod
+    @abstractmethod
+    def load(fname, protex_system: ProtexSystem) -> Update:
+        pass
+
     def __init__(
         self,
         ionic_liquid: ProtexSystem,
@@ -43,11 +48,12 @@ class Update(ABC):
         self.to_adapt: list[tuple[str, int, frozenset[str]]] = to_adapt
         self.include_equivalent_atom: bool = include_equivalent_atom
         self.reorient: bool = reorient
+        self.all_forces: bool = all_forces
         self.allowed_forces: list[str] = [  # change charges only
             "NonbondedForce",  # BUG: Charge stored in the DrudeForce does NOT get updated, probably you want to allow DrudeForce as well!
             "DrudeForce",
         ]
-        if all_forces:
+        if self.all_forces:
             self.allowed_forces.extend(
                 [
                     "HarmonicBondForce",
@@ -59,6 +65,10 @@ class Update(ABC):
         self.reject_length: int = (
             10  # specify the number of update steps the same residue will be rejected
         )
+
+    @abstractmethod
+    def dump(self, fname: str) -> None:
+        pass
 
     @abstractmethod
     def _update(self, candidates: list[tuple], nr_of_steps: int) -> None:
@@ -133,6 +143,13 @@ class KeepHUpdate(Update):
     keep the position of the original H when switching from dummy to real H
     """
 
+    @staticmethod
+    def load(fname, protex_system: ProtexSystem) -> KeepHUpdate:
+        with open(fname, "rb") as inp:
+            from_pickle = pickle.load(inp)  # ensure correct order of arguments
+        update = KeepHUpdate(protex_system, *from_pickle)
+        return update
+
     def __init__(
         self,
         ionic_liquid: ProtexSystem,
@@ -144,6 +161,16 @@ class KeepHUpdate(Update):
         super().__init__(
             ionic_liquid, to_adapt, all_forces, include_equivalent_atom, reorient
         )
+
+    def dump(self, fname: str) -> None:
+        to_pickle = [
+            self.all_forces,
+            self.to_adapt,
+            self.include_equivalent_atom,
+            self.reorient,
+        ]  # enusre correct order of arguments
+        with open(fname, "wb") as outp:
+            pickle.dump(to_pickle, outp, pickle.HIGHEST_PROTOCOL)
 
     def _reorient_atoms(self, candidate):
         # Function to reorient atoms if the equivalent atom was used for shortest distance
@@ -384,6 +411,13 @@ class NaiveMCUpdate(Update):
         [description]
     """
 
+    @staticmethod
+    def load(fname, protex_system: ProtexSystem) -> NaiveMCUpdate:
+        with open(fname, "rb") as inp:
+            from_pickle = pickle.load(inp)  # ensure correct order of arguments
+        update = NaiveMCUpdate(protex_system, *from_pickle)
+        return update
+
     def __init__(
         self,
         ionic_liquid: ProtexSystem,
@@ -399,6 +433,16 @@ class NaiveMCUpdate(Update):
             raise NotImplementedError(
                 "Currently reorienting atoms if equivalent atoms are used is not implemented. Set reorient=False."
             )
+
+    def dump(self, fname: str) -> None:
+        to_pickle = [
+            self.all_forces,
+            self.to_adapt,
+            self.include_equivalent_atom,
+            self.reorient,
+        ]  # enusre correct order of arguments
+        with open(fname, "wb") as outp:
+            pickle.dump(to_pickle, outp, pickle.HIGHEST_PROTOCOL)
 
     def _update(self, candidates: list[tuple], nr_of_steps: int) -> None:
         logger.info("called _update")

@@ -2296,8 +2296,13 @@ def test_save_load_updates(caplog):
     state_update.update_trial = 100
 
     # idea:
-    state_update.dump("update.pkl")
+    update.dump("naivemcupdate.pkl")
+    state_update.dump("stateupdate.pkl")
+    del update
     del state_update
-    state_update = StateUpdate.load("update.pkl", update)
+    update = NaiveMCUpdate.load("naivemcupdate.pkl", ionic_liquid)
+    state_update = StateUpdate.load("stateupdate.pkl", update)
+    assert update.all_forces == False
     assert state_update.update_trial == 100
-    os.remove("update.pkl")
+    os.remove("naivemcupdate.pkl")
+    os.remove("stateupdate.pkl")
