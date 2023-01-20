@@ -179,13 +179,15 @@ class KeepHUpdate(Update):
         candidate1_residue, candidate2_residue = candidate
 
         # exchange positions of equivalent atoms
-        for resi in (candidate1_residue, candidate2_residue): 
+        for resi in (candidate1_residue, candidate2_residue):
             if resi.used_equivalent_atom:
                 atom_idx = resi.get_idx_for_atom_name(
                     self.ionic_liquid.templates.get_atom_name_for(resi.current_name)
                 )
                 equivalent_idx = resi.get_idx_for_atom_name(
-                    self.ionic_liquid.templates.get_equivalent_atom_for(resi.current_name)
+                    self.ionic_liquid.templates.get_equivalent_atom_for(
+                        resi.current_name
+                    )
                 )
 
                 pos_atom = positions_copy[atom_idx]
@@ -203,7 +205,7 @@ class KeepHUpdate(Update):
                 #     pos_atom_lp22 = positions_copy[atom_idx+6]
                 #     pos_equivalent_lp11 = positions_copy[equivalent_idx+5] # equivalent: O1
                 #     pos_equivalent_lp12 = positions_copy[equivalent_idx+6]
-                
+
                 #     positions[atom_idx+1] = pos_equivalent_d
                 #     positions[equivalent_idx+1] = pos_atom_d
                 #     positions[atom_idx+5] = pos_equivalent_lp11
@@ -216,16 +218,16 @@ class KeepHUpdate(Update):
 
         # set new H position:
         if "H" in self.ionic_liquid.templates.get_atom_name_for(
-        candidate1_residue.current_name
+            candidate1_residue.current_name
         ) or (
-        self.ionic_liquid.templates.has_equivalent_atom(
-            candidate1_residue.current_name
-        )
-        == True
-        and "H"
-        in self.ionic_liquid.templates.get_equivalent_atom_for(
-            candidate1_residue.current_name
-        )
+            self.ionic_liquid.templates.has_equivalent_atom(
+                candidate1_residue.current_name
+            )
+            == True
+            and "H"
+            in self.ionic_liquid.templates.get_equivalent_atom_for(
+                candidate1_residue.current_name
+            )
         ):
             donor = candidate1_residue
             acceptor = candidate2_residue
@@ -234,35 +236,27 @@ class KeepHUpdate(Update):
             donor = candidate2_residue
             acceptor = candidate1_residue
 
-
         if donor.used_equivalent_atom == True:
             idx_donated_H = donor.get_idx_for_atom_name(
-                    self.ionic_liquid.templates.get_equivalent_atom_for(
-                        donor.current_name
-                    )
-                )
-            
+                self.ionic_liquid.templates.get_equivalent_atom_for(donor.current_name)
+            )
+
         else:
             idx_donated_H = donor.get_idx_for_atom_name(
-                    self.ionic_liquid.templates.get_atom_name_for(
-                        donor.current_name
-                    )
-                )
-            
+                self.ionic_liquid.templates.get_atom_name_for(donor.current_name)
+            )
 
         if acceptor.used_equivalent_atom == True:
             idx_acceptor_atom = acceptor.get_idx_for_atom_name(
-                    self.ionic_liquid.templates.get_equivalent_atom_for(
-                        acceptor.current_name
-                    )
+                self.ionic_liquid.templates.get_equivalent_atom_for(
+                    acceptor.current_name
                 )
+            )
 
         else:
             idx_acceptor_atom = acceptor.get_idx_for_atom_name(
-                    self.ionic_liquid.templates.get_atom_name_for(
-                        acceptor.current_name
-                    )
-                )
+                self.ionic_liquid.templates.get_atom_name_for(acceptor.current_name)
+            )
 
         # account for PBC
         boxl_vec = (
@@ -271,7 +265,7 @@ class KeepHUpdate(Update):
 
         pos_acceptor_atom = positions_copy[idx_acceptor_atom]
         pos_donated_H = positions_copy[idx_donated_H]
-        
+
         for i in range(0, 3):
             if (
                 abs(pos_acceptor_atom[i] - pos_donated_H[i]) > boxl_vec / 2
@@ -284,7 +278,7 @@ class KeepHUpdate(Update):
         pos_accepted_H = pos_donated_H - 0.33 * (
             pos_donated_H - pos_acceptor_atom
         )  # set position at ca. 1 angstrom from acceptor -> more stable
-        
+
         # atom name of acceptor alternative is the H that used to be the dummy H
         idx_accepted_H = acceptor.get_idx_for_atom_name(
             self.ionic_liquid.templates.get_atom_name_for(acceptor.alternativ_name)
@@ -293,11 +287,12 @@ class KeepHUpdate(Update):
         # update position of the once-dummy H on the acceptor - original H line
         positions[idx_accepted_H] = pos_accepted_H
 
-        print(f"donated H: {pos_donated_H}, acceptor atom: {pos_acceptor_atom}, H set to: {pos_accepted_H}")
+        print(
+            f"donated H: {pos_donated_H}, acceptor atom: {pos_acceptor_atom}, H set to: {pos_accepted_H}"
+        )
 
         return positions
 
-        
     def _update(self, candidates: list[tuple], nr_of_steps: int) -> None:
         logger.info("called _update")
 
@@ -350,11 +345,13 @@ class KeepHUpdate(Update):
         ).getPositions(asNumpy=True)
 
         positions_copy = copy.deepcopy(positions)
-        
+
         for candidate in candidates:
             candidate1_residue, candidate2_residue = candidate
-            print(f'candidate pair {candidates.index(candidate)}')
-            print(f'candidate1 used equivalent atom: {candidate1_residue.used_equivalent_atom}, candidate2 used equivalent atom: {candidate2_residue.used_equivalent_atom}')
+            print(f"candidate pair {candidates.index(candidate)}")
+            print(
+                f"candidate1 used equivalent atom: {candidate1_residue.used_equivalent_atom}, candidate2 used equivalent atom: {candidate2_residue.used_equivalent_atom}"
+            )
 
             positions = self._reorient_atoms(candidate, positions, positions_copy)
 
@@ -381,8 +378,8 @@ class KeepHUpdate(Update):
 
             if candidate1_residue.used_equivalent_atom:
                 candidate1_residue.used_equivalent_atom = (
-                False  # reset for next update round
-            )
+                    False  # reset for next update round
+                )
 
             if candidate2_residue.used_equivalent_atom:
                 candidate2_residue.used_equivalent_atom = False
