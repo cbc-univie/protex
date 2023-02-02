@@ -16,6 +16,8 @@ protex.update.KeepHUpdate
    .. autosummary::
       :nosignatures:
    
+      ~KeepHUpdate.dump
+      ~KeepHUpdate.load
    
    
 

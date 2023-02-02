@@ -16,6 +16,8 @@ protex.update.NaiveMCUpdate
    .. autosummary::
       :nosignatures:
    
+      ~NaiveMCUpdate.dump
+      ~NaiveMCUpdate.load
    
    
 

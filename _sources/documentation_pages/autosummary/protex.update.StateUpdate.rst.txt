@@ -16,8 +16,10 @@ protex.update.StateUpdate
    .. autosummary::
       :nosignatures:
    
+      ~StateUpdate.dump
       ~StateUpdate.get_charges
       ~StateUpdate.get_num_residues
+      ~StateUpdate.load
       ~StateUpdate.update
       ~StateUpdate.write_charges
    

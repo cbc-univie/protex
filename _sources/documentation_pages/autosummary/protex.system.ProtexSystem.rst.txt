@@ -16,7 +16,9 @@ protex.system.ProtexSystem
    .. autosummary::
       :nosignatures:
    
+      ~ProtexSystem.dump
       ~ProtexSystem.get_current_number_of_each_residue_type
+      ~ProtexSystem.load
       ~ProtexSystem.loadCheckpoint
       ~ProtexSystem.loadState
       ~ProtexSystem.load_updates

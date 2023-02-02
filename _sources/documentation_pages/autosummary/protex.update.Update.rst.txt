@@ -16,6 +16,8 @@ protex.update.Update
    .. autosummary::
       :nosignatures:
    
+      ~Update.dump
+      ~Update.load
    
    
 
