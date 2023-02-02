@@ -2268,3 +2268,41 @@ def test_wrong_atom_name(caplog):
     except RuntimeError as e:
         print("This is fine. Atom name is not present")
         print(e)
+
+
+def test_save_load_updates(caplog):
+    caplog.set_level(logging.DEBUG)
+
+    simulation = generate_im1h_oac_system()
+    # get ionic liquid templates
+    allowed_updates = {}
+    # allowed updates according to simple protonation scheme
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.16, "prob": 1}
+    print(allowed_updates.keys())
+    templates = ProtexTemplates(
+        # [OAC_HOAC_chelpg, IM1H_IM1_chelpg], (set(["IM1H", "OAC"]), set(["IM1", "HOAC"]))
+        [OAC_HOAC, IM1H_IM1],
+        (allowed_updates),
+    )
+    # wrap system in IonicLiquidSystem
+    ionic_liquid = ProtexSystem(simulation, templates)
+    pars = []
+    update = NaiveMCUpdate(ionic_liquid)
+    # initialize state update class
+    state_update = StateUpdate(update)
+    state_update.update_trial = 100
+
+    # idea:
+    update.dump("naivemcupdate.pkl")
+    state_update.dump("stateupdate.pkl")
+    del update
+    del state_update
+    update = NaiveMCUpdate.load("naivemcupdate.pkl", ionic_liquid)
+    state_update = StateUpdate.load("stateupdate.pkl", update)
+    assert update.all_forces == False
+    assert state_update.update_trial == 100
+    os.remove("naivemcupdate.pkl")
+    os.remove("stateupdate.pkl")

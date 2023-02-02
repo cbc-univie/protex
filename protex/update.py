@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 import copy
 import logging
+import pickle
 import random
 from abc import ABC, abstractmethod
 from collections import Counter, deque
@@ -28,6 +31,11 @@ class Update(ABC):
         Needs the IonicLiquidSystem
     """
 
+    @staticmethod
+    @abstractmethod
+    def load(fname, protex_system: ProtexSystem) -> Update:
+        pass
+
     def __init__(
         self,
         ionic_liquid: ProtexSystem,
@@ -38,13 +46,14 @@ class Update(ABC):
     ) -> None:
         self.ionic_liquid: ProtexSystem = ionic_liquid
         self.to_adapt: list[tuple[str, int, frozenset[str]]] = to_adapt
-        self.include_equivalent_atom = include_equivalent_atom
-        self.reorient = reorient
+        self.include_equivalent_atom: bool = include_equivalent_atom
+        self.reorient: bool = reorient
+        self.all_forces: bool = all_forces
         self.allowed_forces: list[str] = [  # change charges only
             "NonbondedForce",  # BUG: Charge stored in the DrudeForce does NOT get updated, probably you want to allow DrudeForce as well!
             "DrudeForce",
         ]
-        if all_forces:
+        if self.all_forces:
             self.allowed_forces.extend(
                 [
                     "HarmonicBondForce",
@@ -53,6 +62,13 @@ class Update(ABC):
                     "CustomTorsionForce",
                 ]
             )
+        self.reject_length: int = (
+            10  # specify the number of update steps the same residue will be rejected
+        )
+
+    @abstractmethod
+    def dump(self, fname: str) -> None:
+        pass
 
     @abstractmethod
     def _update(self, candidates: list[tuple], nr_of_steps: int) -> None:
@@ -127,6 +143,13 @@ class KeepHUpdate(Update):
     keep the position of the original H when switching from dummy to real H
     """
 
+    @staticmethod
+    def load(fname, protex_system: ProtexSystem) -> KeepHUpdate:
+        with open(fname, "rb") as inp:
+            from_pickle = pickle.load(inp)  # ensure correct order of arguments
+        update = KeepHUpdate(protex_system, *from_pickle)
+        return update
+
     def __init__(
         self,
         ionic_liquid: ProtexSystem,
@@ -139,35 +162,136 @@ class KeepHUpdate(Update):
             ionic_liquid, to_adapt, all_forces, include_equivalent_atom, reorient
         )
 
-    def _reorient_atoms(self, candidate):
+    def dump(self, fname: str) -> None:
+        to_pickle = [
+            self.all_forces,
+            self.to_adapt,
+            self.include_equivalent_atom,
+            self.reorient,
+        ]  # enusre correct order of arguments
+        with open(fname, "wb") as outp:
+            pickle.dump(to_pickle, outp, pickle.HIGHEST_PROTOCOL)
+
+    def _reorient_atoms(self, candidate, positions, positions_copy):
         # Function to reorient atoms if the equivalent atom was used for shortest distance
         # exchange positions of atom and equivalent atom
+        # and set the position of the "new" H
+        candidate1_residue, candidate2_residue = candidate
 
-        atom_idx = candidate.get_idx_for_atom_name(
-            self.ionic_liquid.templates.get_atom_name_for(candidate.current_name)
+        # exchange positions of equivalent atoms
+        for resi in (candidate1_residue, candidate2_residue):
+            if resi.used_equivalent_atom:
+                atom_idx = resi.get_idx_for_atom_name(
+                    self.ionic_liquid.templates.get_atom_name_for(resi.current_name)
+                )
+                equivalent_idx = resi.get_idx_for_atom_name(
+                    self.ionic_liquid.templates.get_equivalent_atom_for(
+                        resi.current_name
+                    )
+                )
+
+                pos_atom = positions_copy[atom_idx]
+                print(f"{pos_atom=}")
+                pos_equivalent = positions_copy[equivalent_idx]
+                print(f"{pos_equivalent=}")
+
+                positions[atom_idx] = pos_equivalent
+                positions[equivalent_idx] = pos_atom
+
+                # if resi.current_name == "OAC": # also exchange lone pairs and drudes
+                #     pos_atom_d = positions_copy[atom_idx+1] # got atom idxes from psf
+                #     pos_equivalent_d = positions_copy[equivalent_idx+1]
+                #     pos_atom_lp21 = positions_copy[atom_idx+5] # atom: O2
+                #     pos_atom_lp22 = positions_copy[atom_idx+6]
+                #     pos_equivalent_lp11 = positions_copy[equivalent_idx+5] # equivalent: O1
+                #     pos_equivalent_lp12 = positions_copy[equivalent_idx+6]
+
+                #     positions[atom_idx+1] = pos_equivalent_d
+                #     positions[equivalent_idx+1] = pos_atom_d
+                #     positions[atom_idx+5] = pos_equivalent_lp11
+                #     positions[atom_idx+6] = pos_equivalent_lp12
+                #     positions[equivalent_idx+5] = pos_atom_lp21
+                #     positions[equivalent_idx+6] = pos_atom_lp22
+                print(
+                    f"setting position of {self.ionic_liquid.templates.get_atom_name_for(resi.current_name)} to {positions[atom_idx]} and {self.ionic_liquid.templates.get_equivalent_atom_for(resi.current_name)} to {positions[equivalent_idx]}"
+                )
+
+        # set new H position:
+        if "H" in self.ionic_liquid.templates.get_atom_name_for(
+            candidate1_residue.current_name
+        ) or (
+            self.ionic_liquid.templates.has_equivalent_atom(
+                candidate1_residue.current_name
+            )
+            == True
+            and "H"
+            in self.ionic_liquid.templates.get_equivalent_atom_for(
+                candidate1_residue.current_name
+            )
+        ):
+            donor = candidate1_residue
+            acceptor = candidate2_residue
+
+        else:
+            donor = candidate2_residue
+            acceptor = candidate1_residue
+
+        if donor.used_equivalent_atom == True:
+            idx_donated_H = donor.get_idx_for_atom_name(
+                self.ionic_liquid.templates.get_equivalent_atom_for(donor.current_name)
+            )
+
+        else:
+            idx_donated_H = donor.get_idx_for_atom_name(
+                self.ionic_liquid.templates.get_atom_name_for(donor.current_name)
+            )
+
+        if acceptor.used_equivalent_atom == True:
+            idx_acceptor_atom = acceptor.get_idx_for_atom_name(
+                self.ionic_liquid.templates.get_equivalent_atom_for(
+                    acceptor.current_name
+                )
+            )
+
+        else:
+            idx_acceptor_atom = acceptor.get_idx_for_atom_name(
+                self.ionic_liquid.templates.get_atom_name_for(acceptor.current_name)
+            )
+
+        # account for PBC
+        boxl_vec = (
+            self.ionic_liquid.boxlength
+        )  # changed to store boxl as quantity in system class
+
+        pos_acceptor_atom = positions_copy[idx_acceptor_atom]
+        pos_donated_H = positions_copy[idx_donated_H]
+
+        for i in range(0, 3):
+            if (
+                abs(pos_acceptor_atom[i] - pos_donated_H[i]) > boxl_vec / 2
+            ):  # could also be some other value
+                if pos_acceptor_atom[i] > pos_donated_H[i]:
+                    pos_donated_H[i] = pos_donated_H[i] + boxl_vec
+                else:
+                    pos_donated_H[i] = pos_donated_H[i] - boxl_vec
+
+        pos_accepted_H = pos_donated_H - 0.33 * (
+            pos_donated_H - pos_acceptor_atom
+        )  # set position at ca. 1 angstrom from acceptor -> more stable
+
+        # atom name of acceptor alternative is the H that used to be the dummy H
+        idx_accepted_H = acceptor.get_idx_for_atom_name(
+            self.ionic_liquid.templates.get_atom_name_for(acceptor.alternativ_name)
         )
-        equivalent_idx = candidate.get_idx_for_atom_name(
-            self.ionic_liquid.templates.get_equivalent_atom_for(candidate.current_name)
+
+        # update position of the once-dummy H on the acceptor - original H line
+        positions[idx_accepted_H] = pos_accepted_H
+
+        print(
+            f"donated H: {pos_donated_H}, acceptor atom: {pos_acceptor_atom}, H set to: {pos_accepted_H}"
         )
 
-        positions = self.ionic_liquid.simulation.context.getState(
-            getPositions=True
-        ).getPositions(asNumpy=False)
-
-        positions_copy = copy.deepcopy(positions)
-
-        pos_atom = positions_copy[atom_idx]
-        print(f"{pos_atom=}")
-        pos_equivalent = positions_copy[equivalent_idx]
-        print(f"{pos_equivalent=}")
-
-        positions[atom_idx] = pos_equivalent
-        positions[equivalent_idx] = pos_atom
-
-        self.ionic_liquid.simulation.context.setPositions(positions)
-        # print(
-        #     f"setting position of {self.ionic_liquid.templates.get_atom_name_for(candidate.current_name)} to {positions[atom_idx]} and {self.ionic_liquid.templates.get_equivalent_atom_for(candidate.current_name)} to {positions[equivalent_idx]}"
-        # )
+        return positions
 
     def _update(self, candidates: list[tuple], nr_of_steps: int) -> None:
         logger.info("called _update")
@@ -216,117 +340,20 @@ class KeepHUpdate(Update):
 
             self.ionic_liquid.simulation.step(1)
 
-        # idea: get positions after simulation steps in update
         positions = self.ionic_liquid.simulation.context.getState(
             getPositions=True
         ).getPositions(asNumpy=True)
 
         positions_copy = copy.deepcopy(positions)
 
-        donors = []  # determine which candidate was the H-donor / acceptor
-        acceptors = []
-        pos_donated_Hs = []  # collect the positions of the real Hs at transfer
-        pos_accepted_Hs = (
-            []
-        )  # can't put new H on top of dummy H -> put it a little bit closer to the acceptor
-        pos_acceptor_atoms = []
-        # all these lists are not needed, if contents used in the same loop (as it is currently)
-
         for candidate in candidates:
             candidate1_residue, candidate2_residue = candidate
+            print(f"candidate pair {candidates.index(candidate)}")
+            print(
+                f"candidate1 used equivalent atom: {candidate1_residue.used_equivalent_atom}, candidate2 used equivalent atom: {candidate2_residue.used_equivalent_atom}"
+            )
 
-            if "H" in self.ionic_liquid.templates.get_atom_name_for(
-                candidate1_residue.current_name
-            ) or (
-                self.ionic_liquid.templates.has_equivalent_atom(
-                    candidate1_residue.current_name
-                )
-                == True
-                and "H"
-                in self.ionic_liquid.templates.get_equivalent_atom_for(
-                    candidate1_residue.current_name
-                )
-            ):
-                donor = candidate1_residue
-                acceptor = candidate2_residue
-
-            else:
-                donor = candidate2_residue
-                acceptor = candidate1_residue
-
-            donors.append(donor)
-            acceptors.append(acceptor)
-
-            if donor.used_equivalent_atom == True:
-                pos_donated_H = positions_copy[
-                    donor.get_idx_for_atom_name(
-                        self.ionic_liquid.templates.get_equivalent_atom_for(
-                            donor.current_name
-                        )
-                    )
-                ]
-            else:
-                pos_donated_H = positions_copy[
-                    donor.get_idx_for_atom_name(
-                        self.ionic_liquid.templates.get_atom_name_for(
-                            donor.current_name
-                        )
-                    )
-                ]
-
-            if acceptor.used_equivalent_atom == True:
-                pos_acceptor_atom = positions_copy[
-                    acceptor.get_idx_for_atom_name(
-                        self.ionic_liquid.templates.get_equivalent_atom_for(
-                            acceptor.current_name
-                        )
-                    )
-                ]
-
-            else:
-                pos_acceptor_atom = positions_copy[
-                    acceptor.get_idx_for_atom_name(
-                        self.ionic_liquid.templates.get_atom_name_for(
-                            acceptor.current_name
-                        )
-                    )
-                ]
-
-            pos_acceptor_atoms.append(pos_acceptor_atom)
-
-            # account for PBC
-            boxl_vec = (
-                self.ionic_liquid.boxlength
-            )  # changed to store boxl as quantity in system class
-
-            for i in range(0, 3):
-                if (
-                    abs(pos_acceptor_atom[i] - pos_donated_H[i]) > boxl_vec / 2
-                ):  # could also be some other value
-                    if pos_acceptor_atom[i] > pos_donated_H[i]:
-                        pos_donated_H[i] = pos_donated_H[i] + boxl_vec
-                    else:
-                        pos_donated_H[i] = pos_donated_H[i] - boxl_vec
-
-            pos_donated_Hs.append(pos_donated_H)
-            pos_accepted_H = pos_donated_H - 0.33 * (
-                pos_donated_H - pos_acceptor_atom
-            )  # set position at ca. 1 angstrom from acceptor -> maybe more stable?
-            pos_accepted_Hs.append(pos_accepted_H)
-            ###
-
-            # reorient equivalent atoms if needed
-            if candidate1_residue.used_equivalent_atom:
-                candidate1_residue.used_equivalent_atom = (
-                    False  # reset for next update round
-                )
-                self._reorient_atoms(candidate1_residue)
-
-            if candidate2_residue.used_equivalent_atom:
-                candidate2_residue.used_equivalent_atom = False
-                self._reorient_atoms(candidate2_residue)
-
-            # also update has_equivalent_atom (not needed if has_equivalent_atom updated via self.ionic_liquid.templates.has_equivalent_atom(residue.current_name))
+            positions = self._reorient_atoms(candidate, positions, positions_copy)
 
             #### update refactor orig
             #    self._reorient_atoms(candidate2_residue, positions) #from update refactor orig
@@ -349,14 +376,13 @@ class KeepHUpdate(Update):
             assert candidate1_residue.current_name != candidate1_residue.alternativ_name
             assert candidate2_residue.current_name != candidate2_residue.alternativ_name
 
-            # acceptor current name refers now to a future donor -> atom name is the H that can be given on -> this used to be the dummy H
-            acceptor = acceptors[candidates.index(candidate)]
-            idx_accepted_H = acceptor.get_idx_for_atom_name(
-                self.ionic_liquid.templates.get_atom_name_for(acceptor.current_name)
-            )
+            if candidate1_residue.used_equivalent_atom:
+                candidate1_residue.used_equivalent_atom = (
+                    False  # reset for next update round
+                )
 
-            # update position of the once-dummy H to that of the donated H (a bit closer to the acceptor to avoid LJ collusion with the now dummy H)
-            positions[idx_accepted_H] = pos_accepted_Hs[candidates.index(candidate)]
+            if candidate2_residue.used_equivalent_atom:
+                candidate2_residue.used_equivalent_atom = False
 
         self.ionic_liquid.simulation.context.setPositions(positions)
         # NOTE: should this happen directly after the simulation steps if there are multiple steps within the update?
@@ -378,6 +404,13 @@ class NaiveMCUpdate(Update):
         [description]
     """
 
+    @staticmethod
+    def load(fname, protex_system: ProtexSystem) -> NaiveMCUpdate:
+        with open(fname, "rb") as inp:
+            from_pickle = pickle.load(inp)  # ensure correct order of arguments
+        update = NaiveMCUpdate(protex_system, *from_pickle)
+        return update
+
     def __init__(
         self,
         ionic_liquid: ProtexSystem,
@@ -393,6 +426,16 @@ class NaiveMCUpdate(Update):
             raise NotImplementedError(
                 "Currently reorienting atoms if equivalent atoms are used is not implemented. Set reorient=False."
             )
+
+    def dump(self, fname: str) -> None:
+        to_pickle = [
+            self.all_forces,
+            self.to_adapt,
+            self.include_equivalent_atom,
+            self.reorient,
+        ]  # enusre correct order of arguments
+        with open(fname, "wb") as outp:
+            pickle.dump(to_pickle, outp, pickle.HIGHEST_PROTOCOL)
 
     def _update(self, candidates: list[tuple], nr_of_steps: int) -> None:
         logger.info("called _update")
@@ -464,11 +507,28 @@ class StateUpdate:
     Controls the update sheme and proposes the residues that need an update
     """
 
+    @staticmethod
+    def load(fname, updateMethod: Update) -> StateUpdate:
+        state_update = StateUpdate(updateMethod)
+        with open(fname, "rb") as inp:
+            from_pickle = pickle.load(inp)  # ensure correct order of arguments
+        state_update.history = from_pickle[0]
+        state_update.update_trial = from_pickle[1]
+        return state_update
+
     def __init__(self, updateMethod: Update) -> None:
         self.updateMethod: Update = updateMethod
         self.ionic_liquid: ProtexSystem = self.updateMethod.ionic_liquid
         self.history: deque = deque(maxlen=10)
         self.update_trial: int = 0
+
+    def dump(self, fname: str) -> None:
+        to_pickle = [
+            self.history,
+            self.update_trial,
+        ]  # enusre correct order of arguments
+        with open(fname, "wb") as outp:
+            pickle.dump(to_pickle, outp, pickle.HIGHEST_PROTOCOL)
 
     def write_charges(self, filename: str) -> None:
 

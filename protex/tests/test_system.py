@@ -69,6 +69,41 @@ from ..testsystems import (
 from ..update import NaiveMCUpdate, StateUpdate
 
 
+def test_pickle():
+    allowed_updates = {}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 2.33}
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": -2.33}
+
+    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+
+    allowed_updates = {}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.1, "prob": 2.33}
+    templates.allowed_updates = allowed_updates
+    templates.set_update_value_for(frozenset(["IM1H", "OAC"]), "prob", 100)
+    templates.overall_max_distance = 2
+
+    templates.dump("templates.pkl")
+
+    del templates
+
+    templates = ProtexTemplates.load("templates.pkl")
+    assert templates.allowed_updates == allowed_updates
+    assert templates.get_update_value_for(frozenset(["IM1H", "OAC"]), "prob") == 100
+    assert templates.overall_max_distance == 2
+    os.remove("templates.pkl")
+
+    simulation = generate_single_im1h_oac_system()
+    ionic_liquid = ProtexSystem(simulation, templates)
+    boxl = ionic_liquid.boxlength
+
+    ionic_liquid.dump("ionicliquid.pkl")
+
+    del ionic_liquid
+
+    ionic_liquid = ProtexSystem.load("ionicliquid.pkl", simulation)
+    assert ionic_liquid.boxlength == boxl
+
+
 def test_available_platforms():
     # =======================================================================
     # Force field
