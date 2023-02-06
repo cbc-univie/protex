@@ -216,7 +216,6 @@ def test_setup_simulation():
 
 
 def test_run_simulation():
-
     simulation = generate_im1h_oac_system()
     print("Minimizing...")
     simulation.minimizeEnergy(maxIterations=50)
@@ -272,7 +271,6 @@ def test_create_IonicLiquidTemplate():
 
 
 def test_create_IonicLiquid():
-
     simulation = generate_im1h_oac_system()
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 2.33}
@@ -296,7 +294,6 @@ def test_create_IonicLiquid():
 
 
 def test_save_load_allowedupdates():
-
     simulation = generate_im1h_oac_system()
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 0.9}
@@ -415,7 +412,6 @@ def test_residues():
 
 
 def test_forces():
-
     simulation = generate_im1h_oac_system()
     system = simulation.system
     topology = simulation.topology
@@ -489,7 +485,6 @@ def test_forces():
 
 
 def test_torsion_forces():
-
     simulation = generate_im1h_oac_system()
     system = simulation.system
     topology = simulation.topology
@@ -644,7 +639,6 @@ def test_torsion_forces():
 
 
 def test_drude_forces():
-
     simulation = generate_im1h_oac_system()
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 2.33}
