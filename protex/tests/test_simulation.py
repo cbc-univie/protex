@@ -19,7 +19,6 @@ except ImportError:
     reason="Skipping tests that cannot pass in github actions",
 )
 def test_outline():
-
     # from ..scripts.ommhelper import DrudeTemperatureReporter
 
     # obtain simulation object

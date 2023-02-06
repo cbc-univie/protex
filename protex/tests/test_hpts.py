@@ -188,7 +188,6 @@ def test_setup_simulation():
 
 
 def test_run_simulation():
-
     psf_for_parameters = f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
     crd_for_parameters = f"{protex.__path__[0]}/forcefield/crd_for_parameters.crd"
     psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
@@ -283,7 +282,6 @@ def test_create_IonicLiquidTemplate():
 
 
 def test_create_IonicLiquid():
-
     psf_for_parameters = f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
     crd_for_parameters = f"{protex.__path__[0]}/forcefield/crd_for_parameters.crd"
     psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
@@ -570,7 +568,6 @@ def test_residues():
 
 
 def test_forces():
-
     psf_for_parameters = f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
     crd_for_parameters = f"{protex.__path__[0]}/forcefield/crd_for_parameters.crd"
     psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
@@ -645,7 +642,6 @@ def test_forces():
 
 
 def test_torsion_forces():
-
     psf_for_parameters = f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
     crd_for_parameters = f"{protex.__path__[0]}/forcefield/crd_for_parameters.crd"
     psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
@@ -805,7 +801,6 @@ def test_torsion_forces():
 
 
 def test_drude_forces():
-
     psf_for_parameters = f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
     crd_for_parameters = f"{protex.__path__[0]}/forcefield/crd_for_parameters.crd"
     psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
@@ -1263,7 +1258,6 @@ def test_updates(caplog):
     reason="Will fail sporadicaly.",
 )
 def test_pbc():
-
     psf_for_parameters = f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
     crd_for_parameters = f"{protex.__path__[0]}/forcefield/crd_for_parameters.crd"
     psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
