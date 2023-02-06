@@ -1,7 +1,5 @@
 # Import package, test suite, and other packages as needed
 # import json
-import copy
-import io
 import logging
 import os
 from collections import defaultdict
@@ -15,7 +13,6 @@ try:  # Syntax changed in OpenMM 7.6
     import openmm as mm
     from openmm import (
         Context,
-        DrudeLangevinIntegrator,
         DrudeNoseHooverIntegrator,
         OpenMMException,
         Platform,
@@ -35,7 +32,6 @@ try:  # Syntax changed in OpenMM 7.6
     from openmm.unit import (
         angstroms,
         kelvin,
-        kilocalories_per_mole,
         md_kilocalories,
         nanometers,
         picoseconds,
@@ -46,7 +42,6 @@ except ImportError:
         OpenMMException,
         Platform,
         Context,
-        DrudeLangevinIntegrator,
         DrudeNoseHooverIntegrator,
         XmlSerializer,
     )
@@ -774,7 +769,6 @@ def test_create_IonicLiquid_residue():
 
 
 def test_tosion_parameters_single():
-    from pprint import pprint
 
     simulation = generate_single_im1h_oac_system()
     allowed_updates = {}
@@ -818,7 +812,6 @@ def test_tosion_parameters_single():
 
 
 def test_bond_parameters_single():
-    from pprint import pprint
 
     simulation = generate_single_im1h_oac_system()
     allowed_updates = {}
@@ -1082,7 +1075,7 @@ def test_write_psf_save_load_single():
 
     def save_il(ionic_liquid, number):
         ionic_liquid.write_psf(
-            f"protex/forcefield/single_pairs/im1h_oac_im1_hoac_1_secondtry.psf",
+            "protex/forcefield/single_pairs/im1h_oac_im1_hoac_1_secondtry.psf",
             f"test_{number}.psf",
         )
         ionic_liquid.saveCheckpoint(f"test_{number}.rst")
@@ -1144,7 +1137,7 @@ def test_dummy():
 
     def save_il(ionic_liquid, number):
         ionic_liquid.write_psf(
-            f"protex/forcefield/dummy/im1h_oac_im1_hoac_1.psf",
+            "protex/forcefield/dummy/im1h_oac_im1_hoac_1.psf",
             f"test_{number}.psf",
         )
         ionic_liquid.saveCheckpoint(f"test_{number}.rst")
@@ -1233,7 +1226,7 @@ def test_single_harmonic_force(caplog):
     templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
     ionic_liquid = ProtexSystem(sim0, templates)
     update = NaiveMCUpdate(ionic_liquid, all_forces=True)
-    state_update = StateUpdate(update)
+    StateUpdate(update)
 
     for force in ionic_liquid.system.getForces():
         if type(force).__name__ == "HarmonicBondForce" and force.getForceGroup() == 0:
