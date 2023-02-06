@@ -102,4 +102,3 @@ def gen_box(psf, crd):
 
     psf.setBox(boxlx, boxly, boxlz)
     return psf
-
