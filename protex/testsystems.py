@@ -92,8 +92,10 @@ def generate_im1h_oac_system(
         crd = CharmmCrdFile(crd_file)
         return psf, crd, params
 
-    def setup_system(constraints=constraints, dummy_atom_type=dummy_atom_type):
-        psf, crd, params = load_charmm_files()
+    def setup_system(
+        psf, params, constraints=constraints, dummy_atom_type=dummy_atom_type
+    ):
+        # psf, crd, params = load_charmm_files()
         # print(params.atom_types_str["DUM"].epsilon)
         # print(params.atom_types_str["DUM"].rmin)
         # print(params.atom_types_str["DUM"].epsilon_14)
@@ -145,7 +147,7 @@ def generate_im1h_oac_system(
         restart_file=restart_file, coll_freq=coll_freq, drude_coll_freq=drude_coll_freq
     ):
         psf, crd, params = load_charmm_files()
-        system = setup_system()
+        system = setup_system(psf, params)
 
         # coll_freq = 10
         # drude_coll_freq = 80
@@ -226,6 +228,225 @@ def generate_im1h_oac_system(
             base = f"{protex.__path__[0]}/forcefield"
             restart_file = f"{base}/traj/im1h_oac_150_im1_hoac_350_npt_7.rst"
         if os.path.exists(restart_file):
+            with open(restart_file) as f:
+                print(f"Opening restart file {f}")
+                simulation.context.setState(XmlSerializer.deserialize(f.read()))
+            simulation.context.computeVirtualSites()
+        else:
+            print("No restart file found. Using initial coordinate file.")
+            simulation.context.computeVirtualSites()
+            simulation.context.setVelocitiesToTemperature(300 * kelvin)
+
+        # set nonbonded parameters including dummy zero again.
+        # had to be  zero durin creating becuase of:
+        # openmm.OpenMMException: updateParametersInContext: The set of non-excluded exceptions has changed
+        nonbonded_force = [
+            f for f in simulation.system.getForces() if isinstance(f, mm.NonbondedForce)
+        ][0]
+        dummy_atoms = []
+        for atom in simulation.topology.atoms():
+            if atom.residue.name == "IM1" and atom.name == "H7":
+                dummy_atoms.append(atom.index)
+                nonbonded_force.setParticleParameters(atom.index, 0.0, 0.0, 0.0)
+            if atom.residue.name == "OAC" and atom.name == "H":
+                dummy_atoms.append(atom.index)
+                nonbonded_force.setParticleParameters(atom.index, 0.0, 0.0, 0.0)
+        for exc_id in range(nonbonded_force.getNumExceptions()):
+            f = nonbonded_force.getExceptionParameters(exc_id)
+            idx1 = f[0]
+            idx2 = f[1]
+            chargeProd, sigma, epsilon = f[2:]
+            if idx1 in dummy_atoms or idx2 in dummy_atoms:
+                nonbonded_force.setExceptionParameters(
+                    exc_id, idx1, idx2, 0.0, sigma, 0.0
+                )
+
+        return simulation
+
+    return setup_simulation()
+
+
+# used for faster tests, not for production!
+def generate_small_box(
+    psf_file: str = None,
+    crd_file: str = None,
+    restart_file: str = None,
+    constraints: str = None,
+    boxl: float = 22.0,
+    para_files: list[str] = None,
+    coll_freq=10,
+    drude_coll_freq=100,
+    dummy_atom_type="DUMH",
+    use_plugin=True,
+):
+    """
+    Sets up a solvated and paraterized system for IM1H/OAC
+    """
+    print(
+        "This function should not be used for production. It uses a small system intended for testing"
+    )
+
+    def load_charmm_files(
+        psf_file=psf_file,
+        crd_file=crd_file,
+        boxl=boxl,
+        para_files=para_files,
+    ):
+        # =======================================================================
+        # Force field
+        # =======================================================================
+        # Loading CHARMM files
+        print("Loading CHARMM files...")
+        base = f"{protex.__path__[0]}/forcefield/small_box"  # NOTE: this points now to the installed files!
+        if para_files is not None:
+            print("Using user supplied parameter files. Whole path must be given")
+            params = CharmmParameterSet(*para_files)
+        else:
+            PARA_FILES = [
+                "toppar_drude_master_protein_2013f_lj025.str",
+                "hoac_d.str",
+                "im1h_d.str",
+                "im1_d_dummy.str",
+                "oac_d_dummy.str",
+            ]
+            params = CharmmParameterSet(
+                *[f"{base}/toppar/{para_files}" for para_files in PARA_FILES]
+            )
+        if psf_file is None:
+            psf_file = f"{base}/small_box.psf"
+        psf = CharmmPsfFile(psf_file)
+        xtl = boxl * angstroms
+        psf.setBox(xtl, xtl, xtl)
+        # cooridnates can be provieded by CharmmCrdFile, CharmmRstFile or PDBFile classes
+        if crd_file is None:
+            crd_file = f"{base}/small_box.crd"
+        crd = CharmmCrdFile(crd_file)
+        return psf, crd, params
+
+    def setup_system(
+        psf, params, constraints=constraints, dummy_atom_type=dummy_atom_type
+    ):
+        # Charmm DUM atomtype has epsilon = 0, but problem with openmm during creatin of system/simulation
+        # openmm.OpenMMException: updateParametersInContext: The set of non-excluded exceptions has changed
+        # Therefore set it here non zero and zero afterwards
+        print(
+            f"Changing atom type {dummy_atom_type} temporarily to not zero for dummy things"
+        )
+        params.atom_types_str[dummy_atom_type].set_lj_params(
+            -0.00001,
+            params.atom_types_str[dummy_atom_type].rmin,
+            -0.00001,
+            params.atom_types_str[dummy_atom_type].rmin_14,
+        )
+        if constraints is None:
+            system = psf.createSystem(
+                params,
+                nonbondedMethod=PME,
+                nonbondedCutoff=11.0 * angstroms,
+                switchDistance=10 * angstroms,
+                constraints=None,
+            )
+        elif constraints == "HBonds":
+            system = psf.createSystem(
+                params,
+                nonbondedMethod=PME,
+                nonbondedCutoff=11.0 * angstroms,
+                switchDistance=10 * angstroms,
+                constraints=HBonds,
+            )
+        else:
+            print(
+                "Only contraints=None or constraints=HBonds (given as string in function call) implemented"
+            )
+
+        for force in system.getForces():
+            if type(force).__name__ == "CMMotionRemover":
+                # From OpenMM psf file it has automatically ForceGroup 0, which is already used for harmonic bond force
+                force.setForceGroup(len(system.getForces()) - 1)
+                # print(force.getForceGroup())
+
+        return system
+
+    def setup_simulation(
+        restart_file=restart_file,
+        coll_freq=coll_freq,
+        drude_coll_freq=drude_coll_freq,
+        use_plugin=use_plugin,
+    ):
+        psf, crd, params = load_charmm_files()
+        system = setup_system(psf, params)
+
+        if use_plugin:
+            # plugin
+            # https://github.com/z-gong/openmm-velocityVerlet
+            from velocityverletplugin import VVIntegrator
+
+            # temperature grouped nose hoover thermostat
+            integrator = VVIntegrator(
+                300 * kelvin,
+                coll_freq / picoseconds,
+                1 * kelvin,
+                drude_coll_freq / picoseconds,
+                0.0005 * picoseconds,
+            )
+            # test if platform and integrator are compatible -> VVIntegrator only works on cuda
+            # If we do not create a context it is not tested if there is cuda availabe for the plugin
+            context = Context(system, integrator)
+            del context
+            # afterwards the integrator is already bound to the context and we need a new one...
+            # is there something like integrator.reset()?
+            integrator = VVIntegrator(
+                300 * kelvin,
+                coll_freq / picoseconds,
+                1 * kelvin,
+                drude_coll_freq / picoseconds,
+                0.0005 * picoseconds,
+            )
+            print("Using VVIntegrator Plugin")
+
+        # except (ModuleNotFoundError, OpenMMException) as e:
+        else:
+            integrator = DrudeNoseHooverIntegrator(
+                300 * kelvin,
+                coll_freq / picoseconds,
+                1 * kelvin,
+                drude_coll_freq / picoseconds,
+                0.0005 * picoseconds,
+            )
+            print("Using built in DrudeNoseHooverIntegrator")
+
+        integrator.setMaxDrudeDistance(0.25 * angstroms)
+        try:
+            platform = Platform.getPlatformByName("CUDA")
+            prop = dict(CudaPrecision="single")  # default is single
+            # prop = dict(CudaPrecision="double")
+            # Moved creating the simulation object inside the try...except block, because i.e.
+            # Error loading CUDA module: CUDA_ERROR_INVALID_PTX (218)
+            # message was only thrown during simulation creation not by specifying the platform
+            simulation = Simulation(
+                psf.topology,
+                system,
+                integrator,
+                platform=platform,
+                platformProperties=prop,
+            )
+        except OpenMMException:
+            platform = Platform.getPlatformByName("CPU")
+            prop = dict()
+            simulation = Simulation(
+                psf.topology,
+                system,
+                integrator,
+                platform=platform,
+                platformProperties=prop,
+            )
+
+        simulation.context.setPositions(crd.positions)
+        # Try with positions from equilibrated system:
+        # if restart_file is None:
+        #    base = f"{protex.__path__[0]}/forcefield"
+        #    restart_file = f"{base}/traj/im1h_oac_150_im1_hoac_350_npt_7.rst"
+        if restart_file is not None and os.path.exists(restart_file):
             with open(restart_file) as f:
                 print(f"Opening restart file {f}")
                 simulation.context.setState(XmlSerializer.deserialize(f.read()))

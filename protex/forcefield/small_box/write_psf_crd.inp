@@ -1,0 +1,79 @@
+*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*~ Minimization of PACKMOL structure
+*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*
+ioformat extended
+!=======================================================================
+! Force field
+!=======================================================================
+!set TOPPAR /site/raid2/florian/str/scaled_lj
+set TOPPAR toppar
+stream @TOPPAR/toppar_drude_master_protein_2013f_lj025.str
+stream @TOPPAR/im1h_d.str
+stream @TOPPAR/oac_d_dummy.str
+stream @TOPPAR/im1_d_dummy.str
+stream @TOPPAR/hoac_d.str
+
+read sequence IM1H 15
+generate IM1H setup warn drude dmass 0.4
+
+read sequence OAC 15
+generate OAC setup warn drude dmass 0.4
+
+read sequence IM1 35
+generate IM1 setup warn drude dmass 0.4
+
+read sequence HOAC 35
+generate HOAC setup warn drude dmass 0.4
+!=======================================================================
+! Coordinates
+!=======================================================================
+open  unit 10 read form name "./small_box_init.crd"
+read  unit 10 coor card 
+close unit 10
+
+coor sdrude !gives cordinates to drudes
+coor shake !gives cordinates to lonepairs
+
+set XTL = 22.0
+calc XTL2 = @xtl/2
+set GRID = 12
+
+crystal define cubic @XTL @XTL @XTL 90.0 90.0 90.0
+crystal build  cutoff @XTL2 noperations 0
+image byresidue select ALL end
+
+energy  bycb atom vatom cdiel ewal pmew vswitch -
+        ctonnb           10  -
+        ctofnb           11  -
+        cutnb            14  -
+        cutim            14  -
+        kappa           0.41 -
+        fftx          @GRID  -
+        ffty          @GRID  -
+        fftz          @GRID  -
+        spli order        6  -
+        qcor              0  -
+        wmin            1.5  -
+        inbfrq           -1  -
+        imgfrq           -1
+
+shake bonh param tol 1.0e-9 nofast -
+      select ( .not. type D* ) end -
+      select ( .not. type D* ) end
+ 
+open unit 10 write form name "./small_box.psf"
+write unit 10 psf xplor card
+close unit 10
+
+!=======================================================================
+! Minimization
+!=======================================================================
+mini sd nstep 500
+!mini abnr nstep 3000
+
+open  unit 10 write form name "./small_box.crd"
+write unit 10 coor card 
+close unit 10
+
+

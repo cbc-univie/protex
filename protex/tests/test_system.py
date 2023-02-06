@@ -1,10 +1,11 @@
 # Import package, test suite, and other packages as needed
 # import json
+import copy
+import io
 import logging
 import os
 from collections import defaultdict
 from sys import stdout
-
 
 import pytest
 
@@ -14,6 +15,7 @@ try:  # Syntax changed in OpenMM 7.6
     import openmm as mm
     from openmm import (
         Context,
+        DrudeLangevinIntegrator,
         DrudeNoseHooverIntegrator,
         OpenMMException,
         Platform,
@@ -33,6 +35,7 @@ try:  # Syntax changed in OpenMM 7.6
     from openmm.unit import (
         angstroms,
         kelvin,
+        kilocalories_per_mole,
         md_kilocalories,
         nanometers,
         picoseconds,
@@ -43,6 +46,7 @@ except ImportError:
         OpenMMException,
         Platform,
         Context,
+        DrudeLangevinIntegrator,
         DrudeNoseHooverIntegrator,
         XmlSerializer,
     )
@@ -61,11 +65,12 @@ from ..testsystems import (
     generate_im1h_oac_system,
     generate_im1h_oac_system_clap,
     generate_single_im1h_oac_system,
+    generate_small_box,
 )
 from ..update import NaiveMCUpdate, StateUpdate
 
 
-def test_pickle():
+def test_pickle(tmp_path):
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 2.33}
     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": -2.33}
@@ -78,25 +83,24 @@ def test_pickle():
     templates.set_update_value_for(frozenset(["IM1H", "OAC"]), "prob", 100)
     templates.overall_max_distance = 2
 
-    templates.dump("templates.pkl")
+    templates.dump(f"{tmp_path}/templates.pkl")
 
     del templates
 
-    templates = ProtexTemplates.load("templates.pkl")
+    templates = ProtexTemplates.load(f"{tmp_path}/templates.pkl")
     assert templates.allowed_updates == allowed_updates
     assert templates.get_update_value_for(frozenset(["IM1H", "OAC"]), "prob") == 100
     assert templates.overall_max_distance == 2
-    os.remove("templates.pkl")
 
-    simulation = generate_single_im1h_oac_system()
+    simulation = generate_small_box()
     ionic_liquid = ProtexSystem(simulation, templates)
     boxl = ionic_liquid.boxlength
 
-    ionic_liquid.dump("ionicliquid.pkl")
+    ionic_liquid.dump(f"{tmp_path}/ionicliquid.pkl")
 
     del ionic_liquid
 
-    ionic_liquid = ProtexSystem.load("ionicliquid.pkl", simulation)
+    ionic_liquid = ProtexSystem.load(f"{tmp_path}/ionicliquid.pkl", simulation)
     assert ionic_liquid.boxlength == boxl
 
 
@@ -289,7 +293,7 @@ def test_create_IonicLiquid():
     assert count["HOAC"] == 350
 
 
-def test_save_load_allowedupdates():
+def test_save_load_allowedupdates(tmp_path):
     simulation = generate_im1h_oac_system()
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 0.9}
@@ -300,9 +304,9 @@ def test_save_load_allowedupdates():
 
     assert allowed_updates == ionic_liquid.templates.allowed_updates
 
-    ionic_liquid.save_updates("updates.yaml")
-    ionic_liquid.load_updates("updates.yaml")
-    os.remove("updates.yaml")
+    ionic_liquid.save_updates(f"{tmp_path}/updates.yaml")
+    ionic_liquid.load_updates(f"{tmp_path}/updates.yaml")
+    # os.remove("updates.yaml")
 
     print(ionic_liquid.templates.allowed_updates)
 
@@ -770,6 +774,7 @@ def test_create_IonicLiquid_residue():
 
 
 def test_tosion_parameters_single():
+    from pprint import pprint
 
     simulation = generate_single_im1h_oac_system()
     allowed_updates = {}
@@ -813,6 +818,7 @@ def test_tosion_parameters_single():
 
 
 def test_bond_parameters_single():
+    from pprint import pprint
 
     simulation = generate_single_im1h_oac_system()
     allowed_updates = {}
@@ -1076,7 +1082,7 @@ def test_write_psf_save_load_single():
 
     def save_il(ionic_liquid, number):
         ionic_liquid.write_psf(
-            "protex/forcefield/single_pairs/im1h_oac_im1_hoac_1_secondtry.psf",
+            f"protex/forcefield/single_pairs/im1h_oac_im1_hoac_1_secondtry.psf",
             f"test_{number}.psf",
         )
         ionic_liquid.saveCheckpoint(f"test_{number}.rst")
@@ -1138,7 +1144,7 @@ def test_dummy():
 
     def save_il(ionic_liquid, number):
         ionic_liquid.write_psf(
-            "protex/forcefield/dummy/im1h_oac_im1_hoac_1.psf",
+            f"protex/forcefield/dummy/im1h_oac_im1_hoac_1.psf",
             f"test_{number}.psf",
         )
         ionic_liquid.saveCheckpoint(f"test_{number}.rst")
@@ -1227,7 +1233,7 @@ def test_single_harmonic_force(caplog):
     templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
     ionic_liquid = ProtexSystem(sim0, templates)
     update = NaiveMCUpdate(ionic_liquid, all_forces=True)
-    StateUpdate(update)
+    state_update = StateUpdate(update)
 
     for force in ionic_liquid.system.getForces():
         if type(force).__name__ == "HarmonicBondForce" and force.getForceGroup() == 0:
@@ -1248,74 +1254,3 @@ def test_single_harmonic_force(caplog):
                             ub_forces.append(f)
                             print(f[3] / 2 / md_kilocalories * angstroms**2)
         print(len(ub_forces))
-
-
-# def test_write_psf_long():
-#     simulation = generate_im1h_oac_system()
-#     # get ionic liquid templates
-#     allowed_updates = {}
-#     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.165, "prob": 1}
-#     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.165, "prob": 1}
-
-#     templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
-#     # wrap system in IonicLiquidSystem
-#     ionic_liquid = IonicLiquidSystem(simulation, templates)
-#     # initialize update method
-#     update = NaiveMCUpdate(ionic_liquid)
-#     # initialize state update class
-#     state_update = StateUpdate(update)
-
-#     old_psf_file = f"{protex.__path__[0]}/forcefield/im1h_oac_150_im1_hoac_350.psf"
-#     ionic_liquid.write_psf(old_psf_file, "test01.psf")
-#     # os.remove("test01.psf")
-
-#     # ionic_liquid.simulation.step(50)
-#     state_update.update(2)
-
-#     ionic_liquid.write_psf(old_psf_file, "test02.psf")
-#     ionic_liquid.save_updates("updates01.txt")
-#     ionic_liquid.saveCheckpoint("nvt01.rst")
-#     # os.remove("test02.psf")
-#     del simulation
-#     del ionic_liquid
-#     del templates
-#     del update
-#     del state_update
-#     simulation = generate_im1h_oac_system(psf_file="test02.psf")
-#     templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
-#     ionic_liquid = IonicLiquidSystem(simulation, templates)
-#     ionic_liquid.load_updates("updates01.txt")
-#     ionic_liquid.loadCheckpoint("nvt01.rst")
-#     update = NaiveMCUpdate(ionic_liquid)
-#     state_update = StateUpdate(update)
-#     ionic_liquid.write_psf(old_psf_file, "test03.psf")
-#     # os.remove("test03.psf")
-
-#     ionic_liquid.simulation.step(50)
-#     state_update.update(2)
-
-#     ionic_liquid.write_psf(old_psf_file, "test04.psf")
-#     ionic_liquid.save_updates("updates02.txt")
-#     ionic_liquid.saveCheckpoint("nvt02.rst")
-
-#     del simulation
-#     del ionic_liquid
-#     del templates
-#     del update
-#     del state_update
-#     simulation = generate_im1h_oac_system(psf_file="test04.psf")
-#     templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
-#     ionic_liquid = IonicLiquidSystem(simulation, templates)
-#     ionic_liquid.load_updates("updates02.txt")
-#     ionic_liquid.loadCheckpoint("nvt02.rst")
-#     update = NaiveMCUpdate(ionic_liquid)
-#     state_update = StateUpdate(update)
-#     ionic_liquid.write_psf(old_psf_file, "test05.psf")
-#     # os.remove("test03.psf")
-
-#     ionic_liquid.simulation.step(50)
-#     state_update.update(2)
-
-#     ionic_liquid.write_psf(old_psf_file, "test06.psf")
-#     ionic_liquid.save_updates("updates03.txt")
-#     ionic_liquid.saveCheckpoint("nvt03.rst")
