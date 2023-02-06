@@ -216,7 +216,6 @@
         <span class="c1"># has_equivalent_atom,</span>
         <span class="n">has_equivalent_atoms</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-
         <span class="bp">self</span><span class="o">.</span><span class="n">residue</span> <span class="o">=</span> <span class="n">residue</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">original_name</span> <span class="o">=</span> <span class="n">residue</span><span class="o">.</span><span class="n">name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">current_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">original_name</span>
@@ -261,7 +260,9 @@
 
 <div class="viewcode-block" id="Residue.update"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.residue.Residue.html#protex.residue.Residue.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">force_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">lamb</span><span class="p">:</span> <span class="nb">float</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># we don&#39;t need to call update in context since we are doing this in NaiveMCUpdate</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span>
+        <span class="kc">None</span>
+    <span class="p">):</span>  <span class="c1"># we don&#39;t need to call update in context since we are doing this in NaiveMCUpdate</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Update the requested force in that residue</span>
 
 <span class="sd">        Parameters</span>
@@ -308,7 +309,6 @@
                         <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_set_HarmonicBondForce_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parms</span><span class="p">):</span>
-
         <span class="n">parms</span> <span class="o">=</span> <span class="n">deque</span><span class="p">(</span><span class="n">parms</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">force</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">getForces</span><span class="p">():</span>
             <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">force</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;HarmonicBondForce&quot;</span><span class="p">:</span>
@@ -383,7 +383,6 @@
                         <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_set_DrudeForce_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parms</span><span class="p">):</span>
-
         <span class="n">parms_pol</span> <span class="o">=</span> <span class="n">deque</span><span class="p">(</span><span class="n">parms</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
         <span class="n">parms_thole</span> <span class="o">=</span> <span class="n">deque</span><span class="p">(</span><span class="n">parms</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
         <span class="k">for</span> <span class="n">force</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">getForces</span><span class="p">():</span>
@@ -668,7 +667,6 @@
                         <span class="p">]</span>
                     <span class="p">)</span> <span class="o">==</span> <span class="nb">set</span><span class="p">([</span><span class="n">idx1</span><span class="p">,</span> <span class="n">idx2</span><span class="p">,</span> <span class="n">idx3</span><span class="p">,</span> <span class="n">idx4</span><span class="p">]):</span>
                         <span class="k">if</span> <span class="n">old_idx</span> <span class="o">!=</span> <span class="n">new_idx</span><span class="p">:</span>
-
                             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
                                 <span class="s2">&quot;Odering of dihedral parameters is different between the two topologies.&quot;</span>
                             <span class="p">)</span>
@@ -693,7 +691,6 @@
                         <span class="p">]</span>
                     <span class="p">)</span> <span class="o">==</span> <span class="nb">set</span><span class="p">([</span><span class="n">idx1</span><span class="p">,</span> <span class="n">idx2</span><span class="p">,</span> <span class="n">idx3</span><span class="p">,</span> <span class="n">idx4</span><span class="p">,</span> <span class="n">idx5</span><span class="p">]):</span>
                         <span class="k">if</span> <span class="n">old_idx</span> <span class="o">!=</span> <span class="n">new_idx</span><span class="p">:</span>
-
                             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
                                 <span class="s2">&quot;Odering of dihedral parameters is different between the two topologies.&quot;</span>
                             <span class="p">)</span>
