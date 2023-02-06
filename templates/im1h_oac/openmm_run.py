@@ -99,8 +99,8 @@ print('Creating OpenMM System...')
 #boxlength
 xtl = inputs.boxl*angstroms
 psf.setBox(xtl,xtl,xtl)
-system = psf.createSystem(params, nonbondedMethod=inputs.coulomb, 
-                                  nonbondedCutoff=inputs.r_off*angstroms, 
+system = psf.createSystem(params, nonbondedMethod=inputs.coulomb,
+                                  nonbondedCutoff=inputs.r_off*angstroms,
                                   switchDistance=inputs.r_on*angstroms,
                                   ewaldErrorTolerance=inputs.ewald_Tol,
                                   constraints=inputs.cons)
@@ -114,7 +114,7 @@ if 1 < int(args.counter) <= 3 and inputs.ensemble == "NPT":
 
 #isotropoic barostat type (ist sowohl bei equil als auch production aktiviert)
 if inputs.pcouple == "yes":
-    barostat = MonteCarloBarostat(inputs.p_ref*atmosphere, inputs.temp*kelvin) #400 in timestep units, bei charmm war es 0.2ps 
+    barostat = MonteCarloBarostat(inputs.p_ref*atmosphere, inputs.temp*kelvin) #400 in timestep units, bei charmm war es 0.2ps
     system.addForce(barostat)
 
 #for stabilitiy reasons make first run (20ps) with timestep of 0.1fs
