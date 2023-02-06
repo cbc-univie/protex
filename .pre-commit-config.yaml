@@ -28,8 +28,8 @@ repos:
     -   id: ruff
         verbose: True
         args:
-        - --exit-zero
-        #- --fix
+        - --exit-zero # pass also if checks fail
+        - --fix
 # -   repo: https://github.com/pycqa/isort
 #    rev: 5.12.0
 #    hooks:
