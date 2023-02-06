@@ -461,9 +461,9 @@
         <span class="k">for</span> <span class="n">old_idx</span><span class="p">,</span> <span class="n">old_parm</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="n">current_name</span><span class="p">][</span><span class="n">force_name</span><span class="p">]):</span>
             <span class="n">idx1</span><span class="p">,</span> <span class="n">idx2</span> <span class="o">=</span> <span class="n">old_parm</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">old_parm</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
             <span class="k">for</span> <span class="n">new_idx</span><span class="p">,</span> <span class="n">new_parm</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="n">new_name</span><span class="p">][</span><span class="n">force_name</span><span class="p">]):</span>
-                <span class="k">if</span> <span class="nb">set</span><span class="p">(</span>
-                    <span class="p">[</span><span class="n">new_parm</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">new_parms_offset</span><span class="p">,</span> <span class="n">new_parm</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">new_parms_offset</span><span class="p">]</span>
-                <span class="p">)</span> <span class="o">==</span> <span class="nb">set</span><span class="p">([</span><span class="n">idx1</span> <span class="o">-</span> <span class="n">old_parms_offset</span><span class="p">,</span> <span class="n">idx2</span> <span class="o">-</span> <span class="n">old_parms_offset</span><span class="p">]):</span>
+                <span class="k">if</span> <span class="p">{</span>
+                    <span class="n">new_parm</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">new_parms_offset</span><span class="p">,</span> <span class="n">new_parm</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">new_parms_offset</span>
+                <span class="p">}</span> <span class="o">==</span> <span class="p">{</span><span class="n">idx1</span> <span class="o">-</span> <span class="n">old_parms_offset</span><span class="p">,</span> <span class="n">idx2</span> <span class="o">-</span> <span class="n">old_parms_offset</span><span class="p">}:</span>
                     <span class="k">if</span> <span class="n">old_idx</span> <span class="o">!=</span> <span class="n">new_idx</span><span class="p">:</span>
                         <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
                             <span class="s2">&quot;Odering of Nonbonded Exception parameters is different between the two topologies.&quot;</span>
@@ -531,9 +531,9 @@
         <span class="k">for</span> <span class="n">old_idx</span><span class="p">,</span> <span class="n">old_parm</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="n">old_name</span><span class="p">][</span><span class="n">force_name</span><span class="p">]):</span>
             <span class="n">idx1</span><span class="p">,</span> <span class="n">idx2</span> <span class="o">=</span> <span class="n">old_parm</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">old_parm</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
             <span class="k">for</span> <span class="n">new_idx</span><span class="p">,</span> <span class="n">new_parm</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="n">new_name</span><span class="p">][</span><span class="n">force_name</span><span class="p">]):</span>
-                <span class="k">if</span> <span class="nb">set</span><span class="p">(</span>
-                    <span class="p">[</span><span class="n">new_parm</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">new_parms_offset</span><span class="p">,</span> <span class="n">new_parm</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">new_parms_offset</span><span class="p">]</span>
-                <span class="p">)</span> <span class="o">==</span> <span class="nb">set</span><span class="p">([</span><span class="n">idx1</span> <span class="o">-</span> <span class="n">old_parms_offset</span><span class="p">,</span> <span class="n">idx2</span> <span class="o">-</span> <span class="n">old_parms_offset</span><span class="p">]):</span>
+                <span class="k">if</span> <span class="p">{</span>
+                    <span class="n">new_parm</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">new_parms_offset</span><span class="p">,</span> <span class="n">new_parm</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">new_parms_offset</span>
+                <span class="p">}</span> <span class="o">==</span> <span class="p">{</span><span class="n">idx1</span> <span class="o">-</span> <span class="n">old_parms_offset</span><span class="p">,</span> <span class="n">idx2</span> <span class="o">-</span> <span class="n">old_parms_offset</span><span class="p">}:</span>
                     <span class="k">if</span> <span class="n">old_idx</span> <span class="o">!=</span> <span class="n">new_idx</span><span class="p">:</span>
                         <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
                             <span class="s2">&quot;Odering of bond parameters is different between the two topologies.</span><span class="se">\n</span><span class="s2">&quot;</span>
@@ -576,19 +576,15 @@
         <span class="k">for</span> <span class="n">old_idx</span><span class="p">,</span> <span class="n">old_parm</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="n">old_name</span><span class="p">][</span><span class="n">force_name</span><span class="p">]):</span>
             <span class="n">idx1</span><span class="p">,</span> <span class="n">idx2</span><span class="p">,</span> <span class="n">idx3</span> <span class="o">=</span> <span class="n">old_parm</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">old_parm</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">old_parm</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
             <span class="k">for</span> <span class="n">new_idx</span><span class="p">,</span> <span class="n">new_parm</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="n">new_name</span><span class="p">][</span><span class="n">force_name</span><span class="p">]):</span>
-                <span class="k">if</span> <span class="nb">set</span><span class="p">(</span>
-                    <span class="p">[</span>
+                <span class="k">if</span> <span class="p">{</span>
                         <span class="n">new_parm</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">new_parms_offset</span><span class="p">,</span>
                         <span class="n">new_parm</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">new_parms_offset</span><span class="p">,</span>
                         <span class="n">new_parm</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">new_parms_offset</span><span class="p">,</span>
-                    <span class="p">]</span>
-                <span class="p">)</span> <span class="o">==</span> <span class="nb">set</span><span class="p">(</span>
-                    <span class="p">[</span>
+                <span class="p">}</span> <span class="o">==</span> <span class="p">{</span>
                         <span class="n">idx1</span> <span class="o">-</span> <span class="n">old_parms_offset</span><span class="p">,</span>
                         <span class="n">idx2</span> <span class="o">-</span> <span class="n">old_parms_offset</span><span class="p">,</span>
                         <span class="n">idx3</span> <span class="o">-</span> <span class="n">old_parms_offset</span><span class="p">,</span>
-                    <span class="p">]</span>
-                <span class="p">):</span>
+                <span class="p">}:</span>
                     <span class="k">if</span> <span class="n">old_idx</span> <span class="o">!=</span> <span class="n">new_idx</span><span class="p">:</span>
                         <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
                             <span class="s2">&quot;Odering of angle parameters is different between the two topologies.&quot;</span>
@@ -658,14 +654,12 @@
                 <span class="k">for</span> <span class="n">new_idx</span><span class="p">,</span> <span class="n">new_parm</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="n">new_name</span><span class="p">][</span><span class="n">force_name</span><span class="p">]</span>
                 <span class="p">):</span>
-                    <span class="k">if</span> <span class="nb">set</span><span class="p">(</span>
-                        <span class="p">[</span>
+                    <span class="k">if</span> <span class="p">{</span>
                             <span class="n">new_parm</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">new_parms_offset</span><span class="p">,</span>
                             <span class="n">new_parm</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">new_parms_offset</span><span class="p">,</span>
                             <span class="n">new_parm</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">new_parms_offset</span><span class="p">,</span>
                             <span class="n">new_parm</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">-</span> <span class="n">new_parms_offset</span><span class="p">,</span>
-                        <span class="p">]</span>
-                    <span class="p">)</span> <span class="o">==</span> <span class="nb">set</span><span class="p">([</span><span class="n">idx1</span><span class="p">,</span> <span class="n">idx2</span><span class="p">,</span> <span class="n">idx3</span><span class="p">,</span> <span class="n">idx4</span><span class="p">]):</span>
+                    <span class="p">}</span> <span class="o">==</span> <span class="p">{</span><span class="n">idx1</span><span class="p">,</span> <span class="n">idx2</span><span class="p">,</span> <span class="n">idx3</span><span class="p">,</span> <span class="n">idx4</span><span class="p">}:</span>
                         <span class="k">if</span> <span class="n">old_idx</span> <span class="o">!=</span> <span class="n">new_idx</span><span class="p">:</span>
                             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
                                 <span class="s2">&quot;Odering of dihedral parameters is different between the two topologies.&quot;</span>
@@ -681,15 +675,13 @@
                 <span class="k">for</span> <span class="n">new_idx</span><span class="p">,</span> <span class="n">new_parm</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="n">new_name</span><span class="p">][</span><span class="n">force_name</span><span class="p">]</span>
                 <span class="p">):</span>
-                    <span class="k">if</span> <span class="nb">set</span><span class="p">(</span>
-                        <span class="p">[</span>
+                    <span class="k">if</span> <span class="p">{</span>
                             <span class="n">new_parm</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">new_parms_offset</span><span class="p">,</span>
                             <span class="n">new_parm</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">new_parms_offset</span><span class="p">,</span>
                             <span class="n">new_parm</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">new_parms_offset</span><span class="p">,</span>
                             <span class="n">new_parm</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">-</span> <span class="n">new_parms_offset</span><span class="p">,</span>
                             <span class="n">new_parm</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span>
-                        <span class="p">]</span>
-                    <span class="p">)</span> <span class="o">==</span> <span class="nb">set</span><span class="p">([</span><span class="n">idx1</span><span class="p">,</span> <span class="n">idx2</span><span class="p">,</span> <span class="n">idx3</span><span class="p">,</span> <span class="n">idx4</span><span class="p">,</span> <span class="n">idx5</span><span class="p">]):</span>
+                    <span class="p">}</span> <span class="o">==</span> <span class="p">{</span><span class="n">idx1</span><span class="p">,</span> <span class="n">idx2</span><span class="p">,</span> <span class="n">idx3</span><span class="p">,</span> <span class="n">idx4</span><span class="p">,</span> <span class="n">idx5</span><span class="p">}:</span>
                         <span class="k">if</span> <span class="n">old_idx</span> <span class="o">!=</span> <span class="n">new_idx</span><span class="p">:</span>
                             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
                                 <span class="s2">&quot;Odering of dihedral parameters is different between the two topologies.&quot;</span>
@@ -734,21 +726,17 @@
         <span class="k">for</span> <span class="n">old_idx</span><span class="p">,</span> <span class="n">old_parm</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="n">old_name</span><span class="p">][</span><span class="n">force_name</span><span class="p">]):</span>
             <span class="n">idx1</span><span class="p">,</span> <span class="n">idx2</span><span class="p">,</span> <span class="n">idx3</span><span class="p">,</span> <span class="n">idx4</span> <span class="o">=</span> <span class="n">old_parm</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">old_parm</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">old_parm</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">old_parm</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
             <span class="k">for</span> <span class="n">new_idx</span><span class="p">,</span> <span class="n">new_parm</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="n">new_name</span><span class="p">][</span><span class="n">force_name</span><span class="p">]):</span>
-                <span class="k">if</span> <span class="nb">set</span><span class="p">(</span>
-                    <span class="p">[</span>
+                <span class="k">if</span> <span class="p">{</span>
                         <span class="n">new_parm</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">new_parms_offset</span><span class="p">,</span>
                         <span class="n">new_parm</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">new_parms_offset</span><span class="p">,</span>
                         <span class="n">new_parm</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">new_parms_offset</span><span class="p">,</span>
                         <span class="n">new_parm</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">-</span> <span class="n">new_parms_offset</span><span class="p">,</span>
-                    <span class="p">]</span>
-                <span class="p">)</span> <span class="o">==</span> <span class="nb">set</span><span class="p">(</span>
-                    <span class="p">[</span>
+                <span class="p">}</span> <span class="o">==</span> <span class="p">{</span>
                         <span class="n">idx1</span> <span class="o">-</span> <span class="n">old_parms_offset</span><span class="p">,</span>
                         <span class="n">idx2</span> <span class="o">-</span> <span class="n">old_parms_offset</span><span class="p">,</span>
                         <span class="n">idx3</span> <span class="o">-</span> <span class="n">old_parms_offset</span><span class="p">,</span>
                         <span class="n">idx4</span> <span class="o">-</span> <span class="n">old_parms_offset</span><span class="p">,</span>
-                    <span class="p">]</span>
-                <span class="p">):</span>
+                <span class="p">}:</span>
                     <span class="k">if</span> <span class="n">old_idx</span> <span class="o">!=</span> <span class="n">new_idx</span><span class="p">:</span>
                         <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
                             <span class="s2">&quot;Odering of improper parameters is different between the two topologies.&quot;</span>
@@ -793,9 +781,9 @@
         <span class="k">for</span> <span class="n">old_idx</span><span class="p">,</span> <span class="n">old_parm</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="n">old_name</span><span class="p">][</span><span class="n">force_name</span><span class="p">]):</span>
             <span class="n">idx1</span><span class="p">,</span> <span class="n">idx2</span> <span class="o">=</span> <span class="n">old_parm</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">old_parm</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
             <span class="k">for</span> <span class="n">new_idx</span><span class="p">,</span> <span class="n">new_parm</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="n">new_name</span><span class="p">][</span><span class="n">force_name</span><span class="p">]):</span>
-                <span class="k">if</span> <span class="nb">set</span><span class="p">(</span>
-                    <span class="p">[</span><span class="n">new_parm</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">new_parms_offset</span><span class="p">,</span> <span class="n">new_parm</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">new_parms_offset</span><span class="p">]</span>
-                <span class="p">)</span> <span class="o">==</span> <span class="nb">set</span><span class="p">([</span><span class="n">idx1</span> <span class="o">-</span> <span class="n">old_parms_offset</span><span class="p">,</span> <span class="n">idx2</span> <span class="o">-</span> <span class="n">old_parms_offset</span><span class="p">]):</span>
+                <span class="k">if</span> <span class="p">{</span>
+                    <span class="n">new_parm</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">new_parms_offset</span><span class="p">,</span> <span class="n">new_parm</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">new_parms_offset</span>
+                <span class="p">}</span> <span class="o">==</span> <span class="p">{</span><span class="n">idx1</span> <span class="o">-</span> <span class="n">old_parms_offset</span><span class="p">,</span> <span class="n">idx2</span> <span class="o">-</span> <span class="n">old_parms_offset</span><span class="p">}:</span>
                     <span class="k">if</span> <span class="n">old_idx</span> <span class="o">!=</span> <span class="n">new_idx</span><span class="p">:</span>
                         <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
                             <span class="s2">&quot;Odering of bond parameters is different between the two topologies.&quot;</span>
@@ -839,9 +827,9 @@
         <span class="k">for</span> <span class="n">old_idx</span><span class="p">,</span> <span class="n">old_parm</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="n">old_name</span><span class="p">][</span><span class="n">force_name</span><span class="p">]):</span>
             <span class="n">idx1</span><span class="p">,</span> <span class="n">idx2</span> <span class="o">=</span> <span class="n">old_parm</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">old_parm</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
             <span class="k">for</span> <span class="n">new_idx</span><span class="p">,</span> <span class="n">new_parm</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="n">new_name</span><span class="p">][</span><span class="n">force_name</span><span class="p">]):</span>
-                <span class="k">if</span> <span class="nb">set</span><span class="p">(</span>
-                    <span class="p">[</span><span class="n">new_parm</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">new_parms_offset</span><span class="p">,</span> <span class="n">new_parm</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">new_parms_offset</span><span class="p">]</span>
-                <span class="p">)</span> <span class="o">==</span> <span class="nb">set</span><span class="p">([</span><span class="n">idx1</span> <span class="o">-</span> <span class="n">old_parms_offset</span><span class="p">,</span> <span class="n">idx2</span> <span class="o">-</span> <span class="n">old_parms_offset</span><span class="p">]):</span>
+                <span class="k">if</span> <span class="p">{</span>
+                    <span class="n">new_parm</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">new_parms_offset</span><span class="p">,</span> <span class="n">new_parm</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">new_parms_offset</span>
+                <span class="p">}</span> <span class="o">==</span> <span class="p">{</span><span class="n">idx1</span> <span class="o">-</span> <span class="n">old_parms_offset</span><span class="p">,</span> <span class="n">idx2</span> <span class="o">-</span> <span class="n">old_parms_offset</span><span class="p">}:</span>
                     <span class="k">if</span> <span class="n">old_idx</span> <span class="o">!=</span> <span class="n">new_idx</span><span class="p">:</span>
                         <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
                             <span class="s2">&quot;Odering of bond parameters is different between the two topologies.&quot;</span>
