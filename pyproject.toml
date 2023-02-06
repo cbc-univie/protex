@@ -1,3 +1,32 @@
+[build-system]
+requires = ["setuptools>=45", "setuptools-scm[toml]>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "protex"
+authors = [
+    {name = "Marcus Wieder", email = "marcus.wieder@gmail.com"},
+    {name = "Florian Jörg"},
+]
+description = "Proton exchange using SAMS and openMM for ionic liquids"
+readme = "README.md"
+requires-python = ">=3.7"
+keywords = ["molecular dynamics", "proton exchange"]
+license = {text = "MIT"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+]
+#dependencies = [
+#    "requests",
+#    'importlib-metadata; python_version<"3.8"',
+#]
+dynamic = ["version"]
+
+
+[tool.setuptools_scm]
+write_to = "protex/_version.py"
+
+
 [tool.ruff]
 # Enable Pyflakes `E` and `F` codes by default.
 select = ["E", "F"]
