@@ -22,6 +22,8 @@ classifiers = [
 #]
 dynamic = ["version"]
 
+[tool.setuptools]
+packages = ["protex"]
 
 [tool.setuptools_scm]
 write_to = "protex/_version.py"
