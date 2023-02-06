@@ -12,8 +12,8 @@ repos:
         args:
         -   --unsafe
     #-   id: end-of-file-fixer
-    -   id: trailing-whitespace
-        types: [python]
+    #-   id: trailing-whitespace
+    #    types: [python]
 #-   repo: https://github.com/asottile/pyupgrade
 #    rev: v3.2.2
 #    hooks:
@@ -21,12 +21,12 @@ repos:
 #        args:
 #        - --py3-plus
 #        - --keep-runtime-typing
-#-   repo: https://github.com/charliermarsh/ruff-pre-commit
-#    rev: v0.0.239
-#    hooks:
-#    -   id: ruff
-#        args:
-#        - --fix
+-   repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: v0.0.239
+    hooks:
+    -   id: ruff
+        args:
+        - --fix
 # -   repo: https://github.com/pycqa/isort
 #    rev: 5.12.0
 #    hooks:
