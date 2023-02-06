@@ -986,7 +986,7 @@ def test_dry_updates(caplog):
     os.getenv("CI") == "true",
     reason="Will fail sporadicaly.",
 )
-def test_parameters_after_update():
+def test_parameters_after_update(tmp_path):
     simulation = generate_im1h_oac_system()
     # get ionic liquid templates
     allowed_updates = {}
@@ -996,10 +996,12 @@ def test_parameters_after_update():
     templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
     # wrap system in IonicLiquidSystem
     ionic_liquid = ProtexSystem(simulation, templates)
-    ionic_liquid.simulation.reporters.append(DCDReporter("test_transfer.dcd", 1))
+    ionic_liquid.simulation.reporters.append(
+        DCDReporter(f"{tmp_path}/test_transfer.dcd", 1)
+    )
     ionic_liquid.simulation.reporters.append(
         StateDataReporter(
-            "test_transfer.out",
+            f"{tmp_path}/test_transfer.out",
             1,
             step=True,
             time=True,
@@ -1872,7 +1874,7 @@ def test_dummy_energy_before_after(caplog):
     os.getenv("CI") == "true",
     reason="Will fail sporadicaly.",
 )
-def test_periodictorsionforce_energy(caplog):
+def test_periodictorsionforce_energy(caplog, tmp_path):
     # caplog.set_level(logging.DEBUG)
 
     def get_time_energy(simulation, print=False):
@@ -1885,9 +1887,9 @@ def test_periodictorsionforce_energy(caplog):
     def save_il(ionic_liquid, number):
         ionic_liquid.write_psf(
             "protex/forcefield/single_pairs/im1h_oac_im1_hoac_1_secondtry.psf",
-            f"test_{number}.psf",
+            f"{tmp_path}/test_{number}.psf",
         )
-        ionic_liquid.saveCheckpoint(f"test_{number}.rst")
+        ionic_liquid.saveCheckpoint(f"{tmp_path}/test_{number}.rst")
 
     def load_sim(psf, rst):
         sim = generate_single_im1h_oac_system(psf_file=psf)
@@ -1940,7 +1942,7 @@ def test_periodictorsionforce_energy(caplog):
     assert t_tmp == t0
     assert e_tmp == e0
     save_il(ionic_liquid, 0)
-    sim0_1 = load_sim("test_0.psf", "test_0.rst")
+    sim0_1 = load_sim(f"{tmp_path}/test_0.psf", f"{tmp_path}/test_0.rst")
     t0_1, e0_1 = get_time_energy(sim0_1, print=False)
     assert t0 == t0_1
     assert e0 == e0_1
@@ -1948,8 +1950,8 @@ def test_periodictorsionforce_energy(caplog):
     ionic_liquid.simulation.step(5)
     t1, e1 = get_time_energy(ionic_liquid.simulation)
     save_il(ionic_liquid, 1)
-    sim1_1 = load_sim("test_1.psf", "test_1.rst")
-    il1_1 = load_il("test_1.psf", "test_1.rst", templates)
+    sim1_1 = load_sim(f"{tmp_path}/test_1.psf", f"{tmp_path}/test_1.rst")
+    il1_1 = load_il(f"{tmp_path}/test_1.psf", f"{tmp_path}/test_1.rst", templates)
     t1_1, e1_1 = get_time_energy(sim1_1)
     t1_2, e1_2 = get_time_energy(il1_1.simulation)
     assert t1 == t1_1
@@ -1968,8 +1970,8 @@ def test_periodictorsionforce_energy(caplog):
     # t2, e2 = get_time_energy(ionic_liquid.simulation)
     save_il(ionic_liquid, 2)
 
-    load_sim("protex/forcefield/single_pairs/im1_hoac_2.psf", "test_2.rst")
-    load_sim("protex/forcefield/single_pairs/im1_hoac_2.psf", "test_1.rst")
+    load_sim("protex/forcefield/single_pairs/im1_hoac_2.psf", f"{tmp_path}/test_2.rst")
+    load_sim("protex/forcefield/single_pairs/im1_hoac_2.psf", f"{tmp_path}/test_1.rst")
     # sim2_2 = load_sim("test_2.psf", "test_2.rst")
 
     # print("### Orig Il ###")
