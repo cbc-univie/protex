@@ -62,7 +62,7 @@ def read_params(filename):
     extlist = ['rtf', 'prm', 'str']
 
     parFiles = ()
-    for line in open(filename, 'r'):
+    for line in open(filename):
         if '!' in line: line = line.split('!')[0]
         parfile = line.strip()
         if len(parfile) != 0:
@@ -74,7 +74,7 @@ def read_params(filename):
     return params
 
 def read_box(psf, filename):
-    for line in open(filename, 'r'):
+    for line in open(filename):
         segments = line.split('=')
         if segments[0].strip() == "BOXLX": boxlx = float(segments[1])
         if segments[0].strip() == "BOXLY": boxly = float(segments[1])

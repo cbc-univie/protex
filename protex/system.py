@@ -843,7 +843,7 @@ class ProtexSystem:
         ----------
         file: string or file
         """
-        with open(file, "r") as f:
+        with open(file) as f:
             try:
                 data = yaml.safe_load(f)
             except yaml.YAMLError as exc:

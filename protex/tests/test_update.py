@@ -721,12 +721,10 @@ def test_check_updated_charges(caplog):
     idx1, idx2 = 0, 200
 
     candidate_pairs = [
-        set(
-            [
+        {
                 state_update.ionic_liquid.residues[idx1],
                 state_update.ionic_liquid.residues[idx2],
-            ],
-        )
+        }
     ]
 
     state_update.write_charges("output_initial1.txt")

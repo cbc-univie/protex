@@ -1394,9 +1394,9 @@ def test_residue_forces():
         for new_idx, new_parm in enumerate(
             pair.parameters[pair.current_name]["HarmonicBondForce"]
         ):
-            if set([new_parm[0] - offset_pair, new_parm[1] - offset_pair]) == set(
-                [idx1 - offset, idx2 - offset]
-            ):
+            if {new_parm[0] - offset_pair, new_parm[1] - offset_pair} == {
+                idx1 - offset, idx2 - offset
+            }:
                 if old_idx != new_idx:
                     print(old_idx, new_idx)
                     raise RuntimeError(
@@ -1411,9 +1411,9 @@ def test_residue_forces():
         for new_idx, new_parm in enumerate(
             pair.parameters[pair.current_name]["DrudeForce"]
         ):
-            if set([new_parm[0] - offset_pair, new_parm[1] - offset_pair]) == set(
-                [idx1 - offset, idx2 - offset]
-            ):
+            if {new_parm[0] - offset_pair, new_parm[1] - offset_pair} == {
+                idx1 - offset, idx2 - offset
+            }:
                 if old_idx != new_idx:
                     raise RuntimeError(
                         "Odering is different between the two topologies."
@@ -1427,13 +1427,11 @@ def test_residue_forces():
         for new_idx, new_parm in enumerate(
             pair.parameters[pair.current_name]["HarmonicAngleForce"]
         ):
-            if set(
-                [
+            if {
                     new_parm[0] - offset_pair,
                     new_parm[1] - offset_pair,
                     new_parm[2] - offset_pair,
-                ]
-            ) == set([idx1 - offset, idx2 - offset, idx3 - offset]):
+            } == {idx1 - offset, idx2 - offset, idx3 - offset}:
                 if old_idx != new_idx:
                     raise RuntimeError(
                         "Odering is different between the two topologies."
@@ -1453,17 +1451,15 @@ def test_residue_forces():
         for new_idx, new_parm in enumerate(
             pair.parameters[pair.current_name]["PeriodicTorsionForce"]
         ):
-            if set(
-                [
+            if {
                     new_parm[0] - offset_pair,
                     new_parm[1] - offset_pair,
                     new_parm[2] - offset_pair,
                     new_parm[3] - offset_pair,
                     new_parm[4],
-                ]
-            ) == set(
-                [idx1 - offset, idx2 - offset, idx3 - offset, idx4 - offset, idx5]
-            ):
+            } == {
+                idx1 - offset, idx2 - offset, idx3 - offset, idx4 - offset, idx5
+            }:
                 if old_idx != new_idx:
                     raise RuntimeError(
                         "Odering is different between the two topologies."
@@ -1477,14 +1473,12 @@ def test_residue_forces():
         for new_idx, new_parm in enumerate(
             pair.parameters[pair.current_name]["CustomTorsionForce"]
         ):
-            if set(
-                [
+            if {
                     new_parm[0] - offset_pair,
                     new_parm[1] - offset_pair,
                     new_parm[2] - offset_pair,
                     new_parm[3] - offset_pair,
-                ]
-            ) == set([idx1 - offset, idx2 - offset, idx3 - offset, idx4 - offset]):
+            } == {idx1 - offset, idx2 - offset, idx3 - offset, idx4 - offset}:
                 if old_idx != new_idx:
                     raise RuntimeError(
                         "Odering is different between the two topologies."
@@ -1678,14 +1672,12 @@ def test_count_forces():
             for new_idx, new_parm in enumerate(
                 pair.parameters[pair.current_name]["PeriodicTorsionForce"]
             ):
-                if set(
-                    [
+                if {
                         new_parm[0] - offset_pair,
                         new_parm[1] - offset_pair,
                         new_parm[2] - offset_pair,
                         new_parm[3] - offset_pair,
-                    ]
-                ) == set([idx1, idx2, idx3, idx4]):
+                } == {idx1, idx2, idx3, idx4}:
                     if old_idx != new_idx:
                         print(old_idx, new_idx)
                         for force in simulation.system.getForces():
@@ -1736,15 +1728,13 @@ def test_count_forces():
             for new_idx, new_parm in enumerate(
                 pair.parameters[pair.current_name]["PeriodicTorsionForce"]
             ):
-                if set(
-                    [
+                if {
                         new_parm[0] - offset_pair,
                         new_parm[1] - offset_pair,
                         new_parm[2] - offset_pair,
                         new_parm[3] - offset_pair,
                         new_parm[4],
-                    ]
-                ) == set([idx1, idx2, idx3, idx4, idx5]):
+                } == {idx1, idx2, idx3, idx4, idx5}:
                     if old_idx != new_idx:
                         print(old_idx, new_idx)
                         for force in simulation.system.getForces():

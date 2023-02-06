@@ -133,7 +133,7 @@ integrator.setMaxDrudeDistance(inputs.drude_hardwall*angstroms)
 if integrator.getMaxDrudeDistance() == 0:
     print("No Drude Hard Wall Contraint in use")
 else:
-    print("Drude Hard Wall set to {}".format(integrator.getMaxDrudeDistance()))
+    print(f"Drude Hard Wall set to {integrator.getMaxDrudeDistance()}")
 
 # Set platform
 platform = Platform.getPlatformByName('CUDA')
@@ -149,7 +149,7 @@ if args.icrst:
     simulation.context.setVelocities(charmm_rst.velocities)
     simulation.context.setPeriodicBoxVectors(charmm_rst.box[0], charmm_rst.box[1], charmm_rst.box[2])
 if args.irst:
-    with open(args.irst, 'r') as f:
+    with open(args.irst) as f:
         #state = XmlSerializer.deserialize(f.read())
         #pos = state.getState(getPositions=True).getPositions()
         #vel = state.getState(getVelocities=True).getVelocities()

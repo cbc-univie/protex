@@ -309,9 +309,9 @@ class Residue:
         for old_idx, old_parm in enumerate(self.parameters[current_name][force_name]):
             idx1, idx2 = old_parm[0], old_parm[1]
             for new_idx, new_parm in enumerate(self.parameters[new_name][force_name]):
-                if set(
-                    [new_parm[0] - new_parms_offset, new_parm[1] - new_parms_offset]
-                ) == set([idx1 - old_parms_offset, idx2 - old_parms_offset]):
+                if {
+                    new_parm[0] - new_parms_offset, new_parm[1] - new_parms_offset
+                } == {idx1 - old_parms_offset, idx2 - old_parms_offset}:
                     if old_idx != new_idx:
                         raise RuntimeError(
                             "Odering of Nonbonded Exception parameters is different between the two topologies."
@@ -379,9 +379,9 @@ class Residue:
         for old_idx, old_parm in enumerate(self.parameters[old_name][force_name]):
             idx1, idx2 = old_parm[0], old_parm[1]
             for new_idx, new_parm in enumerate(self.parameters[new_name][force_name]):
-                if set(
-                    [new_parm[0] - new_parms_offset, new_parm[1] - new_parms_offset]
-                ) == set([idx1 - old_parms_offset, idx2 - old_parms_offset]):
+                if {
+                    new_parm[0] - new_parms_offset, new_parm[1] - new_parms_offset
+                } == {idx1 - old_parms_offset, idx2 - old_parms_offset}:
                     if old_idx != new_idx:
                         raise RuntimeError(
                             "Odering of bond parameters is different between the two topologies.\n"
@@ -424,19 +424,15 @@ class Residue:
         for old_idx, old_parm in enumerate(self.parameters[old_name][force_name]):
             idx1, idx2, idx3 = old_parm[0], old_parm[1], old_parm[2]
             for new_idx, new_parm in enumerate(self.parameters[new_name][force_name]):
-                if set(
-                    [
+                if {
                         new_parm[0] - new_parms_offset,
                         new_parm[1] - new_parms_offset,
                         new_parm[2] - new_parms_offset,
-                    ]
-                ) == set(
-                    [
+                } == {
                         idx1 - old_parms_offset,
                         idx2 - old_parms_offset,
                         idx3 - old_parms_offset,
-                    ]
-                ):
+                }:
                     if old_idx != new_idx:
                         raise RuntimeError(
                             "Odering of angle parameters is different between the two topologies."
@@ -506,14 +502,12 @@ class Residue:
                 for new_idx, new_parm in enumerate(
                     self.parameters[new_name][force_name]
                 ):
-                    if set(
-                        [
+                    if {
                             new_parm[0] - new_parms_offset,
                             new_parm[1] - new_parms_offset,
                             new_parm[2] - new_parms_offset,
                             new_parm[3] - new_parms_offset,
-                        ]
-                    ) == set([idx1, idx2, idx3, idx4]):
+                    } == {idx1, idx2, idx3, idx4}:
                         if old_idx != new_idx:
                             raise RuntimeError(
                                 "Odering of dihedral parameters is different between the two topologies."
@@ -529,15 +523,13 @@ class Residue:
                 for new_idx, new_parm in enumerate(
                     self.parameters[new_name][force_name]
                 ):
-                    if set(
-                        [
+                    if {
                             new_parm[0] - new_parms_offset,
                             new_parm[1] - new_parms_offset,
                             new_parm[2] - new_parms_offset,
                             new_parm[3] - new_parms_offset,
                             new_parm[4],
-                        ]
-                    ) == set([idx1, idx2, idx3, idx4, idx5]):
+                    } == {idx1, idx2, idx3, idx4, idx5}:
                         if old_idx != new_idx:
                             raise RuntimeError(
                                 "Odering of dihedral parameters is different between the two topologies."
@@ -582,21 +574,17 @@ class Residue:
         for old_idx, old_parm in enumerate(self.parameters[old_name][force_name]):
             idx1, idx2, idx3, idx4 = old_parm[0], old_parm[1], old_parm[2], old_parm[3]
             for new_idx, new_parm in enumerate(self.parameters[new_name][force_name]):
-                if set(
-                    [
+                if {
                         new_parm[0] - new_parms_offset,
                         new_parm[1] - new_parms_offset,
                         new_parm[2] - new_parms_offset,
                         new_parm[3] - new_parms_offset,
-                    ]
-                ) == set(
-                    [
+                } == {
                         idx1 - old_parms_offset,
                         idx2 - old_parms_offset,
                         idx3 - old_parms_offset,
                         idx4 - old_parms_offset,
-                    ]
-                ):
+                }:
                     if old_idx != new_idx:
                         raise RuntimeError(
                             "Odering of improper parameters is different between the two topologies."
@@ -641,9 +629,9 @@ class Residue:
         for old_idx, old_parm in enumerate(self.parameters[old_name][force_name]):
             idx1, idx2 = old_parm[0], old_parm[1]
             for new_idx, new_parm in enumerate(self.parameters[new_name][force_name]):
-                if set(
-                    [new_parm[0] - new_parms_offset, new_parm[1] - new_parms_offset]
-                ) == set([idx1 - old_parms_offset, idx2 - old_parms_offset]):
+                if {
+                    new_parm[0] - new_parms_offset, new_parm[1] - new_parms_offset
+                } == {idx1 - old_parms_offset, idx2 - old_parms_offset}:
                     if old_idx != new_idx:
                         raise RuntimeError(
                             "Odering of bond parameters is different between the two topologies."
@@ -687,9 +675,9 @@ class Residue:
         for old_idx, old_parm in enumerate(self.parameters[old_name][force_name]):
             idx1, idx2 = old_parm[0], old_parm[1]
             for new_idx, new_parm in enumerate(self.parameters[new_name][force_name]):
-                if set(
-                    [new_parm[0] - new_parms_offset, new_parm[1] - new_parms_offset]
-                ) == set([idx1 - old_parms_offset, idx2 - old_parms_offset]):
+                if {
+                    new_parm[0] - new_parms_offset, new_parm[1] - new_parms_offset
+                } == {idx1 - old_parms_offset, idx2 - old_parms_offset}:
                     if old_idx != new_idx:
                         raise RuntimeError(
                             "Odering of bond parameters is different between the two topologies."
