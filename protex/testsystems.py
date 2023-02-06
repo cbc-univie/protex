@@ -391,7 +391,7 @@ def generate_small_box(
             )
             # test if platform and integrator are compatible -> VVIntegrator only works on cuda
             # If we do not create a context it is not tested if there is cuda availabe for the plugin
-            context = Context(system, integrator)
+            Context(system, integrator)
             del context
             # afterwards the integrator is already bound to the context and we need a new one...
             # is there something like integrator.reset()?
