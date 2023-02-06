@@ -1,14 +1,10 @@
 from __future__ import annotations
 
 import itertools
-import json
 import logging
 import pickle
-from collections import ChainMap, defaultdict, deque
-from copy import deepcopy
-from pdb import pm
+from collections import ChainMap, defaultdict
 
-import numpy as np
 import parmed
 import yaml
 
@@ -847,7 +843,7 @@ class ProtexSystem:
         ----------
         file: string or file
         """
-        with open(file, "r") as f:
+        with open(file) as f:
             try:
                 data = yaml.safe_load(f)
             except yaml.YAMLError as exc:

@@ -1,13 +1,11 @@
 import argparse
 import os
 import re
-import sys
 import time
 from pathlib import Path
 
 import MDAnalysis
 import numpy as np
-import tidynamics
 
 try:
     from cbchelpers.cond_helpers import Charges

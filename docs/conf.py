@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # Configuration file for the Sphinx documentation builder.
 #
@@ -18,7 +17,6 @@ import sys
 
 sys.path.insert(0, os.path.abspath(".."))
 
-import protex
 
 # -- Project information -----------------------------------------------------
 

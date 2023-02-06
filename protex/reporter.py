@@ -159,7 +159,7 @@ class EnergyReporter:
 
 
 # Reporter from https://github.com/z-gong/openmm-velocityVerlet/tree/master/examples/ommhelper/reporter
-class DrudeTemperatureReporter(object):
+class DrudeTemperatureReporter:
     """
     DrudeTemperatureReporter reports the temperatures of different DOFs in a Drude simulation system.
 

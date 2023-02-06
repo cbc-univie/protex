@@ -9,7 +9,6 @@ Correspondance: jul316@lehigh.edu or wonpil@lehigh.edu
 Last update: March 29, 2017
 """
 
-import os
 
 from simtk.openmm import *
 from simtk.openmm.app import *
@@ -63,19 +62,19 @@ def read_params(filename):
     extlist = ['rtf', 'prm', 'str']
 
     parFiles = ()
-    for line in open(filename, 'r'):
+    for line in open(filename):
         if '!' in line: line = line.split('!')[0]
         parfile = line.strip()
         if len(parfile) != 0:
             ext = parfile.lower().split('.')[-1]
-            if not ext in extlist: continue
+            if ext not in extlist: continue
             parFiles += ( parfile, )
 
     params = CharmmParameterSet( *parFiles )
     return params
 
 def read_box(psf, filename):
-    for line in open(filename, 'r'):
+    for line in open(filename):
         segments = line.split('=')
         if segments[0].strip() == "BOXLX": boxlx = float(segments[1])
         if segments[0].strip() == "BOXLY": boxly = float(segments[1])
@@ -103,4 +102,3 @@ def gen_box(psf, crd):
 
     psf.setBox(boxlx, boxly, boxlz)
     return psf
-

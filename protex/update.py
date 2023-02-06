@@ -220,10 +220,7 @@ class KeepHUpdate(Update):
         if "H" in self.ionic_liquid.templates.get_atom_name_for(
             candidate1_residue.current_name
         ) or (
-            self.ionic_liquid.templates.has_equivalent_atom(
-                candidate1_residue.current_name
-            )
-            == True
+            self.ionic_liquid.templates.has_equivalent_atom(candidate1_residue.current_name) is True
             and "H"
             in self.ionic_liquid.templates.get_equivalent_atom_for(
                 candidate1_residue.current_name
@@ -236,7 +233,7 @@ class KeepHUpdate(Update):
             donor = candidate2_residue
             acceptor = candidate1_residue
 
-        if donor.used_equivalent_atom == True:
+        if donor.used_equivalent_atom is True:
             idx_donated_H = donor.get_idx_for_atom_name(
                 self.ionic_liquid.templates.get_equivalent_atom_for(donor.current_name)
             )
@@ -246,7 +243,7 @@ class KeepHUpdate(Update):
                 self.ionic_liquid.templates.get_atom_name_for(donor.current_name)
             )
 
-        if acceptor.used_equivalent_atom == True:
+        if acceptor.used_equivalent_atom is True:
             idx_acceptor_atom = acceptor.get_idx_for_atom_name(
                 self.ionic_liquid.templates.get_equivalent_atom_for(
                     acceptor.current_name
@@ -581,7 +578,7 @@ class StateUpdate:
 
     def _print_stop(self):
         print(
-            f"""
+            """
             ##############################
             ##############################
             """

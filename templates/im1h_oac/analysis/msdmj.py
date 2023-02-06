@@ -1,7 +1,6 @@
 import argparse
 import os
 import re
-import sys
 import time
 import warnings
 from pathlib import Path
@@ -15,7 +14,7 @@ import numpy as np
 try:
     from cbchelpers.cond_helpers import Charges, UpdatePair, get_pairs
     from cbchelpers.derivative import derivative
-    from cbchelpers.helpers import msd_com, msd_mj, rPBC
+    from cbchelpers.helpers import rPBC
 except ModuleNotFoundError as e:
     print("Did you install the cbchelpers in your protex environment?")
     print("git clone git@github.com:florianjoerg/cbchelpers.git")

@@ -63,7 +63,7 @@ class _OpenMMReadInputs():
         self.avg_boxl         = 48.0
 
     def read(self, inputFile):
-        for line in open(inputFile, 'r'):
+        for line in open(inputFile):
             if line.find('#') >= 0: line = line.split('#')[0]
             line = line.strip()
             if len(line) > 0:
