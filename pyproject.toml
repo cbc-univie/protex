@@ -22,6 +22,10 @@ classifiers = [
 #]
 dynamic = ["version"]
 
+[project.urls]
+documentation = 'https://florianjoerg.github.io/protex'
+repository = 'https://github.com/florianjoerg/protex'
+
 [tool.setuptools]
 packages = ["protex"]
 
@@ -76,3 +80,32 @@ target-version = "py311"
 [tool.ruff.mccabe]
 # Unlike Flake8, default to a complexity level of 10.
 max-complexity = 10
+
+[tool.coverage.run]
+#branch = true
+omit = ["*/tests/*", "protex/_version.py"]
+#plugins = ["Cython.Coverage"]
+#source = ["pandas"]
+
+# [tool.coverage.report]
+# ignore_errors = false
+# show_missing = true
+# omit = ["pandas/_version.py"]
+# exclude_lines = [
+#   # Have to re-enable the standard pragma
+#   "pragma: no cover",
+#   # Don't complain about missing debug-only code:s
+#   "def __repr__",
+#   "if self.debug",
+#   # Don't complain if tests don't hit defensive assertion code:
+#   "raise AssertionError",
+#   "raise NotImplementedError",
+#   "AbstractMethodError",
+#   # Don't complain if non-runnable code isn't run:
+#   "if 0:",
+#   "if __name__ == .__main__.:",
+#   "if TYPE_CHECKING:",
+# ]
+
+# [tool.coverage.html]
+# directory = "coverage_html_report"
