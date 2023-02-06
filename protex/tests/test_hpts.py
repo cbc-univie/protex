@@ -3,20 +3,15 @@
 import copy
 import logging
 import os
-import pwd
-import re
 from collections import defaultdict
 from sys import stdout
 
 import numpy as np
-import pandas as pd
-import parmed
 
 try:  # Syntax changed in OpenMM 7.6
     import openmm as mm
     from openmm import (
         Context,
-        DrudeLangevinIntegrator,
         DrudeNoseHooverIntegrator,
         OpenMMException,
         Platform,
@@ -40,7 +35,6 @@ except ImportError:
         OpenMMException,
         Platform,
         Context,
-        DrudeLangevinIntegrator,
         DrudeNoseHooverIntegrator,
         XmlSerializer,
     )
@@ -56,7 +50,6 @@ from scipy.spatial import distance_matrix
 import protex
 
 from ..reporter import ChargeReporter
-from ..residue import Residue
 from ..system import ProtexSystem, ProtexTemplates
 from ..testsystems import (  # generate_single_hpts_system,
     HPTSH_HPTS,
@@ -172,7 +165,7 @@ def test_available_platforms():
             simulation.context.setState(XmlSerializer.deserialize(f.read()))
         simulation.context.computeVirtualSites()
     else:
-        print(f"No restart file found. Using initial coordinate file.")
+        print("No restart file found. Using initial coordinate file.")
         simulation.context.computeVirtualSites()
         simulation.context.setVelocitiesToTemperature(300 * kelvin)
 
@@ -194,7 +187,7 @@ def test_run_simulation():
     restart_file = f"{protex.__path__[0]}/forcefield/traj/hpts_npt_7.rst"
 
     simulation = generate_hpts_meoh_system(psf_file=psf_file, restart_file=restart_file)
-    simulation_for_parameters = generate_hpts_meoh_system(
+    generate_hpts_meoh_system(
         psf_file=psf_for_parameters, crd_file=crd_for_parameters
     )
     print("Minimizing...")
@@ -573,7 +566,7 @@ def test_forces():
     psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
 
     simulation = generate_hpts_meoh_system(psf_file=psf_file)
-    simulation_for_parameters = generate_hpts_meoh_system(
+    generate_hpts_meoh_system(
         crd_file=crd_for_parameters, psf_file=psf_for_parameters
     )
     system = simulation.system
@@ -647,7 +640,7 @@ def test_torsion_forces():
     psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
 
     simulation = generate_hpts_meoh_system(psf_file=psf_file)
-    simulation_for_parameters = generate_hpts_meoh_system(
+    generate_hpts_meoh_system(
         crd_file=crd_for_parameters, psf_file=psf_for_parameters
     )
     system = simulation.system
@@ -1301,7 +1294,7 @@ def test_pbc():
     pos_list, res_list = state_update._get_positions_for_mutation_sites()
 
     # calculate distance matrix between the two molecules
-    distance = distance_matrix(pos_list, pos_list)
+    distance_matrix(pos_list, pos_list)
     # print(f"{distance[0]=}")
 
     from scipy.spatial.distance import cdist
@@ -1335,7 +1328,7 @@ def test_residue_forces():
     crd_for_parameters = f"{protex.__path__[0]}/forcefield/crd_for_parameters.crd"
     psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
 
-    simulation = generate_hpts_meoh_system(psf_file=psf_file)
+    generate_hpts_meoh_system(psf_file=psf_file)
     simulation_for_parameters = generate_hpts_meoh_system(
         crd_file=crd_for_parameters, psf_file=psf_for_parameters
     )
@@ -1362,12 +1355,12 @@ def test_residue_forces():
     )
     ionic_liquid = ProtexSystem(simulation_for_parameters, templates)
 
-    im1h = ionic_liquid.residues[0]
-    oac = ionic_liquid.residues[1]
-    im1 = ionic_liquid.residues[2]
-    hoac = ionic_liquid.residues[3]
-    hpts = ionic_liquid.residues[4]
-    hptsh = ionic_liquid.residues[5]
+    ionic_liquid.residues[0]
+    ionic_liquid.residues[1]
+    ionic_liquid.residues[2]
+    ionic_liquid.residues[3]
+    ionic_liquid.residues[4]
+    ionic_liquid.residues[5]
     meoh = ionic_liquid.residues[6]
     meoh2 = ionic_liquid.residues[7]
 
@@ -1503,7 +1496,7 @@ def test_list_torsionforce():
     crd_for_parameters = f"{protex.__path__[0]}/forcefield/crd_for_parameters.crd"
     psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
 
-    simulation = generate_hpts_meoh_system(psf_file=psf_file)
+    generate_hpts_meoh_system(psf_file=psf_file)
     simulation_for_parameters = generate_hpts_meoh_system(
         crd_file=crd_for_parameters, psf_file=psf_for_parameters
     )
@@ -1634,12 +1627,12 @@ def test_count_forces():
     )
     ionic_liquid = ProtexSystem(simulation_for_parameters, templates)
 
-    im1h = ionic_liquid.residues[0]
-    oac = ionic_liquid.residues[1]
-    im1 = ionic_liquid.residues[2]
-    hoac = ionic_liquid.residues[3]
-    hpts = ionic_liquid.residues[4]
-    hptsh = ionic_liquid.residues[5]
+    ionic_liquid.residues[0]
+    ionic_liquid.residues[1]
+    ionic_liquid.residues[2]
+    ionic_liquid.residues[3]
+    ionic_liquid.residues[4]
+    ionic_liquid.residues[5]
     meoh = ionic_liquid.residues[6]
     meoh2 = ionic_liquid.residues[7]
 
@@ -1920,7 +1913,7 @@ def test_meoh2_update():
     # update = NaiveMCUpdate(ionic_liquid, meoh2=True)
     update = KeepHUpdate(ionic_liquid, include_equivalent_atom=True, reorient=True)
     # initialize state update class
-    state_update = StateUpdate(update)
+    StateUpdate(update)
 
     # old_psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
     # ionic_liquid.write_psf(old_psf_file, "test.psf", psf_for_parameters)

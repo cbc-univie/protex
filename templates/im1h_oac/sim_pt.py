@@ -1,30 +1,15 @@
-import os
 import sys
 import warnings
 from pathlib import Path
 
 from simtk.openmm import (
-    Context,
-    DrudeLangevinIntegrator,
-    DrudeNoseHooverIntegrator,
-    OpenMMException,
-    Platform,
     XmlSerializer,
 )
 from simtk.openmm.app import (
-    PME,
-    CharmmCrdFile,
-    CharmmParameterSet,
-    CharmmPsfFile,
     DCDReporter,
-    HBonds,
-    PDBReporter,
-    Simulation,
     StateDataReporter,
 )
-from simtk.unit import angstroms, kelvin, picoseconds
 
-import protex
 from protex.reporter import ChargeReporter
 from protex.scripts.ommhelper import DrudeTemperatureReporter
 from protex.system import ProtexSystem, ProtexTemplates

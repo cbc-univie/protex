@@ -9,7 +9,6 @@ Correspondance: jul316@lehigh.edu or wonpil@lehigh.edu
 Last update: March 29, 2017
 """
 
-import os
 
 from simtk.openmm import *
 from simtk.openmm.app import *
@@ -68,7 +67,7 @@ def read_params(filename):
         parfile = line.strip()
         if len(parfile) != 0:
             ext = parfile.lower().split('.')[-1]
-            if not ext in extlist: continue
+            if ext not in extlist: continue
             parFiles += ( parfile, )
 
     params = CharmmParameterSet( *parFiles )

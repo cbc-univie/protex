@@ -1,5 +1,4 @@
 import os
-from multiprocessing import dummy
 
 import protex
 
@@ -7,7 +6,6 @@ try:  # Syntax changed in OpenMM 7.6
     import openmm as mm
     from openmm import (
         Context,
-        DrudeLangevinIntegrator,
         DrudeNoseHooverIntegrator,
         OpenMMException,
         Platform,
@@ -26,7 +24,6 @@ except ImportError:
     import simtk.openmm as mm
     from simtk.openmm import (
         Context,
-        DrudeLangevinIntegrator,
         DrudeNoseHooverIntegrator,
         OpenMMException,
         Platform,
@@ -234,7 +231,7 @@ def generate_im1h_oac_system(
                 simulation.context.setState(XmlSerializer.deserialize(f.read()))
             simulation.context.computeVirtualSites()
         else:
-            print(f"No restart file found. Using initial coordinate file.")
+            print("No restart file found. Using initial coordinate file.")
             simulation.context.computeVirtualSites()
             simulation.context.setVelocitiesToTemperature(300 * kelvin)
 
@@ -459,11 +456,11 @@ def generate_im1h_oac_system_clap(
                     simulation.context.setState(XmlSerializer.deserialize(f.read()))
                 simulation.context.computeVirtualSites()
             except OpenMMException:
-                print(f"Could not use restart file. Using initial coordinate file.")
+                print("Could not use restart file. Using initial coordinate file.")
                 simulation.context.computeVirtualSites()
                 simulation.context.setVelocitiesToTemperature(300 * kelvin)
         else:
-            print(f"No restart file found. Using initial coordinate file.")
+            print("No restart file found. Using initial coordinate file.")
             simulation.context.computeVirtualSites()
             simulation.context.setVelocitiesToTemperature(300 * kelvin)
 
@@ -669,7 +666,7 @@ def generate_hpts_system(
                 simulation.context.setState(XmlSerializer.deserialize(f.read()))
             simulation.context.computeVirtualSites()
         else:
-            print(f"No restart file found. Using initial coordinate file.")
+            print("No restart file found. Using initial coordinate file.")
             simulation.context.computeVirtualSites()
             simulation.context.setVelocitiesToTemperature(300 * kelvin)
 
@@ -872,7 +869,7 @@ def generate_hpts_meoh_system(
                 simulation.context.setState(XmlSerializer.deserialize(f.read()))
             simulation.context.computeVirtualSites()
         else:
-            print(f"No restart file found. Using initial coordinate file.")
+            print("No restart file found. Using initial coordinate file.")
             simulation.context.computeVirtualSites()
             simulation.context.setVelocitiesToTemperature(300 * kelvin)
 
@@ -1000,7 +997,7 @@ def generate_single_im1h_oac_system(coll_freq=10, drude_coll_freq=100, psf_file=
         integrator.setMaxDrudeDistance(0.25 * angstroms)
         try:
             platform = Platform.getPlatformByName("CUDA")
-            prop = dict(CudaPrecision="single")  # default is single
+            dict(CudaPrecision="single")  # default is single
             simulation = Simulation(
                 psf.topology,
                 system,
@@ -1009,7 +1006,6 @@ def generate_single_im1h_oac_system(coll_freq=10, drude_coll_freq=100, psf_file=
             )
         except OpenMMException:
             platform = Platform.getPlatformByName("CPU")
-            prop = dict()
             simulation = Simulation(
                 psf.topology,
                 system,

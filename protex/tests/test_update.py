@@ -1,6 +1,5 @@
 import logging
 import os
-from collections import defaultdict, deque
 
 import numpy as np
 import pytest
@@ -8,10 +7,10 @@ from scipy.spatial import distance_matrix
 
 try:
     from openmm import DrudeNoseHooverIntegrator, Platform, XmlSerializer
-    from openmm.app import DCDReporter, PDBFile, Simulation, StateDataReporter
+    from openmm.app import DCDReporter, StateDataReporter
     from openmm.unit import angstroms, kelvin, nanometers, picoseconds
 except ImportError:
-    from simtk.openmm.app import StateDataReporter, DCDReporter, PDBFile, Simulation
+    from simtk.openmm.app import StateDataReporter, DCDReporter
     from simtk.openmm import XmlSerializer, Platform, DrudeNoseHooverIntegrator
     from simtk.unit import angstroms, kelvin, picoseconds, nanometers
 
@@ -54,7 +53,7 @@ def test_create_update():
             include_equivalent_atom=True,
             # reorient=True,
         )
-    except NotImplementedError as e:
+    except NotImplementedError:
         pass
 
     update = NaiveMCUpdate(
@@ -785,7 +784,7 @@ def test_transfer_with_distance_matrix():
     state_update.write_charges("output_initial.txt")
     os.remove("output_initial.txt")
     par_initial = state_update.get_charges()
-    res_dict = state_update.get_num_residues()
+    state_update.get_num_residues()
     # print(res_dict)
     for residue in ionic_liquid.residues:
         current_charge = 0
@@ -802,7 +801,7 @@ def test_transfer_with_distance_matrix():
 
     candidate_pairs1 = state_update.update()
     par_after_first_update = state_update.get_charges()
-    res_dict = state_update.get_num_residues()
+    state_update.get_num_residues()
 
     for residue in ionic_liquid.residues:
         current_charge = 0
@@ -820,9 +819,9 @@ def test_transfer_with_distance_matrix():
     ##############################
     ###### SECOND UPDATE
     #############################
-    candidate_pairs2 = state_update.update()
+    state_update.update()
     par_after_second_update = state_update.get_charges()
-    res_dict = state_update.get_num_residues()
+    state_update.get_num_residues()
 
     for residue in ionic_liquid.residues:
         current_charge = 0
@@ -1001,10 +1000,10 @@ def test_parameters_after_update():
     templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
     # wrap system in IonicLiquidSystem
     ionic_liquid = ProtexSystem(simulation, templates)
-    ionic_liquid.simulation.reporters.append(DCDReporter(f"test_transfer.dcd", 1))
+    ionic_liquid.simulation.reporters.append(DCDReporter("test_transfer.dcd", 1))
     ionic_liquid.simulation.reporters.append(
         StateDataReporter(
-            f"test_transfer.out",
+            "test_transfer.out",
             1,
             step=True,
             time=True,
@@ -1260,7 +1259,7 @@ def test_pbc():
     pos_list, res_list = state_update._get_positions_for_mutation_sites()
 
     # calculate distance matrix between the two molecules
-    distance = distance_matrix(pos_list, pos_list)
+    distance_matrix(pos_list, pos_list)
     # print(f"{distance[0]=}")
 
     from scipy.spatial.distance import cdist
@@ -1356,8 +1355,7 @@ def test_single_im1h_oac():
                         and index2 in ionic_liquid.residues[i].atom_idxs
                     ):
                         if (
-                            not ionic_liquid.residues[i].original_name
-                            in exceptions_before.keys()
+                            ionic_liquid.residues[i].original_name not in exceptions_before.keys()
                         ):
                             exceptions_before[
                                 ionic_liquid.residues[i].original_name
@@ -1396,8 +1394,7 @@ def test_single_im1h_oac():
                         and index2 in ionic_liquid.residues[i].atom_idxs
                     ):
                         if (
-                            not ionic_liquid.residues[i].current_name
-                            in exceptions_after.keys()
+                            ionic_liquid.residues[i].current_name not in exceptions_after.keys()
                         ):
                             exceptions_after[ionic_liquid.residues[i].current_name] = [
                                 index1,
@@ -1491,7 +1488,7 @@ def test_energy_before_after():
 
     def save_il(ionic_liquid, number):
         ionic_liquid.write_psf(
-            f"protex/forcefield/dummy/im1h_oac_150_im1_hoac_350.psf",
+            "protex/forcefield/dummy/im1h_oac_150_im1_hoac_350.psf",
             f"test_{number}.psf",
         )
         ionic_liquid.saveCheckpoint(f"test_{number}.rst")
@@ -1589,7 +1586,7 @@ def test_single_energy_before_after(caplog):
 
     def save_il(ionic_liquid, number):
         ionic_liquid.write_psf(
-            f"protex/forcefield/single_pairs/im1h_oac_im1_hoac_1_secondtry.psf",
+            "protex/forcefield/single_pairs/im1h_oac_im1_hoac_1_secondtry.psf",
             f"test_{number}.psf",
         )
         ionic_liquid.saveCheckpoint(f"test_{number}.rst")
@@ -1629,8 +1626,8 @@ def test_single_energy_before_after(caplog):
         0.0005 * picoseconds,
     )
     integrator.setMaxDrudeDistance(0.25 * angstroms)
-    platform = Platform.getPlatformByName("CUDA")
-    prop = dict(CudaPrecision="single")  # default is single
+    Platform.getPlatformByName("CUDA")
+    dict(CudaPrecision="single")  # default is single
 
     sim0 = generate_single_im1h_oac_system()
     allowed_updates = {}
@@ -1739,7 +1736,7 @@ def test_dummy_energy_before_after(caplog):
 
     def save_il(ionic_liquid, number):
         ionic_liquid.write_psf(
-            f"protex/forcefield/dummy/im1h_oac_im1_hoac_1.psf",
+            "protex/forcefield/dummy/im1h_oac_im1_hoac_1.psf",
             f"test_{number}.psf",
         )
         ionic_liquid.saveCheckpoint(f"test_{number}.rst")
@@ -1779,8 +1776,8 @@ def test_dummy_energy_before_after(caplog):
         0.0005 * picoseconds,
     )
     integrator.setMaxDrudeDistance(0.25 * angstroms)
-    platform = Platform.getPlatformByName("CUDA")
-    prop = dict(CudaPrecision="single")  # default is single
+    Platform.getPlatformByName("CUDA")
+    dict(CudaPrecision="single")  # default is single
 
     sim0 = generate_im1h_oac_dummy_system()
     allowed_updates = {}
@@ -1889,7 +1886,7 @@ def test_periodictorsionforce_energy(caplog):
 
     def save_il(ionic_liquid, number):
         ionic_liquid.write_psf(
-            f"protex/forcefield/single_pairs/im1h_oac_im1_hoac_1_secondtry.psf",
+            "protex/forcefield/single_pairs/im1h_oac_im1_hoac_1_secondtry.psf",
             f"test_{number}.psf",
         )
         ionic_liquid.saveCheckpoint(f"test_{number}.rst")
@@ -1925,8 +1922,8 @@ def test_periodictorsionforce_energy(caplog):
         0.0005 * picoseconds,
     )
     integrator.setMaxDrudeDistance(0.25 * angstroms)
-    platform = Platform.getPlatformByName("CUDA")
-    prop = dict(CudaPrecision="single")  # default is single
+    Platform.getPlatformByName("CUDA")
+    dict(CudaPrecision="single")  # default is single
 
     sim0 = generate_single_im1h_oac_system()
     allowed_updates = {}
@@ -1973,8 +1970,8 @@ def test_periodictorsionforce_energy(caplog):
     # t2, e2 = get_time_energy(ionic_liquid.simulation)
     save_il(ionic_liquid, 2)
 
-    sim2_1 = load_sim("protex/forcefield/single_pairs/im1_hoac_2.psf", "test_2.rst")
-    sim_2_oldcoord = load_sim(
+    load_sim("protex/forcefield/single_pairs/im1_hoac_2.psf", "test_2.rst")
+    load_sim(
         "protex/forcefield/single_pairs/im1_hoac_2.psf", "test_1.rst"
     )
     # sim2_2 = load_sim("test_2.psf", "test_2.rst")
@@ -2195,8 +2192,8 @@ def test_single_energy_molecule(caplog):
         0.0005 * picoseconds,
     )
     integrator.setMaxDrudeDistance(0.25 * angstroms)
-    platform = Platform.getPlatformByName("CUDA")
-    prop = dict(CudaPrecision="single")  # default is single
+    Platform.getPlatformByName("CUDA")
+    dict(CudaPrecision="single")  # default is single
 
     # sim0 = generate_single_im1h_oac_system()
     sim0 = generate_im1h_oac_system()
@@ -2217,11 +2214,11 @@ def test_single_energy_molecule(caplog):
     # oac = get_ub_contrib_from_(ionic_liquid, name="OAC")
     # hoac = get_ub_contrib_from_(ionic_liquid, name="HOAC")
 
-    all = get_angle_contrib_from_(ionic_liquid)
-    im1h = get_angle_contrib_from_(ionic_liquid, name="IM1H")
-    im1 = get_angle_contrib_from_(ionic_liquid, name="IM1")
-    oac = get_angle_contrib_from_(ionic_liquid, name="OAC")
-    hoac = get_angle_contrib_from_(ionic_liquid, name="HOAC")
+    get_angle_contrib_from_(ionic_liquid)
+    get_angle_contrib_from_(ionic_liquid, name="IM1H")
+    get_angle_contrib_from_(ionic_liquid, name="IM1")
+    get_angle_contrib_from_(ionic_liquid, name="OAC")
+    get_angle_contrib_from_(ionic_liquid, name="HOAC")
 
     # print_force_contrib(ionic_liquid.simulation)
 
@@ -2282,7 +2279,6 @@ def test_save_load_updates(caplog):
     )
     # wrap system in IonicLiquidSystem
     ionic_liquid = ProtexSystem(simulation, templates)
-    pars = []
     update = NaiveMCUpdate(ionic_liquid)
     # initialize state update class
     state_update = StateUpdate(update)
@@ -2295,7 +2291,7 @@ def test_save_load_updates(caplog):
     del state_update
     update = NaiveMCUpdate.load("naivemcupdate.pkl", ionic_liquid)
     state_update = StateUpdate.load("stateupdate.pkl", update)
-    assert update.all_forces == False
+    assert update.all_forces is False
     assert state_update.update_trial == 100
     os.remove("naivemcupdate.pkl")
     os.remove("stateupdate.pkl")
