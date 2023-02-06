@@ -180,20 +180,18 @@ def test_setup_simulation():
     assert nr_of_particles == 55185
 
 
-def test_run_simulation():
+def test_run_simulation(tmp_path):
     psf_for_parameters = f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
     crd_for_parameters = f"{protex.__path__[0]}/forcefield/crd_for_parameters.crd"
     psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
     restart_file = f"{protex.__path__[0]}/forcefield/traj/hpts_npt_7.rst"
 
     simulation = generate_hpts_meoh_system(psf_file=psf_file, restart_file=restart_file)
-    generate_hpts_meoh_system(
-        psf_file=psf_for_parameters, crd_file=crd_for_parameters
-    )
+    generate_hpts_meoh_system(psf_file=psf_for_parameters, crd_file=crd_for_parameters)
     print("Minimizing...")
     simulation.minimizeEnergy(maxIterations=50)
-    simulation.reporters.append(PDBReporter("output.pdb", 50))
-    simulation.reporters.append(DCDReporter("output.dcd", 50))
+    simulation.reporters.append(PDBReporter(f"{tmp_path}/output.pdb", 50))
+    simulation.reporters.append(DCDReporter(f"{tmp_path}/output.dcd", 50))
 
     simulation.reporters.append(
         StateDataReporter(
@@ -566,9 +564,7 @@ def test_forces():
     psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
 
     simulation = generate_hpts_meoh_system(psf_file=psf_file)
-    generate_hpts_meoh_system(
-        crd_file=crd_for_parameters, psf_file=psf_for_parameters
-    )
+    generate_hpts_meoh_system(crd_file=crd_for_parameters, psf_file=psf_for_parameters)
     system = simulation.system
     topology = simulation.topology
     force_state = defaultdict(list)  # store bond force
@@ -640,9 +636,7 @@ def test_torsion_forces():
     psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
 
     simulation = generate_hpts_meoh_system(psf_file=psf_file)
-    generate_hpts_meoh_system(
-        crd_file=crd_for_parameters, psf_file=psf_for_parameters
-    )
+    generate_hpts_meoh_system(crd_file=crd_for_parameters, psf_file=psf_for_parameters)
     system = simulation.system
     topology = simulation.topology
     force_state = defaultdict(list)  # store bond force
@@ -1127,7 +1121,7 @@ def test_reporter_class():
     os.getenv("CI") == "true",
     reason="Will fail sporadicaly.",
 )
-def test_write_psf_save_load():
+def test_write_psf_save_load(tmp_path):
     psf_for_parameters = f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
     crd_for_parameters = f"{protex.__path__[0]}/forcefield/crd_for_parameters.crd"
     psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
@@ -1167,18 +1161,18 @@ def test_write_psf_save_load():
     state_update = StateUpdate(update)
 
     old_psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
-    ionic_liquid.write_psf(old_psf_file, "test.psf", psf_for_parameters)
+    ionic_liquid.write_psf(old_psf_file, f"{tmp_path}/test.psf", psf_for_parameters)
 
     # ionic_liquid.simulation.step(50)
     state_update.update(2)
 
-    ionic_liquid.write_psf(old_psf_file, "test.psf", psf_for_parameters)
-    ionic_liquid.saveState("state.rst")
-    ionic_liquid.saveCheckpoint("checkpoint.rst")
+    ionic_liquid.write_psf(old_psf_file, f"{tmp_path}/test.psf", psf_for_parameters)
+    ionic_liquid.saveState(f"{tmp_path}/state.rst")
+    ionic_liquid.saveCheckpoint(f"{tmp_path}/checkpoint.rst")
 
     ionic_liquid2 = ionic_liquid  # copy.deepcopy(ionic_liquid)
-    ionic_liquid.loadState("state.rst")
-    ionic_liquid2.loadCheckpoint("checkpoint.rst")
+    ionic_liquid.loadState(f"{tmp_path}/state.rst")
+    ionic_liquid2.loadCheckpoint(f"{tmp_path}/checkpoint.rst")
 
 
 #####################
@@ -1190,7 +1184,7 @@ def test_write_psf_save_load():
     os.getenv("CI") == "true",
     reason="Will fail sporadicaly.",
 )
-def test_updates(caplog):
+def test_updates(caplog, tmp_path):
     caplog.set_level(logging.DEBUG)
 
     psf_for_parameters = f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
@@ -1241,9 +1235,7 @@ def test_updates(caplog):
 
     # test whether the update changed the psf
     old_psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
-    ionic_liquid.write_psf(old_psf_file, "hpts_new.psf", psf_for_parameters)
-
-    os.remove("hpts_new.psf")
+    ionic_liquid.write_psf(old_psf_file, f"{tmp_path}/hpts_new.psf", psf_for_parameters)
 
 
 @pytest.mark.skipif(
@@ -1395,7 +1387,8 @@ def test_residue_forces():
             pair.parameters[pair.current_name]["HarmonicBondForce"]
         ):
             if {new_parm[0] - offset_pair, new_parm[1] - offset_pair} == {
-                idx1 - offset, idx2 - offset
+                idx1 - offset,
+                idx2 - offset,
             }:
                 if old_idx != new_idx:
                     print(old_idx, new_idx)
@@ -1412,7 +1405,8 @@ def test_residue_forces():
             pair.parameters[pair.current_name]["DrudeForce"]
         ):
             if {new_parm[0] - offset_pair, new_parm[1] - offset_pair} == {
-                idx1 - offset, idx2 - offset
+                idx1 - offset,
+                idx2 - offset,
             }:
                 if old_idx != new_idx:
                     raise RuntimeError(
@@ -1428,9 +1422,9 @@ def test_residue_forces():
             pair.parameters[pair.current_name]["HarmonicAngleForce"]
         ):
             if {
-                    new_parm[0] - offset_pair,
-                    new_parm[1] - offset_pair,
-                    new_parm[2] - offset_pair,
+                new_parm[0] - offset_pair,
+                new_parm[1] - offset_pair,
+                new_parm[2] - offset_pair,
             } == {idx1 - offset, idx2 - offset, idx3 - offset}:
                 if old_idx != new_idx:
                     raise RuntimeError(
@@ -1452,14 +1446,12 @@ def test_residue_forces():
             pair.parameters[pair.current_name]["PeriodicTorsionForce"]
         ):
             if {
-                    new_parm[0] - offset_pair,
-                    new_parm[1] - offset_pair,
-                    new_parm[2] - offset_pair,
-                    new_parm[3] - offset_pair,
-                    new_parm[4],
-            } == {
-                idx1 - offset, idx2 - offset, idx3 - offset, idx4 - offset, idx5
-            }:
+                new_parm[0] - offset_pair,
+                new_parm[1] - offset_pair,
+                new_parm[2] - offset_pair,
+                new_parm[3] - offset_pair,
+                new_parm[4],
+            } == {idx1 - offset, idx2 - offset, idx3 - offset, idx4 - offset, idx5}:
                 if old_idx != new_idx:
                     raise RuntimeError(
                         "Odering is different between the two topologies."
@@ -1474,10 +1466,10 @@ def test_residue_forces():
             pair.parameters[pair.current_name]["CustomTorsionForce"]
         ):
             if {
-                    new_parm[0] - offset_pair,
-                    new_parm[1] - offset_pair,
-                    new_parm[2] - offset_pair,
-                    new_parm[3] - offset_pair,
+                new_parm[0] - offset_pair,
+                new_parm[1] - offset_pair,
+                new_parm[2] - offset_pair,
+                new_parm[3] - offset_pair,
             } == {idx1 - offset, idx2 - offset, idx3 - offset, idx4 - offset}:
                 if old_idx != new_idx:
                     raise RuntimeError(
@@ -1485,7 +1477,7 @@ def test_residue_forces():
                     )
 
 
-def test_list_torsionforce():
+def test_list_torsionforce(tmp_path):
     psf_for_parameters = f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
     crd_for_parameters = f"{protex.__path__[0]}/forcefield/crd_for_parameters.crd"
     psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
@@ -1533,7 +1525,7 @@ def test_list_torsionforce():
             old_parm[5],
             old_parm[6],
         )
-        f = open("oac_torsion.txt", "a")
+        f = open(f"{tmp_path}/oac_torsion.txt", "a")
         f.write(
             str(old_idx)
             + "\t"
@@ -1564,7 +1556,7 @@ def test_list_torsionforce():
             new_parm[5],
             new_parm[6],
         )
-        g = open("hoac_torsion.txt", "a")
+        g = open(f"{tmp_path}/hoac_torsion.txt", "a")
         g.write(
             str(new_idx)
             + "\t"
@@ -1584,9 +1576,6 @@ def test_list_torsionforce():
             + "\n"
         )
         g.close()
-
-    os.remove("oac_torsion.txt")
-    os.remove("hoac_torsion.txt")
 
 
 def test_count_forces():
@@ -1673,10 +1662,10 @@ def test_count_forces():
                 pair.parameters[pair.current_name]["PeriodicTorsionForce"]
             ):
                 if {
-                        new_parm[0] - offset_pair,
-                        new_parm[1] - offset_pair,
-                        new_parm[2] - offset_pair,
-                        new_parm[3] - offset_pair,
+                    new_parm[0] - offset_pair,
+                    new_parm[1] - offset_pair,
+                    new_parm[2] - offset_pair,
+                    new_parm[3] - offset_pair,
                 } == {idx1, idx2, idx3, idx4}:
                     if old_idx != new_idx:
                         print(old_idx, new_idx)
@@ -1729,11 +1718,11 @@ def test_count_forces():
                 pair.parameters[pair.current_name]["PeriodicTorsionForce"]
             ):
                 if {
-                        new_parm[0] - offset_pair,
-                        new_parm[1] - offset_pair,
-                        new_parm[2] - offset_pair,
-                        new_parm[3] - offset_pair,
-                        new_parm[4],
+                    new_parm[0] - offset_pair,
+                    new_parm[1] - offset_pair,
+                    new_parm[2] - offset_pair,
+                    new_parm[3] - offset_pair,
+                    new_parm[4],
                 } == {idx1, idx2, idx3, idx4, idx5}:
                     if old_idx != new_idx:
                         print(old_idx, new_idx)
@@ -1786,7 +1775,7 @@ def test_count_forces():
     os.getenv("CI") == "true",
     reason="Will fail sporadicaly.",
 )
-def test_update_write_psf():
+def test_update_write_psf(tmp_path):
     psf_for_parameters = f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
     psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
     crd_for_parameters = f"{protex.__path__[0]}/forcefield/crd_for_parameters.crd"
@@ -1826,7 +1815,7 @@ def test_update_write_psf():
     state_update = StateUpdate(update)
 
     old_psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
-    ionic_liquid.write_psf(old_psf_file, "test.psf", psf_for_parameters)
+    ionic_liquid.write_psf(old_psf_file, f"{tmp_path}/test.psf", psf_for_parameters)
 
     i = 0
     while i < 20:
@@ -1838,9 +1827,9 @@ def test_update_write_psf():
         if sum_charge != 0:
             raise RuntimeError("Error in run", i)
 
-        os.rename("test.psf", "old_psf.psf")
+        os.rename(f"{tmp_path}/test.psf", f"{tmp_path}/old_psf.psf")
 
-        simulation = generate_hpts_meoh_system(psf_file="old_psf.psf")
+        simulation = generate_hpts_meoh_system(psf_file=f"{tmp_path}/old_psf.psf")
         ionic_liquid = ProtexSystem(simulation, templates, simulation_for_parameters)
         update = NaiveMCUpdate(ionic_liquid)
         state_update = StateUpdate(update)
@@ -1849,20 +1838,17 @@ def test_update_write_psf():
         state_update.update(2)
 
         # NOTE: psf_for_parameters missing
-        ionic_liquid.write_psf("old_psf.psf", "test.psf", psf_for_parameters)
-        ionic_liquid.saveState("state.rst")
-        ionic_liquid.saveCheckpoint("checkpoint.rst")
+        ionic_liquid.write_psf(
+            f"{tmp_path}/old_psf.psf", f"{tmp_path}/test.psf", psf_for_parameters
+        )
+        ionic_liquid.saveState(f"{tmp_path}/state.rst")
+        ionic_liquid.saveCheckpoint(f"{tmp_path}/checkpoint.rst")
 
         ionic_liquid2 = ionic_liquid  # copy.deepcopy(ionic_liquid)
-        ionic_liquid.loadState("state.rst")
-        ionic_liquid2.loadCheckpoint("checkpoint.rst")
+        ionic_liquid.loadState(f"{tmp_path}/state.rst")
+        ionic_liquid2.loadCheckpoint(f"{tmp_path}/checkpoint.rst")
 
         i += 1
-
-    # os.remove("old_psf.psf")
-    os.remove("state.rst")
-    os.remove("checkpoint.rst")
-    os.remove("test.psf")
 
 
 def test_meoh2_update():
@@ -1955,7 +1941,7 @@ def test_meoh2_update():
     os.getenv("CI") == "true",
     reason="Will fail sporadicaly.",
 )
-def test_updates_with_reorient():
+def test_updates_with_reorient(tmp_path):
     # caplog.set_level(logging.DEBUG)
 
     psf_for_parameters = f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
@@ -2007,9 +1993,7 @@ def test_updates_with_reorient():
 
     # test whether the update changed the psf
     old_psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
-    ionic_liquid.write_psf(old_psf_file, "hpts_new.psf", psf_for_parameters)
-
-    os.remove("hpts_new.psf")
+    ionic_liquid.write_psf(old_psf_file, f"{tmp_path}/hpts_new.psf", psf_for_parameters)
 
 
 def test_manipulating_coordinates():

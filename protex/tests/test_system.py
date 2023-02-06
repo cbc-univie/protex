@@ -215,12 +215,12 @@ def test_setup_simulation():
     assert nr_of_particles == 17500 + 500  # +lps for im1 im1h
 
 
-def test_run_simulation():
+def test_run_simulation(tmp_path):
     simulation = generate_im1h_oac_system()
     print("Minimizing...")
     simulation.minimizeEnergy(maxIterations=50)
-    simulation.reporters.append(PDBReporter("output.pdb", 50))
-    simulation.reporters.append(DCDReporter("output.dcd", 50))
+    simulation.reporters.append(PDBReporter(f"{tmp_path}/output.pdb", 50))
+    simulation.reporters.append(DCDReporter(f"{tmp_path}/output.dcd", 50))
 
     simulation.reporters.append(
         StateDataReporter(
@@ -237,8 +237,6 @@ def test_run_simulation():
     print("Running dynmamics...")
     simulation.step(200)
     # If simulation aborts with Nan error, try smaller timestep (e.g. 0.0001 ps) and then extract new crd from dcd using "scripts/crdfromdcd.inp"
-    os.remove("output.pdb")
-    os.remove("output.dcd")
 
 
 def test_create_IonicLiquidTemplate():
@@ -306,7 +304,6 @@ def test_save_load_allowedupdates(tmp_path):
 
     ionic_liquid.save_updates(f"{tmp_path}/updates.yaml")
     ionic_liquid.load_updates(f"{tmp_path}/updates.yaml")
-    # os.remove("updates.yaml")
 
     print(ionic_liquid.templates.allowed_updates)
 
@@ -965,7 +962,7 @@ def test_reporter_class():
     os.getenv("CI") == "true",
     reason="Will fail sporadicaly.",
 )
-def test_write_psf_save_load():
+def test_write_psf_save_load(tmp_path):
     simulation = generate_im1h_oac_system()
     # get ionic liquid templates
     allowed_updates = {}
@@ -981,37 +978,31 @@ def test_write_psf_save_load():
     state_update = StateUpdate(update)
 
     old_psf_file = f"{protex.__path__[0]}/forcefield/im1h_oac_150_im1_hoac_350.psf"
-    ionic_liquid.write_psf(old_psf_file, "test1.psf")
+    ionic_liquid.write_psf(old_psf_file, f"{tmp_path}/test1.psf")
 
     # ionic_liquid.simulation.step(50)
     state_update.update(2)
 
-    ionic_liquid.write_psf(old_psf_file, "test2.psf")
+    ionic_liquid.write_psf(old_psf_file, f"{tmp_path}/test2.psf")
 
     ionic_liquid.simulation.step(10)
     state_update.update(2)
 
-    ionic_liquid.write_psf(old_psf_file, "test3.psf")
+    ionic_liquid.write_psf(old_psf_file, f"{tmp_path}/test3.psf")
 
-    ionic_liquid.saveState("state.rst")
-    ionic_liquid.saveCheckpoint("checkpoint.rst")
+    ionic_liquid.saveState(f"{tmp_path}/state.rst")
+    ionic_liquid.saveCheckpoint(f"{tmp_path}/checkpoint.rst")
 
     ionic_liquid2 = ionic_liquid  # copy.deepcopy(ionic_liquid)
-    ionic_liquid.loadState("state.rst")
-    ionic_liquid2.loadCheckpoint("checkpoint.rst")
-
-    os.remove("test1.psf")
-    os.remove("test2.psf")
-    os.remove("test3.psf")
-    os.remove("state.rst")
-    os.remove("checkpoint.rst")
+    ionic_liquid.loadState(f"{tmp_path}/state.rst")
+    ionic_liquid2.loadCheckpoint(f"{tmp_path}/checkpoint.rst")
 
 
 @pytest.mark.skipif(
     os.getenv("CI") == "true",
     reason="Needs local files",
 )
-def test_write_psf_save_load_clap():
+def test_write_psf_save_load_clap(tmp_path):
     psf = "/site/raid3/florian/clap/b3lyp/im1h_oac_150_im1_hoac_350.psf"
     crd = "/site/raid3/florian/clap/b3lyp/im1h_oac_150_im1_hoac_350.crd"
     PARA_FILES = [
@@ -1042,37 +1033,31 @@ def test_write_psf_save_load_clap():
     state_update = StateUpdate(update)
 
     old_psf_file = psf
-    ionic_liquid.write_psf(old_psf_file, "test1c.psf")
+    ionic_liquid.write_psf(old_psf_file, f"{tmp_path}/test1c.psf")
 
     # ionic_liquid.simulation.step(50)
     state_update.update(2)
 
-    ionic_liquid.write_psf(old_psf_file, "test2c.psf")
+    ionic_liquid.write_psf(old_psf_file, f"{tmp_path}/test2c.psf")
 
     ionic_liquid.simulation.step(10)
     state_update.update(2)
 
-    ionic_liquid.write_psf(old_psf_file, "test3c.psf")
+    ionic_liquid.write_psf(old_psf_file, f"{tmp_path}/test3c.psf")
 
-    ionic_liquid.saveState("statec.rst")
-    ionic_liquid.saveCheckpoint("checkpointc.rst")
+    ionic_liquid.saveState(f"{tmp_path}/statec.rst")
+    ionic_liquid.saveCheckpoint(f"{tmp_path}/checkpointc.rst")
 
     ionic_liquid2 = ionic_liquid  # copy.deepcopy(ionic_liquid)
-    ionic_liquid.loadState("statec.rst")
-    ionic_liquid2.loadCheckpoint("checkpointc.rst")
-
-    os.remove("test1c.psf")
-    os.remove("test2c.psf")
-    os.remove("test3c.psf")
-    os.remove("statec.rst")
-    os.remove("checkpointc.rst")
+    ionic_liquid.loadState(f"{tmp_path}/statec.rst")
+    ionic_liquid2.loadCheckpoint(f"{tmp_path}/checkpointc.rst")
 
 
 @pytest.mark.skipif(
     os.getenv("CI") == "true",
     reason="Will fail sporadicaly.",
 )
-def test_write_psf_save_load_single():
+def test_write_psf_save_load_single(tmp_path):
     def get_time_energy(simulation, print=False):
         time = simulation.context.getState().getTime()
         e_pot = simulation.context.getState(getEnergy=True).getPotentialEnergy()
@@ -1083,9 +1068,9 @@ def test_write_psf_save_load_single():
     def save_il(ionic_liquid, number):
         ionic_liquid.write_psf(
             f"protex/forcefield/single_pairs/im1h_oac_im1_hoac_1_secondtry.psf",
-            f"test_{number}.psf",
+            f"{tmp_path}/test_{number}.psf",
         )
-        ionic_liquid.saveCheckpoint(f"test_{number}.rst")
+        ionic_liquid.saveCheckpoint(f"{tmp_path}/test_{number}.rst")
 
     def load_sim(psf, rst):
         sim = generate_single_im1h_oac_system(psf_file=psf)
@@ -1134,7 +1119,7 @@ def test_write_psf_save_load_single():
     os.getenv("CI") == "true",
     reason="Will fail sporadicaly.",
 )
-def test_dummy():
+def test_dummy(tmp_path):
     def get_time_energy(simulation, print=False):
         time = simulation.context.getState().getTime()
         e_pot = simulation.context.getState(getEnergy=True).getPotentialEnergy()
@@ -1145,9 +1130,9 @@ def test_dummy():
     def save_il(ionic_liquid, number):
         ionic_liquid.write_psf(
             f"protex/forcefield/dummy/im1h_oac_im1_hoac_1.psf",
-            f"test_{number}.psf",
+            f"{tmp_path}/test_{number}.psf",
         )
-        ionic_liquid.saveCheckpoint(f"test_{number}.rst")
+        ionic_liquid.saveCheckpoint(f"{tmp_path}/test_{number}.rst")
 
     def load_sim(psf, rst):
         sim = generate_single_im1h_oac_system(psf_file=psf)

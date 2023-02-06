@@ -701,7 +701,7 @@ def test_single_update(caplog):
     os.getenv("CI") == "true",
     reason="Will fail sporadicaly.",
 )
-def test_check_updated_charges(caplog):
+def test_check_updated_charges(caplog, tmp_path):
     caplog.set_level(logging.DEBUG)
 
     simulation = generate_im1h_oac_system()
@@ -722,13 +722,12 @@ def test_check_updated_charges(caplog):
 
     candidate_pairs = [
         {
-                state_update.ionic_liquid.residues[idx1],
-                state_update.ionic_liquid.residues[idx2],
+            state_update.ionic_liquid.residues[idx1],
+            state_update.ionic_liquid.residues[idx2],
         }
     ]
 
-    state_update.write_charges("output_initial1.txt")
-    os.remove("output_initial1.txt")
+    state_update.write_charges(f"{tmp_path}/output_initial1.txt")
     par_initial = state_update.get_charges()
     state_update.updateMethod._update(candidate_pairs, 21)
     par_after_first_update = state_update.get_charges()
@@ -765,7 +764,7 @@ def test_check_updated_charges(caplog):
     os.getenv("CI") == "true",
     reason="Takes too long for github actions",
 )
-def test_transfer_with_distance_matrix():
+def test_transfer_with_distance_matrix(tmp_path):
     simulation = generate_im1h_oac_system()
     # get ionic liquid templates
     allowed_updates = {}
@@ -779,8 +778,7 @@ def test_transfer_with_distance_matrix():
     update = NaiveMCUpdate(ionic_liquid)
     # initialize state update class
     state_update = StateUpdate(update)
-    state_update.write_charges("output_initial.txt")
-    os.remove("output_initial.txt")
+    state_update.write_charges(f"{tmp_path}/output_initial.txt")
     par_initial = state_update.get_charges()
     state_update.get_num_residues()
     # print(res_dict)
@@ -1353,7 +1351,8 @@ def test_single_im1h_oac():
                         and index2 in ionic_liquid.residues[i].atom_idxs
                     ):
                         if (
-                            ionic_liquid.residues[i].original_name not in exceptions_before.keys()
+                            ionic_liquid.residues[i].original_name
+                            not in exceptions_before.keys()
                         ):
                             exceptions_before[
                                 ionic_liquid.residues[i].original_name
@@ -1392,7 +1391,8 @@ def test_single_im1h_oac():
                         and index2 in ionic_liquid.residues[i].atom_idxs
                     ):
                         if (
-                            ionic_liquid.residues[i].current_name not in exceptions_after.keys()
+                            ionic_liquid.residues[i].current_name
+                            not in exceptions_after.keys()
                         ):
                             exceptions_after[ionic_liquid.residues[i].current_name] = [
                                 index1,
@@ -1969,9 +1969,7 @@ def test_periodictorsionforce_energy(caplog):
     save_il(ionic_liquid, 2)
 
     load_sim("protex/forcefield/single_pairs/im1_hoac_2.psf", "test_2.rst")
-    load_sim(
-        "protex/forcefield/single_pairs/im1_hoac_2.psf", "test_1.rst"
-    )
+    load_sim("protex/forcefield/single_pairs/im1_hoac_2.psf", "test_1.rst")
     # sim2_2 = load_sim("test_2.psf", "test_2.rst")
 
     # print("### Orig Il ###")
@@ -2258,7 +2256,7 @@ def test_wrong_atom_name(caplog):
         print(e)
 
 
-def test_save_load_updates(caplog):
+def test_save_load_updates(caplog, tmp_path):
     caplog.set_level(logging.DEBUG)
 
     simulation = generate_im1h_oac_system()
@@ -2283,13 +2281,11 @@ def test_save_load_updates(caplog):
     state_update.update_trial = 100
 
     # idea:
-    update.dump("naivemcupdate.pkl")
-    state_update.dump("stateupdate.pkl")
+    update.dump(f"{tmp_path}/naivemcupdate.pkl")
+    state_update.dump(f"{tmp_path}/stateupdate.pkl")
     del update
     del state_update
-    update = NaiveMCUpdate.load("naivemcupdate.pkl", ionic_liquid)
-    state_update = StateUpdate.load("stateupdate.pkl", update)
+    update = NaiveMCUpdate.load(f"{tmp_path}/naivemcupdate.pkl", ionic_liquid)
+    state_update = StateUpdate.load(f"{tmp_path}/stateupdate.pkl", update)
     assert update.all_forces is False
     assert state_update.update_trial == 100
-    os.remove("naivemcupdate.pkl")
-    os.remove("stateupdate.pkl")
