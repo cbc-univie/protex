@@ -531,7 +531,6 @@ class StateUpdate:
             pickle.dump(to_pickle, outp, pickle.HIGHEST_PROTOCOL)
 
     def write_charges(self, filename: str) -> None:
-
         par = self.get_charges()
         with open(filename, "w+") as f:
             for atom_idx, atom, charge in par:
@@ -541,7 +540,6 @@ class StateUpdate:
                 )
 
     def get_charges(self) -> list:
-
         par = []
         for force in self.ionic_liquid.system.getForces():
             if type(force).__name__ == "NonbondedForce":
