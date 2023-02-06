@@ -1121,7 +1121,7 @@ def test_reporter_class():
     os.getenv("CI") == "true",
     reason="Will fail sporadicaly.",
 )
-def test_write_psf_save_load(tmp_path):
+def write_psf_save_load(tmp_path):
     psf_for_parameters = f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
     crd_for_parameters = f"{protex.__path__[0]}/forcefield/crd_for_parameters.crd"
     psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"

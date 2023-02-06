@@ -910,7 +910,7 @@ def test_bond_parameters_single():
     os.getenv("CI") == "true",
     reason="Skipping tests that cannot pass in github actions",
 )
-def test_reporter_class():
+def test_reporter_class(tmp_path):
     # obtain simulation object
     simulation = generate_im1h_oac_system()
     # get ionic liquid templates
@@ -939,7 +939,9 @@ def test_reporter_class():
             totalEnergy=True,
         )
     )
-    ionic_liquid.simulation.reporters.append(EnergyReporter("energy_1.out", 20))
+    ionic_liquid.simulation.reporters.append(
+        EnergyReporter(f"{tmp_path}/energy_1.out", 20)
+    )
 
     ionic_liquid.simulation.step(19)
     state_update.update(2)

@@ -26,7 +26,7 @@ LOGGER = logging.getLogger(__name__)
     os.getenv("CI") == "true",
     reason="Skipping tests that cannot pass in github actions",
 )
-def test_outline():
+def test_outline(tmp_path):
     # from ..scripts.ommhelper import DrudeTemperatureReporter
 
     # obtain simulation object
@@ -50,7 +50,9 @@ def test_outline():
     state_update = StateUpdate(update)
     # ionic_liquid.simulation.minimizeEnergy(maxIterations=200)
     # adding reporter
-    ionic_liquid.simulation.reporters.append(DCDReporter("outline1.dcd", 500))
+    ionic_liquid.simulation.reporters.append(
+        DCDReporter(f"{tmp_path}/outline1.dcd", 500)
+    )
 
     ionic_liquid.simulation.reporters.append(
         StateDataReporter(
@@ -65,10 +67,12 @@ def test_outline():
         )
     )
     ionic_liquid.simulation.reporters.append(
-        DrudeTemperatureReporter("drude_temp1.out", 500)
+        DrudeTemperatureReporter(f"{tmp_path}/drude_temp1.out", 500)
     )
 
-    ionic_liquid.simulation.reporters.append(EnergyReporter("energy.out", 500))
+    ionic_liquid.simulation.reporters.append(
+        EnergyReporter(f"{tmp_path}/energy.out", 500)
+    )
 
     charge_info = {"dcd_save_freq": 500}
     charge_reporter = ChargeReporter(
@@ -88,9 +92,6 @@ def test_outline():
         state_update.update(update_steps)
         ionic_liquid.simulation.step(int(sim_steps - update_steps))
     ionic_liquid.simulation.step(int(update_steps / 2))
-
-    os.remove("outline1.dcd")
-    os.remove("drude_temp1.out")
 
 
 def test_small_box(tmp_path):
