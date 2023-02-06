@@ -147,7 +147,6 @@ def generate_im1h_oac_system(
     def setup_simulation(
         restart_file=restart_file, coll_freq=coll_freq, drude_coll_freq=drude_coll_freq
     ):
-
         psf, crd, params = load_charmm_files()
         system = setup_system()
 
@@ -372,7 +371,6 @@ def generate_im1h_oac_system_clap(
     def setup_simulation(
         restart_file=restart_file, coll_freq=coll_freq, drude_coll_freq=drude_coll_freq
     ):
-
         psf, crd, params = load_charmm_files()
         system = setup_system()
 
@@ -590,7 +588,6 @@ def generate_hpts_system(
     def setup_simulation(
         restart_file=restart_file, coll_freq=coll_freq, drude_coll_freq=drude_coll_freq
     ):
-
         psf, crd, params = load_charmm_files()
         system = setup_system()
 
@@ -794,7 +791,6 @@ def generate_hpts_meoh_system(
     def setup_simulation(
         restart_file=restart_file, coll_freq=coll_freq, drude_coll_freq=drude_coll_freq
     ):
-
         psf, crd, params = load_charmm_files()
         system = setup_system()
 
@@ -1136,7 +1132,6 @@ def generate_im1h_oac_dummy_system(
     def setup_simulation(
         restart_file=restart_file, coll_freq=coll_freq, drude_coll_freq=drude_coll_freq
     ):
-
         psf, crd, params = load_charmm_files()
         system = setup_system()
 

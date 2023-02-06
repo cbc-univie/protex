@@ -69,7 +69,6 @@ class ProtexTemplates:
         states: list[dict[str, dict[str, str]]],
         allowed_updates: dict[frozenset[str], dict[str, float]],
     ) -> None:
-
         self.pairs: list[list[str]] = [list(i.keys()) for i in states]
         self.states: dict[str, dict[str, str]] = dict(ChainMap(*states))
         self.names: list[str] = list(itertools.chain(*self.pairs))
@@ -274,7 +273,6 @@ class ProtexSystem:
                 force.updateParametersInContext(self.simulation.context)
 
     def _build_exclusion_list(self, topology):
-
         pair_12_set = set()
         pair_13_set = set()
         for bond in topology.bonds():
@@ -426,7 +424,10 @@ class ProtexSystem:
                 logger.critical(len(forces_state1[force_name]))
                 logger.critical(len(forces_state2[force_name]))
 
-                for b1, b2, in zip(
+                for (
+                    b1,
+                    b2,
+                ) in zip(
                     forces_state1[force_name],
                     forces_state2[force_name],
                 ):

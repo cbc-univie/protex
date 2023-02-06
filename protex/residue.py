@@ -64,7 +64,6 @@ class Residue:
         # has_equivalent_atom,
         has_equivalent_atoms,
     ) -> None:
-
         self.residue = residue
         self.original_name = residue.name
         self.current_name = self.original_name
@@ -109,7 +108,9 @@ class Residue:
 
     def update(
         self, force_name: str, lamb: float
-    ) -> None:  # we don't need to call update in context since we are doing this in NaiveMCUpdate
+    ) -> (
+        None
+    ):  # we don't need to call update in context since we are doing this in NaiveMCUpdate
         """Update the requested force in that residue
 
         Parameters
@@ -156,7 +157,6 @@ class Residue:
                         )
 
     def _set_HarmonicBondForce_parameters(self, parms):
-
         parms = deque(parms)
         for force in self.system.getForces():
             if type(force).__name__ == "HarmonicBondForce":
@@ -231,7 +231,6 @@ class Residue:
                         )
 
     def _set_DrudeForce_parameters(self, parms):
-
         parms_pol = deque(parms[0])
         parms_thole = deque(parms[1])
         for force in self.system.getForces():
@@ -516,7 +515,6 @@ class Residue:
                         ]
                     ) == set([idx1, idx2, idx3, idx4]):
                         if old_idx != new_idx:
-
                             raise RuntimeError(
                                 "Odering of dihedral parameters is different between the two topologies."
                             )
@@ -541,7 +539,6 @@ class Residue:
                         ]
                     ) == set([idx1, idx2, idx3, idx4, idx5]):
                         if old_idx != new_idx:
-
                             raise RuntimeError(
                                 "Odering of dihedral parameters is different between the two topologies."
                             )

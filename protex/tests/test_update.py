@@ -129,7 +129,6 @@ def test_distance_calculation():
 
 
 def test_get_and_interpolate_forces():
-
     simulation = generate_im1h_oac_system()
     # get ionic liquid templates
     allowed_updates = {}
@@ -220,7 +219,6 @@ def test_get_and_interpolate_forces():
 
 
 def test_setting_forces():
-
     simulation = generate_im1h_oac_system()
     allowed_updates = {}
     # allowed updates according to simple protonation scheme
@@ -758,7 +756,6 @@ def test_check_updated_charges(caplog):
     for (idx1, atom1, charge1), (idx2, atom2, charge2) in zip(
         par_initial, par_after_second_update
     ):
-
         if charge1._value != charge2._value:
             print(
                 f"{atom1.residue.name}:{atom1.residue.id}:{atom1.name}:{charge1._value}, {atom2.residue.name}:{atom2.residue.id}:{atom2.name}:{charge2._value}"
@@ -772,7 +769,6 @@ def test_check_updated_charges(caplog):
     reason="Takes too long for github actions",
 )
 def test_transfer_with_distance_matrix():
-
     simulation = generate_im1h_oac_system()
     # get ionic liquid templates
     allowed_updates = {}
@@ -996,7 +992,6 @@ def test_dry_updates(caplog):
     reason="Will fail sporadicaly.",
 )
 def test_parameters_after_update():
-
     simulation = generate_im1h_oac_system()
     # get ionic liquid templates
     allowed_updates = {}
@@ -1243,7 +1238,6 @@ def test_parameters_after_update():
     reason="Will fail sporadicaly.",
 )
 def test_pbc():
-
     simulation = generate_im1h_oac_system()
     # get ionic liquid templates
     allowed_updates = {}
@@ -1296,7 +1290,6 @@ def test_pbc():
     reason="Will fail sporadicaly.",
 )
 def test_single_im1h_oac():
-
     base = f"{protex.__path__[0]}/forcefield/single_pairs"
 
     simulation = generate_single_im1h_oac_system()
