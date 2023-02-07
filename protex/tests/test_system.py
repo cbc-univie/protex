@@ -1,6 +1,5 @@
 # Import package, test suite, and other packages as needed
 # import json
-import logging
 import os
 from collections import defaultdict
 from sys import stdout
@@ -16,20 +15,17 @@ try:  # Syntax changed in OpenMM 7.6
         DrudeNoseHooverIntegrator,
         OpenMMException,
         Platform,
-        XmlSerializer,
     )
     from openmm.app import (
         PME,
         CharmmCrdFile,
         CharmmParameterSet,
         CharmmPsfFile,
-        DCDReporter,
         HBonds,
-        PDBReporter,
         Simulation,
         StateDataReporter,
     )
-    from openmm.unit import angstroms, kelvin, md_kilocalories, nanometers, picoseconds
+    from openmm.unit import angstroms, kelvin, nanometers, picoseconds
 except ImportError:
     import simtk.openmm as mm
     from simtk.openmm import (
@@ -37,9 +33,8 @@ except ImportError:
         Platform,
         Context,
         DrudeNoseHooverIntegrator,
-        XmlSerializer,
     )
-    from simtk.openmm.app import DCDReporter, PDBReporter, StateDataReporter
+    from simtk.openmm.app import StateDataReporter
     from simtk.openmm.app import CharmmCrdFile, CharmmParameterSet, CharmmPsfFile
     from simtk.openmm.app import PME, HBonds
     from simtk.openmm.app import Simulation
@@ -51,8 +46,6 @@ from ..testsystems import (
     IM1H_IM1,
     OAC_HOAC,
     generate_im1h_oac_dummy_system,
-    generate_im1h_oac_system,
-    generate_im1h_oac_system_clap,
     generate_single_im1h_oac_system,
     generate_small_box,
 )
@@ -195,7 +188,7 @@ def test_forces():
             print(f)
 
         raise AssertionError("ohoh")
-    
+
 def test_torsion_forces():
     #simulation = generate_im1h_oac_system()
     simulation = generate_single_im1h_oac_system()
@@ -651,7 +644,7 @@ def test_available_platforms():
     xtl = 48.0 * angstroms
     psf.setBox(xtl, xtl, xtl)
     # cooridnates can be provieded by CharmmCrdFile, CharmmRstFile or PDBFile classes
-    crd = CharmmCrdFile(f"{base}/small_box.crd")
+    CharmmCrdFile(f"{base}/small_box.crd")
 
     system = psf.createSystem(
         params,
@@ -705,13 +698,13 @@ def test_available_platforms():
         platform = Platform.getPlatformByName("CUDA")
         prop = dict(CudaPrecision="single")  # default is single
 
-        simulation = Simulation(
+        Simulation(
             psf.topology, system, integrator, platform=platform, platformProperties=prop
         )
     except mm.OpenMMException:
         platform = Platform.getPlatformByName("CPU")
         prop = dict()
-        simulation = Simulation(
+        Simulation(
             psf.topology, system, integrator, platform=platform, platformProperties=prop
         )
     print(platform.getName())

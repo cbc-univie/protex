@@ -85,7 +85,7 @@ class Residue:
         }
         self.equivalent_atom_pos_in_list: int = None
         self.used_equivalent_atom: bool = False
-    
+
     def __str__(self):
         return f"Residue {self.current_name}, {self.residue}"
 
