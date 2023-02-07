@@ -10,12 +10,7 @@ import protex
 
 try:  # Syntax changed in OpenMM 7.6
     import openmm as mm
-    from openmm import (
-        Context,
-        DrudeNoseHooverIntegrator,
-        OpenMMException,
-        Platform,
-    )
+    from openmm import Context, DrudeNoseHooverIntegrator, OpenMMException, Platform
     from openmm.app import (
         PME,
         CharmmCrdFile,
@@ -71,7 +66,7 @@ def test_write_psf_save_load_single(tmp_path):
     def save_il(ionic_liquid, number):
         ionic_liquid.write_psf(
             "protex/forcefield/single_pairs/im1h_oac_im1_hoac_1_secondtry.psf",
-            f"test_{number}.psf",
+            f"{tmp_path}/test_{number}.psf",
         )
         ionic_liquid.saveCheckpoint(f"{tmp_path}/test_{number}.rst")
 
@@ -821,7 +816,7 @@ def test_dummy(tmp_path):
     def save_il(ionic_liquid, number):
         ionic_liquid.write_psf(
             "protex/forcefield/dummy/im1h_oac_im1_hoac_1.psf",
-            f"test_{number}.psf",
+            f"{tmp_path}/test_{number}.psf",
         )
         ionic_liquid.saveCheckpoint(f"{tmp_path}/test_{number}.rst")
 
