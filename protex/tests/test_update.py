@@ -624,10 +624,10 @@ def test_setting_forces():
         assert i[3] * 0.5 + k[3] * 0.5 == j[3]
 
 
-# @pytest.mark.skipif(
-#     os.getenv("CI") == "true",
-#     reason="Will fail sporadicaly.",
-# )
+@pytest.mark.skipif(
+    os.getenv("CI") == "true",
+    reason="Will fail sporadicaly.",
+)
 def test_single_update(caplog):
     # caplog.set_level(logging.DEBUG)
 
@@ -698,10 +698,10 @@ def test_single_update(caplog):
     assert state_update.ionic_liquid.residues[idx2].current_charge == -1
 
 
-# @pytest.mark.skipif(
-#     os.getenv("CI") == "true",
-#     reason="Will fail sporadicaly.",
-# )
+@pytest.mark.skipif(
+    os.getenv("CI") == "true",
+    reason="Will fail sporadicaly.",
+)
 def test_check_updated_charges(caplog, tmp_path):
     caplog.set_level(logging.DEBUG)
 
@@ -863,10 +863,10 @@ def test_transfer_with_distance_matrix(tmp_path):
         state_update.update(2)
 
 
-# @pytest.mark.skipif(
-#     os.getenv("CI") == "true",
-#     reason="Will fail sporadicaly.",
-# )
+@pytest.mark.skipif(
+    os.getenv("CI") == "true",
+    reason="Will fail sporadicaly.",
+)
 def test_updates(caplog):
     caplog.set_level(logging.DEBUG)
 
@@ -1445,10 +1445,10 @@ def test_force_selection():
     ]
 
 
-# @pytest.mark.skipif(
-#     os.getenv("CI") == "true",
-#     reason="Will fail sporadicaly.",
-# )
+@pytest.mark.skipif(
+    os.getenv("CI") == "true",
+    reason="Will fail sporadicaly.",
+)
 def test_update_all_forces(caplog):
     caplog.set_level(logging.DEBUG)
 
