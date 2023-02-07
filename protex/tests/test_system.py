@@ -29,13 +29,7 @@ try:  # Syntax changed in OpenMM 7.6
         Simulation,
         StateDataReporter,
     )
-    from openmm.unit import (
-        angstroms,
-        kelvin,
-        md_kilocalories,
-        nanometers,
-        picoseconds,
-    )
+    from openmm.unit import angstroms, kelvin, md_kilocalories, nanometers, picoseconds
 except ImportError:
     import simtk.openmm as mm
     from simtk.openmm import (
@@ -65,6 +59,10 @@ from ..testsystems import (
 from ..update import NaiveMCUpdate, StateUpdate
 
 
+@pytest.mark.skipif(
+    os.getenv("CI") == "true",
+    reason="Skipping tests that cannot pass in github actions",
+)
 def test_pickle(tmp_path):
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 2.33}
