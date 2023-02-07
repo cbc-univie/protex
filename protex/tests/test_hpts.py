@@ -6,7 +6,6 @@ import os
 from collections import defaultdict
 from sys import stdout
 
-import numpy as np
 
 try:  # Syntax changed in OpenMM 7.6
     import openmm as mm
@@ -28,7 +27,7 @@ try:  # Syntax changed in OpenMM 7.6
         Simulation,
         StateDataReporter,
     )
-    from openmm.unit import angstroms, kelvin, nanometers, picoseconds
+    from openmm.unit import angstroms, kelvin, picoseconds
 except ImportError:
     import simtk.openmm as mm
     from simtk.openmm import (
@@ -42,14 +41,12 @@ except ImportError:
     from simtk.openmm.app import CharmmCrdFile, CharmmParameterSet, CharmmPsfFile
     from simtk.openmm.app import PME, HBonds
     from simtk.openmm.app import Simulation
-    from simtk.unit import angstroms, kelvin, picoseconds, nanometers
+    from simtk.unit import angstroms, kelvin, picoseconds
 
 import pytest
-from scipy.spatial import distance_matrix
 
 import protex
 
-from ..reporter import ChargeReporter
 from ..system import ProtexSystem, ProtexTemplates
 from ..testsystems import (  # generate_single_hpts_system,
     HPTSH_HPTS,
