@@ -13,7 +13,6 @@ try:  # Syntax changed in OpenMM 7.6
         DrudeNoseHooverIntegrator,
         OpenMMException,
         Platform,
-        XmlSerializer,
     )
     from openmm.app import (
         PME,
@@ -34,7 +33,6 @@ except ImportError:
         Platform,
         Context,
         DrudeNoseHooverIntegrator,
-        XmlSerializer,
     )
     from simtk.openmm.app import DCDReporter, PDBReporter, StateDataReporter
     from simtk.openmm.app import CharmmCrdFile, CharmmParameterSet, CharmmPsfFile
@@ -88,7 +86,7 @@ def test_available_platforms():
     xtl = 48.0 * angstroms
     psf.setBox(xtl, xtl, xtl)
     # cooridnates can be provieded by CharmmCrdFile, CharmmRstFile or PDBFile classes
-    crd = CharmmCrdFile(f"{base}/hpts_single/hpts_single.crd")
+    CharmmCrdFile(f"{base}/hpts_single/hpts_single.crd")
 
     system = psf.createSystem(
         params,
@@ -142,13 +140,13 @@ def test_available_platforms():
         platform = Platform.getPlatformByName("CUDA")
         prop = dict(CudaPrecision="single")  # default is single
 
-        simulation = Simulation(
+        Simulation(
             psf.topology, system, integrator, platform=platform, platformProperties=prop
         )
     except mm.OpenMMException:
         platform = Platform.getPlatformByName("CPU")
         prop = dict()
-        simulation = Simulation(
+        Simulation(
             psf.topology, system, integrator, platform=platform, platformProperties=prop
         )
     print(platform.getName())
@@ -247,7 +245,7 @@ def test_create_IonicLiquidTemplate():
 def test_create_IonicLiquid():
     psf_for_parameters = f"{protex.__path__[0]}/forcefield/hpts_single/hpts_single.psf"
     crd_for_parameters = f"{protex.__path__[0]}/forcefield/hpts_single/hpts_single.crd"
-    psf_file = f"{protex.__path__[0]}/forcefield/hpts_single/hpts_single.psf"
+    f"{protex.__path__[0]}/forcefield/hpts_single/hpts_single.psf"
 
     #simulation = generate_hpts_meoh_system(psf_file=psf_file)
     #simulation_for_parameters = generate_hpts_meoh_system(
@@ -305,9 +303,9 @@ def test_create_IonicLiquid():
 
 
 def test_forces():
-    psf_for_parameters = f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
-    crd_for_parameters = f"{protex.__path__[0]}/forcefield/crd_for_parameters.crd"
-    psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
+    f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
+    f"{protex.__path__[0]}/forcefield/crd_for_parameters.crd"
+    f"{protex.__path__[0]}/forcefield/hpts.psf"
 
    #simulation = generate_hpts_meoh_system(psf_file=psf_file)
     #generate_hpts_meoh_system(crd_file=crd_for_parameters, psf_file=psf_for_parameters)
@@ -378,9 +376,9 @@ def test_forces():
 
 
 def test_torsion_forces():
-    psf_for_parameters = f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
-    crd_for_parameters = f"{protex.__path__[0]}/forcefield/crd_for_parameters.crd"
-    psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
+    f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
+    f"{protex.__path__[0]}/forcefield/crd_for_parameters.crd"
+    f"{protex.__path__[0]}/forcefield/hpts.psf"
 
     #simulation = generate_hpts_meoh_system(psf_file=psf_file)
     #generate_hpts_meoh_system(crd_file=crd_for_parameters, psf_file=psf_for_parameters)
@@ -536,9 +534,9 @@ def test_torsion_forces():
 
 
 def test_drude_forces():
-    psf_for_parameters = f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
-    crd_for_parameters = f"{protex.__path__[0]}/forcefield/crd_for_parameters.crd"
-    psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
+    f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
+    f"{protex.__path__[0]}/forcefield/crd_for_parameters.crd"
+    f"{protex.__path__[0]}/forcefield/hpts.psf"
 
     #simulation = generate_hpts_meoh_system(psf_file=psf_file)
     #simulation_for_parameters = generate_hpts_meoh_system(
@@ -737,9 +735,9 @@ def test_updates(caplog, tmp_path):
     caplog.set_level(logging.DEBUG)
 
     psf_for_parameters = f"{protex.__path__[0]}/forcefield/hpts_single/hpts_single.psf"
-    crd_for_parameters = f"{protex.__path__[0]}/forcefield/crd_for_parameters.crd"
-    psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
-    restart_file = f"{protex.__path__[0]}/forcefield/traj/hpts_npt_7.rst"
+    f"{protex.__path__[0]}/forcefield/crd_for_parameters.crd"
+    f"{protex.__path__[0]}/forcefield/hpts.psf"
+    f"{protex.__path__[0]}/forcefield/traj/hpts_npt_7.rst"
 
     #simulation = generate_hpts_meoh_system(psf_file=psf_file, restart_file=restart_file)
     #simulation_for_parameters = generate_hpts_meoh_system(
