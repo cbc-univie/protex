@@ -161,3 +161,27 @@ def test_small_box(tmp_path):
         state_update.update(update_steps)
         ionic_liquid.simulation.step(int(sim_steps - update_steps))
     ionic_liquid.simulation.step(int(update_steps / 2))
+
+
+# def test_run_simulation(tmp_path):
+#     simulation = generate_im1h_oac_system()
+#     print("Minimizing...")
+#     simulation.minimizeEnergy(maxIterations=50)
+#     simulation.reporters.append(PDBReporter(f"{tmp_path}/output.pdb", 50))
+#     simulation.reporters.append(DCDReporter(f"{tmp_path}/output.dcd", 50))
+
+#     simulation.reporters.append(
+#         StateDataReporter(
+#             stdout,
+#             50,
+#             step=True,
+#             potentialEnergy=True,
+#             temperature=True,
+#             time=True,
+#             volume=True,
+#             density=False,
+#         )
+#     )
+#     print("Running dynmamics...")
+#     simulation.step(200)
+#     # If simulation aborts with Nan error, try smaller timestep (e.g. 0.0001 ps) and then extract new crd from dcd using "scripts/crdfromdcd.inp"
