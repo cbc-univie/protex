@@ -85,6 +85,9 @@ class Residue:
         }
         self.equivalent_atom_pos_in_list: int = None
         self.used_equivalent_atom: bool = False
+    
+    def __str__(self):
+        return f"Residue {self.current_name}, {self.residue}"
 
     @property
     def has_equivalent_atom(self):
@@ -136,6 +139,8 @@ class Residue:
         elif force_name == "DrudeForce":
             parms = self._get_DrudeForce_parameters_at_lambda(lamb)
             self._set_DrudeForce_parameters(parms)
+        else:
+            raise RuntimeWarning("Force name {force_name=} is not covered, no updates will happen on this one!")
 
     def _set_NonbondedForce_parameters(self, parms):
         parms_nonb = deque(parms[0])
