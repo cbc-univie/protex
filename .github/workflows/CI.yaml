@@ -59,7 +59,7 @@ jobs:
       if: ${{ github.event_name == 'push' }}
       run: echo "hi2"
       
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v3
 
     - name: Additional info about the build
       shell: bash
