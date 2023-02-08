@@ -51,9 +51,7 @@ def generate_im1h_oac_system(
     drude_coll_freq=100,
     dummy_atom_type="DUMH",
 ):
-    """
-    Sets up a solvated and paraterized system for IM1H/OAC
-    """
+    """Sets up a solvated and paraterized system for IM1H/OAC."""
 
     def load_charmm_files(
         psf_file=psf_file,
@@ -279,9 +277,7 @@ def generate_small_box(
     dummy_atom_type="DUMH",
     use_plugin=True,
 ):
-    """
-    Sets up a solvated and paraterized system for IM1H/OAC
-    """
+    """Sets up a solvated and paraterized system for IM1H/OAC."""
     print(
         "This function should not be used for production. It uses a small system intended for testing"
     )
@@ -497,9 +493,7 @@ def generate_im1h_oac_system_clap(
     drude_coll_freq=100,
     dummy_atom_type="DUMH",
 ):
-    """
-    Sets up a solvated and paraterized system for IM1H/OAC
-    """
+    """Sets up a solvated and paraterized system for IM1H/OAC."""
 
     def load_charmm_files(
         psf_file=psf_file,
@@ -726,9 +720,7 @@ def generate_hpts_system(
     coll_freq=10,
     drude_coll_freq=100,
 ):
-    """
-    Sets up a solvated and paraterized system for IM1H/OAC/HPTS
-    """
+    """Sets up a solvated and paraterized system for IM1H/OAC/HPTS."""
 
     def load_charmm_files(
         psf_file=psf_file, crd_file=crd_file, boxl=boxl, para_files=para_files
@@ -934,9 +926,7 @@ def generate_hpts_meoh_system(
     coll_freq=10,
     drude_coll_freq=100,
 ):
-    """
-    Sets up a solvated and paraterized system for IM1H/OAC/HPTS/MEOH
-    """
+    """Sets up a solvated and paraterized system for IM1H/OAC/HPTS/MEOH."""
 
     def load_charmm_files(
         psf_file=psf_file, crd_file=crd_file, boxl=boxl, para_files=para_files
@@ -1142,9 +1132,7 @@ def generate_single_hpts_meoh_system(
     dummy_atom_type="DUMH",
     use_plugin=True,
 ):
-    """
-    Sets up a solvated and paraterized system for IM1H/OAC
-    """
+    """Sets up a solvated and paraterized system for IM1H/OAC."""
     print(
         "This function should not be used for production. It uses a small system intended for testing"
     )
@@ -1361,9 +1349,8 @@ def generate_single_hpts_meoh_system(
 
 
 def generate_single_im1h_oac_system(coll_freq=10, drude_coll_freq=100, psf_file=None):
-    """
-    Sets up a system with 1 IM1H, 1OAC, 1IM1 and 1 HOAC
-    Was for testing the deformation of the imidazole ring -> solved by adding the nonbonded exception to the updates
+    """Sets up a system with 1 IM1H, 1OAC, 1IM1 and 1 HOAC
+    Was for testing the deformation of the imidazole ring -> solved by adding the nonbonded exception to the updates.
     """
 
     def load_charmm_files(psf_file=psf_file):
@@ -1492,9 +1479,7 @@ def generate_im1h_oac_dummy_system(
     coll_freq=10,
     drude_coll_freq=100,
 ):
-    """
-    Sets up a solvated and paraterized system for IM1H/OAC
-    """
+    """Sets up a solvated and paraterized system for IM1H/OAC."""
 
     def load_charmm_files(
         psf_file=psf_file, crd_file=crd_file, boxl=boxl, para_files=para_files

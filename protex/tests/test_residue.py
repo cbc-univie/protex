@@ -64,7 +64,7 @@ LOGGER = logging.getLogger(__name__)
 ###########################################
 def test_update_single():
     """Test the residue update function and therefore all get and set methods if they work
-    check if the parameters before and after have changed
+    check if the parameters before and after have changed.
     """
     simulation = generate_single_im1h_oac_system()
     allowed_updates = {}
