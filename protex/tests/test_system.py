@@ -46,8 +46,8 @@ from ..testsystems import (
     IM1H_IM1,
     OAC_HOAC,
     generate_im1h_oac_dummy_system,
-    generate_single_im1h_oac_system,
     generate_im1h_oac_system,
+    generate_single_im1h_oac_system,
     generate_small_box,
 )
 from ..update import NaiveMCUpdate, StateUpdate

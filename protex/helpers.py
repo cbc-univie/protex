@@ -1,4 +1,5 @@
 """helpers.py contains additional functions for easier use of protex."""
+from parmed.formats import PSFFile
 from parmed.topologyobjects import DrudeAtom, ExtraPoint, LocalCoordinatesFrame
 
 # from parmed.charmm.psf import CharmmPsfFile
@@ -6,14 +7,12 @@ from parmed.topologyobjects import DrudeAtom, ExtraPoint, LocalCoordinatesFrame
 from parmed.utils import tag_molecules
 from parmed.utils.io import genopen
 
-from parmed.formats import PSFFile
-
 
 class CustomPSFFile(PSFFile):
     """
     Child of parmeds formats/psf.py PFSFile class
     used to get psf files if NUMANSIO section is empty
-    -> remove if parmed includes https://github.com/ParmEd/ParmEd/pull/1274
+    -> remove if parmed includes https://github.com/ParmEd/ParmEd/pull/1274.
     """
 
     @staticmethod
@@ -31,11 +30,12 @@ class CustomPSFFile(PSFFile):
             closed
         vmd : bool
             If True, it will write out a PSF in the format that VMD prints it in
-            (i.e., no NUMLP/NUMLPH or MOLNT sections)
+            (i.e., no NUMLP/NUMLPH or MOLNT sections).
+
         Examples
         --------
         >>> cs = CharmmPsfFile('testfiles/test.psf')
-        >>> cs.write_psf('testfiles/test2.psf')
+        >>> cs.write_psf('testfiles/test2.psf').
         """
         # See if this is an extended format
         try:

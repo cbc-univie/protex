@@ -13,8 +13,8 @@ try:
 except ImportError:
     import simtk.openmm as openmm
 
-from protex.residue import Residue
 from protex.helpers import CustomPSFFile
+from protex.residue import Residue
 
 # Use custom write function for now, remove with new parmed version
 # https://github.com/ParmEd/ParmEd/pull/1274
