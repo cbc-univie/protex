@@ -174,8 +174,7 @@
 
 
 <div class="viewcode-block" id="Update"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.update.Update.html#protex.update.Update">[docs]</a><span class="k">class</span> <span class="nc">Update</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    ABC for implementing different Update Methods</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;ABC for implementing different Update Methods.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -229,12 +228,11 @@
     <span class="k">def</span> <span class="nf">_adapt_probabilities</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">to_adapt</span><span class="o">=</span><span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]]]</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Adapt the probability for certain events depending on the current equilibrium, in order to stay close to a given reference</span>
-<span class="sd">        i.e. prob_neu = prob_orig + K*( x(t) - x(eq) )^3 where x(t) is the current percentage in the system of one species</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Adapt the probability for certain events depending on the current equilibrium, in order to stay close to a given reference</span>
+<span class="sd">        i.e. prob_neu = prob_orig + K*( x(t) - x(eq) )^3 where x(t) is the current percentage in the system of one species.</span>
 
-<span class="sd">        Parameters:</span>
-<span class="sd">        -----------</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
 <span class="sd">        to_adapt: List of tuples with first the residue name of the species,</span>
 <span class="sd">            the number of residues of this species in the system</span>
 <span class="sd">            and the specific reaction in which this species occurs and the probability should be updated</span>
@@ -290,9 +288,8 @@
 
 
 <div class="viewcode-block" id="KeepHUpdate"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.update.KeepHUpdate.html#protex.update.KeepHUpdate">[docs]</a><span class="k">class</span> <span class="nc">KeepHUpdate</span><span class="p">(</span><span class="n">Update</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    KeepHUpdate performs updates but uses the original H position</span>
-<span class="sd">    keep the position of the original H when switching from dummy to real H</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;KeepHUpdate performs updates but uses the original H position</span>
+<span class="sd">    keep the position of the original H when switching from dummy to real H.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="nd">@staticmethod</span>
@@ -544,8 +541,7 @@
 
 
 <div class="viewcode-block" id="NaiveMCUpdate"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.update.NaiveMCUpdate.html#protex.update.NaiveMCUpdate">[docs]</a><span class="k">class</span> <span class="nc">NaiveMCUpdate</span><span class="p">(</span><span class="n">Update</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    NaiveMCUpdate Performs naive MC update on molecule pairs in close proximity</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;NaiveMCUpdate Performs naive MC update on molecule pairs in close proximity.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -652,9 +648,7 @@
 
 
 <div class="viewcode-block" id="StateUpdate"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.update.StateUpdate.html#protex.update.StateUpdate">[docs]</a><span class="k">class</span> <span class="nc">StateUpdate</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Controls the update sheme and proposes the residues that need an update</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Controls the update sheme and proposes the residues that need an update.&quot;&quot;&quot;</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">updateMethod</span><span class="p">:</span> <span class="n">Update</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StateUpdate</span><span class="p">:</span>
@@ -737,9 +731,7 @@
         <span class="p">)</span>
 
 <div class="viewcode-block" id="StateUpdate.update"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.update.StateUpdate.html#protex.update.StateUpdate.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nr_of_steps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">Residue</span><span class="p">,</span> <span class="n">Residue</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        updates the current state using the method defined in the UpdateMethod class</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;updates the current state using the method defined in the UpdateMethod class.&quot;&quot;&quot;</span>
         <span class="c1"># calculate the distance betwen updateable residues</span>
         <span class="n">pos_list</span><span class="p">,</span> <span class="n">res_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_positions_for_mutation_sites</span><span class="p">()</span>
         <span class="c1"># propose the update candidates based on distances</span>
@@ -767,10 +759,7 @@
     <span class="k">def</span> <span class="nf">_propose_candidate_pair</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">pos_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">res_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Residue</span><span class="p">],</span> <span class="n">use_pbc</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">Residue</span><span class="p">,</span> <span class="n">Residue</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Takes the return value of _get_positions_of_mutation_sites</span>
-
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Takes the return value of _get_positions_of_mutation_sites.&quot;&quot;&quot;</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">pos_list</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span>
             <span class="n">res_list</span>
         <span class="p">),</span> <span class="s2">&quot;Should be equal length and same order, because residue is found by index of pos list&quot;</span>
@@ -890,9 +879,7 @@
         <span class="k">return</span> <span class="n">proposed_candidate_pairs</span>
 
     <span class="k">def</span> <span class="nf">_get_positions_for_mutation_sites</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="nb">list</span><span class="p">[</span><span class="n">Residue</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        _get_positions_for_mutation_sites returns</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;_get_positions_for_mutation_sites returns.&quot;&quot;&quot;</span>
         <span class="n">pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ionic_liquid</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">getState</span><span class="p">(</span>
             <span class="n">getPositions</span><span class="o">=</span><span class="kc">True</span>
         <span class="p">)</span><span class="o">.</span><span class="n">getPositions</span><span class="p">(</span><span class="n">asNumpy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>

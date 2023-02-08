@@ -179,7 +179,7 @@
 <dt class="sig sig-object py" id="protex.reporter.EnergyReporter">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">protex.reporter.</span></span><span class="sig-name descname"><span class="pre">EnergyReporter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reportInterval</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">append</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/protex/reporter.html#EnergyReporter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#protex.reporter.EnergyReporter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Energy reporter reports the energy contributions to the potential energy</p>
+<p>Energy reporter reports the energy contributions to the potential energy.</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
@@ -194,17 +194,19 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="protex.reporter.EnergyReporter.describeNextReport">
 <span class="sig-name descname"><span class="pre">describeNextReport</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">simulation</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/protex/reporter.html#EnergyReporter.describeNextReport"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#protex.reporter.EnergyReporter.describeNextReport" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get information about the next report this object will generate.
-:Parameters: <strong>simulation</strong> (<em>Simulation</em>) – The Simulation to generate a report for</p>
+<dd><p>Get information about the next report this object will generate.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>A five element tuple. The first element is the number of steps
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>simulation</strong> (<em>Simulation</em>) – The Simulation to generate a report for</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A five element tuple. The first element is the number of steps
 until the next report. The remaining elements specify whether
 that report will require positions, velocities, forces, and
 energies respectively.</p>
 </dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>tuple</p>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple</p>
 </dd>
 </dl>
 </dd></dl>

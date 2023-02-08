@@ -157,10 +157,10 @@
 
 
 <div class="viewcode-block" id="Residue"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.residue.Residue.html#protex.residue.Residue">[docs]</a><span class="k">class</span> <span class="nc">Residue</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Residue extends the OpenMM Residue Class by important features needed for the proton transfer</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Residue extends the OpenMM Residue Class by important features needed for the proton transfer.</span>
 
 <span class="sd">    Parameters</span>
-<span class="sd">    -----------</span>
+<span class="sd">    ----------</span>
 <span class="sd">    residue: openmm.app.topology.Residue</span>
 <span class="sd">        The residue from  an OpenMM Topology</span>
 <span class="sd">    alternativ_name: str</span>
@@ -179,7 +179,7 @@
 <span class="sd">        if current name and alternative name have equivalent atoms</span>
 
 <span class="sd">    Attributes</span>
-<span class="sd">    -----------</span>
+<span class="sd">    ----------</span>
 <span class="sd">    residue: openmm.app.topology.Residue</span>
 <span class="sd">        The residue from  an OpenMM Topology</span>
 <span class="sd">    original_name: str</span>
@@ -238,20 +238,22 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">equivalent_atom_pos_in_list</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">used_equivalent_atom</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
 
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Residue </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">current_name</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">residue</span><span class="si">}</span><span class="s2">&quot;</span>
+
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">has_equivalent_atom</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Determines if the current residue has an equivalent atom defined.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Determines if the current residue has an equivalent atom defined.</span>
 <span class="sd">        It depends i.e if the residue is currently OAC (-&gt; two equivalent O&#39;s) or HOAC (no equivlent O&#39;s).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">equivalent_atoms</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">current_name</span><span class="p">]</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">alternativ_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Alternative name for the residue, e.g. the corresponding name for the protonated/deprotonated form</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Alternative name for the residue, e.g. the corresponding name for the protonated/deprotonated form.</span>
 
 <span class="sd">        Returns</span>
-<span class="sd">        --------</span>
+<span class="sd">        -------</span>
 <span class="sd">        str</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
@@ -263,10 +265,10 @@
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span>
         <span class="kc">None</span>
     <span class="p">):</span>  <span class="c1"># we don&#39;t need to call update in context since we are doing this in NaiveMCUpdate</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update the requested force in that residue</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update the requested force in that residue.</span>
 
 <span class="sd">        Parameters</span>
-<span class="sd">        -----------</span>
+<span class="sd">        ----------</span>
 <span class="sd">        force_name: Name of the force to update</span>
 <span class="sd">        lamb: lambda state at which to get corresponding values (between 0 and 1)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -287,7 +289,9 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_set_CustomTorsionForce_parameters</span><span class="p">(</span><span class="n">parms</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">force_name</span> <span class="o">==</span> <span class="s2">&quot;DrudeForce&quot;</span><span class="p">:</span>
             <span class="n">parms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_DrudeForce_parameters_at_lambda</span><span class="p">(</span><span class="n">lamb</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_set_DrudeForce_parameters</span><span class="p">(</span><span class="n">parms</span><span class="p">)</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_set_DrudeForce_parameters</span><span class="p">(</span><span class="n">parms</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeWarning</span><span class="p">(</span><span class="s2">&quot;Force name {force_name=} is not covered, no updates will happen on this one!&quot;</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_set_NonbondedForce_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parms</span><span class="p">):</span>
         <span class="n">parms_nonb</span> <span class="o">=</span> <span class="n">deque</span><span class="p">(</span><span class="n">parms</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
@@ -862,7 +866,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">endstate_charge</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Charge of the residue at the endstate (will be int)&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Charge of the residue at the endstate (will be int).&quot;&quot;&quot;</span>
         <span class="n">charge</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span>
             <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span>
                 <span class="nb">sum</span><span class="p">(</span>
@@ -878,7 +882,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">current_charge</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Current charge of the residue&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Current charge of the residue.&quot;&quot;&quot;</span>
         <span class="n">charge</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">force</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">getForces</span><span class="p">():</span>
             <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">force</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;NonbondedForce&quot;</span><span class="p">:</span>

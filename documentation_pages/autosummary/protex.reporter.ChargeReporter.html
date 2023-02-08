@@ -205,17 +205,19 @@ then the reporter is invoked directyl in the update, after the one step with the
 <dl class="py method">
 <dt class="sig sig-object py" id="protex.reporter.ChargeReporter.describeNextReport">
 <span class="sig-name descname"><span class="pre">describeNextReport</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">simulation</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/protex/reporter.html#ChargeReporter.describeNextReport"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#protex.reporter.ChargeReporter.describeNextReport" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get information about the next report this object will generate.
-:Parameters: <strong>simulation</strong> (<em>Simulation</em>) – The Simulation to generate a report for</p>
+<dd><p>Get information about the next report this object will generate.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>A five element tuple. The first element is the number of steps
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>simulation</strong> (<em>Simulation</em>) – The Simulation to generate a report for</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A five element tuple. The first element is the number of steps
 until the next report. The remaining elements specify whether
 that report will require positions, velocities, forces, and
 energies respectively.</p>
 </dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>tuple</p>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple</p>
 </dd>
 </dl>
 </dd></dl>

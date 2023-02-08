@@ -38,7 +38,7 @@
   <link rel="stylesheet" href="../../_static/css/custom.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="protex.testsystems.generate_single_im1h_oac_system" href="protex.testsystems.generate_single_im1h_oac_system.html" />
+    <link rel="next" title="protex.testsystems.generate_single_hpts_meoh_system" href="protex.testsystems.generate_single_hpts_meoh_system.html" />
     <link rel="prev" title="protex.testsystems.generate_im1h_oac_system" href="protex.testsystems.generate_im1h_oac_system.html" /> 
 </head>
 
@@ -101,7 +101,9 @@
 <li class="toctree-l4"><a class="reference internal" href="#protex.testsystems.generate_im1h_oac_system_clap"><code class="docutils literal notranslate"><span class="pre">generate_im1h_oac_system_clap()</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="protex.testsystems.generate_single_hpts_meoh_system.html">protex.testsystems.generate_single_hpts_meoh_system</a></li>
 <li class="toctree-l3"><a class="reference internal" href="protex.testsystems.generate_single_im1h_oac_system.html">protex.testsystems.generate_single_im1h_oac_system</a></li>
+<li class="toctree-l3"><a class="reference internal" href="protex.testsystems.generate_small_box.html">protex.testsystems.generate_small_box</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="protex.reporter.html">protex.reporter</a></li>
@@ -181,7 +183,7 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="protex.testsystems.generate_im1h_oac_system_clap">
 <span class="sig-prename descclassname"><span class="pre">protex.testsystems.</span></span><span class="sig-name descname"><span class="pre">generate_im1h_oac_system_clap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">psf_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crd_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">restart_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constraints</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boxl</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">48.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">para_files</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coll_freq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drude_coll_freq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dummy_atom_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'DUMH'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/protex/testsystems.html#generate_im1h_oac_system_clap"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#protex.testsystems.generate_im1h_oac_system_clap" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sets up a solvated and paraterized system for IM1H/OAC</p>
+<dd><p>Sets up a solvated and paraterized system for IM1H/OAC.</p>
 </dd></dl>
 
 </section>
@@ -194,7 +196,7 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="protex.testsystems.generate_single_im1h_oac_system.html" class="btn btn-neutral float-right" title="protex.testsystems.generate_single_im1h_oac_system" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="protex.testsystems.generate_single_hpts_meoh_system.html" class="btn btn-neutral float-right" title="protex.testsystems.generate_single_hpts_meoh_system" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="protex.testsystems.generate_im1h_oac_system.html" class="btn btn-neutral float-left" title="protex.testsystems.generate_im1h_oac_system" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

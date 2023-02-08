@@ -20,7 +20,9 @@
       generate_im1h_oac_dummy_system
       generate_im1h_oac_system
       generate_im1h_oac_system_clap
+      generate_single_hpts_meoh_system
       generate_single_im1h_oac_system
+      generate_small_box
    
    
 

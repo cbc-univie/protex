@@ -176,7 +176,7 @@
 <dt class="sig sig-object py" id="protex.residue.Residue">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">protex.residue.</span></span><span class="sig-name descname"><span class="pre">Residue</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">residue</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alternativ_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">system</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inital_parameters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alternativ_parameters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pair_12_13_exclusion_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">has_equivalent_atoms</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/protex/residue.html#Residue"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#protex.residue.Residue" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Residue extends the OpenMM Residue Class by important features needed for the proton transfer</p>
+<p>Residue extends the OpenMM Residue Class by important features needed for the proton transfer.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -213,7 +213,7 @@
 <td><p></p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#protex.residue.Residue.update" title="protex.residue.Residue.update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update</span></code></a></p></td>
-<td><p>Update the requested force in that residue</p></td>
+<td><p>Update the requested force in that residue.</p></td>
 </tr>
 </tbody>
 </table>
@@ -224,10 +224,10 @@
 <td><p>Alternative name for the residue, e.g.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#protex.residue.Residue.current_charge" title="protex.residue.Residue.current_charge"><code class="xref py py-obj docutils literal notranslate"><span class="pre">current_charge</span></code></a></p></td>
-<td><p>Current charge of the residue</p></td>
+<td><p>Current charge of the residue.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#protex.residue.Residue.endstate_charge" title="protex.residue.Residue.endstate_charge"><code class="xref py py-obj docutils literal notranslate"><span class="pre">endstate_charge</span></code></a></p></td>
-<td><p>Charge of the residue at the endstate (will be int)</p></td>
+<td><p>Charge of the residue at the endstate (will be int).</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#protex.residue.Residue.has_equivalent_atom" title="protex.residue.Residue.has_equivalent_atom"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_equivalent_atom</span></code></a></p></td>
 <td><p>Determines if the current residue has an equivalent atom defined.</p></td>
@@ -237,7 +237,7 @@
 <dl class="py property">
 <dt class="sig sig-object py" id="protex.residue.Residue.alternativ_name">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">alternativ_name</span></span><a class="headerlink" href="#protex.residue.Residue.alternativ_name" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alternative name for the residue, e.g. the corresponding name for the protonated/deprotonated form</p>
+<dd><p>Alternative name for the residue, e.g. the corresponding name for the protonated/deprotonated form.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>str</p>
@@ -248,13 +248,13 @@
 <dl class="py property">
 <dt class="sig sig-object py" id="protex.residue.Residue.current_charge">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">current_charge</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#protex.residue.Residue.current_charge" title="Permalink to this definition">¶</a></dt>
-<dd><p>Current charge of the residue</p>
+<dd><p>Current charge of the residue.</p>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="protex.residue.Residue.endstate_charge">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">endstate_charge</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#protex.residue.Residue.endstate_charge" title="Permalink to this definition">¶</a></dt>
-<dd><p>Charge of the residue at the endstate (will be int)</p>
+<dd><p>Charge of the residue at the endstate (will be int).</p>
 </dd></dl>
 
 <dl class="py property">
@@ -267,7 +267,7 @@ It depends i.e if the residue is currently OAC (-&gt; two equivalent O’s) or H
 <dl class="py method">
 <dt class="sig sig-object py" id="protex.residue.Residue.update">
 <span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">force_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lamb</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/protex/residue.html#Residue.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#protex.residue.Residue.update" title="Permalink to this definition">¶</a></dt>
-<dd><p>Update the requested force in that residue</p>
+<dd><p>Update the requested force in that residue.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
