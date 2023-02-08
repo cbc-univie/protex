@@ -10,21 +10,21 @@ source:
   sha256: 39d22c16285ae98c74134f87d5efd13c33bbb0f9cee4c030cf72afe00af14a84
 
 build:
+  noarch: python
   script: {{ PYTHON }} -m pip install . -vv
   number: 0
 
 requirements:
   host:
-    - python >=3.7
+    - python >=3.8
     - pip
   run:
-    - python >=3.7
+    - python >=3.8
     - openmm=7.6
     - scipy
     - numpy
     - pyyaml
-    - pip:
-      - git+https://github.com/ParmEd/ParmEd.git
+    - parmed
 
 test:
   imports:
