@@ -73,7 +73,7 @@ jobs:
       
     - name: Make Cache (no worflow_dispatch)
       if: ${{ github.event_name != 'workflow_dispatch' }}
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: ~/conda_pkgs_dir # ${{ matrix.prefix }}
         # Increase the last number (0) to reset cache manually
@@ -82,7 +82,7 @@ jobs:
       
     - name: Make Cache (worflow_dispatch)
       if: ${{ github.event_name == 'workflow_dispatch' }}
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: ~/conda_pkgs_dir # ${{ matrix.prefix }}
         key: ${{ matrix.label }}-conda-${{ hashFiles('devtools/conda-envs/openmm7.6.yaml') }}-${{ env.DATE }}-${{ inputs.CACHE_NUMBER }}
