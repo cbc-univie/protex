@@ -19,7 +19,7 @@ Proton exchange using MC and openMM for ionic liquids
 
 ### Copyright
 
-Copyright (c) 2022, Florian Joerg & Marcus Wieder
+Copyright (c) 2023, Florian Joerg & Marcus Wieder
 
 
 #### Acknowledgements
