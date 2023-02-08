@@ -36,7 +36,7 @@ except ImportError:
 
 @contextmanager
 def temp_cd():
-    """Temporary CD Helper"""
+    """Temporary CD Helper."""
     cwd = os.getcwd()
     with TemporaryDirectory() as td:
         try:

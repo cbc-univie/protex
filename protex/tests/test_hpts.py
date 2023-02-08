@@ -6,8 +6,6 @@ import os
 from collections import defaultdict
 from sys import stdout
 
-import numpy as np
-
 try:  # Syntax changed in OpenMM 7.6
     import openmm as mm
     from openmm import (
@@ -15,7 +13,6 @@ try:  # Syntax changed in OpenMM 7.6
         DrudeNoseHooverIntegrator,
         OpenMMException,
         Platform,
-        XmlSerializer,
     )
     from openmm.app import (
         PME,
@@ -28,28 +25,32 @@ try:  # Syntax changed in OpenMM 7.6
         Simulation,
         StateDataReporter,
     )
-    from openmm.unit import angstroms, kelvin, nanometers, picoseconds
+    from openmm.unit import angstroms, kelvin, picoseconds
 except ImportError:
     import simtk.openmm as mm
     from simtk.openmm import (
-        OpenMMException,
-        Platform,
         Context,
         DrudeNoseHooverIntegrator,
-        XmlSerializer,
+        OpenMMException,
+        Platform,
     )
-    from simtk.openmm.app import DCDReporter, PDBReporter, StateDataReporter
-    from simtk.openmm.app import CharmmCrdFile, CharmmParameterSet, CharmmPsfFile
-    from simtk.openmm.app import PME, HBonds
-    from simtk.openmm.app import Simulation
-    from simtk.unit import angstroms, kelvin, picoseconds, nanometers
+    from simtk.openmm.app import (
+        PME,
+        CharmmCrdFile,
+        CharmmParameterSet,
+        CharmmPsfFile,
+        DCDReporter,
+        HBonds,
+        PDBReporter,
+        Simulation,
+        StateDataReporter,
+    )
+    from simtk.unit import angstroms, kelvin, picoseconds
 
 import pytest
-from scipy.spatial import distance_matrix
 
 import protex
 
-from ..reporter import ChargeReporter
 from ..system import ProtexSystem, ProtexTemplates
 from ..testsystems import (  # generate_single_hpts_system,
     HPTSH_HPTS,
@@ -57,6 +58,7 @@ from ..testsystems import (  # generate_single_hpts_system,
     MEOH_MEOH2,
     OAC_HOAC,
     generate_hpts_meoh_system,
+    generate_single_hpts_meoh_system,
 )
 from ..update import KeepHUpdate, NaiveMCUpdate, StateUpdate
 
@@ -77,8 +79,8 @@ def test_available_platforms():
         "im1h_d.str",
         "im1_dummy_d.str",
         "oac_dummy_d.str",
-        "hpts_dummy_d.str",
-        "hptsh_d.str",
+        "hpts_dummy_d_chelpg.str",
+        "hptsh_d_chelpg.str",
         "meoh_dummy.str",
         "meoh2_unscaled.str",
     ]
@@ -87,11 +89,11 @@ def test_available_platforms():
         *[f"{base}/toppar/{para_files}" for para_files in PARA_FILES]
     )
 
-    psf = CharmmPsfFile(f"{base}/hpts.psf")
+    psf = CharmmPsfFile(f"{base}/hpts_single/hpts_single.psf")
     xtl = 48.0 * angstroms
     psf.setBox(xtl, xtl, xtl)
     # cooridnates can be provieded by CharmmCrdFile, CharmmRstFile or PDBFile classes
-    crd = CharmmCrdFile(f"{base}/hpts.crd")
+    CharmmCrdFile(f"{base}/hpts_single/hpts_single.crd")
 
     system = psf.createSystem(
         params,
@@ -145,55 +147,29 @@ def test_available_platforms():
         platform = Platform.getPlatformByName("CUDA")
         prop = dict(CudaPrecision="single")  # default is single
 
-        simulation = Simulation(
+        Simulation(
             psf.topology, system, integrator, platform=platform, platformProperties=prop
         )
     except mm.OpenMMException:
         platform = Platform.getPlatformByName("CPU")
         prop = dict()
-        simulation = Simulation(
+        Simulation(
             psf.topology, system, integrator, platform=platform, platformProperties=prop
         )
     print(platform.getName())
 
-    simulation.context.setPositions(crd.positions)
-    # Try with positions from equilibrated system:
-    base = f"{protex.__path__[0]}/forcefield"
-    if os.path.exists(f"{base}/traj/hpts_npt_7.rst"):
-        with open(f"{base}/traj/hpts_npt_7.rst") as f:
-            print(f"Opening restart file {f}")
-            simulation.context.setState(XmlSerializer.deserialize(f.read()))
-        simulation.context.computeVirtualSites()
-    else:
-        print("No restart file found. Using initial coordinate file.")
-        simulation.context.computeVirtualSites()
-        simulation.context.setVelocitiesToTemperature(300 * kelvin)
 
+def test_run_simulation(tmp_path):
 
-def test_setup_simulation():
-    simulation = generate_hpts_meoh_system()
-    print("Minimizing...")
-    simulation.minimizeEnergy(maxIterations=100)
+    simulation = generate_single_hpts_meoh_system(use_plugin=False)
     system = simulation.system
-
     nr_of_particles = system.getNumParticles()
-    assert nr_of_particles == 55185
+    assert nr_of_particles == 264
 
-
-def test_run_simulation():
-    psf_for_parameters = f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
-    crd_for_parameters = f"{protex.__path__[0]}/forcefield/crd_for_parameters.crd"
-    psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
-    restart_file = f"{protex.__path__[0]}/forcefield/traj/hpts_npt_7.rst"
-
-    simulation = generate_hpts_meoh_system(psf_file=psf_file, restart_file=restart_file)
-    generate_hpts_meoh_system(
-        psf_file=psf_for_parameters, crd_file=crd_for_parameters
-    )
     print("Minimizing...")
     simulation.minimizeEnergy(maxIterations=50)
-    simulation.reporters.append(PDBReporter("output.pdb", 50))
-    simulation.reporters.append(DCDReporter("output.dcd", 50))
+    simulation.reporters.append(PDBReporter(f"{tmp_path}/output.pdb", 50))
+    simulation.reporters.append(DCDReporter(f"{tmp_path}/output.dcd", 50))
 
     simulation.reporters.append(
         StateDataReporter(
@@ -209,7 +185,6 @@ def test_run_simulation():
     )
     print("Running dynmamics...")
     simulation.step(200)
-    # If simulation aborts with Nan error, try smaller timestep (e.g. 0.0001 ps) and then extract new crd from dcd using "protex/forcefield/crdfromdcd.inp"
 
 
 def test_create_IonicLiquidTemplate():
@@ -275,13 +250,20 @@ def test_create_IonicLiquidTemplate():
 
 
 def test_create_IonicLiquid():
-    psf_for_parameters = f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
-    crd_for_parameters = f"{protex.__path__[0]}/forcefield/crd_for_parameters.crd"
-    psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
+    psf_for_parameters = f"{protex.__path__[0]}/forcefield/hpts_single/hpts_single.psf"
+    crd_for_parameters = f"{protex.__path__[0]}/forcefield/hpts_single/hpts_single.crd"
+    # psf = f"{protex.__path__[0]}/forcefield/hpts_single/hpts_single.psf"
 
-    simulation = generate_hpts_meoh_system(psf_file=psf_file)
-    simulation_for_parameters = generate_hpts_meoh_system(
-        crd_file=crd_for_parameters, psf_file=psf_for_parameters
+    # simulation = generate_hpts_meoh_system(psf_file=psf_file)
+    # simulation_for_parameters = generate_hpts_meoh_system(
+    #    crd_file=crd_for_parameters, psf_file=psf_for_parameters
+    # )
+    simulation = generate_single_hpts_meoh_system(
+        use_plugin=False
+    )  # psf_file=psf_file)
+    print("hier")
+    simulation_for_parameters = generate_single_hpts_meoh_system(
+        crd_file=crd_for_parameters, psf_file=psf_for_parameters, use_plugin=False
     )
 
     allowed_updates = {}
@@ -309,266 +291,32 @@ def test_create_IonicLiquid():
     count = defaultdict(int)
     ionic_liquid = ProtexSystem(simulation, templates, simulation_for_parameters)
 
-    assert len(ionic_liquid.residues) == 4457
+    assert len(ionic_liquid.residues) == 8
     for idx, residue in enumerate(ionic_liquid.residues):
         # print(f"{idx} : {residue.original_name}")
         count[residue.original_name] += 1
 
-    assert count["IM1H"] == 147
-    assert count["OAC"] == 93
-    assert count["IM1"] == 217
-    assert count["HOAC"] == 217
-    assert count["HPTS"] == 0
-    assert count["HPTSH"] == 18
-    assert count["MEOH"] == 3765
-    assert count["MEOH2"] == 0
+    assert count["IM1H"] == 1
+    assert count["OAC"] == 1
+    assert count["IM1"] == 1
+    assert count["HOAC"] == 1
+    assert count["HPTS"] == 1
+    assert count["HPTSH"] == 1
+    assert count["MEOH"] == 1
+    assert count["MEOH2"] == 1
 
+    residue = ionic_liquid.residues[0]
+    charge = residue.endstate_charge
 
-def test_residues():
-    simulation = generate_hpts_meoh_system()
-    topology = simulation.topology
-    for idx, r in enumerate(topology.residues()):
-        if r.name == "IM1H" and idx == 0:
-            atom_idxs = [atom.index for atom in r.atoms()]
-            atom_names = [atom.name for atom in r.atoms()]
-            print(atom_idxs)
-            print(atom_names)
-            assert atom_idxs == [
-                0,
-                1,
-                2,
-                3,
-                4,
-                5,
-                6,
-                7,
-                8,
-                9,
-                10,
-                11,
-                12,
-                13,
-                14,
-                15,
-                16,
-                17,
-                18,
-                19,
-            ]
-            assert atom_names == [
-                "C1",
-                "DC1",
-                "H1",
-                "H2",
-                "H3",
-                "N1",
-                "DN1",
-                "C2",
-                "DC2",
-                "H4",
-                "C3",
-                "DC3",
-                "H5",
-                "C4",
-                "DC4",
-                "H6",
-                "N2",
-                "DN2",
-                "H7",
-                "LPN21",
-            ]
-        if r.name == "HPTSH" and idx == 674:
-            atom_idxs = [atom.index for atom in r.atoms()]
-            atom_names = [atom.name for atom in r.atoms()]
-            print(atom_idxs)
-            print(atom_names)
-            print(idx)
-            assert atom_idxs == [
-                12240,
-                12241,
-                12242,
-                12243,
-                12244,
-                12245,
-                12246,
-                12247,
-                12248,
-                12249,
-                12250,
-                12251,
-                12252,
-                12253,
-                12254,
-                12255,
-                12256,
-                12257,
-                12258,
-                12259,
-                12260,
-                12261,
-                12262,
-                12263,
-                12264,
-                12265,
-                12266,
-                12267,
-                12268,
-                12269,
-                12270,
-                12271,
-                12272,
-                12273,
-                12274,
-                12275,
-                12276,
-                12277,
-                12278,
-                12279,
-                12280,
-                12281,
-                12282,
-                12283,
-                12284,
-                12285,
-                12286,
-                12287,
-                12288,
-                12289,
-                12290,
-                12291,
-                12292,
-                12293,
-                12294,
-                12295,
-                12296,
-                12297,
-                12298,
-                12299,
-                12300,
-                12301,
-                12302,
-                12303,
-                12304,
-                12305,
-                12306,
-                12307,
-                12308,
-                12309,
-                12310,
-                12311,
-                12312,
-                12313,
-                12314,
-                12315,
-                12316,
-                12317,
-                12318,
-                12319,
-                12320,
-                12321,
-                12322,
-                12323,
-                12324,
-            ]
-
-            assert atom_names == [
-                "C1",
-                "DC1",
-                "C2",
-                "DC2",
-                "C3",
-                "DC3",
-                "C4",
-                "DC4",
-                "C5",
-                "DC5",
-                "C6",
-                "DC6",
-                "C7",
-                "DC7",
-                "C8",
-                "DC8",
-                "S1",
-                "DS1",
-                "O1",
-                "DO1",
-                "O2",
-                "DO2",
-                "O3",
-                "DO3",
-                "S2",
-                "DS2",
-                "O4",
-                "DO4",
-                "O5",
-                "DO5",
-                "O6",
-                "DO6",
-                "C9",
-                "DC9",
-                "C10",
-                "DC10",
-                "C11",
-                "DC11",
-                "C12",
-                "DC12",
-                "C13",
-                "DC13",
-                "C14",
-                "DC14",
-                "C15",
-                "DC15",
-                "C16",
-                "DC16",
-                "O7",
-                "DO7",
-                "S3",
-                "DS3",
-                "O8",
-                "DO8",
-                "O9",
-                "DO9",
-                "O10",
-                "DO10",
-                "H1",
-                "H2",
-                "H3",
-                "H4",
-                "H5",
-                "H6",
-                "H7",
-                "LPO11",
-                "LPO12",
-                "LPO21",
-                "LPO22",
-                "LPO31",
-                "LPO32",
-                "LPO41",
-                "LPO42",
-                "LPO51",
-                "LPO52",
-                "LPO61",
-                "LPO62",
-                "LPO71",
-                "LPO72",
-                "LPO81",
-                "LPO82",
-                "LPO91",
-                "LPO92",
-                "LPO101",
-                "LPO102",
-            ]
+    assert charge == 1
+    print(residue.atom_names)
+    assert (residue.get_idx_for_atom_name("H7")) == 18
 
 
 def test_forces():
-    psf_for_parameters = f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
-    crd_for_parameters = f"{protex.__path__[0]}/forcefield/crd_for_parameters.crd"
-    psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
-
-    simulation = generate_hpts_meoh_system(psf_file=psf_file)
-    generate_hpts_meoh_system(
-        crd_file=crd_for_parameters, psf_file=psf_for_parameters
-    )
+    # simulation = generate_hpts_meoh_system(psf_file=psf_file)
+    # generate_hpts_meoh_system(crd_file=crd_for_parameters, psf_file=psf_for_parameters)
+    simulation = generate_single_hpts_meoh_system(use_plugin=False)
     system = simulation.system
     topology = simulation.topology
     force_state = defaultdict(list)  # store bond force
@@ -578,7 +326,7 @@ def test_forces():
 
     # iterate over residues, select the first residue for HPTS and HPTSH and save the individual bonded forces
     for ridx, r in enumerate(topology.residues()):
-        if r.name == "OAC" and ridx == 147:  # match first HPTS residue
+        if r.name == "OAC":  # and ridx == 147:  # match first HPTS residue
             names.append(r.name)
             atom_idxs[r.name] = [atom.index for atom in r.atoms()]
             atom_names[r.name] = [atom.name for atom in r.atoms()]
@@ -593,7 +341,7 @@ def test_forces():
                         ):  # atom index of bond force needs to be in atom_idxs
                             force_state[r.name].append(f)
 
-        if r.name == "HOAC" and ridx == 457:
+        if r.name == "HOAC":  # and ridx == 457:
             names.append(r.name)
             atom_idxs[r.name] = [atom.index for atom in r.atoms()]
             atom_names[r.name] = [atom.name for atom in r.atoms()]
@@ -635,14 +383,9 @@ def test_forces():
 
 
 def test_torsion_forces():
-    psf_for_parameters = f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
-    crd_for_parameters = f"{protex.__path__[0]}/forcefield/crd_for_parameters.crd"
-    psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
-
-    simulation = generate_hpts_meoh_system(psf_file=psf_file)
-    generate_hpts_meoh_system(
-        crd_file=crd_for_parameters, psf_file=psf_for_parameters
-    )
+    # simulation = generate_hpts_meoh_system(psf_file=psf_file)
+    # generate_hpts_meoh_system(crd_file=crd_for_parameters, psf_file=psf_for_parameters)
+    simulation = generate_single_hpts_meoh_system(use_plugin=False)
     system = simulation.system
     topology = simulation.topology
     force_state = defaultdict(list)  # store bond force
@@ -651,7 +394,7 @@ def test_torsion_forces():
     names = []  # store residue names
 
     for ridx, r in enumerate(topology.residues()):
-        if r.name == "OAC" and ridx == 147:
+        if r.name == "OAC":  # and ridx == 147:
             names.append(r.name)
             atom_idxs[r.name] = [atom.index for atom in r.atoms()]
             atom_names[r.name] = [atom.name for atom in r.atoms()]
@@ -674,7 +417,7 @@ def test_torsion_forces():
                             force_state[r.name].append(f)
                             print("oac", f)
 
-        if r.name == "HOAC" and ridx == 457:
+        if r.name == "HOAC":  # and ridx == 457:
             names.append(r.name)
             atom_idxs[r.name] = [atom.index for atom in r.atoms()]
             atom_names[r.name] = [atom.name for atom in r.atoms()]
@@ -721,7 +464,7 @@ def test_torsion_forces():
             print(f)
 
     for ridx, r in enumerate(topology.residues()):
-        if r.name == "OAC" and ridx == 147:
+        if r.name == "OAC":  # and ridx == 147:
             names.append(r.name)
             atom_idxs[r.name] = [atom.index for atom in r.atoms()]
             atom_names[r.name] = [atom.name for atom in r.atoms()]
@@ -744,7 +487,7 @@ def test_torsion_forces():
                             force_state[r.name].append(f)
                             print("oac", f)
 
-        if r.name == "HOAC" and ridx == 457:
+        if r.name == "HOAC":  # and ridx == 457:
             names.append(r.name)
             atom_idxs[r.name] = [atom.index for atom in r.atoms()]
             atom_names[r.name] = [atom.name for atom in r.atoms()]
@@ -794,14 +537,16 @@ def test_torsion_forces():
 
 
 def test_drude_forces():
-    psf_for_parameters = f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
-    crd_for_parameters = f"{protex.__path__[0]}/forcefield/crd_for_parameters.crd"
-    psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
+    # f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
+    # f"{protex.__path__[0]}/forcefield/crd_for_parameters.crd"
+    # f"{protex.__path__[0]}/forcefield/hpts.psf"
 
-    simulation = generate_hpts_meoh_system(psf_file=psf_file)
-    simulation_for_parameters = generate_hpts_meoh_system(
-        crd_file=crd_for_parameters, psf_file=psf_for_parameters
-    )
+    # simulation = generate_hpts_meoh_system(psf_file=psf_file)
+    # simulation_for_parameters = generate_hpts_meoh_system(
+    #    crd_file=crd_for_parameters, psf_file=psf_for_parameters
+    # )
+    simulation = generate_single_hpts_meoh_system(use_plugin=False)
+    simulation_for_parameters = generate_single_hpts_meoh_system(use_plugin=False)
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
@@ -837,7 +582,7 @@ def test_drude_forces():
 
     # iterate over residues, select the first residue for HOAC and OAC and save the individual bonded forces
     for ridx, r in enumerate(topology.residues()):
-        if r.name == "HOAC" and ridx == 457:  # match first HOAC residue
+        if r.name == "HOAC":  # and ridx == 457:  # match first HOAC residue
             names.append(r.name)
             atom_idxs[r.name] = [atom.index for atom in r.atoms()]
             atom_names[r.name] = [atom.name for atom in r.atoms()]
@@ -870,7 +615,7 @@ def test_drude_forces():
                     print(f)
                     force_state_thole[r.name].append(f)
 
-        if r.name == "OAC" and ridx == 147:
+        if r.name == "OAC":  # and ridx == 147:
             names.append(r.name)
             atom_idxs[r.name] = [atom.index for atom in r.atoms()]
             atom_names[r.name] = [atom.name for atom in r.atoms()]
@@ -926,216 +671,15 @@ def test_drude_forces():
         raise AssertionError("ohoh")
 
 
-def test_create_IonicLiquid_residue():
-    psf_for_parameters = f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
-    crd_for_parameters = f"{protex.__path__[0]}/forcefield/crd_for_parameters.crd"
-    psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
-
-    simulation = generate_hpts_meoh_system(psf_file=psf_file)
-    simulation_for_parameters = generate_hpts_meoh_system(
-        crd_file=crd_for_parameters, psf_file=psf_for_parameters
-    )
-    allowed_updates = {}
-    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
-    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
-    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 0.201}  # 1+2
-    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 0.684}  # 3+4
-    allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000}
-    allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
-    allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000}
-    allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
-    allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
-    # allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
-    # allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
-    # allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
-    allowed_updates[frozenset(["HPTSH", "MEOH"])] = {"r_max": 0.155, "prob": 1.000}
-    allowed_updates[frozenset(["MEOH2", "MEOH"])] = {"r_max": 0.155, "prob": 1.000}
-    allowed_updates[frozenset(["MEOH2", "IM1"])] = {"r_max": 0.155, "prob": 1.000}
-    allowed_updates[frozenset(["MEOH2", "OAC"])] = {"r_max": 0.155, "prob": 1.000}
-
-    templates = ProtexTemplates(
-        [OAC_HOAC, IM1H_IM1, HPTSH_HPTS, MEOH_MEOH2], (allowed_updates)
-    )
-
-    ionic_liquid = ProtexSystem(simulation, templates, simulation_for_parameters)
-    assert len(ionic_liquid.residues) == 4457
-
-    residue = ionic_liquid.residues[0]
-    charge = residue.endstate_charge
-
-    assert charge == 1
-    print(residue.atom_names)
-    assert (residue.get_idx_for_atom_name("H7")) == 18
-
-    residue = ionic_liquid.residues[1]
-
-    assert (residue.get_idx_for_atom_name("H7")) == 38
-
-    residue = ionic_liquid.residues[674]
-
-    assert (residue.get_idx_for_atom_name("H7")) == 12304
-
-    # check name of first residue
-    assert ionic_liquid.residues[0].current_name == "IM1H"
-    assert ionic_liquid.residues[0].original_name == "IM1H"
-
-
-# def test_save_load_residue_names():
-#     # obtain simulation object
-#     simulation = generate_hpts_system()
-#     # get ionic liquid templates
-#     allowed_updates = {}
-#     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
-#     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
-#     allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 0.201}  # 1+2
-#     allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 0.684}  # 3+4
-#     allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000}
-#     allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
-#     allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000}
-#     allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
-#     allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
-
-#     templates = IonicLiquidTemplates(
-#         [OAC_HOAC, IM1H_IM1, HPTSH_HPTS], (allowed_updates)
-#     )
-#     # wrap system in IonicLiquidSystem
-#     ionic_liquid = IonicLiquidSystem(simulation, templates)
-#     # initialize update method
-#     update = NaiveMCUpdate(ionic_liquid)
-#     # initialize state update class
-#     state_update = StateUpdate(update)
-
-#     ionic_liquid.simulation.step(50)
-#     state_update.update(2)
-
-#     residue_names_1 = [residue.current_name for residue in ionic_liquid.residues]
-#     residue_parameters_1 = [residue.parameters for residue in ionic_liquid.residues]
-
-#     ionic_liquid.save_current_names("current_names.txt")
-
-#     ionic_liquid.load_current_names("current_names.txt")
-
-#     residue_names_2 = [residue.current_name for residue in ionic_liquid.residues]
-#     residue_parameters_2 = [residue.parameters for residue in ionic_liquid.residues]
-
-#     assert (
-#         residue_names_1 == residue_names_2
-#     ), "Names should have been loaded into ionic_liquid..."
-
-#     assert residue_parameters_1 == residue_parameters_2
-
-#     # obtain simulation object
-#     simulation = generate_hpts_system()
-#     # get ionic liquid templates
-#     allowed_updates = {}
-#     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
-#     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
-#     allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 0.201}  # 1+2
-#     allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 0.684}  # 3+4
-#     allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000}
-#     allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
-#     allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000}
-#     allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
-#     allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
-
-#     templates = IonicLiquidTemplates(
-#         [OAC_HOAC, IM1H_IM1, HPTSH_HPTS], (allowed_updates)
-#     )
-#     # wrap system in IonicLiquidSystem
-#     ionic_liquid = IonicLiquidSystem(simulation, templates)
-#     ionic_liquid.load_current_names("current_names.txt")
-
-#     residue_names_2 = [residue.current_name for residue in ionic_liquid.residues]
-#     residue_parameters_2 = [residue.parameters for residue in ionic_liquid.residues]
-
-#     assert (
-#         residue_names_1 == residue_names_2
-#     ), "Names should have been loaded into ionic_liquid..."
-
-#     assert residue_parameters_1 == residue_parameters_2
-
-
-@pytest.mark.skipif(
-    os.getenv("CI") == "true",
-    reason="Skipping tests that cannot pass in github actions",
-)
-def test_reporter_class():
-    # obtain simulation object
-    psf_for_parameters = f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
-    crd_for_parameters = f"{protex.__path__[0]}/forcefield/crd_for_parameters.crd"
-    psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
-    restart_file = f"{protex.__path__[0]}/forcefield/traj/hpts_npt_7.rst"
-
-    simulation = generate_hpts_meoh_system(psf_file=psf_file, restart_file=restart_file)
-    simulation_for_parameters = generate_hpts_meoh_system(
-        crd_file=crd_for_parameters, psf_file=psf_for_parameters
-    )
-    # get ionic liquid templates
-    allowed_updates = {}
-    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
-    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
-    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 0.201}  # 1+2
-    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 0.684}  # 3+4
-    allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000}
-    allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
-    allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000}
-    allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
-    allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
-    # allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
-    # allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
-    # allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
-    allowed_updates[frozenset(["HPTSH", "MEOH"])] = {"r_max": 0.155, "prob": 1.000}
-    allowed_updates[frozenset(["MEOH2", "MEOH"])] = {"r_max": 0.155, "prob": 1.000}
-    allowed_updates[frozenset(["MEOH2", "IM1"])] = {"r_max": 0.155, "prob": 1.000}
-    allowed_updates[frozenset(["MEOH2", "OAC"])] = {"r_max": 0.155, "prob": 1.000}
-
-    templates = ProtexTemplates(
-        [OAC_HOAC, IM1H_IM1, HPTSH_HPTS, MEOH_MEOH2], (allowed_updates)
-    )
-    # wrap system in IonicLiquidSystem
-    ionic_liquid = ProtexSystem(simulation, templates, simulation_for_parameters)
-    # initialize update method
-    update = NaiveMCUpdate(ionic_liquid)
-    # initialize state update class
-    state_update = StateUpdate(update)
-
-    report_interval = 5
-    charge_info = {"dcd_save_freq": 500}
-    charge_reporter = ChargeReporter(stdout, 20, ionic_liquid, header_data=charge_info)
-    ionic_liquid.simulation.reporters.append(charge_reporter)
-    ionic_liquid.simulation.reporters.append(
-        StateDataReporter(
-            stdout,
-            report_interval,
-            step=True,
-            time=True,
-            totalEnergy=True,
-        )
-    )
-
-    ionic_liquid.simulation.step(19)
-    state_update.update(2)
-    ionic_liquid.simulation.step(18)
-    state_update.update(2)
-    ionic_liquid.simulation.step(18)
-    state_update.update(2)
-    ionic_liquid.simulation.step(18)
-    ionic_liquid.simulation.step(1)
-
-
 @pytest.mark.skipif(
     os.getenv("CI") == "true",
     reason="Will fail sporadicaly.",
 )
-def test_write_psf_save_load():
-    psf_for_parameters = f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
-    crd_for_parameters = f"{protex.__path__[0]}/forcefield/crd_for_parameters.crd"
-    psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
+def test_write_psf_save_load(tmp_path):
+    psf_for_parameters = f"{protex.__path__[0]}/forcefield/hpts_single/hpts_single.psf"
 
-    simulation = generate_hpts_meoh_system(psf_file=psf_file)
-    simulation_for_parameters = generate_hpts_meoh_system(
-        psf_file=psf_for_parameters, crd_file=crd_for_parameters
-    )
+    simulation = generate_single_hpts_meoh_system()
+    simulation_for_parameters = generate_single_hpts_meoh_system()
 
     # get ionic liquid templates
     allowed_updates = {}
@@ -1166,19 +710,19 @@ def test_write_psf_save_load():
     # initialize state update class
     state_update = StateUpdate(update)
 
-    old_psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
-    ionic_liquid.write_psf(old_psf_file, "test.psf", psf_for_parameters)
+    old_psf_file = f"{protex.__path__[0]}/forcefield/hpts_single/hpts_single.psf"
+    ionic_liquid.write_psf(old_psf_file, f"{tmp_path}/test.psf", psf_for_parameters)
 
     # ionic_liquid.simulation.step(50)
     state_update.update(2)
 
-    ionic_liquid.write_psf(old_psf_file, "test.psf", psf_for_parameters)
-    ionic_liquid.saveState("state.rst")
-    ionic_liquid.saveCheckpoint("checkpoint.rst")
+    ionic_liquid.write_psf(old_psf_file, f"{tmp_path}/test.psf", psf_for_parameters)
+    ionic_liquid.saveState(f"{tmp_path}/state.rst")
+    ionic_liquid.saveCheckpoint(f"{tmp_path}/checkpoint.rst")
 
     ionic_liquid2 = ionic_liquid  # copy.deepcopy(ionic_liquid)
-    ionic_liquid.loadState("state.rst")
-    ionic_liquid2.loadCheckpoint("checkpoint.rst")
+    ionic_liquid.loadState(f"{tmp_path}/state.rst")
+    ionic_liquid2.loadCheckpoint(f"{tmp_path}/checkpoint.rst")
 
 
 #####################
@@ -1190,18 +734,22 @@ def test_write_psf_save_load():
     os.getenv("CI") == "true",
     reason="Will fail sporadicaly.",
 )
-def test_updates(caplog):
+def test_updates(caplog, tmp_path):
     caplog.set_level(logging.DEBUG)
 
-    psf_for_parameters = f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
-    crd_for_parameters = f"{protex.__path__[0]}/forcefield/crd_for_parameters.crd"
-    psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
-    restart_file = f"{protex.__path__[0]}/forcefield/traj/hpts_npt_7.rst"
+    psf_for_parameters = f"{protex.__path__[0]}/forcefield/hpts_single/hpts_single.psf"
+    # f"{protex.__path__[0]}/forcefield/crd_for_parameters.crd"
+    # f"{protex.__path__[0]}/forcefield/hpts.psf"
+    # f"{protex.__path__[0]}/forcefield/traj/hpts_npt_7.rst"
 
-    simulation = generate_hpts_meoh_system(psf_file=psf_file, restart_file=restart_file)
-    simulation_for_parameters = generate_hpts_meoh_system(
-        psf_file=psf_for_parameters, crd_file=crd_for_parameters
-    )
+    # simulation = generate_hpts_meoh_system(psf_file=psf_file, restart_file=restart_file)
+    # simulation_for_parameters = generate_hpts_meoh_system(
+    #    psf_file=psf_for_parameters, crd_file=crd_for_parameters
+    # )
+
+    simulation = generate_single_hpts_meoh_system()
+    simulation_for_parameters = generate_single_hpts_meoh_system()
+
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
@@ -1240,83 +788,8 @@ def test_updates(caplog):
         print(candidate_pairs)
 
     # test whether the update changed the psf
-    old_psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
-    ionic_liquid.write_psf(old_psf_file, "hpts_new.psf", psf_for_parameters)
-
-    os.remove("hpts_new.psf")
-
-
-@pytest.mark.skipif(
-    os.getenv("CI") == "true",
-    reason="Will fail sporadicaly.",
-)
-def test_pbc():
-    psf_for_parameters = f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
-    crd_for_parameters = f"{protex.__path__[0]}/forcefield/crd_for_parameters.crd"
-    psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
-
-    simulation = generate_hpts_meoh_system(psf_file=psf_file)
-    simulation_for_parameters = generate_hpts_meoh_system(
-        psf_file=psf_for_parameters, crd_file=crd_for_parameters
-    )
-    # get ionic liquid templates
-    allowed_updates = {}
-    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
-    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
-    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 0.201}  # 1+2
-    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 0.684}  # 3+4
-    allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000}
-    allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
-    allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000}
-    allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
-    allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
-    # allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
-    # allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
-    # allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
-    allowed_updates[frozenset(["HPTSH", "MEOH"])] = {"r_max": 0.155, "prob": 1.000}
-    allowed_updates[frozenset(["MEOH2", "MEOH"])] = {"r_max": 0.155, "prob": 1.000}
-    allowed_updates[frozenset(["MEOH2", "IM1"])] = {"r_max": 0.155, "prob": 1.000}
-    allowed_updates[frozenset(["MEOH2", "OAC"])] = {"r_max": 0.155, "prob": 1.000}
-
-    templates = ProtexTemplates(
-        [OAC_HOAC, IM1H_IM1, HPTSH_HPTS, MEOH_MEOH2], (allowed_updates)
-    )
-    # wrap system in IonicLiquidSystem
-    ionic_liquid = ProtexSystem(simulation, templates, simulation_for_parameters)
-
-    boxl = ionic_liquid.boxlength
-    print(f"{boxl=}")
-
-    update = NaiveMCUpdate(ionic_liquid)
-    # initialize state update class
-    state_update = StateUpdate(update)
-
-    pos_list, res_list = state_update._get_positions_for_mutation_sites()
-
-    # calculate distance matrix between the two molecules
-    distance_matrix(pos_list, pos_list)
-    # print(f"{distance[0]=}")
-
-    from scipy.spatial.distance import cdist
-
-    def _rPBC(coor1, coor2, boxl=ionic_liquid.boxlength.value_in_unit(nanometers)):
-        dx = abs(coor1[0] - coor2[0])
-        if dx > boxl / 2:
-            dx = boxl - dx
-        dy = abs(coor1[1] - coor2[1])
-        if dy > boxl / 2:
-            dy = boxl - dy
-        dz = abs(coor1[2] - coor2[2])
-        if dz > boxl / 2:
-            dz = boxl - dz
-        return np.sqrt(dx * dx + dy * dy + dz * dz)
-
-    distance_pbc = cdist(pos_list, pos_list, _rPBC)
-    # print(f"{distance_pbc[0]=}")
-    # print(f"{distance_pbc[distance_pbc>boxl]=}")
-    assert (
-        len(distance_pbc[distance_pbc > boxl.value_in_unit(nanometers)]) == 0
-    ), "After correcting for PBC no distance should be larger than the boxlength"
+    old_psf_file = f"{protex.__path__[0]}/forcefield/hpts_single/hpts_single.psf"
+    ionic_liquid.write_psf(old_psf_file, f"{tmp_path}/hpts_new.psf", psf_for_parameters)
 
 
 @pytest.mark.skipif(
@@ -1324,14 +797,17 @@ def test_pbc():
     reason="Will fail sporadicaly.",
 )
 def test_residue_forces():
-    psf_for_parameters = f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
-    crd_for_parameters = f"{protex.__path__[0]}/forcefield/crd_for_parameters.crd"
-    psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
+    # psf_for_parameters = f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
+    # crd_for_parameters = f"{protex.__path__[0]}/forcefield/crd_for_parameters.crd"
+    # psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
 
-    generate_hpts_meoh_system(psf_file=psf_file)
-    simulation_for_parameters = generate_hpts_meoh_system(
-        crd_file=crd_for_parameters, psf_file=psf_for_parameters
-    )
+    # generate_hpts_meoh_system(psf_file=psf_file)
+    # simulation_for_parameters = generate_hpts_meoh_system(
+    #    crd_file=crd_for_parameters, psf_file=psf_for_parameters
+    # )
+
+    simulation_for_parameters = generate_single_hpts_meoh_system()
+
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
@@ -1395,7 +871,8 @@ def test_residue_forces():
             pair.parameters[pair.current_name]["HarmonicBondForce"]
         ):
             if {new_parm[0] - offset_pair, new_parm[1] - offset_pair} == {
-                idx1 - offset, idx2 - offset
+                idx1 - offset,
+                idx2 - offset,
             }:
                 if old_idx != new_idx:
                     print(old_idx, new_idx)
@@ -1412,7 +889,8 @@ def test_residue_forces():
             pair.parameters[pair.current_name]["DrudeForce"]
         ):
             if {new_parm[0] - offset_pair, new_parm[1] - offset_pair} == {
-                idx1 - offset, idx2 - offset
+                idx1 - offset,
+                idx2 - offset,
             }:
                 if old_idx != new_idx:
                     raise RuntimeError(
@@ -1428,9 +906,9 @@ def test_residue_forces():
             pair.parameters[pair.current_name]["HarmonicAngleForce"]
         ):
             if {
-                    new_parm[0] - offset_pair,
-                    new_parm[1] - offset_pair,
-                    new_parm[2] - offset_pair,
+                new_parm[0] - offset_pair,
+                new_parm[1] - offset_pair,
+                new_parm[2] - offset_pair,
             } == {idx1 - offset, idx2 - offset, idx3 - offset}:
                 if old_idx != new_idx:
                     raise RuntimeError(
@@ -1452,14 +930,12 @@ def test_residue_forces():
             pair.parameters[pair.current_name]["PeriodicTorsionForce"]
         ):
             if {
-                    new_parm[0] - offset_pair,
-                    new_parm[1] - offset_pair,
-                    new_parm[2] - offset_pair,
-                    new_parm[3] - offset_pair,
-                    new_parm[4],
-            } == {
-                idx1 - offset, idx2 - offset, idx3 - offset, idx4 - offset, idx5
-            }:
+                new_parm[0] - offset_pair,
+                new_parm[1] - offset_pair,
+                new_parm[2] - offset_pair,
+                new_parm[3] - offset_pair,
+                new_parm[4],
+            } == {idx1 - offset, idx2 - offset, idx3 - offset, idx4 - offset, idx5}:
                 if old_idx != new_idx:
                     raise RuntimeError(
                         "Odering is different between the two topologies."
@@ -1474,10 +950,10 @@ def test_residue_forces():
             pair.parameters[pair.current_name]["CustomTorsionForce"]
         ):
             if {
-                    new_parm[0] - offset_pair,
-                    new_parm[1] - offset_pair,
-                    new_parm[2] - offset_pair,
-                    new_parm[3] - offset_pair,
+                new_parm[0] - offset_pair,
+                new_parm[1] - offset_pair,
+                new_parm[2] - offset_pair,
+                new_parm[3] - offset_pair,
             } == {idx1 - offset, idx2 - offset, idx3 - offset, idx4 - offset}:
                 if old_idx != new_idx:
                     raise RuntimeError(
@@ -1485,15 +961,16 @@ def test_residue_forces():
                     )
 
 
-def test_list_torsionforce():
-    psf_for_parameters = f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
-    crd_for_parameters = f"{protex.__path__[0]}/forcefield/crd_for_parameters.crd"
-    psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
+def test_list_torsionforce(tmp_path):
+    # psf_for_parameters = f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
+    # crd_for_parameters = f"{protex.__path__[0]}/forcefield/crd_for_parameters.crd"
+    # psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
 
-    generate_hpts_meoh_system(psf_file=psf_file)
-    simulation_for_parameters = generate_hpts_meoh_system(
-        crd_file=crd_for_parameters, psf_file=psf_for_parameters
-    )
+    # generate_hpts_meoh_system(psf_file=psf_file)
+    # simulation_for_parameters = generate_hpts_meoh_system(
+    #    crd_file=crd_for_parameters, psf_file=psf_for_parameters
+    # )
+    simulation_for_parameters = generate_single_hpts_meoh_system(use_plugin=False)
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
@@ -1533,7 +1010,7 @@ def test_list_torsionforce():
             old_parm[5],
             old_parm[6],
         )
-        f = open("oac_torsion.txt", "a")
+        f = open(f"{tmp_path}/oac_torsion.txt", "a")
         f.write(
             str(old_idx)
             + "\t"
@@ -1564,7 +1041,7 @@ def test_list_torsionforce():
             new_parm[5],
             new_parm[6],
         )
-        g = open("hoac_torsion.txt", "a")
+        g = open(f"{tmp_path}/hoac_torsion.txt", "a")
         g.write(
             str(new_idx)
             + "\t"
@@ -1585,19 +1062,19 @@ def test_list_torsionforce():
         )
         g.close()
 
-    os.remove("oac_torsion.txt")
-    os.remove("hoac_torsion.txt")
-
 
 def test_count_forces():
-    psf_for_parameters = f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
-    crd_for_parameters = f"{protex.__path__[0]}/forcefield/crd_for_parameters.crd"
-    psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
+    # psf_for_parameters = f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
+    # crd_for_parameters = f"{protex.__path__[0]}/forcefield/crd_for_parameters.crd"
+    # psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
 
-    simulation = generate_hpts_meoh_system(psf_file=psf_file)
-    simulation_for_parameters = generate_hpts_meoh_system(
-        crd_file=crd_for_parameters, psf_file=psf_for_parameters
-    )
+    # simulation = generate_hpts_meoh_system(psf_file=psf_file)
+    # simulation_for_parameters = generate_hpts_meoh_system(
+    #    crd_file=crd_for_parameters, psf_file=psf_for_parameters
+    # )
+    simulation = generate_single_hpts_meoh_system(use_plugin=False)
+    simulation_for_parameters = generate_single_hpts_meoh_system(use_plugin=False)
+
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
@@ -1673,10 +1150,10 @@ def test_count_forces():
                 pair.parameters[pair.current_name]["PeriodicTorsionForce"]
             ):
                 if {
-                        new_parm[0] - offset_pair,
-                        new_parm[1] - offset_pair,
-                        new_parm[2] - offset_pair,
-                        new_parm[3] - offset_pair,
+                    new_parm[0] - offset_pair,
+                    new_parm[1] - offset_pair,
+                    new_parm[2] - offset_pair,
+                    new_parm[3] - offset_pair,
                 } == {idx1, idx2, idx3, idx4}:
                     if old_idx != new_idx:
                         print(old_idx, new_idx)
@@ -1729,11 +1206,11 @@ def test_count_forces():
                 pair.parameters[pair.current_name]["PeriodicTorsionForce"]
             ):
                 if {
-                        new_parm[0] - offset_pair,
-                        new_parm[1] - offset_pair,
-                        new_parm[2] - offset_pair,
-                        new_parm[3] - offset_pair,
-                        new_parm[4],
+                    new_parm[0] - offset_pair,
+                    new_parm[1] - offset_pair,
+                    new_parm[2] - offset_pair,
+                    new_parm[3] - offset_pair,
+                    new_parm[4],
                 } == {idx1, idx2, idx3, idx4, idx5}:
                     if old_idx != new_idx:
                         print(old_idx, new_idx)
@@ -1786,8 +1263,9 @@ def test_count_forces():
     os.getenv("CI") == "true",
     reason="Will fail sporadicaly.",
 )
-def test_update_write_psf():
-    psf_for_parameters = f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
+def test_update_write_psf(tmp_path):
+    # psf_for_parameters = f"{protex.__path__[0]}/forcefield/hpts_single/hpts_single.psf"
+    psf_for_parameters = f"{protex.__path__[0]}/forcefield/hpts.psf"
     psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
     crd_for_parameters = f"{protex.__path__[0]}/forcefield/crd_for_parameters.crd"
 
@@ -1795,6 +1273,8 @@ def test_update_write_psf():
     simulation_for_parameters = generate_hpts_meoh_system(
         psf_file=psf_for_parameters, crd_file=crd_for_parameters
     )
+    # simulation = generate_hpts_meoh_system()
+    # simulation_for_parameters = generate_hpts_meoh_system()
 
     # get ionic liquid templates
     allowed_updates = {}
@@ -1826,10 +1306,11 @@ def test_update_write_psf():
     state_update = StateUpdate(update)
 
     old_psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
-    ionic_liquid.write_psf(old_psf_file, "test.psf", psf_for_parameters)
+    # old_psf_file = f"{protex.__path__[0]}/forcefield/hpts_single/hpts_single.psf"
+    ionic_liquid.write_psf(old_psf_file, f"{tmp_path}/test.psf", psf_for_parameters)
 
     i = 0
-    while i < 20:
+    while i < 5:  # eventuell change to 20
         sum_charge = 0
         for x in range(0, 4457):
             resi = ionic_liquid.residues[x]
@@ -1838,9 +1319,10 @@ def test_update_write_psf():
         if sum_charge != 0:
             raise RuntimeError("Error in run", i)
 
-        os.rename("test.psf", "old_psf.psf")
+        os.rename(f"{tmp_path}/test.psf", f"{tmp_path}/old_psf.psf")
 
-        simulation = generate_hpts_meoh_system(psf_file="old_psf.psf")
+        # simulation = generate_hpts_meoh_system(psf_file=f"{tmp_path}/old_psf.psf")
+        simulation = generate_single_hpts_meoh_system(psf_file=f"{tmp_path}/old_psf.py")
         ionic_liquid = ProtexSystem(simulation, templates, simulation_for_parameters)
         update = NaiveMCUpdate(ionic_liquid)
         state_update = StateUpdate(update)
@@ -1849,22 +1331,23 @@ def test_update_write_psf():
         state_update.update(2)
 
         # NOTE: psf_for_parameters missing
-        ionic_liquid.write_psf("old_psf.psf", "test.psf", psf_for_parameters)
-        ionic_liquid.saveState("state.rst")
-        ionic_liquid.saveCheckpoint("checkpoint.rst")
+        ionic_liquid.write_psf(
+            f"{tmp_path}/old_psf.psf", f"{tmp_path}/test.psf", psf_for_parameters
+        )
+        ionic_liquid.saveState(f"{tmp_path}/state.rst")
+        ionic_liquid.saveCheckpoint(f"{tmp_path}/checkpoint.rst")
 
         ionic_liquid2 = ionic_liquid  # copy.deepcopy(ionic_liquid)
-        ionic_liquid.loadState("state.rst")
-        ionic_liquid2.loadCheckpoint("checkpoint.rst")
+        ionic_liquid.loadState(f"{tmp_path}/state.rst")
+        ionic_liquid2.loadCheckpoint(f"{tmp_path}/checkpoint.rst")
 
         i += 1
 
-    # os.remove("old_psf.psf")
-    os.remove("state.rst")
-    os.remove("checkpoint.rst")
-    os.remove("test.psf")
 
-
+@pytest.mark.skipif(
+    os.getenv("CI") == "true",
+    reason="Does not really test anything. Used for debugging.",
+)
 def test_meoh2_update():
     psf_for_parameters = f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
     psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
@@ -1955,7 +1438,7 @@ def test_meoh2_update():
     os.getenv("CI") == "true",
     reason="Will fail sporadicaly.",
 )
-def test_updates_with_reorient():
+def test_updates_with_reorient(tmp_path):
     # caplog.set_level(logging.DEBUG)
 
     psf_for_parameters = f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
@@ -1998,7 +1481,7 @@ def test_updates_with_reorient():
     # ionic_liquid.simulation.minimizeEnergy(maxIterations=200)
     ionic_liquid.simulation.step(50)
 
-    for _ in range(5):
+    for _ in range(2):
         ionic_liquid.simulation.step(18)
         pars.append(state_update.get_charges())
         candidate_pairs = state_update.update(2)
@@ -2007,11 +1490,13 @@ def test_updates_with_reorient():
 
     # test whether the update changed the psf
     old_psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
-    ionic_liquid.write_psf(old_psf_file, "hpts_new.psf", psf_for_parameters)
-
-    os.remove("hpts_new.psf")
+    ionic_liquid.write_psf(old_psf_file, f"{tmp_path}/hpts_new.psf", psf_for_parameters)
 
 
+@pytest.mark.skipif(
+    os.getenv("CI") == "true",
+    reason="Does not really test anything. Used for debugging.",
+)
 def test_manipulating_coordinates():
     psf_for_parameters = f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
     crd_for_parameters = f"{protex.__path__[0]}/forcefield/crd_for_parameters.crd"

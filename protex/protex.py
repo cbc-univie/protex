@@ -1,14 +1,12 @@
-"""
-protex.py
-Proton exchange using SAMS and openMM for ionic liquids
+"""protex.py
+Proton exchange using SAMS and openMM for ionic liquids.
 
 Handles the primary functions
 """
 
 
 def canvas(with_attribution=True):
-    """
-    Placeholder function to show example docstring (NumPy format)
+    """Placeholder function to show example docstring (NumPy format).
 
     Replace this function and doc string for your own project
 
@@ -22,7 +20,6 @@ def canvas(with_attribution=True):
     quote : str
         Compiled string including quote and optional attribution
     """
-
     quote = "The code is but a canvas to our imagination."
     if with_attribution:
         quote += "\n\t- Adapted from Henry David Thoreau"

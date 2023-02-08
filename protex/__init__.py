@@ -1,6 +1,5 @@
-"""
-protex
-Proton exchange using SAMS and openMM for ionic liquids
+"""protex
+Proton exchange using SAMS and openMM for ionic liquids.
 """
 
 # Handle versioneer

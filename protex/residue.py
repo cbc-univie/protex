@@ -5,10 +5,10 @@ import numpy as np
 
 
 class Residue:
-    """Residue extends the OpenMM Residue Class by important features needed for the proton transfer
+    """Residue extends the OpenMM Residue Class by important features needed for the proton transfer.
 
     Parameters
-    -----------
+    ----------
     residue: openmm.app.topology.Residue
         The residue from  an OpenMM Topology
     alternativ_name: str
@@ -27,7 +27,7 @@ class Residue:
         if current name and alternative name have equivalent atoms
 
     Attributes
-    -----------
+    ----------
     residue: openmm.app.topology.Residue
         The residue from  an OpenMM Topology
     original_name: str
@@ -86,20 +86,22 @@ class Residue:
         self.equivalent_atom_pos_in_list: int = None
         self.used_equivalent_atom: bool = False
 
+    def __str__(self):
+        return f"Residue {self.current_name}, {self.residue}"
+
     @property
     def has_equivalent_atom(self):
-        """
-        Determines if the current residue has an equivalent atom defined.
+        """Determines if the current residue has an equivalent atom defined.
         It depends i.e if the residue is currently OAC (-> two equivalent O's) or HOAC (no equivlent O's).
         """
         return self.equivalent_atoms[self.current_name]
 
     @property
     def alternativ_name(self):
-        """Alternative name for the residue, e.g. the corresponding name for the protonated/deprotonated form
+        """Alternative name for the residue, e.g. the corresponding name for the protonated/deprotonated form.
 
         Returns
-        --------
+        -------
         str
         """
         for name in self.parameters.keys():
@@ -111,10 +113,10 @@ class Residue:
     ) -> (
         None
     ):  # we don't need to call update in context since we are doing this in NaiveMCUpdate
-        """Update the requested force in that residue
+        """Update the requested force in that residue.
 
         Parameters
-        -----------
+        ----------
         force_name: Name of the force to update
         lamb: lambda state at which to get corresponding values (between 0 and 1)
         """
@@ -136,6 +138,8 @@ class Residue:
         elif force_name == "DrudeForce":
             parms = self._get_DrudeForce_parameters_at_lambda(lamb)
             self._set_DrudeForce_parameters(parms)
+        else:
+            raise RuntimeWarning("Force name {force_name=} is not covered, no updates will happen on this one!")
 
     def _set_NonbondedForce_parameters(self, parms):
         parms_nonb = deque(parms[0])
@@ -710,7 +714,7 @@ class Residue:
 
     @property
     def endstate_charge(self) -> int:
-        """Charge of the residue at the endstate (will be int)"""
+        """Charge of the residue at the endstate (will be int)."""
         charge = int(
             np.round(
                 sum(
@@ -726,7 +730,7 @@ class Residue:
 
     @property
     def current_charge(self) -> int:
-        """Current charge of the residue"""
+        """Current charge of the residue."""
         charge = 0
         for force in self.system.getForces():
             if type(force).__name__ == "NonbondedForce":

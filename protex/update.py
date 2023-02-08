@@ -22,8 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 class Update(ABC):
-    """
-    ABC for implementing different Update Methods
+    """ABC for implementing different Update Methods.
 
     Parameters
     ----------
@@ -77,12 +76,11 @@ class Update(ABC):
     def _adapt_probabilities(
         self, to_adapt=list[tuple[str, int, frozenset[str]]]
     ) -> None:
-        """
-        Adapt the probability for certain events depending on the current equilibrium, in order to stay close to a given reference
-        i.e. prob_neu = prob_orig + K*( x(t) - x(eq) )^3 where x(t) is the current percentage in the system of one species
+        """Adapt the probability for certain events depending on the current equilibrium, in order to stay close to a given reference
+        i.e. prob_neu = prob_orig + K*( x(t) - x(eq) )^3 where x(t) is the current percentage in the system of one species.
 
-        Parameters:
-        -----------
+        Parameters
+        ----------
         to_adapt: List of tuples with first the residue name of the species,
             the number of residues of this species in the system
             and the specific reaction in which this species occurs and the probability should be updated
@@ -138,9 +136,8 @@ class Update(ABC):
 
 
 class KeepHUpdate(Update):
-    """
-    KeepHUpdate performs updates but uses the original H position
-    keep the position of the original H when switching from dummy to real H
+    """KeepHUpdate performs updates but uses the original H position
+    keep the position of the original H when switching from dummy to real H.
     """
 
     @staticmethod
@@ -392,8 +389,7 @@ class KeepHUpdate(Update):
 
 
 class NaiveMCUpdate(Update):
-    """
-    NaiveMCUpdate Performs naive MC update on molecule pairs in close proximity
+    """NaiveMCUpdate Performs naive MC update on molecule pairs in close proximity.
 
     Parameters
     ----------
@@ -500,9 +496,7 @@ class NaiveMCUpdate(Update):
 
 
 class StateUpdate:
-    """
-    Controls the update sheme and proposes the residues that need an update
-    """
+    """Controls the update sheme and proposes the residues that need an update."""
 
     @staticmethod
     def load(fname, updateMethod: Update) -> StateUpdate:
@@ -585,9 +579,7 @@ class StateUpdate:
         )
 
     def update(self, nr_of_steps: int = 2) -> list[tuple[Residue, Residue]]:
-        """
-        updates the current state using the method defined in the UpdateMethod class
-        """
+        """updates the current state using the method defined in the UpdateMethod class."""
         # calculate the distance betwen updateable residues
         pos_list, res_list = self._get_positions_for_mutation_sites()
         # propose the update candidates based on distances
@@ -615,10 +607,7 @@ class StateUpdate:
     def _propose_candidate_pair(
         self, pos_list: list[float], res_list: list[Residue], use_pbc: bool = True
     ) -> list[tuple[Residue, Residue]]:
-        """
-        Takes the return value of _get_positions_of_mutation_sites
-
-        """
+        """Takes the return value of _get_positions_of_mutation_sites."""
         assert len(pos_list) == len(
             res_list
         ), "Should be equal length and same order, because residue is found by index of pos list"
@@ -738,9 +727,7 @@ class StateUpdate:
         return proposed_candidate_pairs
 
     def _get_positions_for_mutation_sites(self) -> tuple[list[float], list[Residue]]:
-        """
-        _get_positions_for_mutation_sites returns
-        """
+        """_get_positions_for_mutation_sites returns."""
         pos = self.ionic_liquid.simulation.context.getState(
             getPositions=True
         ).getPositions(asNumpy=True)

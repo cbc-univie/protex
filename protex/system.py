@@ -19,11 +19,10 @@ logger = logging.getLogger(__name__)
 
 
 class ProtexTemplates:
-    """
-    Creates the basic foundation for the Protex System.
+    """Creates the basic foundation for the Protex System.
 
     Parameters
-    -----------
+    ----------
     states:
         A list of dictionary depicting the residue name and the atom name which should be changed, i.e.:
 
@@ -50,7 +49,7 @@ class ProtexTemplates:
             allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.155, "prob": 0.684}
 
     Attributes
-    -----------
+    ----------
     pairs:
         A list with the pairs where the hydrogen can be transfered
     states:
@@ -100,8 +99,7 @@ class ProtexTemplates:
         return self.states[resname][self._equivalent_atom]
 
     def get_update_value_for(self, residue_set: frozenset[str], property: str) -> float:
-        """
-        returns the value in the allowed updates dictionary
+        """returns the value in the allowed updates dictionary.
 
         Parameters
         ----------
@@ -133,8 +131,7 @@ class ProtexTemplates:
     def set_update_value_for(
         self, residue_set: frozenset[str], property: str, value: float
     ):
-        """
-        Updates a value in the allowed updates dictionary
+        """Updates a value in the allowed updates dictionary.
 
         Parameters
         ----------
@@ -154,7 +151,6 @@ class ProtexTemplates:
         RuntimeError
             is raised if new residue_set or new property is trying to be inserted
         """
-
         if (
             residue_set in self.allowed_updates
             and property in self.allowed_updates[residue_set]
@@ -184,8 +180,7 @@ class ProtexTemplates:
     #             return self.states[name]["canonical_name"]
 
     def get_residue_name_for_coupled_state(self, name: str):
-        """
-        get_residue_name_of_paired_ion returns the paired residue name given a reisue name
+        """get_residue_name_of_paired_ion returns the paired residue name given a reisue name.
 
         Parameters
         ----------
@@ -215,8 +210,7 @@ class ProtexTemplates:
 
     # Not used
     def get_charge_template_for(self, name: str):
-        """
-        get_charge_template_for returns the charge template for a residue
+        """get_charge_template_for returns the charge template for a residue.
 
         Parameters
         ----------
@@ -239,8 +233,7 @@ class ProtexTemplates:
 
 
 class ProtexSystem:
-    """
-    This class defines the full system, performs the MD steps and offers an
+    """This class defines the full system, performs the MD steps and offers an
     interface for protonation state updates.
 
     Parameters
@@ -471,11 +464,9 @@ class ProtexSystem:
                 )
 
     def _set_initial_states(self) -> list:
-        """
-        set_initial_states For each ionic liquid residue in the system the protonation state
+        """set_initial_states For each ionic liquid residue in the system the protonation state
         is interfered from the provided openMM system object and the protonation site is defined.
         """
-
         # self._build_exclusion_list()
         pair_12_13_list = self._build_exclusion_list(self.topology)
 
@@ -581,9 +572,7 @@ class ProtexSystem:
         psf: parmed.charmm.CharmmPsfFile,
         parameters: parmed.charmm.CharmmPsfFile,
     ) -> parmed.charmm.CharmmPsfFile:
-        """
-        Helper function to adapt the psf
-        """
+        """Helper function to adapt the psf."""
         # print(len(self.residues), len(psf.residues))
         assert len(self.residues) == len(psf.residues)
 
@@ -733,9 +722,8 @@ class ProtexSystem:
         new_psf_outfname: str,
         psf_for_parameters: str = None,
     ) -> None:
-        """
-        write a new psf file, which reflects the occured transfer events and changed residues
-        to load the written psf create a new ionic_liquid instance and load the new psf via OpenMM
+        """write a new psf file, which reflects the occured transfer events and changed residues
+        to load the written psf create a new ionic_liquid instance and load the new psf via OpenMM.
 
         Parameters
         ----------
@@ -775,8 +763,7 @@ class ProtexSystem:
     #     struct.save(fname, format=None, overwrite=False, **kwargs)
 
     def saveCheckpoint(self, file) -> None:
-        """
-        Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object
+        """Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object.
 
         Parameters
         ----------
@@ -787,7 +774,7 @@ class ProtexSystem:
         self.simulation.saveCheckpoint(file)
 
     def loadCheckpoint(self, file) -> None:
-        """Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object
+        """Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object.
 
         Parameters
         ----------
@@ -798,7 +785,7 @@ class ProtexSystem:
         self.simulation.loadCheckpoint(file)
 
     def saveState(self, file) -> None:
-        """Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object
+        """Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object.
 
         Parameters
         ----------
@@ -809,7 +796,7 @@ class ProtexSystem:
         self.simulation.saveState(file)
 
     def loadState(self, file) -> None:
-        """Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object
+        """Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object.
 
         Parameters
         ----------
@@ -820,8 +807,7 @@ class ProtexSystem:
         self.simulation.loadState(file)
 
     def save_updates(self, file) -> None:
-        """
-        Save the current update values into a yaml file. Used to have the current probability values.
+        """Save the current update values into a yaml file. Used to have the current probability values.
 
         Parameters
         ----------
@@ -836,8 +822,7 @@ class ProtexSystem:
             yaml.dump(data, f, default_flow_style=False)
 
     def load_updates(self, file) -> None:
-        """
-        Load the current update values from a yaml file, which was generated using "save_updates".
+        """Load the current update values from a yaml file, which was generated using "save_updates".
 
         Parameters
         ----------

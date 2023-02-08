@@ -47,6 +47,7 @@ class ChargeReporter:
 
     def describeNextReport(self, simulation):
         """Get information about the next report this object will generate.
+
         Parameters
         ----------
         simulation : Simulation
@@ -87,7 +88,7 @@ class ChargeReporter:
 
 
 class EnergyReporter:
-    """Energy reporter reports the energy contributions to the potential energy"""
+    """Energy reporter reports the energy contributions to the potential energy."""
 
     def __init__(
         self,
@@ -108,6 +109,7 @@ class EnergyReporter:
 
     def describeNextReport(self, simulation):
         """Get information about the next report this object will generate.
+
         Parameters
         ----------
         simulation : Simulation
@@ -160,8 +162,7 @@ class EnergyReporter:
 
 # Reporter from https://github.com/z-gong/openmm-velocityVerlet/tree/master/examples/ommhelper/reporter
 class DrudeTemperatureReporter:
-    """
-    DrudeTemperatureReporter reports the temperatures of different DOFs in a Drude simulation system.
+    """DrudeTemperatureReporter reports the temperatures of different DOFs in a Drude simulation system.
 
     The temperatures for three sets of degrees of freedom are reported
     -- molecular center of mass, internal atomic and Drude temperature.
