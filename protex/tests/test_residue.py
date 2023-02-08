@@ -31,17 +31,24 @@ try:  # Syntax changed in OpenMM 7.6
 except ImportError:
     import simtk.openmm as mm
     from simtk.openmm import (
-        OpenMMException,
-        Platform,
         Context,
         DrudeNoseHooverIntegrator,
+        OpenMMException,
+        Platform,
         XmlSerializer,
     )
-    from simtk.openmm.app import DCDReporter, PDBReporter, StateDataReporter
-    from simtk.openmm.app import CharmmCrdFile, CharmmParameterSet, CharmmPsfFile
-    from simtk.openmm.app import PME, HBonds
-    from simtk.openmm.app import Simulation
-    from simtk.unit import angstroms, kelvin, picoseconds, nanometers
+    from simtk.openmm.app import (
+        PME,
+        CharmmCrdFile,
+        CharmmParameterSet,
+        CharmmPsfFile,
+        DCDReporter,
+        HBonds,
+        PDBReporter,
+        Simulation,
+        StateDataReporter,
+    )
+    from simtk.unit import angstroms, kelvin, nanometers, picoseconds
 
 from ..reporter import ChargeReporter, EnergyReporter
 from ..residue import Residue

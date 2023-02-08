@@ -10,9 +10,9 @@ try:
     from openmm.app import DCDReporter, StateDataReporter
     from openmm.unit import angstroms, kelvin, nanometers, picoseconds
 except ImportError:
-    from simtk.openmm.app import StateDataReporter, DCDReporter
-    from simtk.openmm import XmlSerializer, Platform, DrudeNoseHooverIntegrator
-    from simtk.unit import angstroms, kelvin, picoseconds, nanometers
+    from simtk.openmm import DrudeNoseHooverIntegrator, Platform, XmlSerializer
+    from simtk.openmm.app import DCDReporter, StateDataReporter
+    from simtk.unit import angstroms, kelvin, nanometers, picoseconds
 
 import protex
 
