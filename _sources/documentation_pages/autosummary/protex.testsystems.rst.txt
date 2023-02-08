@@ -15,6 +15,7 @@
       :toctree:
       :nosignatures:
    
+      generate_hpts_meoh_lj04_system
       generate_hpts_meoh_system
       generate_hpts_system
       generate_im1h_oac_dummy_system
