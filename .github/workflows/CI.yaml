@@ -88,7 +88,7 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
         mamba-version: "*"
-        environment-file: devtools/conda-envs/openmm7.6.yaml
+        # environment-file: devtools/conda-envs/openmm7.6.yaml
         channels: conda-forge,defaults
         channel-priority: true
         activate-environment: openmm7.6
@@ -97,9 +97,10 @@ jobs:
         #show-channel-urls: true
         use-only-tar-bz2: true # IMPORTANT: This needs to be set for caching to work properly!
       
-    #- name: Update environment
-    #  run: conda env update -n openmm7.6 -f devtools/conda-envs/openmm7.6.yaml
-    #  # if: steps.cache.outputs.cache-hit != 'true'
+    - name: Update environment
+      # run: conda env update -n openmm7.6 -f devtools/conda-envs/openmm7.6.yaml
+      run: mamba env update -n openmm7.6 -f devtools/conda-envs/openmm7.6.yaml
+      # if: steps.cache.outputs.cache-hit != 'true'
         
     - name: Install package
 
