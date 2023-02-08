@@ -1,59 +1,20 @@
 import logging
-import os
 from collections import defaultdict
-from sys import stdout
 
-import pytest
 
-import protex
 
 try:  # Syntax changed in OpenMM 7.6
     import openmm as mm
-    from openmm import (
-        Context,
-        DrudeNoseHooverIntegrator,
-        OpenMMException,
-        Platform,
-        XmlSerializer,
-    )
-    from openmm.app import (
-        PME,
-        CharmmCrdFile,
-        CharmmParameterSet,
-        CharmmPsfFile,
-        DCDReporter,
-        HBonds,
-        PDBReporter,
-        Simulation,
-        StateDataReporter,
-    )
-    from openmm.unit import angstroms, kelvin, md_kilocalories, nanometers, picoseconds
+    from openmm.unit import angstroms, md_kilocalories
 except ImportError:
     import simtk.openmm as mm
-    from simtk.openmm import (
-        OpenMMException,
-        Platform,
-        Context,
-        DrudeNoseHooverIntegrator,
-        XmlSerializer,
-    )
-    from simtk.openmm.app import DCDReporter, PDBReporter, StateDataReporter
-    from simtk.openmm.app import CharmmCrdFile, CharmmParameterSet, CharmmPsfFile
-    from simtk.openmm.app import PME, HBonds
-    from simtk.openmm.app import Simulation
-    from simtk.unit import angstroms, kelvin, picoseconds, nanometers
+    from simtk.unit import angstroms
 
-from ..reporter import ChargeReporter, EnergyReporter
-from ..residue import Residue
 from ..system import ProtexSystem, ProtexTemplates
 from ..testsystems import (
     IM1H_IM1,
     OAC_HOAC,
-    generate_im1h_oac_dummy_system,
-    generate_im1h_oac_system,
-    generate_im1h_oac_system_clap,
     generate_single_im1h_oac_system,
-    generate_small_box,
 )
 from ..update import NaiveMCUpdate, StateUpdate
 
@@ -76,14 +37,7 @@ def test_update_single():
     ionic_liquid = ProtexSystem(simulation, templates)
     FORCES = ["HarmonicBondForce","HarmonicAngleForce","PeriodicTorsionForce","CustomTorsionForce", "DrudeForce", "NonbondedForce"]
     LOGGER.debug(f"{FORCES=}")
-    name_function = {"HarmonicBondForce": [Residue._get_HarmonicBondForce_parameters_at_lambda, Residue._set_HarmonicBondForce_parameters],
-                     "HarmonicAngleForce": [Residue._get_HarmonicAngleForce_parameters_at_lambda, Residue._set_HarmonicAngleForce_parameters],
-                     "PeriodicTorsionForce": [Residue._get_PeriodicTorsionForce_parameters_at_lambda, Residue._set_PeriodicTorsionForce_parameters],
-                     "CustomTorsionForce": [Residue._get_CustomTorsionForce_parameters_at_lambda, Residue._set_CustomTorsionForce_parameters],
-                     "DrudeForce": [Residue._get_DrudeForce_parameters_at_lambda, Residue._set_DrudeForce_parameters],
-                     "NonbondedForce": [Residue._get_NonbondedForce_parameters_at_lambda, Residue._set_DrudeForce_parameters]
-                     }
-    
+
     pair_12_13_list = ionic_liquid._build_exclusion_list(ionic_liquid.topology)
     def get_params(force, force_name, atom_idxs, forces_dict):
         params = []
@@ -98,7 +52,7 @@ def test_update_single():
                 ):  # atom index of bond force needs to be in atom_idxs
                     params.append(f)
                     forces_dict[force_name].append(f)
-        
+
         elif force_name == "HarmonicAngleForce":
             for bond_id in range(force.getNumAngles()):
                 f = force.getAngleParameters(bond_id)
@@ -126,7 +80,7 @@ def test_update_single():
                 ):  # atom index of bond force needs to be in atom_idxs
                     params.append(f)
                     forces_dict[force_name].append(f)
-        
+
         elif force_name == "DrudeForce":
             for drude_id in range(force.getNumParticles()):
                 f = force.getParticleParameters(drude_id)
@@ -178,22 +132,22 @@ def test_update_single():
         #print(f"hallo3 {residue=}") # uses __repr__
         forces_dict0 = defaultdict(list)
         forces_dict1 = defaultdict(list)
-        
+
         for force in ionic_liquid.system.getForces():
-            force_name = type(force).__name__ 
+            force_name = type(force).__name__
             if force_name in FORCES:
                 LOGGER.debug(f"At force {force_name}")
                 atom_idxs = residue.atom_idxs
-                params0 = get_params(force, force_name, atom_idxs, forces_dict0)
-               
+                get_params(force, force_name, atom_idxs, forces_dict0)
+
         assert forces_dict0 == forces_orig
 
         for force in ionic_liquid.system.getForces():
-            force_name = type(force).__name__ 
+            force_name = type(force).__name__
             if force_name in FORCES:
                 residue.update(force_name, 1)
                 ionic_liquid.update_context(force_name)
-                params2 = get_params(force, force_name, atom_idxs, forces_dict1)
+                get_params(force, force_name, atom_idxs, forces_dict1)
         #assert forces_dict1 == forces_alternativ # npt working because indices change
         for key in forces_dict1:
             # after update 1 -> changes
@@ -318,7 +272,7 @@ def test_residues():
     residue = ionic_liquid.residues[1]
 
     assert (residue.get_idx_for_atom_name("H")) == 31
-    
+
 def test_single_harmonic_force(caplog):
     caplog.set_level(logging.DEBUG)
 
