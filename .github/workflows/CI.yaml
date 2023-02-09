@@ -41,10 +41,15 @@ jobs:
         include:
           - os: ubuntu-latest
             label: linux-64
-            prefix: /usr/share/miniconda3/envs/openmm7.6 
+            # prefix: /usr/share/miniconda3/envs/openmm7.6
+            environment-file: devtools/conda-envs/openmm7.6.yaml
+            miniforge-variant: Mambaforge
+            miniforge-version: 4.9.2-4
           - os: macos-latest
             label: osx-64
-            prefix: /Users/runner/miniconda3/envs/openmm7.6
+            # prefix: /Users/runner/miniconda3/envs/openmm7.6
+            environment-file: devtools/conda-envs/openmm7.6.yaml
+            miniforge-variant: Mambaforge-pypy3
 
     steps:
     - name: test
@@ -54,7 +59,7 @@ jobs:
       if: ${{ github.event_name == 'push' }}
       run: echo "hi2"
       
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v3
 
     - name: Additional info about the build
       shell: bash
@@ -68,7 +73,7 @@ jobs:
       
     - name: Make Cache (no worflow_dispatch)
       if: ${{ github.event_name != 'workflow_dispatch' }}
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: ~/conda_pkgs_dir # ${{ matrix.prefix }}
         # Increase the last number (0) to reset cache manually
@@ -77,7 +82,7 @@ jobs:
       
     - name: Make Cache (worflow_dispatch)
       if: ${{ github.event_name == 'workflow_dispatch' }}
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: ~/conda_pkgs_dir # ${{ matrix.prefix }}
         key: ${{ matrix.label }}-conda-${{ hashFiles('devtools/conda-envs/openmm7.6.yaml') }}-${{ env.DATE }}-${{ inputs.CACHE_NUMBER }}
@@ -87,16 +92,24 @@ jobs:
     - uses: conda-incubator/setup-miniconda@v2
       with:
         python-version: ${{ matrix.python-version }}
-        #environment-file: devtools/conda-envs/openmm7.6.yaml
-        #channels: conda-forge,defaults
+        condarc-file: ${{ matrix.condarc-file }}
+        environment-file: ${{ matrix.environment-file }}
+        miniforge-variant: ${{ matrix.miniforge-variant }}
+        miniforge-version: ${{ matrix.miniforge-version }}
+        use-mamba: true
+        # mamba-version: "*"
+        # environment-file: devtools/conda-envs/openmm7.6.yaml
+        channels: conda-forge,defaults
+        # channel-priority: true
         activate-environment: openmm7.6
         #auto-update-conda: false
         auto-activate-base: false
         #show-channel-urls: true
         use-only-tar-bz2: true # IMPORTANT: This needs to be set for caching to work properly!
       
-    - name: Update environment
-      run: conda env update -n openmm7.6 -f devtools/conda-envs/openmm7.6.yaml
+    #- name: Update environment
+      # run: conda env update -n openmm7.6 -f devtools/conda-envs/openmm7.6.yaml
+      # run: mamba env update -n openmm7.6 -f devtools/conda-envs/openmm7.6.yaml
       # if: steps.cache.outputs.cache-hit != 'true'
         
     - name: Install package
@@ -105,7 +118,11 @@ jobs:
       shell: bash -l {0}
       run: |
         python -m pip install . --no-deps
+        conda info
         conda list
+        conda config --show-sources
+        conda config --show
+        printenv | sort
     
 
     - name: Run tests (workflow_dispatch)
