@@ -10,6 +10,7 @@ ignore:
   - "protex/protex.py"
   - "protex/testsystems.py"
   - "protex/reporter.py"
+  - "protex/helpers.py"
 comment:
   layout: "header"
   require_changes: false

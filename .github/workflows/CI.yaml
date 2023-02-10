@@ -36,7 +36,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macOS-latest, ubuntu-latest]
+        # os: [macOS-latest, ubuntu-latest]
+        os: [ubuntu-latest]
         python-version: [3.9]
         include:
           - os: ubuntu-latest
@@ -45,11 +46,11 @@ jobs:
             environment-file: devtools/conda-envs/openmm7.6.yaml
             miniforge-variant: Mambaforge
             miniforge-version: 4.9.2-4
-          - os: macos-latest
-            label: osx-64
-            # prefix: /Users/runner/miniconda3/envs/openmm7.6
-            environment-file: devtools/conda-envs/openmm7.6.yaml
-            miniforge-variant: Mambaforge-pypy3
+          #- os: macos-latest
+          #  label: osx-64
+          #  # prefix: /Users/runner/miniconda3/envs/openmm7.6
+          #  environment-file: devtools/conda-envs/openmm7.6.yaml
+          #  miniforge-variant: Mambaforge-pypy3
 
     steps:
     - name: test

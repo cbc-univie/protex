@@ -46,6 +46,7 @@ from ..testsystems import (
     IM1H_IM1,
     OAC_HOAC,
     generate_im1h_oac_dummy_system,
+    generate_im1h_oac_system,
     generate_single_im1h_oac_system,
     generate_small_box,
 )
@@ -55,6 +56,21 @@ from ..update import NaiveMCUpdate, StateUpdate
 #################
 # single
 #############
+@pytest.mark.skipif(
+    os.getenv("CI") == "true",
+    reason="No need to run it in CI, just here to check when ParmEd support our problem",
+)
+def test_parmed_hack(tmp_path):
+    psf_file = "protex/forcefield/dummy/nonumaniso.psf"
+    simulation = generate_im1h_oac_system(psf_file=psf_file)
+    allowed_updates = {}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.165, "prob": 1}
+    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+    ionic_liquid = ProtexSystem(simulation, templates)
+    ionic_liquid.write_psf(
+        psf_file,
+        f"{tmp_path}/test.psf",
+    )
 
 
 @pytest.mark.skipif(
@@ -118,6 +134,7 @@ def test_write_psf_save_load_single(tmp_path):
     #    "protex/forcefield/single_pairs/im1_hoac_2.psf", "test_1.rst"
     # )
 
+
 def test_forces():
     simulation = generate_single_im1h_oac_system()
     system = simulation.system
@@ -135,7 +152,7 @@ def test_forces():
 
     # iterate over residues, select the first residue for HOAC and OAC and save the individual bonded forces
     for ridx, r in enumerate(topology.residues()):
-        if r.name == "HOAC": # and ridx == 650:  # match first HOAC residue
+        if r.name == "HOAC":  # and ridx == 650:  # match first HOAC residue
             names.append(r.name)
             atom_idxs[r.name] = [atom.index for atom in r.atoms()]
             atom_names[r.name] = [atom.name for atom in r.atoms()]
@@ -150,7 +167,7 @@ def test_forces():
                         ):  # atom index of bond force needs to be in atom_idxs
                             force_state[r.name].append(f)
 
-        if r.name == "OAC": # and ridx == 150:
+        if r.name == "OAC":  # and ridx == 150:
             names.append(r.name)
             atom_idxs[r.name] = [atom.index for atom in r.atoms()]
             atom_names[r.name] = [atom.name for atom in r.atoms()]
@@ -190,8 +207,9 @@ def test_forces():
 
         raise AssertionError("ohoh")
 
+
 def test_torsion_forces():
-    #simulation = generate_im1h_oac_system()
+    # simulation = generate_im1h_oac_system()
     simulation = generate_single_im1h_oac_system()
     system = simulation.system
     topology = simulation.topology
@@ -202,7 +220,7 @@ def test_torsion_forces():
 
     # iterate over residues, select the first residue for HOAC and OAC and save the individual bonded forces
     for ridx, r in enumerate(topology.residues()):
-        if r.name == "HOAC": # and ridx == 650:  # match first HOAC residue
+        if r.name == "HOAC":  # and ridx == 650:  # match first HOAC residue
             names.append(r.name)
             atom_idxs[r.name] = [atom.index for atom in r.atoms()]
             atom_names[r.name] = [atom.name for atom in r.atoms()]
@@ -225,7 +243,7 @@ def test_torsion_forces():
                             force_state[r.name].append(f)
                             print("hoac", f)
 
-        if r.name == "OAC": # and ridx == 150:
+        if r.name == "OAC":  # and ridx == 150:
             names.append(r.name)
             atom_idxs[r.name] = [atom.index for atom in r.atoms()]
             atom_names[r.name] = [atom.name for atom in r.atoms()]
@@ -273,7 +291,7 @@ def test_torsion_forces():
 
     # iterate over residues, select the first residue for HOAC and OAC and save the individual bonded forces
     for ridx, r in enumerate(topology.residues()):
-        if r.name == "HOAC": # and ridx == 650:  # match first HOAC residue
+        if r.name == "HOAC":  # and ridx == 650:  # match first HOAC residue
             names.append(r.name)
             atom_idxs[r.name] = [atom.index for atom in r.atoms()]
             atom_names[r.name] = [atom.name for atom in r.atoms()]
@@ -296,7 +314,7 @@ def test_torsion_forces():
                             force_state[r.name].append(f)
                             print("hoac", f)
 
-        if r.name == "OAC": # and ridx == 150:
+        if r.name == "OAC":  # and ridx == 150:
             names.append(r.name)
             atom_idxs[r.name] = [atom.index for atom in r.atoms()]
             atom_names[r.name] = [atom.name for atom in r.atoms()]
@@ -365,7 +383,7 @@ def test_drude_forces():
 
     # iterate over residues, select the first residue for HOAC and OAC and save the individual bonded forces
     for ridx, r in enumerate(topology.residues()):
-        if r.name == "HOAC": # and ridx == 650:  # match first HOAC residue
+        if r.name == "HOAC":  # and ridx == 650:  # match first HOAC residue
             names.append(r.name)
             atom_idxs[r.name] = [atom.index for atom in r.atoms()]
             atom_names[r.name] = [atom.name for atom in r.atoms()]
@@ -397,7 +415,7 @@ def test_drude_forces():
                     print(f)
                     force_state_thole[r.name].append(f)
 
-        if r.name == "OAC": # and ridx == 150:
+        if r.name == "OAC":  # and ridx == 150:
             names.append(r.name)
             atom_idxs[r.name] = [atom.index for atom in r.atoms()]
             atom_names[r.name] = [atom.name for atom in r.atoms()]
@@ -536,6 +554,7 @@ def test_save_load_allowedupdates(tmp_path):
 
     assert allowed_updates == ionic_liquid.templates.allowed_updates
 
+
 @pytest.mark.skipif(
     os.getenv("CI") == "true",
     reason="Skipping tests that cannot pass in github actions",
@@ -582,6 +601,7 @@ def test_reporter_class(tmp_path):
     ionic_liquid.simulation.step(18)
     ionic_liquid.simulation.step(1)
 
+
 @pytest.mark.skipif(
     os.getenv("CI") == "true",
     reason="Skipping tests that cannot pass in github actions",
@@ -619,9 +639,11 @@ def test_pickle(tmp_path):
     ionic_liquid = ProtexSystem.load(f"{tmp_path}/ionicliquid.pkl", simulation)
     assert ionic_liquid.boxlength == boxl
 
+
 #########################
 # Tests with large system
 #########################
+
 
 def test_available_platforms():
     # =======================================================================
@@ -804,7 +826,6 @@ def test_available_platforms():
 #     ionic_liquid2 = ionic_liquid  # copy.deepcopy(ionic_liquid)
 #     ionic_liquid.loadState(f"{tmp_path}/statec.rst")
 #     ionic_liquid2.loadCheckpoint(f"{tmp_path}/checkpointc.rst")
-
 
 
 @pytest.mark.skipif(
