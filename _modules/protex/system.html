@@ -165,7 +165,13 @@
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">simtk.openmm</span> <span class="k">as</span> <span class="nn">openmm</span>
 
+<span class="kn">from</span> <span class="nn">protex.helpers</span> <span class="kn">import</span> <span class="n">CustomPSFFile</span>
 <span class="kn">from</span> <span class="nn">protex.residue</span> <span class="kn">import</span> <span class="n">Residue</span>
+
+<span class="c1"># Use custom write function for now, remove with new parmed version</span>
+<span class="c1"># https://github.com/ParmEd/ParmEd/pull/1274</span>
+<span class="c1"># as in parmed/formats/__init__.py:</span>
+<span class="n">parmed</span><span class="o">.</span><span class="n">Structure</span><span class="o">.</span><span class="n">write_psf</span> <span class="o">=</span> <span class="n">CustomPSFFile</span><span class="o">.</span><span class="n">write</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
