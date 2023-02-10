@@ -25,6 +25,9 @@ requirements:
     - numpy
     - pyyaml
     - parmed
+    - pytest
+    - pytest-cov
+    - codecov
 
 test:
   imports:
