@@ -11,6 +11,7 @@ repos:
     -   id: check-yaml
         args:
         -   --unsafe
+        exclude: devtools/meta.yaml  
     -   id: end-of-file-fixer
         types: [python]
     -   id: trailing-whitespace
