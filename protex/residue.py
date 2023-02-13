@@ -1,5 +1,6 @@
 import itertools
 from collections import deque
+import openmm
 
 import numpy as np
 
@@ -67,15 +68,16 @@ class Residue:
         self.residue = residue
         self.original_name = residue.name
         self.current_name = self.original_name
+        self.system = system
         self.atom_idxs = [atom.index for atom in residue.atoms()]
         self.atom_names = [atom.name for atom in residue.atoms()]
+        self.exception_idxs = self._set_exception_idxs()
         self.parameters = {
             self.original_name: inital_parameters,
             alternativ_name: alternativ_parameters,
         }
         self.record_charge_state = []
         # self.canonical_name = canonical_name
-        self.system = system
         self.record_charge_state.append(self.endstate_charge)  # Not used anywhere?
         self.pair_12_13_list = pair_12_13_exclusion_list
         # self.has_equivalent_atom: bool = has_equivalent_atom
@@ -85,6 +87,19 @@ class Residue:
         }
         self.equivalent_atom_pos_in_list: int = None
         self.used_equivalent_atom: bool = False
+
+    def _set_exception_idxs(self) -> list[tuple[int]]:
+        exception_idxs = []
+        nbond_force = [
+            f for f in self.system.getForces() if isinstance(f, openmm.NonbondedForce)
+        ][0]
+        for exc_idx in range(nbond_force.getNumExceptions()):
+            f = nbond_force.getExceptionParameters(exc_idx)
+            idx1 = f[0]
+            idx2 = f[1]
+            if idx1 in self.atom_idxs and idx2 in self.atom_idxs:
+                exception_idxs.append((exc_idx, idx1, idx2))
+        return exception_idxs
 
     def __str__(self):
         return f"Residue {self.current_name}, {self.residue}"
@@ -139,7 +154,9 @@ class Residue:
             parms = self._get_DrudeForce_parameters_at_lambda(lamb)
             self._set_DrudeForce_parameters(parms)
         else:
-            raise RuntimeWarning("Force name {force_name=} is not covered, no updates will happen on this one!")
+            raise RuntimeWarning(
+                "Force name {force_name=} is not covered, no updates will happen on this one!"
+            )
 
     def _set_NonbondedForce_parameters(self, parms):
         parms_nonb = deque(parms[0])
@@ -150,15 +167,20 @@ class Residue:
                     charge, sigma, epsilon = parms_nonbonded
                     force.setParticleParameters(idx, charge, sigma, epsilon)
 
-                for exc_idx in range(force.getNumExceptions()):
-                    f = force.getExceptionParameters(exc_idx)
-                    idx1 = f[0]
-                    idx2 = f[1]
-                    if idx1 in self.atom_idxs and idx2 in self.atom_idxs:
-                        chargeprod, sigma, epsilon = parms_exceptions.popleft()
-                        force.setExceptionParameters(
-                            exc_idx, idx1, idx2, chargeprod, sigma, epsilon
-                        )
+                for exc_idx, idx1, idx2 in self.exception_idxs:
+                    chargeprod, sigma, epsilon = parms_exceptions.popleft()
+                    force.setExceptionParameters(
+                        exc_idx, idx1, idx2, chargeprod, sigma, epsilon
+                    )
+                # for exc_idx in range(force.getNumExceptions()):
+                #     f = force.getExceptionParameters(exc_idx)
+                #     idx1 = f[0]
+                #     idx2 = f[1]
+                #     if idx1 in self.atom_idxs and idx2 in self.atom_idxs:
+                #         chargeprod, sigma, epsilon = parms_exceptions.popleft()
+                #         force.setExceptionParameters(
+                #             exc_idx, idx1, idx2, chargeprod, sigma, epsilon
+                #         )
 
     def _set_HarmonicBondForce_parameters(self, parms):
         parms = deque(parms)
@@ -313,9 +335,10 @@ class Residue:
         for old_idx, old_parm in enumerate(self.parameters[current_name][force_name]):
             idx1, idx2 = old_parm[0], old_parm[1]
             for new_idx, new_parm in enumerate(self.parameters[new_name][force_name]):
-                if {
-                    new_parm[0] - new_parms_offset, new_parm[1] - new_parms_offset
-                } == {idx1 - old_parms_offset, idx2 - old_parms_offset}:
+                if {new_parm[0] - new_parms_offset, new_parm[1] - new_parms_offset} == {
+                    idx1 - old_parms_offset,
+                    idx2 - old_parms_offset,
+                }:
                     if old_idx != new_idx:
                         raise RuntimeError(
                             "Odering of Nonbonded Exception parameters is different between the two topologies."
@@ -383,9 +406,10 @@ class Residue:
         for old_idx, old_parm in enumerate(self.parameters[old_name][force_name]):
             idx1, idx2 = old_parm[0], old_parm[1]
             for new_idx, new_parm in enumerate(self.parameters[new_name][force_name]):
-                if {
-                    new_parm[0] - new_parms_offset, new_parm[1] - new_parms_offset
-                } == {idx1 - old_parms_offset, idx2 - old_parms_offset}:
+                if {new_parm[0] - new_parms_offset, new_parm[1] - new_parms_offset} == {
+                    idx1 - old_parms_offset,
+                    idx2 - old_parms_offset,
+                }:
                     if old_idx != new_idx:
                         raise RuntimeError(
                             "Odering of bond parameters is different between the two topologies.\n"
@@ -429,13 +453,13 @@ class Residue:
             idx1, idx2, idx3 = old_parm[0], old_parm[1], old_parm[2]
             for new_idx, new_parm in enumerate(self.parameters[new_name][force_name]):
                 if {
-                        new_parm[0] - new_parms_offset,
-                        new_parm[1] - new_parms_offset,
-                        new_parm[2] - new_parms_offset,
+                    new_parm[0] - new_parms_offset,
+                    new_parm[1] - new_parms_offset,
+                    new_parm[2] - new_parms_offset,
                 } == {
-                        idx1 - old_parms_offset,
-                        idx2 - old_parms_offset,
-                        idx3 - old_parms_offset,
+                    idx1 - old_parms_offset,
+                    idx2 - old_parms_offset,
+                    idx3 - old_parms_offset,
                 }:
                     if old_idx != new_idx:
                         raise RuntimeError(
@@ -507,10 +531,10 @@ class Residue:
                     self.parameters[new_name][force_name]
                 ):
                     if {
-                            new_parm[0] - new_parms_offset,
-                            new_parm[1] - new_parms_offset,
-                            new_parm[2] - new_parms_offset,
-                            new_parm[3] - new_parms_offset,
+                        new_parm[0] - new_parms_offset,
+                        new_parm[1] - new_parms_offset,
+                        new_parm[2] - new_parms_offset,
+                        new_parm[3] - new_parms_offset,
                     } == {idx1, idx2, idx3, idx4}:
                         if old_idx != new_idx:
                             raise RuntimeError(
@@ -528,11 +552,11 @@ class Residue:
                     self.parameters[new_name][force_name]
                 ):
                     if {
-                            new_parm[0] - new_parms_offset,
-                            new_parm[1] - new_parms_offset,
-                            new_parm[2] - new_parms_offset,
-                            new_parm[3] - new_parms_offset,
-                            new_parm[4],
+                        new_parm[0] - new_parms_offset,
+                        new_parm[1] - new_parms_offset,
+                        new_parm[2] - new_parms_offset,
+                        new_parm[3] - new_parms_offset,
+                        new_parm[4],
                     } == {idx1, idx2, idx3, idx4, idx5}:
                         if old_idx != new_idx:
                             raise RuntimeError(
@@ -579,15 +603,15 @@ class Residue:
             idx1, idx2, idx3, idx4 = old_parm[0], old_parm[1], old_parm[2], old_parm[3]
             for new_idx, new_parm in enumerate(self.parameters[new_name][force_name]):
                 if {
-                        new_parm[0] - new_parms_offset,
-                        new_parm[1] - new_parms_offset,
-                        new_parm[2] - new_parms_offset,
-                        new_parm[3] - new_parms_offset,
+                    new_parm[0] - new_parms_offset,
+                    new_parm[1] - new_parms_offset,
+                    new_parm[2] - new_parms_offset,
+                    new_parm[3] - new_parms_offset,
                 } == {
-                        idx1 - old_parms_offset,
-                        idx2 - old_parms_offset,
-                        idx3 - old_parms_offset,
-                        idx4 - old_parms_offset,
+                    idx1 - old_parms_offset,
+                    idx2 - old_parms_offset,
+                    idx3 - old_parms_offset,
+                    idx4 - old_parms_offset,
                 }:
                     if old_idx != new_idx:
                         raise RuntimeError(
@@ -633,9 +657,10 @@ class Residue:
         for old_idx, old_parm in enumerate(self.parameters[old_name][force_name]):
             idx1, idx2 = old_parm[0], old_parm[1]
             for new_idx, new_parm in enumerate(self.parameters[new_name][force_name]):
-                if {
-                    new_parm[0] - new_parms_offset, new_parm[1] - new_parms_offset
-                } == {idx1 - old_parms_offset, idx2 - old_parms_offset}:
+                if {new_parm[0] - new_parms_offset, new_parm[1] - new_parms_offset} == {
+                    idx1 - old_parms_offset,
+                    idx2 - old_parms_offset,
+                }:
                     if old_idx != new_idx:
                         raise RuntimeError(
                             "Odering of bond parameters is different between the two topologies."
@@ -679,9 +704,10 @@ class Residue:
         for old_idx, old_parm in enumerate(self.parameters[old_name][force_name]):
             idx1, idx2 = old_parm[0], old_parm[1]
             for new_idx, new_parm in enumerate(self.parameters[new_name][force_name]):
-                if {
-                    new_parm[0] - new_parms_offset, new_parm[1] - new_parms_offset
-                } == {idx1 - old_parms_offset, idx2 - old_parms_offset}:
+                if {new_parm[0] - new_parms_offset, new_parm[1] - new_parms_offset} == {
+                    idx1 - old_parms_offset,
+                    idx2 - old_parms_offset,
+                }:
                     if old_idx != new_idx:
                         raise RuntimeError(
                             "Odering of bond parameters is different between the two topologies."
