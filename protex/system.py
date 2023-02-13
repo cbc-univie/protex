@@ -279,6 +279,7 @@ class ProtexSystem:
         self.simulation: openmm.app.simulation.Simulation = simulation
         self.templates: ProtexTemplates = templates
         self.simulation_for_parameters = simulation_for_parameters
+        #self.d = self._force_idx_dict()
         self.residues: list[Residue] = self._set_initial_states()
         self.boxlength: openmm.Quantity = (
             simulation.context.getState().getPeriodicBoxVectors()[0][0]
@@ -452,10 +453,7 @@ class ProtexSystem:
                 logger.critical(len(forces_state1[force_name]))
                 logger.critical(len(forces_state2[force_name]))
 
-                for (
-                    b1,
-                    b2,
-                ) in zip(
+                for (b1, b2,) in zip(
                     forces_state1[force_name],
                     forces_state2[force_name],
                 ):
@@ -468,6 +466,20 @@ class ProtexSystem:
                 raise AssertionError(
                     "There are not the same number of forces or a wrong order. Possible Problems: Bond/Angle/... is missing. Urey_Bradley Term is not defined for both states, ...)"
                 )
+
+    def _force_idx_dict(self) -> dict[str, dict[str, tuple[int]]]:
+        d = {}
+        # automate force naming
+        d["NonbondedForce"] = {}
+        nbond_force = [
+            f for f in self.system.getForces() if isinstance(f, openmm.NonbondedForce)
+        ][0]
+        for exc_idx in range(nbond_force.getNumExceptions()):
+            f = nbond_force.getExceptionParameters(exc_idx)
+            idx1 = f[0]
+            idx2 = f[1]
+            d["NonbondedForce"][f"{idx1}{idx2}"] = (exc_idx, idx1, idx2)
+        return d
 
     def _set_initial_states(self) -> list:
         """set_initial_states For each ionic liquid residue in the system the protonation state
@@ -513,7 +525,13 @@ class ProtexSystem:
                 self._check_nr_of_forces(
                     parameters_state1, parameters_state2, name, name_of_paired_ion
                 )
-
+                # atom_idxs = [atom.index for atom in r.atoms()]
+                # combinations = itertools.combinations(atom_idxs, 2)
+                # exception_idxs = [
+                #     value
+                #     for key, value in self.d["NonbondedForce"].items()
+                #     if key in combinations
+                # ]
                 residues.append(
                     Residue(
                         r,
@@ -527,6 +545,7 @@ class ProtexSystem:
                             self.templates.has_equivalent_atom(name),
                             self.templates.has_equivalent_atom(name_of_paired_ion),
                         ),
+                        # exception_idxs,
                     )
                 )
                 residues[

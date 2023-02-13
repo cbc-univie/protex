@@ -64,6 +64,7 @@ class Residue:
         pair_12_13_exclusion_list,
         # has_equivalent_atom,
         has_equivalent_atoms,
+        # exception_idxs
     ) -> None:
         self.residue = residue
         self.original_name = residue.name
@@ -71,7 +72,7 @@ class Residue:
         self.system = system
         self.atom_idxs = [atom.index for atom in residue.atoms()]
         self.atom_names = [atom.name for atom in residue.atoms()]
-        self.exception_idxs = self._set_exception_idxs()
+        # self.exception_idxs = exception_idxs #self._set_exception_idxs()
         self.parameters = {
             self.original_name: inital_parameters,
             alternativ_name: alternativ_parameters,
@@ -88,18 +89,18 @@ class Residue:
         self.equivalent_atom_pos_in_list: int = None
         self.used_equivalent_atom: bool = False
 
-    def _set_exception_idxs(self) -> list[tuple[int]]:
-        exception_idxs = []
-        nbond_force = [
-            f for f in self.system.getForces() if isinstance(f, openmm.NonbondedForce)
-        ][0]
-        for exc_idx in range(nbond_force.getNumExceptions()):
-            f = nbond_force.getExceptionParameters(exc_idx)
-            idx1 = f[0]
-            idx2 = f[1]
-            if idx1 in self.atom_idxs and idx2 in self.atom_idxs:
-                exception_idxs.append((exc_idx, idx1, idx2))
-        return exception_idxs
+    # def _set_exception_idxs(self) -> list[tuple[int]]:
+    #     exception_idxs = []
+    #     nbond_force = [
+    #         f for f in self.system.getForces() if isinstance(f, openmm.NonbondedForce)
+    #     ][0]
+    #     for exc_idx in range(nbond_force.getNumExceptions()):
+    #         f = nbond_force.getExceptionParameters(exc_idx)
+    #         idx1 = f[0]
+    #         idx2 = f[1]
+    #         if idx1 in self.atom_idxs and idx2 in self.atom_idxs:
+    #             exception_idxs.append((exc_idx, idx1, idx2))
+    #     return exception_idxs
 
     def __str__(self):
         return f"Residue {self.current_name}, {self.residue}"
@@ -167,20 +168,21 @@ class Residue:
                     charge, sigma, epsilon = parms_nonbonded
                     force.setParticleParameters(idx, charge, sigma, epsilon)
 
-                for exc_idx, idx1, idx2 in self.exception_idxs:
-                    chargeprod, sigma, epsilon = parms_exceptions.popleft()
-                    force.setExceptionParameters(
-                        exc_idx, idx1, idx2, chargeprod, sigma, epsilon
-                    )
-                # for exc_idx in range(force.getNumExceptions()):
-                #     f = force.getExceptionParameters(exc_idx)
-                #     idx1 = f[0]
-                #     idx2 = f[1]
-                #     if idx1 in self.atom_idxs and idx2 in self.atom_idxs:
-                #         chargeprod, sigma, epsilon = parms_exceptions.popleft()
-                #         force.setExceptionParameters(
-                #             exc_idx, idx1, idx2, chargeprod, sigma, epsilon
-                #         )
+                # for exc_idx, idx1, idx2 in self.exception_idxs:
+                #     chargeprod, sigma, epsilon = parms_exceptions.popleft()
+                #     force.setExceptionParameters(
+                #         exc_idx, idx1, idx2, chargeprod, sigma, epsilon
+                #     )
+
+                for exc_idx in range(force.getNumExceptions()):
+                    f = force.getExceptionParameters(exc_idx)
+                    idx1 = f[0]
+                    idx2 = f[1]
+                    if idx1 in self.atom_idxs and idx2 in self.atom_idxs:
+                        chargeprod, sigma, epsilon = parms_exceptions.popleft()
+                        force.setExceptionParameters(
+                            exc_idx, idx1, idx2, chargeprod, sigma, epsilon
+                        )
 
     def _set_HarmonicBondForce_parameters(self, parms):
         parms = deque(parms)

@@ -2316,6 +2316,9 @@ from profilehooks import profile, timecall
 
 def test_profile_update():
     # import types
+    import time
+
+    start_tot = time.time()
 
     simulation = generate_im1h_oac_system()
     allowed_updates = {}
@@ -2327,11 +2330,21 @@ def test_profile_update():
         [OAC_HOAC, IM1H_IM1],
         allowed_updates,
     )
+    start = time.time()
     ionic_liquid = ProtexSystem(simulation, templates)
+    print(
+        "ProteySystem: ", time.time() - start
+    )  # 266.66s with new method, 30.789s with old method (still slow, but we want to be there again for now)
+    # new method with exlcusion list as argument to residue: 34.44s -> great!
     update = NaiveMCUpdate(ionic_liquid)
     # update._update = types.MethodType(_update_decorated, update)
     state_update = StateUpdate(update)
     state_update.update(2)
+
+    print("Total time: ", time.time() - start_tot)
+    # new method: 40.47 s
+    # old method: 53.17 s
+
     """
     len(candidate_pairs)=8
 
@@ -2386,3 +2399,66 @@ function called 1 times
         6    0.022    0.004    0.022    0.004 {method 'flush' of '_io.TextIOWrapper' objects}
     19344    0.015    0.000    0.015    0.000 {method '__deepcopy__' of 'numpy.generic' objects}
 """
+
+
+################################
+#         ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+# before:
+#             32    1.451    0.045   16.311    0.510 residue.py:144(_set_NonbondedForce_parameters)
+# after:
+#             32    0.002    0.000    0.114    0.004 residue.py:161(_set_NonbondedForce_parameters)
+
+# problem with current implementation: for each residue loop through all exception idxs, change this!
+"""
+len(candidate_pairs)=8
+
+*** PROFILER RESULTS ***
+_update (/home/florian/software/protex/protex/update.py:438)
+function called 1 times
+
+         3813723 function calls (3813688 primitive calls) in 1.168 seconds
+
+   Ordered by: cumulative time, internal time, call count
+   List reduced from 216 to 40 due to restriction <40>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.001    0.001    1.168    1.168 update.py:438(_update)
+       64    0.000    0.000    1.105    0.017 residue.py:126(update)
+       32    0.177    0.006    0.705    0.022 residue.py:259(_set_DrudeForce_parameters)
+   160000    0.141    0.000    0.434    0.000 openmm.py:12014(getParticleParameters)
+       32    0.065    0.002    0.278    0.009 residue.py:295(_get_NonbondedForce_parameters_at_lambda)
+    25792    0.012    0.000    0.184    0.000 quantity.py:619(value_in_unit)
+    51584    0.043    0.000    0.181    0.000 quantity.py:663(_change_units_with_factor)
+   386212    0.101    0.000    0.178    0.000 quantity.py:97(__init__)
+    25792    0.019    0.000    0.167    0.000 quantity.py:647(in_units_of)
+    12896    0.013    0.000    0.124    0.000 quantity.py:221(__add__)
+       32    0.002    0.000    0.114    0.004 residue.py:161(_set_NonbondedForce_parameters)
+   160160    0.073    0.000    0.110    0.000 unit.py:235(__pow__)
+     3616    0.007    0.000    0.096    0.000 openmm.py:4843(setExceptionParameters)
+    25792    0.018    0.000    0.093    0.000 quantity.py:377(__rmul__)
+   450692    0.060    0.000    0.090    0.000 quantity.py:787(is_quantity)
+   304000    0.038    0.000    0.089    0.000 openmm.py:12113(getScreenedPairParameters)
+    38688    0.038    0.000    0.081    0.000 copy.py:128(deepcopy)
+   795168    0.063    0.000    0.063    0.000 unit.py:203(__hash__)
+   304000    0.052    0.000    0.052    0.000 {built-in method openmm._openmm.DrudeForce_getScreenedPairParameters}
+    38688    0.028    0.000    0.042    0.000 unit.py:308(is_compatible)
+   160000    0.041    0.000    0.041    0.000 {built-in method openmm._openmm.DrudeForce_getParticleParameters}
+   480111    0.033    0.000    0.033    0.000 {built-in method builtins.isinstance}
+    51584    0.019    0.000    0.028    0.000 unit.py:338(is_dimensionless)
+        4    0.000    0.000    0.022    0.006 system.py:298(update_context)
+        2    0.000    0.000    0.021    0.011 openmm.py:5157(updateParametersInContext)
+        2    0.021    0.011    0.021    0.011 {built-in method openmm._openmm.NonbondedForce_updateParametersInContext}
+        4    0.000    0.000    0.021    0.005 openmm.py:3831(getState)
+        4    0.021    0.005    0.021    0.005 {built-in method openmm._openmm.Context_getState}
+    19344    0.015    0.000    0.015    0.000 {method '__deepcopy__' of 'numpy.generic' objects}
+      576    0.001    0.000    0.015    0.000 openmm.py:4743(setParticleParameters)
+    19344    0.010    0.000    0.013    0.000 copy.py:242(_keep_alive)
+        2    0.000    0.000    0.008    0.004 simulation.py:132(step)
+        2    0.000    0.000    0.008    0.004 simulation.py:182(_simulate)
+        2    0.000    0.000    0.008    0.004 velocityverletplugin.py:409(step)
+        2    0.008    0.004    0.008    0.004 {built-in method _velocityverletplugin.VVIntegrator_step}
+       32    0.002    0.000    0.008    0.000 residue.py:641(_get_DrudeForce_parameters_at_lambda)
+    29412    0.004    0.000    0.007    0.000 unit.py:703(is_unit)
+    77376    0.006    0.000    0.006    0.000 {built-in method builtins.id}
+    77388    0.006    0.000    0.006    0.000 {method 'get' of 'dict' objects}
+     3616    0.004    0.000    0.006    0.000 unit_operators.py:80(_unit_class_mul)"""
