@@ -51,7 +51,7 @@ select = [
   # flake8-2020
   "YTT",
   # flake8-annotations
-  "ANN",
+  # "ANN",
   # flake8-bugbear
   "B",
   # flake8-builtins
@@ -63,7 +63,7 @@ select = [
   # flake8-simplyfy
   # "SIM",
   # pylint
-  "PLE", "PLR", "PLW",
+  # "PLE", "PLR", "PLW",
 ]
 
 
@@ -121,7 +121,6 @@ exclude = [
     "node_modules",
     "venv",
 ]
-per-file-ignores = {}
 
 # Same as Black.
 line-length = 88
@@ -131,6 +130,9 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
 # Assume Python 3.11.
 target-version = "py39"
+
+[tool.ruff.per-file-ignores]
+"protex/tests/*" = ["D103", "D100"] # docstring for function
 
 [tool.ruff.pydocstyle]
 convention = "numpy"  # Accepts: "google", "numpy", or "pep257".
