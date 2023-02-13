@@ -11,7 +11,7 @@ import yaml
 try:
     import openmm
 except ImportError:
-    import simtk.openmm as openmm
+    from simtk import openmm
 
 from protex.helpers import CustomPSFFile
 from protex.residue import Residue
@@ -69,7 +69,8 @@ class ProtexTemplates:
     """
 
     @staticmethod
-    def load(fname) -> ProtexTemplates:
+    def load(fname: str) -> ProtexTemplates:
+        """Create ProtexTemplates from a pickled file."""
         with open(fname, "rb") as inp:
             templates = pickle.load(inp)
         return templates
@@ -92,6 +93,7 @@ class ProtexTemplates:
         self._equivalent_atom: str = "equivalent_atom"
 
     def dump(self, fname: str) -> None:
+        """Pickle ProtexTemplates to file."""
         with open(fname, "wb") as outp:
             pickle.dump(self, outp, pickle.HIGHEST_PROTOCOL)
 
@@ -105,7 +107,7 @@ class ProtexTemplates:
         return self.states[resname][self._equivalent_atom]
 
     def get_update_value_for(self, residue_set: frozenset[str], property: str) -> float:
-        """returns the value in the allowed updates dictionary.
+        """Return the value in the allowed updates dictionary.
 
         Parameters
         ----------
@@ -136,8 +138,8 @@ class ProtexTemplates:
 
     def set_update_value_for(
         self, residue_set: frozenset[str], property: str, value: float
-    ):
-        """Updates a value in the allowed updates dictionary.
+    ) -> None:
+        """Update a value in the allowed updates dictionary.
 
         Parameters
         ----------
@@ -185,7 +187,7 @@ class ProtexTemplates:
     #         if name in state:
     #             return self.states[name]["canonical_name"]
 
-    def get_residue_name_for_coupled_state(self, name: str):
+    def get_residue_name_for_coupled_state(self, name: str) -> str:
         """get_residue_name_of_paired_ion returns the paired residue name given a reisue name.
 
         Parameters
@@ -211,11 +213,10 @@ class ProtexTemplates:
                     return state_2
                 else:
                     return state_1
-        else:
-            raise RuntimeError("something went wrong")
+        raise RuntimeError("something went wrong")
 
     # Not used
-    def get_charge_template_for(self, name: str):
+    def get_charge_template_for(self, name: str) -> list:
         """get_charge_template_for returns the charge template for a residue.
 
         Parameters
@@ -239,8 +240,7 @@ class ProtexTemplates:
 
 
 class ProtexSystem:
-    """This class defines the full system, performs the MD steps and offers an
-    interface for protonation state updates.
+    """Defines the full system, performs the MD steps and offers an interface for protonation state updates.
 
     Parameters
     ----------
@@ -256,10 +256,11 @@ class ProtexSystem:
 
     @staticmethod
     def load(
-        fname,
+        fname: str,
         simulation: openmm.app.simulation.Simulation,
         simulation_for_parameters: openmm.app.simulation.Simulation = None,
     ) -> ProtexSystem:
+        """Create ProtexSystem from a pickled file."""
         with open(fname, "rb") as inp:
             from_pickle = pickle.load(inp)  # ensure correct order of arguments
         protex_system = ProtexSystem(
@@ -279,13 +280,15 @@ class ProtexSystem:
         self.simulation: openmm.app.simulation.Simulation = simulation
         self.templates: ProtexTemplates = templates
         self.simulation_for_parameters = simulation_for_parameters
-        #self.d = self._force_idx_dict()
+        self.pair_12_13_list = self._build_exclusion_list(self.topology)
+        self.d = self._force_idx_dict()
         self.residues: list[Residue] = self._set_initial_states()
         self.boxlength: openmm.Quantity = (
             simulation.context.getState().getPeriodicBoxVectors()[0][0]
         )  # NOTE: supports only cubic boxes
 
     def dump(self, fname: str) -> None:
+        """Pickle ProtexSystem to file."""
         to_pickle = [self.templates, self.residues]  # enusre correct order of arguments
         with open(fname, "wb") as outp:
             pickle.dump(to_pickle, outp, pickle.HIGHEST_PROTOCOL)
@@ -296,7 +299,8 @@ class ProtexSystem:
             current_number_of_each_residue_type[residue.current_name] += 1
         return current_number_of_each_residue_type
 
-    def update_context(self, name: str):
+    def update_context(self, name: str) -> None:
+        """Update the Context for the given force name."""
         for force in self.system.getForces():
             if type(force).__name__ == name:
                 force.updateParametersInContext(self.simulation.context)
@@ -320,10 +324,6 @@ class ProtexSystem:
                     pair_13_set.add(pair)
                     # there were duplicates in pair_13_set, e.g. (1,3) and (3,1), needs to be sorted
 
-        # self.pair_12_list = list(sorted(pair_12_set))
-        # self.pair_13_list = list(sorted(pair_13_set - pair_12_set))
-        # self.pair_12_13_list = self.pair_12_list + self.pair_13_list
-        # change to return the list and set the parameters in the init method?
         pair_12_list = list(sorted(pair_12_set))
         pair_13_list = list(sorted(pair_13_set - pair_12_set))
         pair_12_13_list = pair_12_list + pair_13_list
@@ -340,6 +340,8 @@ class ProtexSystem:
         else:
             sim = self.simulation
 
+        # attention, different one than the instance variable self.pair_12_13_list,
+        # if not all possible state are present in the current psf
         pair_12_13_list_params = self._build_exclusion_list(sim.topology)
 
         for residue in sim.topology.residues():
@@ -441,7 +443,9 @@ class ProtexSystem:
         return forces_dict
 
     @staticmethod
-    def _check_nr_of_forces(forces_state1, forces_state2, name, name_of_paired_ion):
+    def _check_nr_of_forces(
+        forces_state1, forces_state2, name: str, name_of_paired_ion: str
+    ) -> None:
         # check if two forces lists have the same number of forces
         assert len(forces_state1) == len(forces_state2)  # check the number of forces
         for force_name in forces_state1:
@@ -479,14 +483,60 @@ class ProtexSystem:
             idx1 = f[0]
             idx2 = f[1]
             d["NonbondedForce"][f"{idx1}{idx2}"] = (exc_idx, idx1, idx2)
+
+        d["DrudeForce"] = {}
+        drude_force = [
+            f for f in self.system.getForces() if isinstance(f, openmm.DrudeForce)
+        ][0]
+        for drude_idx in range(drude_force.getNumParticles()):
+            f = drude_force.getParticleParameters(drude_idx)
+            idx1 = f[0]
+            idx2 = f[1]
+            idx3 = f[2]
+            idx4 = f[3]
+            idx5 = f[4]
+            d["DrudeForce"][f"{idx1}{idx2}"] = (drude_idx, idx2, idx2, idx3, idx4, idx5)
+        d["DrudeForceThole"] = {}
+        for drude_idx in range(drude_force.getNumScreenedPairs()):
+            f = drude_force.getScreenedPairParameters(drude_idx)
+            idx1 = f[0]
+            idx2 = f[1]
+            parent1, parent2 = self.pair_12_13_list[drude_idx]
+            drude1, drude2 = parent1 + 1, parent2 + 1  # Drude comes after parent atom
+            d["DrudeForceThole"][f"{drude1}{drude2}"] = (drude_idx, idx1, idx2)
+
         return d
 
+    def _get_drude_list(self, combinations) -> list[tuple[int]]:
+        drude_idxs = [
+            value for key, value in self.d["DrudeForce"].items() if key in combinations
+        ]
+        return drude_idxs
+
+    def _get_thole_list(self, combinations) -> list[tuple[int]]:
+        thole_idxs = [
+            value
+            for key, value in self.d["DrudeForceThole"].items()
+            if key in combinations
+        ]
+        return thole_idxs
+
+    def _get_nbond_excpetion_list(self, combinations) -> list[tuple[int]]:
+        exception_idxs = [
+            value
+            for key, value in self.d["NonbondedForce"].items()
+            if key in combinations
+        ]
+        return exception_idxs
+
     def _set_initial_states(self) -> list:
-        """set_initial_states For each ionic liquid residue in the system the protonation state
+        """set_initial_states.
+
+        For each ionic liquid residue in the system the protonation state
         is interfered from the provided openMM system object and the protonation site is defined.
         """
         # self._build_exclusion_list()
-        pair_12_13_list = self._build_exclusion_list(self.topology)
+        # pair_12_13_list = self._build_exclusion_list(self.topology) -> moved to instance level, in init
 
         residues = []
         templates = dict()
@@ -525,13 +575,11 @@ class ProtexSystem:
                 self._check_nr_of_forces(
                     parameters_state1, parameters_state2, name, name_of_paired_ion
                 )
-                # atom_idxs = [atom.index for atom in r.atoms()]
-                # combinations = itertools.combinations(atom_idxs, 2)
-                # exception_idxs = [
-                #     value
-                #     for key, value in self.d["NonbondedForce"].items()
-                #     if key in combinations
-                # ]
+                atom_idxs = [
+                    atom.index for atom in r.atoms()
+                ]  # also give them to initilaizer, not inside residue?
+                combinations = itertools.combinations(atom_idxs, 2)
+
                 residues.append(
                     Residue(
                         r,
@@ -540,12 +588,16 @@ class ProtexSystem:
                         parameters_state1,
                         parameters_state2,
                         # self.templates.get_canonical_name(name),
-                        pair_12_13_list,
+                        self.pair_12_13_list,
                         (
                             self.templates.has_equivalent_atom(name),
                             self.templates.has_equivalent_atom(name_of_paired_ion),
                         ),
-                        # exception_idxs,
+                        nbond_exception_idxs=self._get_nbond_excpetion_list(
+                            combinations
+                        ),
+                        drude_idxs=self._get_drude_list(combinations),
+                        thole_idxs=self._get_thole_list(combinations),
                     )
                 )
                 residues[

@@ -2,7 +2,11 @@ import itertools
 from collections import deque
 
 import numpy as np
-import openmm
+
+# try:
+#     import openmm
+# except ImportError:
+#     from simtk import openmm
 
 
 class Residue:
@@ -64,7 +68,9 @@ class Residue:
         pair_12_13_exclusion_list,
         # has_equivalent_atom,
         has_equivalent_atoms,
-        # exception_idxs
+        nbond_exception_idxs=None,
+        drude_idxs=None,
+        thole_idxs=None,
     ) -> None:
         self.residue = residue
         self.original_name = residue.name
@@ -88,6 +94,9 @@ class Residue:
         }
         self.equivalent_atom_pos_in_list: int = None
         self.used_equivalent_atom: bool = False
+        self.nbond_exception_idxs: list[tuple[int]] | None = nbond_exception_idxs
+        self.drude_idxs: list[tuple[int]] | None = drude_idxs
+        self.thole_idxs: list[tuple[int]] | None = thole_idxs
 
     # def _set_exception_idxs(self) -> list[tuple[int]]:
     #     exception_idxs = []
@@ -102,18 +111,19 @@ class Residue:
     #             exception_idxs.append((exc_idx, idx1, idx2))
     #     return exception_idxs
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"Residue {self.current_name}, {self.residue}"
 
     @property
-    def has_equivalent_atom(self):
+    def has_equivalent_atom(self) -> bool:
         """Determines if the current residue has an equivalent atom defined.
+
         It depends i.e if the residue is currently OAC (-> two equivalent O's) or HOAC (no equivlent O's).
         """
         return self.equivalent_atoms[self.current_name]
 
     @property
-    def alternativ_name(self):
+    def alternativ_name(self) -> str:
         """Alternative name for the residue, e.g. the corresponding name for the protonated/deprotonated form.
 
         Returns
@@ -159,7 +169,7 @@ class Residue:
                 "Force name {force_name=} is not covered, no updates will happen on this one!"
             )
 
-    def _set_NonbondedForce_parameters(self, parms):
+    def _set_NonbondedForce_parameters(self, parms) -> None:  # noqa: N802
         parms_nonb = deque(parms[0])
         parms_exceptions = deque(parms[1])
         for force in self.system.getForces():
@@ -168,23 +178,24 @@ class Residue:
                     charge, sigma, epsilon = parms_nonbonded
                     force.setParticleParameters(idx, charge, sigma, epsilon)
 
-                # for exc_idx, idx1, idx2 in self.exception_idxs:
-                #     chargeprod, sigma, epsilon = parms_exceptions.popleft()
-                #     force.setExceptionParameters(
-                #         exc_idx, idx1, idx2, chargeprod, sigma, epsilon
-                #     )
-
-                for exc_idx in range(force.getNumExceptions()):
-                    f = force.getExceptionParameters(exc_idx)
-                    idx1 = f[0]
-                    idx2 = f[1]
-                    if idx1 in self.atom_idxs and idx2 in self.atom_idxs:
+                if self.nbond_exception_idxs is not None:  # use the fast way
+                    for exc_idx, idx1, idx2 in self.nbond_exception_idxs:
                         chargeprod, sigma, epsilon = parms_exceptions.popleft()
                         force.setExceptionParameters(
                             exc_idx, idx1, idx2, chargeprod, sigma, epsilon
                         )
+                else:  # use the old slow way
+                    for exc_idx in range(force.getNumExceptions()):
+                        f = force.getExceptionParameters(exc_idx)
+                        idx1 = f[0]
+                        idx2 = f[1]
+                        if idx1 in self.atom_idxs and idx2 in self.atom_idxs:
+                            chargeprod, sigma, epsilon = parms_exceptions.popleft()
+                            force.setExceptionParameters(
+                                exc_idx, idx1, idx2, chargeprod, sigma, epsilon
+                            )
 
-    def _set_HarmonicBondForce_parameters(self, parms):
+    def _set_HarmonicBondForce_parameters(self, parms) -> None:  # noqa: N802
         parms = deque(parms)
         for force in self.system.getForces():
             if type(force).__name__ == "HarmonicBondForce":
@@ -196,7 +207,7 @@ class Residue:
                         r, k = parms.popleft()
                         force.setBondParameters(bond_idx, idx1, idx2, r, k)
 
-    def _set_HarmonicAngleForce_parameters(self, parms):
+    def _set_HarmonicAngleForce_parameters(self, parms) -> None:  # noqa: N802
         parms = deque(parms)
 
         for force in self.system.getForces():
@@ -214,7 +225,7 @@ class Residue:
                         thetha, k = parms.popleft()
                         force.setAngleParameters(angle_idx, idx1, idx2, idx3, thetha, k)
 
-    def _set_PeriodicTorsionForce_parameters(self, parms):
+    def _set_PeriodicTorsionForce_parameters(self, parms) -> None:  # noqa: N802
         parms = deque(parms)
 
         for force in self.system.getForces():
@@ -236,7 +247,7 @@ class Residue:
                             torsion_idx, idx1, idx2, idx3, idx4, per, phase, k
                         )
 
-    def _set_CustomTorsionForce_parameters(self, parms):
+    def _set_CustomTorsionForce_parameters(self, parms) -> None:  # noqa: N802
         parms = deque(parms)
 
         for force in self.system.getForces():
@@ -258,19 +269,14 @@ class Residue:
                             torsion_idx, idx1, idx2, idx3, idx4, (k, psi0)
                         )
 
-    def _set_DrudeForce_parameters(self, parms):
+    def _set_DrudeForce_parameters(self, parms) -> None:  # noqa: N802
         parms_pol = deque(parms[0])
         parms_thole = deque(parms[1])
+
         for force in self.system.getForces():
             if type(force).__name__ == "DrudeForce":
-                for drude_idx in range(force.getNumParticles()):
-                    f = force.getParticleParameters(drude_idx)
-                    idx1 = f[0]
-                    idx2 = f[1]
-                    idx3 = f[2]
-                    idx4 = f[3]
-                    idx5 = f[4]
-                    if idx1 in self.atom_idxs and idx2 in self.atom_idxs:
+                if self.drude_idxs is not None:  # use the fast way
+                    for drude_idx, idx1, idx2, idx3, idx4, idx5 in self.drude_idxs:
                         charge, pol, aniso12, aniso14 = parms_pol.popleft()
                         force.setParticleParameters(
                             drude_idx,
@@ -284,17 +290,48 @@ class Residue:
                             aniso12,
                             aniso14,
                         )
-                for drude_idx in range(force.getNumScreenedPairs()):
-                    f = force.getScreenedPairParameters(drude_idx)
-                    idx1 = f[0]
-                    idx2 = f[1]
-                    parent1, parent2 = self.pair_12_13_list[drude_idx]
-                    drude1, drude2 = parent1 + 1, parent2 + 1
-                    if drude1 in self.atom_idxs and drude2 in self.atom_idxs:
+                else:
+                    for drude_idx in range(force.getNumParticles()):
+                        f = force.getParticleParameters(drude_idx)
+                        idx1 = f[0]
+                        idx2 = f[1]
+                        idx3 = f[2]
+                        idx4 = f[3]
+                        idx5 = f[4]
+                        if idx1 in self.atom_idxs and idx2 in self.atom_idxs:
+                            charge, pol, aniso12, aniso14 = parms_pol.popleft()
+                            force.setParticleParameters(
+                                drude_idx,
+                                idx1,
+                                idx2,
+                                idx3,
+                                idx4,
+                                idx5,
+                                charge,
+                                pol,
+                                aniso12,
+                                aniso14,
+                            )
+                if self.thole_idxs is not None:  # use the fast way
+                    for thole_idx, idx1, idx2 in self.thole_idxs:
                         thole = parms_thole.popleft()
-                        force.setScreenedPairParameters(drude_idx, idx1, idx2, thole)
+                        force.setScreenedPairParameters(thole_idx, idx1, idx2, thole)
+                else:
+                    for drude_idx in range(force.getNumScreenedPairs()):
+                        f = force.getScreenedPairParameters(drude_idx)
+                        idx1 = f[0]
+                        idx2 = f[1]
+                        parent1, parent2 = self.pair_12_13_list[drude_idx]
+                        drude1, drude2 = parent1 + 1, parent2 + 1
+                        if drude1 in self.atom_idxs and drude2 in self.atom_idxs:
+                            thole = parms_thole.popleft()
+                            force.setScreenedPairParameters(
+                                drude_idx, idx1, idx2, thole
+                            )
 
-    def _get_NonbondedForce_parameters_at_lambda(self, lamb: float) -> list[list[int]]:
+    def _get_NonbondedForce_parameters_at_lambda(  # noqa: N802
+        self, lamb: float
+    ) -> list[list[int]]:
         # returns interpolated sorted nonbonded Forces.
         assert lamb >= 0 and lamb <= 1
         current_name = self.current_name
@@ -387,7 +424,7 @@ class Residue:
             )
         )
 
-    def _get_HarmonicBondForce_parameters_at_lambda(self, lamb):
+    def _get_HarmonicBondForce_parameters_at_lambda(self, lamb):  # noqa: N802
         # returns nonbonded Forces ordered.
         assert lamb >= 0 and lamb <= 1
         # get the names of new and current state
@@ -436,7 +473,7 @@ class Residue:
 
         return parm_interpolated
 
-    def _get_HarmonicAngleForce_parameters_at_lambda(self, lamb):
+    def _get_HarmonicAngleForce_parameters_at_lambda(self, lamb):  # noqa: N802
         # returns HarmonicAngleForce Forces ordered.
         assert lamb >= 0 and lamb <= 1
         # get the names of new and current state
@@ -485,7 +522,7 @@ class Residue:
 
         return parm_interpolated
 
-    def _get_PeriodicTorsionForce_parameters_at_lambda(self, lamb):
+    def _get_PeriodicTorsionForce_parameters_at_lambda(self, lamb):  # noqa: N802
         # returns PeriodicTorsionForce Forces ordered.
         assert lamb >= 0 and lamb <= 1
         # get the names of new and current state
@@ -586,7 +623,7 @@ class Residue:
 
         return parm_interpolated
 
-    def _get_CustomTorsionForce_parameters_at_lambda(self, lamb):
+    def _get_CustomTorsionForce_parameters_at_lambda(self, lamb):  # noqa: N802
         # returns CustomTorsionForce Forces (=impropers) ordered.
         assert lamb >= 0 and lamb <= 1
         # get the names of new and current state
@@ -640,7 +677,7 @@ class Residue:
 
         return parm_interpolated
 
-    def _get_DrudeForce_parameters_at_lambda(self, lamb):
+    def _get_DrudeForce_parameters_at_lambda(self, lamb):  # noqa: N802
         # Split in two parts, one for charge and polarizability one for thole
         # returns a list with the two, different than the other get methods!
         # returns Drude Forces ordered.
@@ -735,10 +772,9 @@ class Residue:
         for idx, atom_name in zip(self.atom_idxs, self.atom_names):
             if query_atom_name == atom_name:
                 return idx
-        else:
-            raise RuntimeError(
-                f"Atom name '{query_atom_name}' not in atom names of residue '{self.current_name}'."
-            )
+        raise RuntimeError(
+            f"Atom name '{query_atom_name}' not in atom names of residue '{self.current_name}'."
+        )
 
     @property
     def endstate_charge(self) -> int:

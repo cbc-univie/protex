@@ -2333,7 +2333,7 @@ def test_profile_update():
     start = time.time()
     ionic_liquid = ProtexSystem(simulation, templates)
     print(
-        "ProteySystem: ", time.time() - start
+        "ProtexSystem: ", time.time() - start
     )  # 266.66s with new method, 30.789s with old method (still slow, but we want to be there again for now)
     # new method with exlcusion list as argument to residue: 34.44s -> great!
     update = NaiveMCUpdate(ionic_liquid)
@@ -2344,6 +2344,18 @@ def test_profile_update():
     print("Total time: ", time.time() - start_tot)
     # new method: 40.47 s
     # old method: 53.17 s
+
+    ################################
+    # improvement of update function:
+    ################################
+    # this is for 8 updates
+    #         ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+    # original:
+    #              1    0.002    0.002   17.369   17.369 update.py:438(_update)
+    # change _set_NonbondedForce_parameters:
+    #              1    0.001    0.001    1.168    1.168 update.py:438(_update)
+    # change _setDrudeForce_parameters:
+    #              1    0.001    0.001    0.440    0.440 update.py:438(_update) # speedup of ca. 3948%
 
     """
     len(candidate_pairs)=8
@@ -2462,3 +2474,59 @@ function called 1 times
     77376    0.006    0.000    0.006    0.000 {built-in method builtins.id}
     77388    0.006    0.000    0.006    0.000 {method 'get' of 'dict' objects}
      3616    0.004    0.000    0.006    0.000 unit_operators.py:80(_unit_class_mul)"""
+
+# after also changing set drude:
+"""
+len(candidate_pairs)=8
+
+*** PROFILER RESULTS ***
+_update (/home/florian/software/protex/protex/update.py:438)
+function called 1 times
+
+         908747 function calls (908712 primitive calls) in 0.440 seconds
+
+   Ordered by: cumulative time, internal time, call count
+   List reduced from 199 to 40 due to restriction <40>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.001    0.001    0.440    0.440 update.py:438(_update)
+       64    0.000    0.000    0.315    0.005 residue.py:137(update)
+       32    0.067    0.002    0.289    0.009 residue.py:332(_get_NonbondedForce_parameters_at_lambda)
+    40416    0.035    0.000    0.134    0.000 quantity.py:663(_change_units_with_factor)
+    12896    0.014    0.000    0.129    0.000 quantity.py:221(__add__)
+    14624    0.007    0.000    0.107    0.000 quantity.py:619(value_in_unit)
+    25792    0.018    0.000    0.097    0.000 quantity.py:377(__rmul__)
+    14624    0.011    0.000    0.096    0.000 quantity.py:647(in_units_of)
+        3    0.000    0.000    0.063    0.021 __init__.py:1436(info)
+        3    0.000    0.000    0.063    0.021 __init__.py:1565(_log)
+        3    0.000    0.000    0.063    0.021 __init__.py:1591(handle)
+        3    0.000    0.000    0.063    0.021 __init__.py:1645(callHandlers)
+       12    0.000    0.000    0.063    0.005 __init__.py:939(handle)
+       12    0.000    0.000    0.062    0.005 __init__.py:1071(emit)
+        3    0.000    0.000    0.062    0.021 __init__.py:1178(emit)
+       12    0.000    0.000    0.062    0.005 __init__.py:1060(flush)
+        6    0.062    0.010    0.062    0.010 {method 'flush' of '_io.TextIOWrapper' objects}
+    27520    0.026    0.000    0.052    0.000 copy.py:128(deepcopy)
+    55044    0.018    0.000    0.031    0.000 quantity.py:97(__init__)
+    27520    0.021    0.000    0.031    0.000 unit.py:308(is_compatible)
+        4    0.000    0.000    0.026    0.006 system.py:302(update_context)
+        2    0.000    0.000    0.024    0.012 openmm.py:5157(updateParametersInContext)
+        2    0.024    0.012    0.024    0.012 {built-in method openmm._openmm.NonbondedForce_updateParametersInContext}
+    40416    0.017    0.000    0.024    0.000 unit.py:338(is_dimensionless)
+    97188    0.014    0.000    0.023    0.000 quantity.py:787(is_quantity)
+        4    0.000    0.000    0.022    0.005 openmm.py:3831(getState)
+        4    0.022    0.005    0.022    0.005 {built-in method openmm._openmm.Context_getState}
+   218432    0.018    0.000    0.018    0.000 unit.py:203(__hash__)
+       32    0.000    0.000    0.017    0.001 residue.py:172(_set_NonbondedForce_parameters)
+      576    0.001    0.000    0.016    0.000 openmm.py:4743(setParticleParameters)
+   122991    0.011    0.000    0.011    0.000 {built-in method builtins.isinstance}
+        2    0.000    0.000    0.009    0.004 simulation.py:132(step)
+        2    0.000    0.000    0.008    0.004 simulation.py:182(_simulate)
+        2    0.000    0.000    0.008    0.004 velocityverletplugin.py:409(step)
+        2    0.008    0.004    0.008    0.004 {built-in method _velocityverletplugin.VVIntegrator_step}
+     8176    0.008    0.000    0.008    0.000 {method '__deepcopy__' of 'numpy.generic' objects}
+       32    0.002    0.000    0.008    0.000 residue.py:680(_get_DrudeForce_parameters_at_lambda)
+    25796    0.004    0.000    0.006    0.000 unit.py:703(is_unit)
+     8176    0.005    0.000    0.006    0.000 copy.py:242(_keep_alive)
+    55052    0.005    0.000    0.005    0.000 {method 'get' of 'dict' objects}
+    """
