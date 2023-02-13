@@ -1,8 +1,8 @@
 import itertools
 from collections import deque
-import openmm
 
 import numpy as np
+import openmm
 
 
 class Residue:
