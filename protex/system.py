@@ -505,7 +505,111 @@ class ProtexSystem:
             drude1, drude2 = parent1 + 1, parent2 + 1  # Drude comes after parent atom
             d["DrudeForceThole"][f"{drude1}{drude2}"] = (drude_idx, idx1, idx2)
 
+        # this is a bit wonk with the two harm bond forces -> we should check an probably improve here!
+        d["HarmonicBondForce"] = {}
+        bond_force1 = [
+            f
+            for f in self.system.getForces()
+            if isinstance(f, openmm.HarmonicBondForce)
+        ][0]
+        for bond_idx in range(bond_force1.getNumBonds()):
+            f = bond_force1.getBondParameters(bond_idx)
+            idx1, idx2 = f[0], f[1]
+            d["HarmonicBondForce"][f"{idx1}{idx2}"] = (bond_idx, idx1, idx2)
+
+        bond_force2 = [
+            f
+            for f in self.system.getForces()
+            if isinstance(f, openmm.HarmonicBondForce)
+        ][1]
+        for bond_idx in range(bond_force2.getNumBonds()):
+            f = bond_force2.getBondParameters(bond_idx)
+            idx1, idx2 = f[0], f[1]
+            d["HarmonicBondForce"][f"{idx1}{idx2}"] = (bond_idx, idx1, idx2)
+
+        d["HarmonicAngleForce"] = {}
+        angle_force = [
+            f
+            for f in self.system.getForces()
+            if isinstance(f, openmm.HarmonicAngleForce)
+        ][0]
+        for angle_idx in range(angle_force.getNumAngles()):
+            f = angle_force.getAngleParameters(angle_idx)
+            idx1, idx2, idx3 = f[0], f[1], f[2]
+            d["HarmonicAngleForce"][f"{idx1}{idx2}{idx3}"] = (
+                angle_idx,
+                idx1,
+                idx2,
+                idx3,
+            )
+
+        d["PeriodicTorsionForce"] = {}
+        torsion_force = [
+            f
+            for f in self.system.getForces()
+            if isinstance(f, openmm.PeriodicTorsionForce)
+        ][0]
+        for torsion_idx in range(torsion_force.getNumTorsions()):
+            f = torsion_force.getTorsionParameters(torsion_idx)
+            idx1, idx2, idx3, idx4 = f[0], f[1], f[2], f[4]
+            d["PeriodicTorsionForce"][f"{idx1}{idx2}{idx3}{idx4}"] = (
+                torsion_idx,
+                idx1,
+                idx2,
+                idx3,
+                idx4,
+            )
+
+        d["CustomTorsionForce"] = {}
+        ctorsion_force = [
+            f
+            for f in self.system.getForces()
+            if isinstance(f, openmm.CustomTorsionForce)
+        ][0]
+        for ctorsion_idx in range(ctorsion_force.getNumTorsions()):
+            f = ctorsion_force.getTorsionParameters(ctorsion_idx)
+            idx1, idx2, idx3, idx4 = f[0], f[1], f[2], f[4]
+            d["CustomTorsionForce"][f"{idx1}{idx2}{idx3}{idx4}"] = (
+                ctorsion_idx,
+                idx1,
+                idx2,
+                idx3,
+                idx4,
+            )
+
         return d
+
+    def _get_custom_torsion_list(self, combinations4) -> list[tuple[int]]:
+        ctorsion_idxs = [
+            value
+            for key, value in self.d["CustomTorsionForce"].items()
+            if key in combinations4
+        ]
+        return ctorsion_idxs
+
+    def _get_torsion_list(self, combinations4) -> list[tuple[int]]:
+        torsion_idxs = [
+            value
+            for key, value in self.d["PeriodicTorsionForce"].items()
+            if key in combinations4
+        ]
+        return torsion_idxs
+
+    def _get_bond_list(self, combinations) -> list[tuple[int]]:
+        bond_idxs = [
+            value
+            for key, value in self.d["HarmonicBondForce"].items()
+            if key in combinations
+        ]
+        return bond_idxs
+
+    def _get_anlge_list(self, combinations3) -> list[tuple[int]]:
+        angle_idxs = [
+            value
+            for key, value in self.d["HarmonicAngleForce"].items()
+            if key in combinations3
+        ]
+        return angle_idxs
 
     def _get_drude_list(self, combinations) -> list[tuple[int]]:
         drude_idxs = [
@@ -579,6 +683,8 @@ class ProtexSystem:
                     atom.index for atom in r.atoms()
                 ]  # also give them to initilaizer, not inside residue?
                 combinations = itertools.combinations(atom_idxs, 2)
+                combinations3 = itertools.combinations(atom_idxs, 3)
+                combinations4 = itertools.combinations(atom_idxs, 4)
 
                 residues.append(
                     Residue(
@@ -598,6 +704,12 @@ class ProtexSystem:
                         ),
                         drude_idxs=self._get_drude_list(combinations),
                         thole_idxs=self._get_thole_list(combinations),
+                        bond_idxs=self._get_bond_list(combinations),
+                        angle_idxs=self._get_anlge_list(combinations3),
+                        torsion_idxs=self._get_torsion_list(combinations4),
+                        custom_torsion_idxs=self._get_custom_torsion_list(
+                            combinations4
+                        ),
                     )
                 )
                 residues[

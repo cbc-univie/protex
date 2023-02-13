@@ -2336,7 +2336,7 @@ def test_profile_update():
         "ProtexSystem: ", time.time() - start
     )  # 266.66s with new method, 30.789s with old method (still slow, but we want to be there again for now)
     # new method with exlcusion list as argument to residue: 34.44s -> great!
-    update = NaiveMCUpdate(ionic_liquid)
+    update = NaiveMCUpdate(ionic_liquid, all_forces=True)
     # update._update = types.MethodType(_update_decorated, update)
     state_update = StateUpdate(update)
     state_update.update(2)
@@ -2346,7 +2346,7 @@ def test_profile_update():
     # old method: 53.17 s
 
     ################################
-    # improvement of update function:
+    # improvement of update function: (all_forces = False)
     ################################
     # this is for 8 updates
     #         ncalls  tottime  percall  cumtime  percall filename:lineno(function)
@@ -2530,3 +2530,58 @@ function called 1 times
      8176    0.005    0.000    0.006    0.000 copy.py:242(_keep_alive)
     55052    0.005    0.000    0.005    0.000 {method 'get' of 'dict' objects}
     """
+
+
+# now all_forces = True
+"""
+*** PROFILER RESULTS ***
+_update (/home/florian/software/protex/protex/update.py:438)
+function called 1 times
+
+         40337594 function calls (40337559 primitive calls) in 9.134 seconds
+
+   Ordered by: cumulative time, internal time, call count
+   List reduced from 245 to 40 due to restriction <40>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.001    0.001    9.134    9.134 update.py:438(_update)
+      192    0.000    0.000    9.026    0.047 residue.py:137(update)
+       32    0.254    0.008    4.250    0.133 residue.py:198(_set_HarmonicBondForce_parameters)
+   656000    0.766    0.000    3.980    0.000 openmm.py:7262(getBondParameters)
+       32    0.200    0.006    3.240    0.101 residue.py:210(_set_HarmonicAngleForce_parameters)
+  2306304    1.871    0.000    3.052    0.000 unit_operators.py:80(_unit_class_mul)
+   496000    0.579    0.000    3.027    0.000 openmm.py:17453(getAngleParameters)
+  1153152    0.354    0.000    2.839    0.000 unit.py:217(__truediv__)
+  3461828    0.857    0.000    1.492    0.000 quantity.py:97(__init__)
+       32    0.209    0.007    1.127    0.035 residue.py:228(_set_PeriodicTorsionForce_parameters)
+ 15278720    1.008    0.000    1.008    0.000 unit.py:203(__hash__)
+  1153152    0.213    0.000    0.986    0.000 {built-in method builtins.pow}
+   544000    0.354    0.000    0.909    0.000 openmm.py:4229(getTorsionParameters)
+  1153152    0.557    0.000    0.773    0.000 unit.py:235(__pow__)
+  3519300    0.427    0.000    0.646    0.000 quantity.py:787(is_quantity)
+  2337799    0.296    0.000    0.417    0.000 unit.py:703(is_unit)
+  5857106    0.340    0.000    0.340    0.000 {built-in method builtins.isinstance}
+       32    0.060    0.002    0.259    0.008 residue.py:332(_get_NonbondedForce_parameters_at_lambda)
+    52352    0.041    0.000    0.163    0.000 quantity.py:663(_change_units_with_factor)
+    20864    0.010    0.000    0.142    0.000 quantity.py:619(value_in_unit)
+    15744    0.015    0.000    0.141    0.000 quantity.py:221(__add__)
+   656000    0.140    0.000    0.140    0.000 {built-in method openmm._openmm.HarmonicBondForce_getBondParameters}
+    20864    0.015    0.000    0.128    0.000 quantity.py:647(in_units_of)
+   544000    0.121    0.000    0.121    0.000 {built-in method openmm._openmm.PeriodicTorsionForce_getTorsionParameters}
+   496000    0.113    0.000    0.113    0.000 {built-in method openmm._openmm.HarmonicAngleForce_getAngleParameters}
+    31488    0.020    0.000    0.107    0.000 quantity.py:377(__rmul__)
+       32    0.031    0.001    0.067    0.002 residue.py:250(_set_CustomTorsionForce_parameters)
+    36608    0.034    0.000    0.067    0.000 copy.py:128(deepcopy)
+        3    0.000    0.000    0.047    0.016 __init__.py:1436(info)
+        3    0.000    0.000    0.047    0.016 __init__.py:1565(_log)
+        3    0.000    0.000    0.047    0.016 __init__.py:1591(handle)
+        3    0.000    0.000    0.047    0.016 __init__.py:1645(callHandlers)
+       12    0.000    0.000    0.047    0.004 __init__.py:939(handle)
+       12    0.000    0.000    0.047    0.004 __init__.py:1071(emit)
+        3    0.000    0.000    0.046    0.015 __init__.py:1178(emit)
+       12    0.000    0.000    0.046    0.004 __init__.py:1060(flush)
+        6    0.046    0.008    0.046    0.008 {method 'flush' of '_io.TextIOWrapper' objects}
+    36608    0.025    0.000    0.038    0.000 unit.py:308(is_compatible)
+    96000    0.013    0.000    0.035    0.000 openmm.py:16161(getTorsionParameters)
+       12    0.000    0.000    0.030    0.003 system.py:302(update_context)
+       """

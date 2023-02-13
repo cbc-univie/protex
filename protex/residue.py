@@ -71,6 +71,10 @@ class Residue:
         nbond_exception_idxs=None,
         drude_idxs=None,
         thole_idxs=None,
+        bond_idxs=None,
+        angle_idxs=None,
+        torsion_idxs=None,
+        custom_torsion_idxs=None,
     ) -> None:
         self.residue = residue
         self.original_name = residue.name
@@ -97,6 +101,10 @@ class Residue:
         self.nbond_exception_idxs: list[tuple[int]] | None = nbond_exception_idxs
         self.drude_idxs: list[tuple[int]] | None = drude_idxs
         self.thole_idxs: list[tuple[int]] | None = thole_idxs
+        self.bond_idxs: list[tuple[int]] | None = bond_idxs
+        self.angle_idxs: list[tuple[int]] | None = angle_idxs
+        self.torsion_idxs: list[tuple[int]] | None = torsion_idxs
+        self.custom_torsion_idxs: list[tuple[int]] | None = custom_torsion_idxs
 
     # def _set_exception_idxs(self) -> list[tuple[int]]:
     #     exception_idxs = []
@@ -199,75 +207,101 @@ class Residue:
         parms = deque(parms)
         for force in self.system.getForces():
             if type(force).__name__ == "HarmonicBondForce":
-                for bond_idx in range(force.getNumBonds()):
-                    f = force.getBondParameters(bond_idx)
-                    idx1 = f[0]
-                    idx2 = f[1]
-                    if idx1 in self.atom_idxs and idx2 in self.atom_idxs:
+                if self.bond_idxs is not None:  # use the fast way
+                    for bond_idx, idx1, idx2 in self.bond_idxs:
                         r, k = parms.popleft()
                         force.setBondParameters(bond_idx, idx1, idx2, r, k)
+                else:
+                    for bond_idx in range(force.getNumBonds()):
+                        f = force.getBondParameters(bond_idx)
+                        idx1 = f[0]
+                        idx2 = f[1]
+                        if idx1 in self.atom_idxs and idx2 in self.atom_idxs:
+                            r, k = parms.popleft()
+                            force.setBondParameters(bond_idx, idx1, idx2, r, k)
 
     def _set_HarmonicAngleForce_parameters(self, parms) -> None:  # noqa: N802
         parms = deque(parms)
 
         for force in self.system.getForces():
             if type(force).__name__ == "HarmonicAngleForce":
-                for angle_idx in range(force.getNumAngles()):
-                    f = force.getAngleParameters(angle_idx)
-                    idx1 = f[0]
-                    idx2 = f[1]
-                    idx3 = f[2]
-                    if (
-                        idx1 in self.atom_idxs
-                        and idx2 in self.atom_idxs
-                        and idx3 in self.atom_idxs
-                    ):
+                if self.angle_idxs is not None:  # use the fast way
+                    for angle_idx, idx1, idx2, idx3 in self.angle_idxs:
                         thetha, k = parms.popleft()
                         force.setAngleParameters(angle_idx, idx1, idx2, idx3, thetha, k)
+                else:
+                    for angle_idx in range(force.getNumAngles()):
+                        f = force.getAngleParameters(angle_idx)
+                        idx1 = f[0]
+                        idx2 = f[1]
+                        idx3 = f[2]
+                        if (
+                            idx1 in self.atom_idxs
+                            and idx2 in self.atom_idxs
+                            and idx3 in self.atom_idxs
+                        ):
+                            thetha, k = parms.popleft()
+                            force.setAngleParameters(
+                                angle_idx, idx1, idx2, idx3, thetha, k
+                            )
 
     def _set_PeriodicTorsionForce_parameters(self, parms) -> None:  # noqa: N802
         parms = deque(parms)
 
         for force in self.system.getForces():
             if type(force).__name__ == "PeriodicTorsionForce":
-                for torsion_idx in range(force.getNumTorsions()):
-                    f = force.getTorsionParameters(torsion_idx)
-                    idx1 = f[0]
-                    idx2 = f[1]
-                    idx3 = f[2]
-                    idx4 = f[3]
-                    if (
-                        idx1 in self.atom_idxs
-                        and idx2 in self.atom_idxs
-                        and idx3 in self.atom_idxs
-                        and idx4 in self.atom_idxs
-                    ):
+                if self.torsion_idxs is not None:
+                    for torsion_idx, idx1, idx2, idx3, idx4 in self.torsion_idxs:
                         per, phase, k = parms.popleft()
                         force.setTorsionParameters(
                             torsion_idx, idx1, idx2, idx3, idx4, per, phase, k
                         )
+                else:
+                    for torsion_idx in range(force.getNumTorsions()):
+                        f = force.getTorsionParameters(torsion_idx)
+                        idx1 = f[0]
+                        idx2 = f[1]
+                        idx3 = f[2]
+                        idx4 = f[3]
+                        if (
+                            idx1 in self.atom_idxs
+                            and idx2 in self.atom_idxs
+                            and idx3 in self.atom_idxs
+                            and idx4 in self.atom_idxs
+                        ):
+                            per, phase, k = parms.popleft()
+                            force.setTorsionParameters(
+                                torsion_idx, idx1, idx2, idx3, idx4, per, phase, k
+                            )
 
     def _set_CustomTorsionForce_parameters(self, parms) -> None:  # noqa: N802
         parms = deque(parms)
 
         for force in self.system.getForces():
             if type(force).__name__ == "CustomTorsionForce":
-                for torsion_idx in range(force.getNumTorsions()):
-                    f = force.getTorsionParameters(torsion_idx)
-                    idx1 = f[0]
-                    idx2 = f[1]
-                    idx3 = f[2]
-                    idx4 = f[3]
-                    if (
-                        idx1 in self.atom_idxs
-                        and idx2 in self.atom_idxs
-                        and idx3 in self.atom_idxs
-                        and idx4 in self.atom_idxs
-                    ):
+                if self.custom_torsion_idxs is not None:
+                    for ctorsion_idx, idx1, idx2, idx3, idx4 in self.custom_torsion_idxs:
                         k, psi0 = parms.popleft()  # tuple with (k,psi0)
                         force.setTorsionParameters(
                             torsion_idx, idx1, idx2, idx3, idx4, (k, psi0)
-                        )
+                        )  
+                else:
+                    for torsion_idx in range(force.getNumTorsions()):
+                        f = force.getTorsionParameters(torsion_idx)
+                        idx1 = f[0]
+                        idx2 = f[1]
+                        idx3 = f[2]
+                        idx4 = f[3]
+                        if (
+                            idx1 in self.atom_idxs
+                            and idx2 in self.atom_idxs
+                            and idx3 in self.atom_idxs
+                            and idx4 in self.atom_idxs
+                        ):
+                            k, psi0 = parms.popleft()  # tuple with (k,psi0)
+                            force.setTorsionParameters(
+                                torsion_idx, idx1, idx2, idx3, idx4, (k, psi0)
+                            )
 
     def _set_DrudeForce_parameters(self, parms) -> None:  # noqa: N802
         parms_pol = deque(parms[0])
