@@ -217,7 +217,10 @@ class KeepHUpdate(Update):
         if "H" in self.ionic_liquid.templates.get_atom_name_for(
             candidate1_residue.current_name
         ) or (
-            self.ionic_liquid.templates.has_equivalent_atom(candidate1_residue.current_name) is True
+            self.ionic_liquid.templates.has_equivalent_atom(
+                candidate1_residue.current_name
+            )
+            is True
             and "H"
             in self.ionic_liquid.templates.get_equivalent_atom_for(
                 candidate1_residue.current_name
@@ -430,6 +433,9 @@ class NaiveMCUpdate(Update):
         with open(fname, "wb") as outp:
             pickle.dump(to_pickle, outp, pickle.HIGHEST_PROTOCOL)
 
+    from profilehooks import profile
+
+    @profile(immediate=True)
     def _update(self, candidates: list[tuple], nr_of_steps: int) -> None:
         logger.info("called _update")
         # get current state

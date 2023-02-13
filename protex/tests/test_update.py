@@ -1,3 +1,4 @@
+# ruff: noqa
 import logging
 import os
 
@@ -217,7 +218,7 @@ def test_get_and_interpolate_forces():
 
 
 def test_setting_forces():
-    #simulation = generate_im1h_oac_system()
+    # simulation = generate_im1h_oac_system()
     simulation = generate_small_box(use_plugin=False)
     allowed_updates = {}
     # allowed updates according to simple protonation scheme
@@ -631,7 +632,7 @@ def test_setting_forces():
 def test_single_update(caplog):
     # caplog.set_level(logging.DEBUG)
 
-    #simulation = generate_im1h_oac_system()
+    # simulation = generate_im1h_oac_system()
     simulation = generate_small_box(use_plugin=False)
     # get ionic liquid templates
     allowed_updates = {}
@@ -705,7 +706,7 @@ def test_single_update(caplog):
 def test_check_updated_charges(caplog, tmp_path):
     caplog.set_level(logging.DEBUG)
 
-    #simulation = generate_im1h_oac_system()
+    # simulation = generate_im1h_oac_system()
     simulation = generate_small_box(use_plugin=False)
     # get ionic liquid templates
     allowed_updates = {}
@@ -870,7 +871,7 @@ def test_transfer_with_distance_matrix(tmp_path):
 def test_updates(caplog):
     caplog.set_level(logging.DEBUG)
 
-    #simulation = generate_im1h_oac_system()
+    # simulation = generate_im1h_oac_system()
     simulation = generate_small_box(use_plugin=False)
     allowed_updates = {}
     # allowed updates according to simple protonation scheme
@@ -902,7 +903,7 @@ def test_updates(caplog):
 
 
 def test_adapt_probabilities(caplog):
-    #simulation = generate_im1h_oac_system()
+    # simulation = generate_im1h_oac_system()
     simulation = generate_small_box(use_plugin=False)
     allowed_updates = {}
     # allowed updates according to simple protonation scheme
@@ -952,7 +953,7 @@ def test_adapt_probabilities(caplog):
 def test_dry_updates(caplog):
     caplog.set_level(logging.DEBUG)
 
-    #simulation = generate_im1h_oac_system()
+    # simulation = generate_im1h_oac_system()
     simulation = generate_small_box(use_plugin=False)
     # get ionic liquid templates
     allowed_updates = {}
@@ -993,7 +994,7 @@ def test_dry_updates(caplog):
 )
 def test_parameters_after_update(tmp_path):
     simulation = generate_im1h_oac_system()
-    #simulation = generate_small_box()
+    # simulation = generate_small_box()
     # get ionic liquid templates
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
@@ -1241,7 +1242,7 @@ def test_parameters_after_update(tmp_path):
 #     reason="Will fail sporadicaly.",
 # )
 def test_pbc():
-    #simulation = generate_im1h_oac_system()
+    # simulation = generate_im1h_oac_system()
     simulation = generate_small_box(use_plugin=False)
     # get ionic liquid templates
     allowed_updates = {}
@@ -1452,7 +1453,7 @@ def test_force_selection():
 def test_update_all_forces(caplog):
     caplog.set_level(logging.DEBUG)
 
-    #simulation = generate_im1h_oac_system()
+    # simulation = generate_im1h_oac_system()
     simulation = generate_small_box(use_plugin=False)
     allowed_updates = {}
     # allowed updates according to simple protonation scheme
@@ -2239,7 +2240,7 @@ def test_single_energy_molecule(caplog):
 def test_wrong_atom_name(caplog):
     caplog.set_level(logging.DEBUG)
 
-    #simulation = generate_im1h_oac_system()
+    # simulation = generate_im1h_oac_system()
     simulation = generate_small_box(use_plugin=False)
     allowed_updates = {}
     # allowed updates according to simple protonation scheme
@@ -2270,7 +2271,7 @@ def test_wrong_atom_name(caplog):
 def test_save_load_updates(caplog, tmp_path):
     caplog.set_level(logging.DEBUG)
 
-    #simulation = generate_im1h_oac_system()
+    # simulation = generate_im1h_oac_system()
     simulation = generate_small_box(use_plugin=False)
     # get ionic liquid templates
     allowed_updates = {}
@@ -2301,3 +2302,87 @@ def test_save_load_updates(caplog, tmp_path):
     state_update = StateUpdate.load(f"{tmp_path}/stateupdate.pkl", update)
     assert update.all_forces is False
     assert state_update.update_trial == 100
+
+
+from profilehooks import profile, timecall
+
+
+# @profile(immediate=True)
+# @timecall(immediate=True)
+# def _update_decorated(self, candidates, nr_of_steps):
+#    print("profiling")
+#    return self._update(self, candidates, nr_of_steps)
+
+
+def test_profile_update():
+    # import types
+
+    simulation = generate_im1h_oac_system()
+    allowed_updates = {}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.16, "prob": 1}
+    templates = ProtexTemplates(
+        [OAC_HOAC, IM1H_IM1],
+        allowed_updates,
+    )
+    ionic_liquid = ProtexSystem(simulation, templates)
+    update = NaiveMCUpdate(ionic_liquid)
+    # update._update = types.MethodType(_update_decorated, update)
+    state_update = StateUpdate(update)
+    state_update.update(2)
+    """
+    len(candidate_pairs)=8
+
+    *** PROFILER RESULTS ***
+_update (/home/florian/software/protex/protex/update.py:438)
+function called 1 times
+
+         72517787 function calls (72517752 primitive calls) in 17.369 seconds
+
+   Ordered by: cumulative time, internal time, call count
+   List reduced from 220 to 40 due to restriction <40>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.002    0.002   17.369   17.369 update.py:438(_update)
+       64    0.000    0.000   17.286    0.270 residue.py:111(update)
+       32    1.451    0.045   16.311    0.510 residue.py:144(_set_NonbondedForce_parameters)
+  3616000    4.233    0.000   14.744    0.000 openmm.py:4810(getExceptionParameters)                  ### fast 15 sec dafür -> kürzen
+  3619616    3.103    0.000    5.086    0.000 unit_operators.py:80(_unit_class_mul)
+ 11234212    2.838    0.000    4.866    0.000 quantity.py:97(__init__)
+ 11298692    1.371    0.000    2.040    0.000 quantity.py:787(is_quantity)
+ 18875168    1.401    0.000    1.401    0.000 unit.py:203(__hash__)
+ 14944111    0.863    0.000    0.863    0.000 {built-in method builtins.isinstance}
+  3616000    0.739    0.000    0.739    0.000 {built-in method openmm._openmm.NonbondedForce_getExceptionParameters}
+       32    0.175    0.005    0.697    0.022 residue.py:237(_set_DrudeForce_parameters)
+  3645412    0.450    0.000    0.644    0.000 unit.py:703(is_unit)
+   160000    0.141    0.000    0.429    0.000 openmm.py:12014(getParticleParameters)
+       32    0.064    0.002    0.268    0.008 residue.py:273(_get_NonbondedForce_parameters_at_lambda)
+    25792    0.012    0.000    0.186    0.000 quantity.py:619(value_in_unit)
+    51584    0.043    0.000    0.182    0.000 quantity.py:663(_change_units_with_factor)
+    25792    0.019    0.000    0.169    0.000 quantity.py:647(in_units_of)
+    12896    0.012    0.000    0.119    0.000 quantity.py:221(__add__)
+   160160    0.074    0.000    0.108    0.000 unit.py:235(__pow__)
+     3616    0.008    0.000    0.101    0.000 openmm.py:4843(setExceptionParameters)
+    25792    0.017    0.000    0.089    0.000 quantity.py:377(__rmul__)
+   304000    0.038    0.000    0.089    0.000 openmm.py:12113(getScreenedPairParameters)
+    38688    0.038    0.000    0.083    0.000 copy.py:128(deepcopy)
+   304000    0.050    0.000    0.050    0.000 {built-in method openmm._openmm.DrudeForce_getScreenedPairParameters}
+    38688    0.028    0.000    0.041    0.000 unit.py:308(is_compatible)
+   160000    0.040    0.000    0.040    0.000 {built-in method openmm._openmm.DrudeForce_getParticleParameters}
+        4    0.000    0.000    0.031    0.008 system.py:298(update_context)
+        2    0.000    0.000    0.029    0.015 openmm.py:5157(updateParametersInContext)
+        2    0.029    0.015    0.029    0.015 {built-in method openmm._openmm.NonbondedForce_updateParametersInContext}
+    51584    0.020    0.000    0.028    0.000 unit.py:338(is_dimensionless)
+        3    0.000    0.000    0.022    0.007 __init__.py:1436(info)
+        3    0.000    0.000    0.022    0.007 __init__.py:1565(_log)
+        3    0.000    0.000    0.022    0.007 __init__.py:1591(handle)
+        3    0.000    0.000    0.022    0.007 __init__.py:1645(callHandlers)
+       12    0.000    0.000    0.022    0.002 __init__.py:939(handle)
+       12    0.000    0.000    0.022    0.002 __init__.py:1071(emit)
+        3    0.000    0.000    0.022    0.007 __init__.py:1178(emit)
+       12    0.000    0.000    0.022    0.002 __init__.py:1060(flush)
+        6    0.022    0.004    0.022    0.004 {method 'flush' of '_io.TextIOWrapper' objects}
+    19344    0.015    0.000    0.015    0.000 {method '__deepcopy__' of 'numpy.generic' objects}
+"""
