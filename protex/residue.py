@@ -284,7 +284,7 @@ class Residue:
                         k, psi0 = parms.popleft()  # tuple with (k,psi0)
                         force.setTorsionParameters(
                             torsion_idx, idx1, idx2, idx3, idx4, (k, psi0)
-                        )  
+                        )
                 else:
                     for torsion_idx in range(force.getNumTorsions()):
                         f = force.getTorsionParameters(torsion_idx)
