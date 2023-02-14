@@ -2533,6 +2533,7 @@ function called 1 times
 
 
 # now all_forces = True
+# before bonded terms optimizaiton:
 """
 *** PROFILER RESULTS ***
 _update (/home/florian/software/protex/protex/update.py:438)
@@ -2585,3 +2586,56 @@ function called 1 times
     96000    0.013    0.000    0.035    0.000 openmm.py:16161(getTorsionParameters)
        12    0.000    0.000    0.030    0.003 system.py:302(update_context)
        """
+# after bonded terms optimization:
+"""
+*** PROFILER RESULTS ***
+_update (/home/florian/software/protex/protex/update.py:438)
+function called 1 times
+
+         1103514 function calls (1103479 primitive calls) in 0.458 seconds
+
+   Ordered by: cumulative time, internal time, call count
+   List reduced from 216 to 40 due to restriction <40>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.001    0.001    0.458    0.458 update.py:438(_update)
+      192    0.000    0.000    0.382    0.002 residue.py:145(update)
+       32    0.069    0.002    0.296    0.009 residue.py:366(_get_NonbondedForce_parameters_at_lambda)
+    48960    0.042    0.000    0.161    0.000 quantity.py:663(_change_units_with_factor)
+    15744    0.017    0.000    0.159    0.000 quantity.py:221(__add__)
+    17472    0.009    0.000    0.128    0.000 quantity.py:619(value_in_unit)
+    31488    0.022    0.000    0.118    0.000 quantity.py:377(__rmul__)
+    17472    0.014    0.000    0.115    0.000 quantity.py:647(in_units_of)
+    33216    0.033    0.000    0.062    0.000 copy.py:128(deepcopy)
+    33216    0.026    0.000    0.039    0.000 unit.py:308(is_compatible)
+    66436    0.022    0.000    0.037    0.000 quantity.py:97(__init__)
+       12    0.000    0.000    0.034    0.003 system.py:302(update_context)
+    48960    0.020    0.000    0.029    0.000 unit.py:338(is_dimensionless)
+   117124    0.017    0.000    0.027    0.000 quantity.py:787(is_quantity)
+       32    0.004    0.000    0.026    0.001 residue.py:461(_get_HarmonicBondForce_parameters_at_lambda)
+   264000    0.021    0.000    0.022    0.000 unit.py:203(__hash__)
+        2    0.000    0.000    0.021    0.010 openmm.py:5157(updateParametersInContext)
+        2    0.021    0.010    0.021    0.010 {built-in method openmm._openmm.NonbondedForce_updateParametersInContext}
+       32    0.003    0.000    0.019    0.001 residue.py:510(_get_HarmonicAngleForce_parameters_at_lambda)
+        4    0.000    0.000    0.019    0.005 openmm.py:3831(getState)
+        4    0.019    0.005    0.019    0.005 {built-in method openmm._openmm.Context_getState}
+       32    0.000    0.000    0.017    0.001 residue.py:180(_set_NonbondedForce_parameters)
+      576    0.001    0.000    0.016    0.000 openmm.py:4743(setParticleParameters)
+       32    0.004    0.000    0.013    0.000 residue.py:559(_get_PeriodicTorsionForce_parameters_at_lambda)
+   148626    0.013    0.000    0.013    0.000 {built-in method builtins.isinstance}
+        3    0.000    0.000    0.009    0.003 __init__.py:1436(info)
+        3    0.000    0.000    0.009    0.003 __init__.py:1565(_log)
+        3    0.000    0.000    0.009    0.003 __init__.py:1591(handle)
+        3    0.000    0.000    0.009    0.003 __init__.py:1645(callHandlers)
+       12    0.000    0.000    0.009    0.001 __init__.py:939(handle)
+     9600    0.009    0.000    0.009    0.000 {method '__deepcopy__' of 'numpy.generic' objects}
+        2    0.000    0.000    0.008    0.004 simulation.py:132(step)
+        2    0.000    0.000    0.008    0.004 simulation.py:182(_simulate)
+       12    0.000    0.000    0.008    0.001 __init__.py:1071(emit)
+        2    0.000    0.000    0.008    0.004 velocityverletplugin.py:409(step)
+        2    0.008    0.004    0.008    0.004 {built-in method _velocityverletplugin.VVIntegrator_step}
+    31495    0.005    0.000    0.008    0.000 unit.py:703(is_unit)
+       32    0.002    0.000    0.008    0.000 residue.py:714(_get_DrudeForce_parameters_at_lambda)
+        3    0.000    0.000    0.008    0.003 __init__.py:1178(emit)
+     9600    0.006    0.000    0.008    0.000 copy.py:242(_keep_alive)
+"""

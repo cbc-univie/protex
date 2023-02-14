@@ -106,19 +106,6 @@ class Residue:
         self.torsion_idxs: list[tuple[int]] | None = torsion_idxs
         self.custom_torsion_idxs: list[tuple[int]] | None = custom_torsion_idxs
 
-    # def _set_exception_idxs(self) -> list[tuple[int]]:
-    #     exception_idxs = []
-    #     nbond_force = [
-    #         f for f in self.system.getForces() if isinstance(f, openmm.NonbondedForce)
-    #     ][0]
-    #     for exc_idx in range(nbond_force.getNumExceptions()):
-    #         f = nbond_force.getExceptionParameters(exc_idx)
-    #         idx1 = f[0]
-    #         idx2 = f[1]
-    #         if idx1 in self.atom_idxs and idx2 in self.atom_idxs:
-    #             exception_idxs.append((exc_idx, idx1, idx2))
-    #     return exception_idxs
-
     def __str__(self) -> str:
         return f"Residue {self.current_name}, {self.residue}"
 

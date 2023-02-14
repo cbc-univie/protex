@@ -239,6 +239,9 @@ class ProtexTemplates:
         return self.states[name]["charge"]
 
 
+from profilehooks import profile
+
+
 class ProtexSystem:
     """Defines the full system, performs the MD steps and offers an interface for protonation state updates.
 
@@ -268,7 +271,8 @@ class ProtexSystem:
         )
         protex_system.residues = from_pickle[1]
         return protex_system
-
+    
+    @profile(immediate=True)
     def __init__(
         self,
         simulation: openmm.app.simulation.Simulation,
@@ -281,6 +285,7 @@ class ProtexSystem:
         self.templates: ProtexTemplates = templates
         self.simulation_for_parameters = simulation_for_parameters
         self.pair_12_13_list = self._build_exclusion_list(self.topology)
+        self.pair_12_13_list_params = self._build_exclusion_list(self.simulation_for_parameters.topology) if self.simulation_for_parameters is not None else self.pair_12_13_list
         self.d = self._force_idx_dict()
         self.residues: list[Residue] = self._set_initial_states()
         self.boxlength: openmm.Quantity = (
@@ -342,7 +347,8 @@ class ProtexSystem:
 
         # attention, different one than the instance variable self.pair_12_13_list,
         # if not all possible state are present in the current psf
-        pair_12_13_list_params = self._build_exclusion_list(sim.topology)
+        
+        #pair_12_13_list_params = self._build_exclusion_list(sim.topology)
 
         for residue in sim.topology.residues():
             if query_name == residue.name:
@@ -423,13 +429,13 @@ class ProtexSystem:
                                 forces_dict[type(force).__name__].append(f)
                         # print(self.pair_12_13_list)
                         assert (
-                            len(pair_12_13_list_params) == force.getNumScreenedPairs()
-                        ), f"{len(pair_12_13_list_params)=}, {force.getNumScreenedPairs()=}"
+                            len(self.pair_12_13_list_params) == force.getNumScreenedPairs()
+                        ), f"{len(self.pair_12_13_list_params)=}, {force.getNumScreenedPairs()=}"
                         for drude_id in range(force.getNumScreenedPairs()):
                             f = force.getScreenedPairParameters(drude_id)
                             # idx1 = f[0]
                             # idx2 = f[1]
-                            parent1, parent2 = pair_12_13_list_params[drude_id]
+                            parent1, parent2 = self.pair_12_13_list_params[drude_id]
                             drude1, drude2 = parent1 + 1, parent2 + 1
                             # print(f"thole {idx1=}, {idx2=}")
                             # print(f"{drude_id=}, {f=}")
@@ -437,7 +443,7 @@ class ProtexSystem:
                                 # print(f"Thole {query_name=}")
                                 # print(f"{drude1=}, {drude2=}")
                                 forces_dict[type(force).__name__ + "Thole"].append(f)
-                break  # do this only for the relevant amino acid once
+                break  # do this only for the relevant residue once
         else:
             raise RuntimeError("residue not found")
         return forces_dict
@@ -472,7 +478,7 @@ class ProtexSystem:
                 )
 
     def _force_idx_dict(self) -> dict[str, dict[str, tuple[int]]]:
-        d = {}
+        d: dict[str, dict[str, tuple[int]]] = {}
         # automate force naming
         d["NonbondedForce"] = {}
         nbond_force = [
@@ -700,7 +706,7 @@ class ProtexSystem:
                             self.templates.has_equivalent_atom(name_of_paired_ion),
                         ),
                         nbond_exception_idxs=self._get_nbond_excpetion_list(
-                            combinations
+                           combinations
                         ),
                         drude_idxs=self._get_drude_list(combinations),
                         thole_idxs=self._get_thole_list(combinations),
@@ -708,7 +714,7 @@ class ProtexSystem:
                         angle_idxs=self._get_anlge_list(combinations3),
                         torsion_idxs=self._get_torsion_list(combinations4),
                         custom_torsion_idxs=self._get_custom_torsion_list(
-                            combinations4
+                           combinations4
                         ),
                     )
                 )

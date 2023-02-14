@@ -916,3 +916,104 @@ def test_dummy(tmp_path):
     # sim_2_oldcoord = load_sim(
     #    "protex/forcefield/single_pairs/im1_hoac_2.psf", "test_1.rst"
     # )
+
+from protex.residue import Residue
+
+
+class ProtexSystemOld(ProtexSystem):
+
+    def _set_initial_states(self) -> list:
+        """set_initial_states.
+
+        For each ionic liquid residue in the system the protonation state
+        is interfered from the provided openMM system object and the protonation site is defined.
+        """
+
+        residues = []
+        templates = dict()
+
+        # for each residue type get forces
+        for r in self.topology.residues():
+            name = r.name
+            name_of_paired_ion = self.templates.get_residue_name_for_coupled_state(name)
+
+            if name in templates or name_of_paired_ion in templates:
+                continue
+
+            templates[name] = self._extract_templates(name)
+            templates[name_of_paired_ion] = self._extract_templates(name_of_paired_ion)
+
+        for r in self.topology.residues():
+            name = r.name
+            if name in self.templates.names:
+                name_of_paired_ion = self.templates.get_residue_name_for_coupled_state(
+                    name
+                )
+
+                parameters_state1 = templates[name]
+                parameters_state2 = templates[name_of_paired_ion]
+                # check that we have the same number of parameters
+                self._check_nr_of_forces(
+                    parameters_state1, parameters_state2, name, name_of_paired_ion
+                )
+                atom_idxs = [
+                    atom.index for atom in r.atoms()
+                ]  # also give them to initilaizer, not inside residue?
+
+                residues.append(
+                    Residue(
+                        r,
+                        name_of_paired_ion,
+                        self.system,
+                        parameters_state1,
+                        parameters_state2,
+                        self.pair_12_13_list,
+                        (
+                            self.templates.has_equivalent_atom(name),
+                            self.templates.has_equivalent_atom(name_of_paired_ion),
+                        ),
+                    )
+                )
+                residues[
+                    -1
+                ].current_name = (
+                    name  # Why, isnt it done in the initializer of Residue?
+                )
+
+            else:
+                raise RuntimeError(    "Found resiude not present in Templates: {r.name}"   ) 
+        return residues
+
+def test_equivalence_new_old_method():
+    simulation_orig = generate_small_box()
+    simulation_new = generate_small_box()
+    # get ionic liquid templates
+    allowed_updates = {}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 2.33}
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": -2.33}
+
+    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+    # wrap system in IonicLiquidSystem
+    ionic_liquid_orig = ProtexSystemOld(simulation_orig, templates)
+    ionic_liquid_new = ProtexSystem(simulation_new, templates)
+
+    residue_nr = 0
+    residue_orig = ionic_liquid_orig.residues[residue_nr]
+    residue_new = ionic_liquid_new.residues[residue_nr]
+    print(residue_orig, residue_new)
+    assert residue_orig.original_name == residue_new.original_name
+    assert residue_orig.current_name == residue_new.current_name
+    assert residue_orig.atom_idxs == residue_new.atom_idxs
+    assert residue_orig.atom_names == residue_new.atom_names
+    assert residue_orig.parameters == residue_new.parameters
+
+    residue_orig.update("NonbondedForce", 1)
+    residue_new.update("NonbondedForce", 1)
+    for force_orig, force_new in zip(ionic_liquid_orig.system.getForces(), ionic_liquid_new.system.getForces()):
+        if type(force_orig).__name__ == type(force_new).__name__ == "NonbondedForce":
+            assert force_orig.getNumParticles() == force_new.getNumParticles()
+            for idx in range(force_orig.getNumParticles()):
+                f_orig = force_orig.getParticleParameters(idx)
+                f_new = force_new.getParticleParameters(idx)
+                assert f_orig == f_new
+            
