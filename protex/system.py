@@ -271,7 +271,7 @@ class ProtexSystem:
         )
         protex_system.residues = from_pickle[1]
         return protex_system
-    
+
     @profile(immediate=True)
     def __init__(
         self,
@@ -347,7 +347,7 @@ class ProtexSystem:
 
         # attention, different one than the instance variable self.pair_12_13_list,
         # if not all possible state are present in the current psf
-        
+
         #pair_12_13_list_params = self._build_exclusion_list(sim.topology)
 
         for residue in sim.topology.residues():

@@ -928,7 +928,6 @@ class ProtexSystemOld(ProtexSystem):
         For each ionic liquid residue in the system the protonation state
         is interfered from the provided openMM system object and the protonation site is defined.
         """
-
         residues = []
         templates = dict()
 
@@ -981,7 +980,7 @@ class ProtexSystemOld(ProtexSystem):
                 )
 
             else:
-                raise RuntimeError(    "Found resiude not present in Templates: {r.name}"   ) 
+                raise RuntimeError(    "Found resiude not present in Templates: {r.name}"   )
         return residues
 
 def test_equivalence_new_old_method():
@@ -1016,4 +1015,4 @@ def test_equivalence_new_old_method():
                 f_orig = force_orig.getParticleParameters(idx)
                 f_new = force_new.getParticleParameters(idx)
                 assert f_orig == f_new
-            
+
