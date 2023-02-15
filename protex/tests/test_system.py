@@ -23,10 +23,10 @@ try:  # Syntax changed in OpenMM 7.6
     from openmm.unit import (
         angstroms,
         kelvin,
+        kilocalories_per_mole,
+        kilojoules_per_mole,
         nanometers,
         picoseconds,
-        kilojoules_per_mole,
-        kilocalories_per_mole,
     )
 except ImportError:
     import simtk.openmm as mm
@@ -48,10 +48,10 @@ except ImportError:
     from simtk.unit import (
         angstroms,
         kelvin,
+        kilocalories_per_mole,
+        kilojoules_per_mole,
         nanometers,
         picoseconds,
-        kilojoules_per_mole,
-        kilocalories_per_mole,
     )
 
 from ..reporter import ChargeReporter, EnergyReporter
