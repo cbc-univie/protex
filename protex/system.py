@@ -683,9 +683,9 @@ class ProtexSystem:
         to_delete = []
         max_idx = max(atom_idxs)
         for key, value in self.d["HarmonicAngleForce"].items():
-            # assume the exceptions are sorted!
-            if any(elem > max_idx for elem in key):
-                break
+            # it did not work for angles
+            # if any(elem > max_idx for elem in key):
+            #    break
             if all(element in atom_idxs for element in key):
                 angle_idxs.append(value)
                 to_delete.append(key)

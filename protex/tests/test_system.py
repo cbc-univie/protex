@@ -3,7 +3,7 @@
 import os
 from collections import defaultdict
 from sys import stdout
-
+import logging
 import pytest
 
 import protex
@@ -998,7 +998,9 @@ class ProtexSystemOld(ProtexSystem):
         return residues
 
 
-def test_equivalence_new_old_method():
+def test_equivalence_new_old_method(caplog):
+    caplog.set_level(logging.CRITICAL)
+
     def print_force_contrib(simulation):
         for i, f in enumerate(simulation.system.getForces()):
             group = f.getForceGroup()
@@ -1007,7 +1009,25 @@ def test_equivalence_new_old_method():
 
     def get_energy(sim):
         state = sim.context.getState(getEnergy=True)
-        return round(state.getPotentialEnergy().value_in_unit(kilojoules_per_mole), 5)
+        return round(state.getPotentialEnergy().value_in_unit(kilojoules_per_mole), 2)
+
+    def initialize():
+        simulation_orig = generate_small_box(
+            CudaPrecision="double"
+        )  # use_plugin=False, platform="Reference")
+        simulation_new = generate_small_box(
+            CudaPrecision="double"
+        )  # use_plugin=False, platform="Reference")
+        # get ionic liquid templates
+        allowed_updates = {}
+        allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 2.33}
+        allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": -2.33}
+
+        templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+        # wrap system in IonicLiquidSystem
+        ionic_liquid_orig = ProtexSystemOld(simulation_orig, templates)
+        ionic_liquid_new = ProtexSystem(simulation_new, templates)
+        return ionic_liquid_orig, ionic_liquid_new
 
     simulation_orig = generate_small_box(
         CudaPrecision="double"
@@ -1043,44 +1063,53 @@ def test_equivalence_new_old_method():
         "DrudeForce",
         "NonbondedForce",
     ]
-    # for force in forces:
-    force = forces[1]
-    print(f"At force {force}")
-    print(f"orig before {get_energy(ionic_liquid_orig.simulation)}")
-    print(f"new before {get_energy(ionic_liquid_new.simulation)}")
-    e_orig_before = get_energy(ionic_liquid_orig.simulation)
-    e_new_before = get_energy(ionic_liquid_new.simulation)
-    assert e_orig_before == e_new_before
+    # force = forces[1]
+    for force in forces:
+        print(f"At force {force}")
+        ionic_liquid_orig, ionic_liquid_new = initialize()
+        residue_nr = 0
+        residue_orig = ionic_liquid_orig.residues[residue_nr]
+        residue_new = ionic_liquid_new.residues[residue_nr]
 
-    residue_orig.update(force, 0)
-    ionic_liquid_orig.update_context(force)
+        print(f"orig before {get_energy(ionic_liquid_orig.simulation)}")
+        print(f"new before {get_energy(ionic_liquid_new.simulation)}")
+        e_orig_before = get_energy(ionic_liquid_orig.simulation)
+        e_new_before = get_energy(ionic_liquid_new.simulation)
+        assert e_orig_before == e_new_before
 
-    residue_new.update(force, 0)
-    ionic_liquid_new.update_context(force)
+        residue_orig.update(force, 0)
+        ionic_liquid_orig.update_context(force)
 
-    e_orig = get_energy(ionic_liquid_orig.simulation)
-    e_new = get_energy(ionic_liquid_new.simulation)
-    # assert e_orig == e_new
-    # print_force_contrib(ionic_liquid_orig.simulation)
-    # print_force_contrib(ionic_liquid_new.simulation)
+        residue_new.update(force, 0)
+        ionic_liquid_new.update_context(force)
 
-    residue_orig.update(force, 1)
-    ionic_liquid_orig.update_context(force)
+        e_orig = get_energy(ionic_liquid_orig.simulation)
+        e_new = get_energy(ionic_liquid_new.simulation)
+        assert e_orig == e_new
+        # print_force_contrib(ionic_liquid_orig.simulation)
+        # print_force_contrib(ionic_liquid_new.simulation)
 
-    residue_new.update(force, 1)
-    ionic_liquid_new.update_context(force)
+        residue_orig.update(force, 1)
+        ionic_liquid_orig.update_context(force)
 
-    print(f"orig after {get_energy(ionic_liquid_orig.simulation)}")
-    print(f"new after {get_energy(ionic_liquid_new.simulation)}")
-    # print_force_contrib(ionic_liquid_orig.simulation)
-    # print_force_contrib(ionic_liquid_new.simulation)
+        residue_new.update(force, 1)
+        ionic_liquid_new.update_context(force)
 
-    # for force_orig, force_new in zip(
-    #     ionic_liquid_orig.system.getForces(), ionic_liquid_new.system.getForces()
-    # ):
-    #     if type(force_orig).__name__ == type(force_new).__name__ == "NonbondedForce":
-    #         assert force_orig.getNumParticles() == force_new.getNumParticles()
-    #         for idx in range(force_orig.getNumParticles()):
-    #             f_orig = force_orig.getParticleParameters(idx)
-    #             f_new = force_new.getParticleParameters(idx)
-    #             assert f_orig == f_new
+        e_orig = get_energy(ionic_liquid_orig.simulation)
+        e_new = get_energy(ionic_liquid_new.simulation)
+        assert e_orig == e_new, f"at force {force}"
+
+        print(f"orig after {get_energy(ionic_liquid_orig.simulation)}")
+        print(f"new after {get_energy(ionic_liquid_new.simulation)}")
+        # print_force_contrib(ionic_liquid_orig.simulation)
+        # print_force_contrib(ionic_liquid_new.simulation)
+
+    for force_orig, force_new in zip(
+        ionic_liquid_orig.system.getForces(), ionic_liquid_new.system.getForces()
+    ):
+        if type(force_orig).__name__ == type(force_new).__name__ == "NonbondedForce":
+            assert force_orig.getNumParticles() == force_new.getNumParticles()
+            for idx in range(force_orig.getNumParticles()):
+                f_orig = force_orig.getParticleParameters(idx)
+                f_new = force_new.getParticleParameters(idx)
+                assert f_orig == f_new
