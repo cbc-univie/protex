@@ -487,7 +487,7 @@ class ProtexSystem:
     def _force_idx_dict(self) -> dict[str, dict[str, tuple[int]]]:
         d: dict[str, dict[str, tuple[int]]] = {}
         # automate force naming
-        d["NonbondedForce"] = {}
+        d["NonbondedForceExceptions"] = {}
         nbond_force = [
             f for f in self.system.getForces() if isinstance(f, openmm.NonbondedForce)
         ][0]
@@ -495,7 +495,7 @@ class ProtexSystem:
             f = nbond_force.getExceptionParameters(exc_idx)
             idx1 = f[0]
             idx2 = f[1]
-            d["NonbondedForce"][(idx1, idx2)] = (exc_idx, idx1, idx2)
+            d["NonbondedForceExceptions"][(idx1, idx2)] = (exc_idx, idx1, idx2)
 
         d["DrudeForce"] = {}
         drude_force = [
@@ -593,45 +593,28 @@ class ProtexSystem:
 
         return d
 
-    def _get_custom_torsion_list(self, atom_idxs) -> list[tuple[int]]:
-        ctorsion_idxs = []
-        to_delete = []
+    def _get_idxs_for_residue_force(
+        self, forcename, atom_idxs, assume_ascending_order=True
+    ):
+        """
+        Attention: function can only be used once for the whole creation of the residues
+        the entries in self.d get deleted, in order to be faster
+        assume_ascending_order is used to break the loop early, but so it is assumed that
+        the indices are all orderd! (speed improvement!)
+        (It did not work for HarmonicAngleForce -> need to inspect)
+        """
         max_idx = max(atom_idxs)
-        for key, value in self.d["CustomTorsionForce"].items():
-            # assume the exceptions are sorted!
-            if any(elem > max_idx for elem in key):
+        idxs = []
+        to_delete = []
+        for key, value in self.d[forcename].items():
+            if assume_ascending_order and any(elem > max_idx for elem in key):
                 break
             if all(element in atom_idxs for element in key):
-                ctorsion_idxs.append(value)
+                idxs.append(value)
                 to_delete.append(key)
         for key in to_delete:
-            del self.d["CustomTorsionForce"][key]
-        # ctorsion_idxs = [
-        #     value
-        #     for key, value in self.d["CustomTorsionForce"].items()
-        #     if all(element in atom_idxs for element in key)
-        # ]
-        return ctorsion_idxs
-
-    def _get_torsion_list(self, atom_idxs) -> list[tuple[int]]:
-        torsion_idxs = []
-        to_delete = []
-        max_idx = max(atom_idxs)
-        for key, value in self.d["PeriodicTorsionForce"].items():
-            # assume the exceptions are sorted!
-            if any(elem > max_idx for elem in key):
-                break
-            if all(element in atom_idxs for element in key):
-                torsion_idxs.append(value)
-                to_delete.append(key)
-        for key in to_delete:
-            del self.d["PeriodicTorsionForce"][key]
-        # torsion_idxs = [
-        #     value
-        #     for key, value in self.d["PeriodicTorsionForce"].items()
-        #     if all(element in atom_idxs for element in key)
-        # ]
-        return torsion_idxs
+            del self.d[forcename][key]
+        return idxs
 
     def _get_bond_list(self, atom_idxs) -> list[tuple[int]]:
         max_idx = max(atom_idxs)
@@ -662,105 +645,7 @@ class ProtexSystem:
         for key in to_delete:
             del self.d["HarmonicBondForce"][1][key]
 
-        # bond_idxs.append(
-        #     [
-        #         value
-        #         for key, value in self.d["HarmonicBondForce"][0].items()
-        #         if all(element in atom_idxs for element in key)
-        #     ]
-        # )
-        # bond_idxs.append(
-        #     [
-        #         value
-        #         for key, value in self.d["HarmonicBondForce"][1].items()
-        #         if all(element in atom_idxs for element in key)
-        #     ]
-        # )
         return bond_idxs
-
-    def _get_anlge_list(self, atom_idxs) -> list[tuple[int]]:
-        angle_idxs = []
-        to_delete = []
-        max_idx = max(atom_idxs)
-        for key, value in self.d["HarmonicAngleForce"].items():
-            # it did not work for angles
-            # if any(elem > max_idx for elem in key):
-            #    break
-            if all(element in atom_idxs for element in key):
-                angle_idxs.append(value)
-                to_delete.append(key)
-        for key in to_delete:
-            del self.d["HarmonicAngleForce"][key]
-
-        # angle_idxs = [
-        #     value
-        #     for key, value in self.d["HarmonicAngleForce"].items()
-        #     if all(element in atom_idxs for element in key)
-        #     # if key in combinations3
-        # ]
-        return angle_idxs
-
-    def _get_drude_list(self, atom_idxs) -> list[tuple[int]]:
-        drude_idxs = []
-        to_delete = []
-        max_idx = max(atom_idxs)
-        for key, value in self.d["DrudeForce"].items():
-            # assume the exceptions are sorted!
-            if any(elem > max_idx for elem in key):
-                break
-            if all(element in atom_idxs for element in key):
-                drude_idxs.append(value)
-                to_delete.append(key)
-        for key in to_delete:
-            del self.d["DrudeForce"][key]
-        # drude_idxs = [
-        #     value
-        #     for key, value in self.d["DrudeForce"].items()
-        #     if all(element in atom_idxs for element in key)
-        # ]
-        return drude_idxs
-
-    def _get_thole_list(self, atom_idxs) -> list[tuple[int]]:
-        thole_idxs = []
-        to_delete = []
-        max_idx = max(atom_idxs)
-        for key, value in self.d["DrudeForceThole"].items():
-            # assume the exceptions are sorted!
-            if any(elem > max_idx for elem in key):
-                break
-            if all(element in atom_idxs for element in key):
-                thole_idxs.append(value)
-                to_delete.append(key)
-        for key in to_delete:
-            del self.d["DrudeForceThole"][key]
-        # thole_idxs = [
-        #     value
-        #     for key, value in self.d["DrudeForceThole"].items()
-        #     if all(element in atom_idxs for element in key)
-        # ]
-        return thole_idxs
-
-    def _get_nbond_excpetion_list(self, atom_idxs) -> list[tuple[int]]:
-        # if self.fast:
-        exception_idxs = []
-        to_delete = []
-        max_idx = max(atom_idxs)
-        for key, value in self.d["NonbondedForce"].items():
-            # assume the exceptions are sorted!
-            if any(elem > max_idx for elem in key):
-                break
-            if all(element in atom_idxs for element in key):
-                exception_idxs.append(value)
-                to_delete.append(key)
-        for key in to_delete:
-            del self.d["NonbondedForce"][key]
-        return exception_idxs
-        # exception_idxs = [
-        #     value
-        #     for key, value in self.d["NonbondedForce"].items()
-        #     if all(element in atom_idxs for element in key)
-        # ]
-        # return exception_idxs
 
     def _set_initial_states(self) -> list:
         """set_initial_states.
@@ -812,11 +697,6 @@ class ProtexSystem:
                     atom.index for atom in r.atoms()
                 ]  # also give them to initilaizer, not inside residue?
 
-                # combinations = list(itertools.permutations(atom_idxs, 2))
-                # combinations3 = list(itertools.permutations(atom_idxs, 3))
-                # combinations4 = list(itertools.permutations(atom_idxs, 4))
-                # print(len(combinations4))
-
                 residues.append(
                     Residue(
                         r,
@@ -830,13 +710,27 @@ class ProtexSystem:
                             self.templates.has_equivalent_atom(name),
                             self.templates.has_equivalent_atom(name_of_paired_ion),
                         ),
-                        nbond_exception_idxs=self._get_nbond_excpetion_list(atom_idxs),
-                        drude_idxs=self._get_drude_list(atom_idxs),
-                        thole_idxs=self._get_thole_list(atom_idxs),
+                        nbond_exception_idxs=self._get_idxs_for_residue_force(
+                            "NonbondedForceExceptions", atom_idxs
+                        ),
+                        drude_idxs=self._get_idxs_for_residue_force(
+                            "DrudeForce", atom_idxs
+                        ),
+                        thole_idxs=self._get_idxs_for_residue_force(
+                            "DrudeForceThole", atom_idxs
+                        ),
                         bond_idxs=self._get_bond_list(atom_idxs),
-                        angle_idxs=self._get_anlge_list(atom_idxs),
-                        torsion_idxs=self._get_torsion_list(atom_idxs),
-                        custom_torsion_idxs=self._get_custom_torsion_list(atom_idxs),
+                        angle_idxs=self._get_idxs_for_residue_force(
+                            "HarmonicAngleForce",
+                            atom_idxs,
+                            assume_ascending_order=False,
+                        ),
+                        torsion_idxs=self._get_idxs_for_residue_force(
+                            "PeriodicTorsionForce", atom_idxs
+                        ),
+                        custom_torsion_idxs=self._get_idxs_for_residue_force(
+                            "CustomTorsionForce", atom_idxs
+                        ),
                     )
                 )
                 residues[
@@ -1157,3 +1051,127 @@ class ProtexSystem:
             key = key.split("'")
             final_data[frozenset([key[1], key[3]])] = value
         self.templates.allowed_updates = final_data
+
+    # def _get_anlge_list(self, atom_idxs) -> list[tuple[int]]:
+    #     angle_idxs = []
+    #     to_delete = []
+    #     max_idx = max(atom_idxs)
+    #     for key, value in self.d["HarmonicAngleForce"].items():
+    #         # it did not work for angles
+    #         # if any(elem > max_idx for elem in key):
+    #         #    break
+    #         if all(element in atom_idxs for element in key):
+    #             angle_idxs.append(value)
+    #             to_delete.append(key)
+    #     for key in to_delete:
+    #         del self.d["HarmonicAngleForce"][key]
+
+    #     # angle_idxs = [
+    #     #     value
+    #     #     for key, value in self.d["HarmonicAngleForce"].items()
+    #     #     if all(element in atom_idxs for element in key)
+    #     #     # if key in combinations3
+    #     # ]
+    #     return angle_idxs
+
+    # def _get_drude_list(self, atom_idxs) -> list[tuple[int]]:
+    #     drude_idxs = []
+    #     to_delete = []
+    #     max_idx = max(atom_idxs)
+    #     for key, value in self.d["DrudeForce"].items():
+    #         # assume the exceptions are sorted!
+    #         if any(elem > max_idx for elem in key):
+    #             break
+    #         if all(element in atom_idxs for element in key):
+    #             drude_idxs.append(value)
+    #             to_delete.append(key)
+    #     for key in to_delete:
+    #         del self.d["DrudeForce"][key]
+    #     # drude_idxs = [
+    #     #     value
+    #     #     for key, value in self.d["DrudeForce"].items()
+    #     #     if all(element in atom_idxs for element in key)
+    #     # ]
+    #     return drude_idxs
+
+    # def _get_thole_list(self, atom_idxs) -> list[tuple[int]]:
+    #     thole_idxs = []
+    #     to_delete = []
+    #     max_idx = max(atom_idxs)
+    #     for key, value in self.d["DrudeForceThole"].items():
+    #         # assume the exceptions are sorted!
+    #         if any(elem > max_idx for elem in key):
+    #             break
+    #         if all(element in atom_idxs for element in key):
+    #             thole_idxs.append(value)
+    #             to_delete.append(key)
+    #     for key in to_delete:
+    #         del self.d["DrudeForceThole"][key]
+    #     # thole_idxs = [
+    #     #     value
+    #     #     for key, value in self.d["DrudeForceThole"].items()
+    #     #     if all(element in atom_idxs for element in key)
+    #     # ]
+    #     return thole_idxs
+
+    # def _get_nbond_excpetion_list(self, atom_idxs) -> list[tuple[int]]:
+    #     # if self.fast:
+    #     exception_idxs = []
+    #     to_delete = []
+    #     max_idx = max(atom_idxs)
+    #     for key, value in self.d["NonbondedForceExceptions"].items():
+    #         # assume the exceptions are sorted!
+    #         if any(elem > max_idx for elem in key):
+    #             break
+    #         if all(element in atom_idxs for element in key):
+    #             exception_idxs.append(value)
+    #             to_delete.append(key)
+    #     for key in to_delete:
+    #         del self.d["NonbondedForceExceptions"][key]
+    #     return exception_idxs
+    #     # exception_idxs = [
+    #     #     value
+    #     #     for key, value in self.d["NonbondedForce"].items()
+    #     #     if all(element in atom_idxs for element in key)
+    #     # ]
+    #     # return exception_idxs
+
+    # def _get_custom_torsion_list(self, atom_idxs) -> list[tuple[int]]:
+    #     ctorsion_idxs = []
+    #     to_delete = []
+    #     max_idx = max(atom_idxs)
+    #     for key, value in self.d["CustomTorsionForce"].items():
+    #         # assume the exceptions are sorted!
+    #         if any(elem > max_idx for elem in key):
+    #             break
+    #         if all(element in atom_idxs for element in key):
+    #             ctorsion_idxs.append(value)
+    #             to_delete.append(key)
+    #     for key in to_delete:
+    #         del self.d["CustomTorsionForce"][key]
+    #     # ctorsion_idxs = [
+    #     #     value
+    #     #     for key, value in self.d["CustomTorsionForce"].items()
+    #     #     if all(element in atom_idxs for element in key)
+    #     # ]
+    #     return ctorsion_idxs
+
+    # def _get_torsion_list(self, atom_idxs) -> list[tuple[int]]:
+    #     torsion_idxs = []
+    #     to_delete = []
+    #     max_idx = max(atom_idxs)
+    #     for key, value in self.d["PeriodicTorsionForce"].items():
+    #         # assume the exceptions are sorted!
+    #         if any(elem > max_idx for elem in key):
+    #             break
+    #         if all(element in atom_idxs for element in key):
+    #             torsion_idxs.append(value)
+    #             to_delete.append(key)
+    #     for key in to_delete:
+    #         del self.d["PeriodicTorsionForce"][key]
+    #     # torsion_idxs = [
+    #     #     value
+    #     #     for key, value in self.d["PeriodicTorsionForce"].items()
+    #     #     if all(element in atom_idxs for element in key)
+    #     # ]
+    #     return torsion_idxs
