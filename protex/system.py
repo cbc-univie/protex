@@ -601,7 +601,7 @@ class ProtexSystem:
         the entries in self.d get deleted, in order to be faster
         assume_ascending_order is used to break the loop early, but so it is assumed that
         the indices are all orderd! (speed improvement!)
-        (It did not work for HarmonicAngleForce -> need to inspect)
+        (It did not work for HarmonicAngleForce -> need to inspect).
         """
         max_idx = max(atom_idxs)
         idxs = []
