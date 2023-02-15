@@ -285,7 +285,11 @@ class ProtexSystem:
         self.templates: ProtexTemplates = templates
         self.simulation_for_parameters = simulation_for_parameters
         self.pair_12_13_list = self._build_exclusion_list(self.topology)
-        self.pair_12_13_list_params = self._build_exclusion_list(self.simulation_for_parameters.topology) if self.simulation_for_parameters is not None else self.pair_12_13_list
+        self.pair_12_13_list_params = (
+            self._build_exclusion_list(self.simulation_for_parameters.topology)
+            if self.simulation_for_parameters is not None
+            else self.pair_12_13_list
+        )
         self.d = self._force_idx_dict()
         self.residues: list[Residue] = self._set_initial_states()
         self.boxlength: openmm.Quantity = (
@@ -348,7 +352,7 @@ class ProtexSystem:
         # attention, different one than the instance variable self.pair_12_13_list,
         # if not all possible state are present in the current psf
 
-        #pair_12_13_list_params = self._build_exclusion_list(sim.topology)
+        # pair_12_13_list_params = self._build_exclusion_list(sim.topology)
 
         for residue in sim.topology.residues():
             if query_name == residue.name:
@@ -429,7 +433,8 @@ class ProtexSystem:
                                 forces_dict[type(force).__name__].append(f)
                         # print(self.pair_12_13_list)
                         assert (
-                            len(self.pair_12_13_list_params) == force.getNumScreenedPairs()
+                            len(self.pair_12_13_list_params)
+                            == force.getNumScreenedPairs()
                         ), f"{len(self.pair_12_13_list_params)=}, {force.getNumScreenedPairs()=}"
                         for drude_id in range(force.getNumScreenedPairs()):
                             f = force.getScreenedPairParameters(drude_id)
@@ -488,7 +493,7 @@ class ProtexSystem:
             f = nbond_force.getExceptionParameters(exc_idx)
             idx1 = f[0]
             idx2 = f[1]
-            d["NonbondedForce"][f"{idx1}{idx2}"] = (exc_idx, idx1, idx2)
+            d["NonbondedForce"][(idx1, idx2)] = (exc_idx, idx1, idx2)
 
         d["DrudeForce"] = {}
         drude_force = [
@@ -501,7 +506,7 @@ class ProtexSystem:
             idx3 = f[2]
             idx4 = f[3]
             idx5 = f[4]
-            d["DrudeForce"][f"{idx1}{idx2}"] = (drude_idx, idx2, idx2, idx3, idx4, idx5)
+            d["DrudeForce"][(idx1, idx2)] = (drude_idx, idx2, idx2, idx3, idx4, idx5)
         d["DrudeForceThole"] = {}
         for drude_idx in range(drude_force.getNumScreenedPairs()):
             f = drude_force.getScreenedPairParameters(drude_idx)
@@ -509,10 +514,11 @@ class ProtexSystem:
             idx2 = f[1]
             parent1, parent2 = self.pair_12_13_list[drude_idx]
             drude1, drude2 = parent1 + 1, parent2 + 1  # Drude comes after parent atom
-            d["DrudeForceThole"][f"{drude1}{drude2}"] = (drude_idx, idx1, idx2)
+            d["DrudeForceThole"][(drude1, drude2)] = (drude_idx, idx1, idx2)
 
         # this is a bit wonk with the two harm bond forces -> we should check an probably improve here!
-        d["HarmonicBondForce"] = {}
+        # we have two harmonic bond forces... -> maybe we find a better way... (force index?)
+        d["HarmonicBondForce"] = [{}, {}]
         bond_force1 = [
             f
             for f in self.system.getForces()
@@ -521,7 +527,7 @@ class ProtexSystem:
         for bond_idx in range(bond_force1.getNumBonds()):
             f = bond_force1.getBondParameters(bond_idx)
             idx1, idx2 = f[0], f[1]
-            d["HarmonicBondForce"][f"{idx1}{idx2}"] = (bond_idx, idx1, idx2)
+            d["HarmonicBondForce"][0][(idx1, idx2)] = (bond_idx, idx1, idx2)
 
         bond_force2 = [
             f
@@ -531,7 +537,7 @@ class ProtexSystem:
         for bond_idx in range(bond_force2.getNumBonds()):
             f = bond_force2.getBondParameters(bond_idx)
             idx1, idx2 = f[0], f[1]
-            d["HarmonicBondForce"][f"{idx1}{idx2}"] = (bond_idx, idx1, idx2)
+            d["HarmonicBondForce"][1][(idx1, idx2)] = (bond_idx, idx1, idx2)
 
         d["HarmonicAngleForce"] = {}
         angle_force = [
@@ -542,7 +548,7 @@ class ProtexSystem:
         for angle_idx in range(angle_force.getNumAngles()):
             f = angle_force.getAngleParameters(angle_idx)
             idx1, idx2, idx3 = f[0], f[1], f[2]
-            d["HarmonicAngleForce"][f"{idx1}{idx2}{idx3}"] = (
+            d["HarmonicAngleForce"][(idx1, idx2, idx3)] = (
                 angle_idx,
                 idx1,
                 idx2,
@@ -557,8 +563,8 @@ class ProtexSystem:
         ][0]
         for torsion_idx in range(torsion_force.getNumTorsions()):
             f = torsion_force.getTorsionParameters(torsion_idx)
-            idx1, idx2, idx3, idx4 = f[0], f[1], f[2], f[4]
-            d["PeriodicTorsionForce"][f"{idx1}{idx2}{idx3}{idx4}"] = (
+            idx1, idx2, idx3, idx4 = f[0], f[1], f[2], f[3]
+            d["PeriodicTorsionForce"][(idx1, idx2, idx3, idx4)] = (
                 torsion_idx,
                 idx1,
                 idx2,
@@ -574,8 +580,8 @@ class ProtexSystem:
         ][0]
         for ctorsion_idx in range(ctorsion_force.getNumTorsions()):
             f = ctorsion_force.getTorsionParameters(ctorsion_idx)
-            idx1, idx2, idx3, idx4 = f[0], f[1], f[2], f[4]
-            d["CustomTorsionForce"][f"{idx1}{idx2}{idx3}{idx4}"] = (
+            idx1, idx2, idx3, idx4 = f[0], f[1], f[2], f[3]
+            d["CustomTorsionForce"][(idx1, idx2, idx3, idx4)] = (
                 ctorsion_idx,
                 idx1,
                 idx2,
@@ -585,57 +591,70 @@ class ProtexSystem:
 
         return d
 
-    def _get_custom_torsion_list(self, combinations4) -> list[tuple[int]]:
+    def _get_custom_torsion_list(self, atom_idxs) -> list[tuple[int]]:
         ctorsion_idxs = [
             value
             for key, value in self.d["CustomTorsionForce"].items()
-            if key in combinations4
+            if all(element in atom_idxs for element in key)
         ]
         return ctorsion_idxs
 
-    def _get_torsion_list(self, combinations4) -> list[tuple[int]]:
+    def _get_torsion_list(self, atom_idxs) -> list[tuple[int]]:
         torsion_idxs = [
             value
             for key, value in self.d["PeriodicTorsionForce"].items()
-            if key in combinations4
+            if all(element in atom_idxs for element in key)
         ]
         return torsion_idxs
 
-    def _get_bond_list(self, combinations) -> list[tuple[int]]:
-        bond_idxs = [
-            value
-            for key, value in self.d["HarmonicBondForce"].items()
-            if key in combinations
-        ]
+    def _get_bond_list(self, atom_idxs) -> list[tuple[int]]:
+        bond_idxs = []
+        bond_idxs.append(
+            [
+                value
+                for key, value in self.d["HarmonicBondForce"][0].items()
+                if all(element in atom_idxs for element in key)
+            ]
+        )
+        bond_idxs.append(
+            [
+                value
+                for key, value in self.d["HarmonicBondForce"][1].items()
+                if all(element in atom_idxs for element in key)
+            ]
+        )
         return bond_idxs
 
-    def _get_anlge_list(self, combinations3) -> list[tuple[int]]:
+    def _get_anlge_list(self, atom_idxs) -> list[tuple[int]]:
         angle_idxs = [
             value
             for key, value in self.d["HarmonicAngleForce"].items()
-            if key in combinations3
+            if all(element in atom_idxs for element in key)
+            # if key in combinations3
         ]
         return angle_idxs
 
-    def _get_drude_list(self, combinations) -> list[tuple[int]]:
+    def _get_drude_list(self, atom_idxs) -> list[tuple[int]]:
         drude_idxs = [
-            value for key, value in self.d["DrudeForce"].items() if key in combinations
+            value
+            for key, value in self.d["DrudeForce"].items()
+            if all(element in atom_idxs for element in key)
         ]
         return drude_idxs
 
-    def _get_thole_list(self, combinations) -> list[tuple[int]]:
+    def _get_thole_list(self, atom_idxs) -> list[tuple[int]]:
         thole_idxs = [
             value
             for key, value in self.d["DrudeForceThole"].items()
-            if key in combinations
+            if all(element in atom_idxs for element in key)
         ]
         return thole_idxs
 
-    def _get_nbond_excpetion_list(self, combinations) -> list[tuple[int]]:
+    def _get_nbond_excpetion_list(self, atom_idxs) -> list[tuple[int]]:
         exception_idxs = [
             value
             for key, value in self.d["NonbondedForce"].items()
-            if key in combinations
+            if all(element in atom_idxs for element in key)
         ]
         return exception_idxs
 
@@ -688,9 +707,11 @@ class ProtexSystem:
                 atom_idxs = [
                     atom.index for atom in r.atoms()
                 ]  # also give them to initilaizer, not inside residue?
-                combinations = itertools.combinations(atom_idxs, 2)
-                combinations3 = itertools.combinations(atom_idxs, 3)
-                combinations4 = itertools.combinations(atom_idxs, 4)
+
+                #combinations = list(itertools.permutations(atom_idxs, 2))
+                # combinations3 = list(itertools.permutations(atom_idxs, 3))
+                # combinations4 = list(itertools.permutations(atom_idxs, 4))
+                # print(len(combinations4))
 
                 residues.append(
                     Residue(
@@ -705,17 +726,13 @@ class ProtexSystem:
                             self.templates.has_equivalent_atom(name),
                             self.templates.has_equivalent_atom(name_of_paired_ion),
                         ),
-                        nbond_exception_idxs=self._get_nbond_excpetion_list(
-                           combinations
-                        ),
-                        drude_idxs=self._get_drude_list(combinations),
-                        thole_idxs=self._get_thole_list(combinations),
-                        bond_idxs=self._get_bond_list(combinations),
-                        angle_idxs=self._get_anlge_list(combinations3),
-                        torsion_idxs=self._get_torsion_list(combinations4),
-                        custom_torsion_idxs=self._get_custom_torsion_list(
-                           combinations4
-                        ),
+                        nbond_exception_idxs=self._get_nbond_excpetion_list(atom_idxs),
+                        drude_idxs=self._get_drude_list(atom_idxs),
+                        thole_idxs=self._get_thole_list(atom_idxs),
+                        bond_idxs=self._get_bond_list(atom_idxs),
+                        angle_idxs=self._get_anlge_list(atom_idxs),
+                        torsion_idxs=self._get_torsion_list(atom_idxs),
+                        custom_torsion_idxs=self._get_custom_torsion_list(atom_idxs),
                     )
                 )
                 residues[

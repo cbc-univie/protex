@@ -192,10 +192,11 @@ class Residue:
 
     def _set_HarmonicBondForce_parameters(self, parms) -> None:  # noqa: N802
         parms = deque(parms)
+        harmbond_ctr = 0
         for force in self.system.getForces():
             if type(force).__name__ == "HarmonicBondForce":
                 if self.bond_idxs is not None:  # use the fast way
-                    for bond_idx, idx1, idx2 in self.bond_idxs:
+                    for bond_idx, idx1, idx2 in self.bond_idxs[harmbond_ctr]:
                         r, k = parms.popleft()
                         force.setBondParameters(bond_idx, idx1, idx2, r, k)
                 else:
@@ -206,6 +207,7 @@ class Residue:
                         if idx1 in self.atom_idxs and idx2 in self.atom_idxs:
                             r, k = parms.popleft()
                             force.setBondParameters(bond_idx, idx1, idx2, r, k)
+                harmbond_ctr += 1
 
     def _set_HarmonicAngleForce_parameters(self, parms) -> None:  # noqa: N802
         parms = deque(parms)

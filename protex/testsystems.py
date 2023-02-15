@@ -276,6 +276,8 @@ def generate_small_box(
     drude_coll_freq=100,
     dummy_atom_type="DUMH",
     use_plugin=True,
+    platform="CUDA",
+    CudaPrecision="single",
 ):
     """Sets up a solvated and paraterized system for IM1H/OAC."""
     print(
@@ -368,10 +370,13 @@ def generate_small_box(
         coll_freq=coll_freq,
         drude_coll_freq=drude_coll_freq,
         use_plugin=use_plugin,
+        platformname=platform,
+        CudaPrecision=CudaPrecision,
     ):
         psf, crd, params = load_charmm_files()
         system = setup_system(psf, params)
-
+        if use_plugin and platformname != "CUDA":
+            assert "Plugin only available with CUDA"
         if use_plugin:
             # plugin
             # https://github.com/z-gong/openmm-velocityVerlet
@@ -414,8 +419,12 @@ def generate_small_box(
 
         integrator.setMaxDrudeDistance(0.25 * angstroms)
         try:
-            platform = Platform.getPlatformByName("CUDA")
-            prop = dict(CudaPrecision="single")  # default is single
+            platform = Platform.getPlatformByName(platformname)
+            if platformname == "CUDA":
+                prop = dict(CudaPrecision=CudaPrecision)  # default is single
+                print(f"Using precision {CudaPrecision}")
+            else:
+                prop = dict()
             # prop = dict(CudaPrecision="double")
             # Moved creating the simulation object inside the try...except block, because i.e.
             # Error loading CUDA module: CUDA_ERROR_INVALID_PTX (218)
@@ -1119,6 +1128,7 @@ def generate_hpts_meoh_system(
 
     return setup_simulation()
 
+
 def generate_hpts_meoh_lj04_system(
     psf_file: str = None,
     crd_file: str = None,
@@ -1321,6 +1331,7 @@ def generate_hpts_meoh_lj04_system(
         return simulation
 
     return setup_simulation()
+
 
 # used for faster tests, not for production!
 def generate_single_hpts_meoh_system(
@@ -1548,7 +1559,6 @@ def generate_single_hpts_meoh_system(
         return simulation
 
     return setup_simulation()
-
 
 
 def generate_single_im1h_oac_system(coll_freq=10, drude_coll_freq=100, psf_file=None):
