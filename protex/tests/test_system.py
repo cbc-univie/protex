@@ -1015,4 +1015,3 @@ def test_equivalence_new_old_method():
                 f_orig = force_orig.getParticleParameters(idx)
                 f_new = force_new.getParticleParameters(idx)
                 assert f_orig == f_new
-
