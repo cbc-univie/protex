@@ -16,7 +16,25 @@ protex
 [//]: <[![codecov](https://codecov.io/gh/florianj77/protex/branch/main/graph/badge.svg?token=ddqu0BzewU)](https://codecov.io/gh/florianj77/protex)>
 
 
-Proton exchange using MC and openMM for ionic liquids
+Proton exchange using openMM for ionic liquids
+
+## Installation
+
+protex can be easily installed from conda-forge:
+```
+conda install protex -c conda-forge
+```
+Alternatively clone this repo and install from source:
+```
+git clone https://github.com/florianjoerg/protex.git
+cd protex
+pip install .
+```
+
+## Maintainers
+
+- Florian Jörg <florian.joerg@univie.ac.at> (University of Vienna)
+- Márta Gödeny (University of Vienna)
 
 ### Copyright
 
