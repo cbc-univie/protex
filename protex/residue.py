@@ -267,10 +267,16 @@ class Residue:
         for force in self.system.getForces():
             if type(force).__name__ == "CustomTorsionForce":
                 if self.custom_torsion_idxs is not None:
-                    for ctorsion_idx, idx1, idx2, idx3, idx4 in self.custom_torsion_idxs:
+                    for (
+                        ctorsion_idx,
+                        idx1,
+                        idx2,
+                        idx3,
+                        idx4,
+                    ) in self.custom_torsion_idxs:
                         k, psi0 = parms.popleft()  # tuple with (k,psi0)
                         force.setTorsionParameters(
-                            torsion_idx, idx1, idx2, idx3, idx4, (k, psi0)
+                            ctorsion_idx, idx1, idx2, idx3, idx4, (k, psi0)
                         )
                 else:
                     for torsion_idx in range(force.getNumTorsions()):
