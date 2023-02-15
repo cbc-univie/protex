@@ -508,7 +508,7 @@ class ProtexSystem:
             idx3 = f[2]
             idx4 = f[3]
             idx5 = f[4]
-            d["DrudeForce"][(idx1, idx2)] = (drude_idx, idx2, idx2, idx3, idx4, idx5)
+            d["DrudeForce"][(idx1, idx2)] = (drude_idx, idx1, idx2, idx3, idx4, idx5)
         d["DrudeForceThole"] = {}
         for drude_idx in range(drude_force.getNumScreenedPairs()):
             f = drude_force.getScreenedPairParameters(drude_idx)
@@ -540,7 +540,6 @@ class ProtexSystem:
             f = bond_force2.getBondParameters(bond_idx)
             idx1, idx2 = f[0], f[1]
             d["HarmonicBondForce"][1][(idx1, idx2)] = (bond_idx, idx1, idx2)
-
         d["HarmonicAngleForce"] = {}
         angle_force = [
             f
