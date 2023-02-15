@@ -1,9 +1,10 @@
 # Import package, test suite, and other packages as needed
 # import json
+import logging
 import os
 from collections import defaultdict
 from sys import stdout
-import logging
+
 import pytest
 
 import protex
