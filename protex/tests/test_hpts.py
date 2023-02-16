@@ -8,12 +8,7 @@ from sys import stdout
 
 try:  # Syntax changed in OpenMM 7.6
     import openmm as mm
-    from openmm import (
-        Context,
-        DrudeNoseHooverIntegrator,
-        OpenMMException,
-        Platform,
-    )
+    from openmm import Context, DrudeNoseHooverIntegrator, OpenMMException, Platform
     from openmm.app import (
         PME,
         CharmmCrdFile,
@@ -1264,8 +1259,8 @@ def test_count_forces():
     reason="Will fail sporadicaly.",
 )
 def test_update_write_psf(tmp_path):
-    # psf_for_parameters = f"{protex.__path__[0]}/forcefield/hpts_single/hpts_single.psf"
-    psf_for_parameters = f"{protex.__path__[0]}/forcefield/hpts.psf"
+    #psf_for_parameters = f"{protex.__path__[0]}/forcefield/hpts_single/hpts_single.psf"
+    psf_for_parameters = f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
     psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
     crd_for_parameters = f"{protex.__path__[0]}/forcefield/crd_for_parameters.crd"
 
@@ -1321,8 +1316,8 @@ def test_update_write_psf(tmp_path):
 
         os.rename(f"{tmp_path}/test.psf", f"{tmp_path}/old_psf.psf")
 
-        # simulation = generate_hpts_meoh_system(psf_file=f"{tmp_path}/old_psf.psf")
-        simulation = generate_single_hpts_meoh_system(psf_file=f"{tmp_path}/old_psf.py")
+        simulation = generate_hpts_meoh_system(psf_file=f"{tmp_path}/old_psf.psf")
+        #simulation = generate_single_hpts_meoh_system(psf_file=f"{tmp_path}/old_psf.psf")
         ionic_liquid = ProtexSystem(simulation, templates, simulation_for_parameters)
         update = NaiveMCUpdate(ionic_liquid)
         state_update = StateUpdate(update)
