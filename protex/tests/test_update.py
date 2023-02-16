@@ -2304,7 +2304,7 @@ def test_save_load_updates(caplog, tmp_path):
     assert state_update.update_trial == 100
 
 
-from profilehooks import profile, timecall
+#from profilehooks import profile, timecall
 
 
 # @profile(immediate=True)
