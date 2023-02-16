@@ -433,9 +433,6 @@ class NaiveMCUpdate(Update):
         with open(fname, "wb") as outp:
             pickle.dump(to_pickle, outp, pickle.HIGHEST_PROTOCOL)
 
-    from profilehooks import profile
-
-    @profile(immediate=True)
     def _update(self, candidates: list[tuple], nr_of_steps: int) -> None:
         logger.info("called _update")
         # get current state

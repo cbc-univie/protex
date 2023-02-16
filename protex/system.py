@@ -239,9 +239,6 @@ class ProtexTemplates:
         return self.states[name]["charge"]
 
 
-from profilehooks import profile
-
-
 class ProtexSystem:
     """Defines the full system, performs the MD steps and offers an interface for protonation state updates.
 
@@ -272,7 +269,6 @@ class ProtexSystem:
         protex_system.residues = from_pickle[1]
         return protex_system
 
-    @profile(immediate=True)
     def __init__(
         self,
         simulation: openmm.app.simulation.Simulation,
@@ -526,11 +522,12 @@ class ProtexSystem:
             for f in self.system.getForces()
             if isinstance(f, openmm.HarmonicBondForce)
         ][0]
+        print(f"{bond_force1.getForceGroup()=}")
         for bond_idx in range(bond_force1.getNumBonds()):
             f = bond_force1.getBondParameters(bond_idx)
             idx1, idx2 = f[0], f[1]
             d["HarmonicBondForce"][0][(idx1, idx2)] = (bond_idx, idx1, idx2)
-
+        # print(len(d["HarmonicBondForce"][0]))
         bond_force2 = [
             f
             for f in self.system.getForces()
@@ -540,6 +537,7 @@ class ProtexSystem:
             f = bond_force2.getBondParameters(bond_idx)
             idx1, idx2 = f[0], f[1]
             d["HarmonicBondForce"][1][(idx1, idx2)] = (bond_idx, idx1, idx2)
+        print(f"{bond_force2.getForceGroup()=}")
         d["HarmonicAngleForce"] = {}
         angle_force = [
             f
@@ -695,7 +693,6 @@ class ProtexSystem:
                 atom_idxs = [
                     atom.index for atom in r.atoms()
                 ]  # also give them to initilaizer, not inside residue?
-
                 residues.append(
                     Residue(
                         r,
