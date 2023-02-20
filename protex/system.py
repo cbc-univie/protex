@@ -239,6 +239,9 @@ class ProtexTemplates:
         return self.states[name]["charge"]
 
 
+# from profilehooks import profile, timecall
+
+
 class ProtexSystem:
     """Defines the full system, performs the MD steps and offers an interface for protonation state updates.
 
@@ -251,6 +254,9 @@ class ProtexSystem:
     simulation_for_parameters:
         another OpenMM simulation object, set up with a psf that contains all possible forms (protonated and deprotonated) of all species,
         needed for finding the parameters of the other form during an update
+    fast:
+        If True indices list for all forces for each residue will be made once at initilaizaiton of ProtexSystem, and then used for finding the indices during an update.
+        If False, the whole forces.getNumExceptions and similar calls will be used for each update and each residue, which is way slower
 
     """
 
@@ -269,6 +275,7 @@ class ProtexSystem:
         protex_system.residues = from_pickle[1]
         return protex_system
 
+    # @profile(immediate=True)
     def __init__(
         self,
         simulation: openmm.app.simulation.Simulation,
@@ -276,6 +283,7 @@ class ProtexSystem:
         simulation_for_parameters: openmm.app.simulation.Simulation = None,
         fast: bool = True,
     ) -> None:
+
         self.system: openmm.openmm.System = simulation.system
         self.topology: openmm.app.topology.Topology = simulation.topology
         self.simulation: openmm.app.simulation.Simulation = simulation
@@ -287,12 +295,12 @@ class ProtexSystem:
             if self.simulation_for_parameters is not None
             else self.pair_12_13_list
         )
-        self.d = self._force_idx_dict()
+        self.fast: bool = fast
+        self.d = self._force_idx_dict_new()
         self.residues: list[Residue] = self._set_initial_states()
         self.boxlength: openmm.Quantity = (
             simulation.context.getState().getPeriodicBoxVectors()[0][0]
         )  # NOTE: supports only cubic boxes
-        self.fast: bool = fast
 
     def dump(self, fname: str) -> None:
         """Pickle ProtexSystem to file."""
@@ -479,6 +487,130 @@ class ProtexSystem:
                 raise AssertionError(
                     "There are not the same number of forces or a wrong order. Possible Problems: Bond/Angle/... is missing. Urey_Bradley Term is not defined for both states, ...)"
                 )
+
+    def _force_idx_dict_new(self):
+        d: dict[int[str, dict[str, tuple[int]]]] = {}
+        for force in self.system.getForces():
+            fgroup = force.getForceGroup()
+            d[fgroup] = {}
+            if type(force).__name__ == "NonbondedForce":
+                # only treat exceptions
+                d[fgroup]["NonbondedForceExceptions"] = {}
+                for exc_idx in range(force.getNumExceptions()):
+                    f = force.getExceptionParameters(exc_idx)
+                    idx1 = f[0]
+                    idx2 = f[1]
+                    d[fgroup]["NonbondedForceExceptions"][(idx1, idx2)] = (
+                        exc_idx,
+                        idx1,
+                        idx2,
+                    )
+            if type(force).__name__ == "DrudeForce":
+                d[fgroup]["DrudeForce"] = {}
+                d[fgroup]["DrudeForceThole"] = {}
+                for drude_idx in range(force.getNumParticles()):
+                    f = force.getParticleParameters(drude_idx)
+                    idx1 = f[0]
+                    idx2 = f[1]
+                    idx3 = f[2]
+                    idx4 = f[3]
+                    idx5 = f[4]
+                    d[fgroup]["DrudeForce"][(idx1, idx2)] = (
+                        drude_idx,
+                        idx1,
+                        idx2,
+                        idx3,
+                        idx4,
+                        idx5,
+                    )
+                for drude_idx in range(force.getNumScreenedPairs()):
+                    f = force.getScreenedPairParameters(drude_idx)
+                    idx1 = f[0]
+                    idx2 = f[1]
+                    parent1, parent2 = self.pair_12_13_list[drude_idx]
+                    drude1, drude2 = (
+                        parent1 + 1,
+                        parent2 + 1,
+                    )  # Drude comes after parent atom
+                    d[fgroup]["DrudeForceThole"][(drude1, drude2)] = (
+                        drude_idx,
+                        idx1,
+                        idx2,
+                    )
+            if type(force).__name__ == "HarmonicBondForce":
+                d[fgroup]["HarmonicBondForce"] = {}
+                for bond_idx in range(force.getNumBonds()):
+                    f = force.getBondParameters(bond_idx)
+                    idx1, idx2 = f[0], f[1]
+                    d[fgroup]["HarmonicBondForce"][(idx1, idx2)] = (
+                        bond_idx,
+                        idx1,
+                        idx2,
+                    )
+            if type(force).__name__ == "HarmonicAngleForce":
+                d[fgroup]["HarmonicAngleForce"] = {}
+                for angle_idx in range(force.getNumAngles()):
+                    f = force.getAngleParameters(angle_idx)
+                    idx1, idx2, idx3 = f[0], f[1], f[2]
+                    d[fgroup]["HarmonicAngleForce"][(idx1, idx2, idx3)] = (
+                        angle_idx,
+                        idx1,
+                        idx2,
+                        idx3,
+                    )
+            if type(force).__name__ == "PeriodicTorsionForce":
+                d[fgroup]["PeriodicTorsionForce"] = {}
+                for torsion_idx in range(force.getNumTorsions()):
+                    f = force.getTorsionParameters(torsion_idx)
+                    idx1, idx2, idx3, idx4 = f[0], f[1], f[2], f[3]
+                    d[fgroup]["PeriodicTorsionForce"][(idx1, idx2, idx3, idx4)] = (
+                        torsion_idx,
+                        idx1,
+                        idx2,
+                        idx3,
+                        idx4,
+                    )
+            if type(force).__name__ == "CustomTorsionForce":
+                d[fgroup]["CustomTorsionForce"] = {}
+                for ctorsion_idx in range(force.getNumTorsions()):
+                    f = force.getTorsionParameters(ctorsion_idx)
+                    idx1, idx2, idx3, idx4 = f[0], f[1], f[2], f[3]
+                    d[fgroup]["CustomTorsionForce"][(idx1, idx2, idx3, idx4)] = (
+                        ctorsion_idx,
+                        idx1,
+                        idx2,
+                        idx3,
+                        idx4,
+                    )
+
+        sd = dict(sorted(d.items()))  # so nicht
+        return sd
+
+    def _get_idxs_for_residue_force_new(self, atom_idxs, assume_ascending_order=True):
+        """
+        Attention: function can only be used once for the whole creation of the residues
+        the entries in self.d get deleted, in order to be faster
+        assume_ascending_order is used to break the loop early, but so it is assumed that
+        the indices are all orderd! (speed improvement!)
+        (It did not work for HarmonicAngleForce -> need to inspect).
+        """
+        # assume_ascending_order=False #try sort for the list?
+        max_idx = max(atom_idxs)
+        idxs = {}
+        for fgroup in self.d.keys():
+            idxs[fgroup] = {}
+            for forcename in self.d[fgroup].keys():
+                idxs[fgroup][forcename] = []
+                to_delete = []
+                for key, value in self.d[fgroup][forcename].items():
+                    if assume_ascending_order and any(elem > max_idx for elem in key):
+                        break
+                    if all(element in atom_idxs for element in key):
+                        idxs[fgroup][forcename].append(value)
+                        to_delete.append(key)
+                for key in to_delete:
+                    del self.d[fgroup][forcename][key]
+        return idxs
 
     def _force_idx_dict(self) -> dict[str, dict[str, tuple[int]]]:
         d: dict[str, dict[str, tuple[int]]] = {}
@@ -693,8 +825,8 @@ class ProtexSystem:
                 atom_idxs = [
                     atom.index for atom in r.atoms()
                 ]  # also give them to initilaizer, not inside residue?
-                residues.append(
-                    Residue(
+                if self.fast:
+                    new_res = Residue(
                         r,
                         name_of_paired_ion,
                         self.system,
@@ -706,29 +838,44 @@ class ProtexSystem:
                             self.templates.has_equivalent_atom(name),
                             self.templates.has_equivalent_atom(name_of_paired_ion),
                         ),
-                        nbond_exception_idxs=self._get_idxs_for_residue_force(
-                            "NonbondedForceExceptions", atom_idxs
-                        ),
-                        drude_idxs=self._get_idxs_for_residue_force(
-                            "DrudeForce", atom_idxs
-                        ),
-                        thole_idxs=self._get_idxs_for_residue_force(
-                            "DrudeForceThole", atom_idxs
-                        ),
-                        bond_idxs=self._get_bond_list(atom_idxs),
-                        angle_idxs=self._get_idxs_for_residue_force(
-                            "HarmonicAngleForce",
-                            atom_idxs,
-                            assume_ascending_order=False,
-                        ),
-                        torsion_idxs=self._get_idxs_for_residue_force(
-                            "PeriodicTorsionForce", atom_idxs
-                        ),
-                        custom_torsion_idxs=self._get_idxs_for_residue_force(
-                            "CustomTorsionForce", atom_idxs
+                        force_idxs=self._get_idxs_for_residue_force_new(atom_idxs)
+                        # nbond_exception_idxs=self._get_idxs_for_residue_force(
+                        #     "NonbondedForceExceptions", atom_idxs
+                        # ),
+                        # drude_idxs=self._get_idxs_for_residue_force(
+                        #     "DrudeForce", atom_idxs
+                        # ),
+                        # thole_idxs=self._get_idxs_for_residue_force(
+                        #     "DrudeForceThole", atom_idxs
+                        # ),
+                        # bond_idxs=self._get_bond_list(atom_idxs),
+                        # angle_idxs=self._get_idxs_for_residue_force(
+                        #     "HarmonicAngleForce",
+                        #     atom_idxs,
+                        #     assume_ascending_order=False,
+                        # ),
+                        # torsion_idxs=self._get_idxs_for_residue_force(
+                        #     "PeriodicTorsionForce", atom_idxs
+                        # ),
+                        # custom_torsion_idxs=self._get_idxs_for_residue_force(
+                        #     "CustomTorsionForce", atom_idxs
+                        # ),
+                    )
+                else:
+                    new_res = Residue(
+                        r,
+                        name_of_paired_ion,
+                        self.system,
+                        parameters_state1,
+                        parameters_state2,
+                        # self.templates.get_canonical_name(name),
+                        self.pair_12_13_list,
+                        (
+                            self.templates.has_equivalent_atom(name),
+                            self.templates.has_equivalent_atom(name_of_paired_ion),
                         ),
                     )
-                )
+                residues.append(new_res)
                 residues[
                     -1
                 ].current_name = (
