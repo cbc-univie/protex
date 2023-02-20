@@ -30,6 +30,7 @@ class Residue:
         1-2 and 1-3 exclusions in the system
     equivalent_atoms: tuple
         if current name and alternative name have equivalent atoms
+    force_idxs:
 
     Attributes
     ----------
@@ -55,6 +56,7 @@ class Residue:
          1-2 and 1-3 exclusions in the system
     has_equivalent_atoms: tuple(bool)
         if orignal_name and alternative name have equivalent atoms
+    force_idxs:
     """
 
     def __init__(
@@ -68,13 +70,6 @@ class Residue:
         pair_12_13_exclusion_list,
         # has_equivalent_atom,
         has_equivalent_atoms,
-        nbond_exception_idxs=None,
-        drude_idxs=None,
-        thole_idxs=None,
-        bond_idxs=None,
-        angle_idxs=None,
-        torsion_idxs=None,
-        custom_torsion_idxs=None,
         force_idxs=dict(),
     ) -> None:
         self.residue = residue
@@ -83,7 +78,6 @@ class Residue:
         self.system = system
         self.atom_idxs = [atom.index for atom in residue.atoms()]
         self.atom_names = [atom.name for atom in residue.atoms()]
-        # self.exception_idxs = exception_idxs #self._set_exception_idxs()
         self.parameters = {
             self.original_name: inital_parameters,
             alternativ_name: alternativ_parameters,
@@ -99,13 +93,6 @@ class Residue:
         }
         self.equivalent_atom_pos_in_list: int = None
         self.used_equivalent_atom: bool = False
-        # self.nbond_exception_idxs: list[tuple[int]] | None = nbond_exception_idxs
-        # self.drude_idxs: list[tuple[int]] | None = drude_idxs
-        # self.thole_idxs: list[tuple[int]] | None = thole_idxs
-        # self.bond_idxs: list[tuple[int]] | None = bond_idxs
-        # self.angle_idxs: list[tuple[int]] | None = angle_idxs
-        # self.torsion_idxs: list[tuple[int]] | None = torsion_idxs
-        # self.custom_torsion_idxs: list[tuple[int]] | None = custom_torsion_idxs
         self.force_idxs = force_idxs
 
     def __str__(self) -> str:
