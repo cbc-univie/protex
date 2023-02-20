@@ -309,6 +309,7 @@ class ProtexSystem:
             pickle.dump(to_pickle, outp, pickle.HIGHEST_PROTOCOL)
 
     def get_current_number_of_each_residue_type(self) -> dict[str, int]:
+        """Get a dict with the current number of each residue."""
         current_number_of_each_residue_type: dict[str, int] = defaultdict(int)
         for residue in self.residues:
             current_number_of_each_residue_type[residue.current_name] += 1
@@ -492,7 +493,9 @@ class ProtexSystem:
         d: dict[int[str, dict[str, tuple[int]]]] = {}
         for force in self.system.getForces():
             fgroup = force.getForceGroup()
-            d[fgroup] = {}
+            if fgroup not in d:
+                d[fgroup] = {}
+
             if type(force).__name__ == "NonbondedForce":
                 # only treat exceptions
                 d[fgroup]["NonbondedForceExceptions"] = {}
@@ -558,6 +561,10 @@ class ProtexSystem:
                         idx2,
                         idx3,
                     )
+                # would sort the dict, but then we have a problem with the order from the templates, which is still the natural openmm oder...
+                # d[fgroup]["HarmonicAngleForce"] = dict(
+                #     sorted(d[fgroup]["HarmonicAngleForce"].items())
+                # )
             if type(force).__name__ == "PeriodicTorsionForce":
                 d[fgroup]["PeriodicTorsionForce"] = {}
                 for torsion_idx in range(force.getNumTorsions()):
@@ -583,14 +590,13 @@ class ProtexSystem:
                         idx4,
                     )
 
-        sd = dict(sorted(d.items()))  # so nicht
-        return sd
+        return d
 
     def _get_idxs_for_residue_force_new(self, atom_idxs, assume_ascending_order=True):
         """
         Attention: function can only be used once for the whole creation of the residues
-        the entries in self.d get deleted, in order to be faster
-        assume_ascending_order is used to break the loop early, but so it is assumed that
+        the entries in self.d get deleted, in order to be faster.
+                assume_ascending_order is used to break the loop early, but so it is assumed that
         the indices are all orderd! (speed improvement!)
         (It did not work for HarmonicAngleForce -> need to inspect).
         """
@@ -600,6 +606,11 @@ class ProtexSystem:
         for fgroup in self.d.keys():
             idxs[fgroup] = {}
             for forcename in self.d[fgroup].keys():
+                # TODO: hmmm
+                if forcename == "HarmonicAngleForce":
+                    assume_ascending_order = False
+                else:
+                    assume_ascending_order = True
                 idxs[fgroup][forcename] = []
                 to_delete = []
                 for key, value in self.d[fgroup][forcename].items():
@@ -612,169 +623,169 @@ class ProtexSystem:
                     del self.d[fgroup][forcename][key]
         return idxs
 
-    def _force_idx_dict(self) -> dict[str, dict[str, tuple[int]]]:
-        d: dict[str, dict[str, tuple[int]]] = {}
-        # automate force naming
-        d["NonbondedForceExceptions"] = {}
-        nbond_force = [
-            f for f in self.system.getForces() if isinstance(f, openmm.NonbondedForce)
-        ][0]
-        for exc_idx in range(nbond_force.getNumExceptions()):
-            f = nbond_force.getExceptionParameters(exc_idx)
-            idx1 = f[0]
-            idx2 = f[1]
-            d["NonbondedForceExceptions"][(idx1, idx2)] = (exc_idx, idx1, idx2)
+    # def _force_idx_dict(self) -> dict[str, dict[str, tuple[int]]]:
+    #     d: dict[str, dict[str, tuple[int]]] = {}
+    #     # automate force naming
+    #     d["NonbondedForceExceptions"] = {}
+    #     nbond_force = [
+    #         f for f in self.system.getForces() if isinstance(f, openmm.NonbondedForce)
+    #     ][0]
+    #     for exc_idx in range(nbond_force.getNumExceptions()):
+    #         f = nbond_force.getExceptionParameters(exc_idx)
+    #         idx1 = f[0]
+    #         idx2 = f[1]
+    #         d["NonbondedForceExceptions"][(idx1, idx2)] = (exc_idx, idx1, idx2)
 
-        d["DrudeForce"] = {}
-        drude_force = [
-            f for f in self.system.getForces() if isinstance(f, openmm.DrudeForce)
-        ][0]
-        for drude_idx in range(drude_force.getNumParticles()):
-            f = drude_force.getParticleParameters(drude_idx)
-            idx1 = f[0]
-            idx2 = f[1]
-            idx3 = f[2]
-            idx4 = f[3]
-            idx5 = f[4]
-            d["DrudeForce"][(idx1, idx2)] = (drude_idx, idx1, idx2, idx3, idx4, idx5)
-        d["DrudeForceThole"] = {}
-        for drude_idx in range(drude_force.getNumScreenedPairs()):
-            f = drude_force.getScreenedPairParameters(drude_idx)
-            idx1 = f[0]
-            idx2 = f[1]
-            parent1, parent2 = self.pair_12_13_list[drude_idx]
-            drude1, drude2 = parent1 + 1, parent2 + 1  # Drude comes after parent atom
-            d["DrudeForceThole"][(drude1, drude2)] = (drude_idx, idx1, idx2)
+    #     d["DrudeForce"] = {}
+    #     drude_force = [
+    #         f for f in self.system.getForces() if isinstance(f, openmm.DrudeForce)
+    #     ][0]
+    #     for drude_idx in range(drude_force.getNumParticles()):
+    #         f = drude_force.getParticleParameters(drude_idx)
+    #         idx1 = f[0]
+    #         idx2 = f[1]
+    #         idx3 = f[2]
+    #         idx4 = f[3]
+    #         idx5 = f[4]
+    #         d["DrudeForce"][(idx1, idx2)] = (drude_idx, idx1, idx2, idx3, idx4, idx5)
+    #     d["DrudeForceThole"] = {}
+    #     for drude_idx in range(drude_force.getNumScreenedPairs()):
+    #         f = drude_force.getScreenedPairParameters(drude_idx)
+    #         idx1 = f[0]
+    #         idx2 = f[1]
+    #         parent1, parent2 = self.pair_12_13_list[drude_idx]
+    #         drude1, drude2 = parent1 + 1, parent2 + 1  # Drude comes after parent atom
+    #         d["DrudeForceThole"][(drude1, drude2)] = (drude_idx, idx1, idx2)
 
-        # this is a bit wonk with the two harm bond forces -> we should check an probably improve here!
-        # we have two harmonic bond forces... -> maybe we find a better way... (force index?)
-        d["HarmonicBondForce"] = [{}, {}]
-        bond_force1 = [
-            f
-            for f in self.system.getForces()
-            if isinstance(f, openmm.HarmonicBondForce)
-        ][0]
-        print(f"{bond_force1.getForceGroup()=}")
-        for bond_idx in range(bond_force1.getNumBonds()):
-            f = bond_force1.getBondParameters(bond_idx)
-            idx1, idx2 = f[0], f[1]
-            d["HarmonicBondForce"][0][(idx1, idx2)] = (bond_idx, idx1, idx2)
-        # print(len(d["HarmonicBondForce"][0]))
-        bond_force2 = [
-            f
-            for f in self.system.getForces()
-            if isinstance(f, openmm.HarmonicBondForce)
-        ][1]
-        for bond_idx in range(bond_force2.getNumBonds()):
-            f = bond_force2.getBondParameters(bond_idx)
-            idx1, idx2 = f[0], f[1]
-            d["HarmonicBondForce"][1][(idx1, idx2)] = (bond_idx, idx1, idx2)
-        print(f"{bond_force2.getForceGroup()=}")
-        d["HarmonicAngleForce"] = {}
-        angle_force = [
-            f
-            for f in self.system.getForces()
-            if isinstance(f, openmm.HarmonicAngleForce)
-        ][0]
-        for angle_idx in range(angle_force.getNumAngles()):
-            f = angle_force.getAngleParameters(angle_idx)
-            idx1, idx2, idx3 = f[0], f[1], f[2]
-            d["HarmonicAngleForce"][(idx1, idx2, idx3)] = (
-                angle_idx,
-                idx1,
-                idx2,
-                idx3,
-            )
+    #     # this is a bit wonk with the two harm bond forces -> we should check an probably improve here!
+    #     # we have two harmonic bond forces... -> maybe we find a better way... (force index?)
+    #     d["HarmonicBondForce"] = [{}, {}]
+    #     bond_force1 = [
+    #         f
+    #         for f in self.system.getForces()
+    #         if isinstance(f, openmm.HarmonicBondForce)
+    #     ][0]
+    #     print(f"{bond_force1.getForceGroup()=}")
+    #     for bond_idx in range(bond_force1.getNumBonds()):
+    #         f = bond_force1.getBondParameters(bond_idx)
+    #         idx1, idx2 = f[0], f[1]
+    #         d["HarmonicBondForce"][0][(idx1, idx2)] = (bond_idx, idx1, idx2)
+    #     # print(len(d["HarmonicBondForce"][0]))
+    #     bond_force2 = [
+    #         f
+    #         for f in self.system.getForces()
+    #         if isinstance(f, openmm.HarmonicBondForce)
+    #     ][1]
+    #     for bond_idx in range(bond_force2.getNumBonds()):
+    #         f = bond_force2.getBondParameters(bond_idx)
+    #         idx1, idx2 = f[0], f[1]
+    #         d["HarmonicBondForce"][1][(idx1, idx2)] = (bond_idx, idx1, idx2)
+    #     print(f"{bond_force2.getForceGroup()=}")
+    #     d["HarmonicAngleForce"] = {}
+    #     angle_force = [
+    #         f
+    #         for f in self.system.getForces()
+    #         if isinstance(f, openmm.HarmonicAngleForce)
+    #     ][0]
+    #     for angle_idx in range(angle_force.getNumAngles()):
+    #         f = angle_force.getAngleParameters(angle_idx)
+    #         idx1, idx2, idx3 = f[0], f[1], f[2]
+    #         d["HarmonicAngleForce"][(idx1, idx2, idx3)] = (
+    #             angle_idx,
+    #             idx1,
+    #             idx2,
+    #             idx3,
+    #         )
 
-        d["PeriodicTorsionForce"] = {}
-        torsion_force = [
-            f
-            for f in self.system.getForces()
-            if isinstance(f, openmm.PeriodicTorsionForce)
-        ][0]
-        for torsion_idx in range(torsion_force.getNumTorsions()):
-            f = torsion_force.getTorsionParameters(torsion_idx)
-            idx1, idx2, idx3, idx4 = f[0], f[1], f[2], f[3]
-            d["PeriodicTorsionForce"][(idx1, idx2, idx3, idx4)] = (
-                torsion_idx,
-                idx1,
-                idx2,
-                idx3,
-                idx4,
-            )
+    #     d["PeriodicTorsionForce"] = {}
+    #     torsion_force = [
+    #         f
+    #         for f in self.system.getForces()
+    #         if isinstance(f, openmm.PeriodicTorsionForce)
+    #     ][0]
+    #     for torsion_idx in range(torsion_force.getNumTorsions()):
+    #         f = torsion_force.getTorsionParameters(torsion_idx)
+    #         idx1, idx2, idx3, idx4 = f[0], f[1], f[2], f[3]
+    #         d["PeriodicTorsionForce"][(idx1, idx2, idx3, idx4)] = (
+    #             torsion_idx,
+    #             idx1,
+    #             idx2,
+    #             idx3,
+    #             idx4,
+    #         )
 
-        d["CustomTorsionForce"] = {}
-        ctorsion_force = [
-            f
-            for f in self.system.getForces()
-            if isinstance(f, openmm.CustomTorsionForce)
-        ][0]
-        for ctorsion_idx in range(ctorsion_force.getNumTorsions()):
-            f = ctorsion_force.getTorsionParameters(ctorsion_idx)
-            idx1, idx2, idx3, idx4 = f[0], f[1], f[2], f[3]
-            d["CustomTorsionForce"][(idx1, idx2, idx3, idx4)] = (
-                ctorsion_idx,
-                idx1,
-                idx2,
-                idx3,
-                idx4,
-            )
+    #     d["CustomTorsionForce"] = {}
+    #     ctorsion_force = [
+    #         f
+    #         for f in self.system.getForces()
+    #         if isinstance(f, openmm.CustomTorsionForce)
+    #     ][0]
+    #     for ctorsion_idx in range(ctorsion_force.getNumTorsions()):
+    #         f = ctorsion_force.getTorsionParameters(ctorsion_idx)
+    #         idx1, idx2, idx3, idx4 = f[0], f[1], f[2], f[3]
+    #         d["CustomTorsionForce"][(idx1, idx2, idx3, idx4)] = (
+    #             ctorsion_idx,
+    #             idx1,
+    #             idx2,
+    #             idx3,
+    #             idx4,
+    #         )
 
-        return d
+    #     return d
 
-    def _get_idxs_for_residue_force(
-        self, forcename, atom_idxs, assume_ascending_order=True
-    ):
-        """
-        Attention: function can only be used once for the whole creation of the residues
-        the entries in self.d get deleted, in order to be faster
-        assume_ascending_order is used to break the loop early, but so it is assumed that
-        the indices are all orderd! (speed improvement!)
-        (It did not work for HarmonicAngleForce -> need to inspect).
-        """
-        max_idx = max(atom_idxs)
-        idxs = []
-        to_delete = []
-        for key, value in self.d[forcename].items():
-            if assume_ascending_order and any(elem > max_idx for elem in key):
-                break
-            if all(element in atom_idxs for element in key):
-                idxs.append(value)
-                to_delete.append(key)
-        for key in to_delete:
-            del self.d[forcename][key]
-        return idxs
+    # def _get_idxs_for_residue_force(
+    #     self, forcename, atom_idxs, assume_ascending_order=True
+    # ):
+    #     """
+    #     Attention: function can only be used once for the whole creation of the residues
+    #     the entries in self.d get deleted, in order to be faster
+    #     assume_ascending_order is used to break the loop early, but so it is assumed that
+    #     the indices are all orderd! (speed improvement!)
+    #     (It did not work for HarmonicAngleForce -> need to inspect).
+    #     """
+    #     max_idx = max(atom_idxs)
+    #     idxs = []
+    #     to_delete = []
+    #     for key, value in self.d[forcename].items():
+    #         if assume_ascending_order and any(elem > max_idx for elem in key):
+    #             break
+    #         if all(element in atom_idxs for element in key):
+    #             idxs.append(value)
+    #             to_delete.append(key)
+    #     for key in to_delete:
+    #         del self.d[forcename][key]
+    #     return idxs
 
-    def _get_bond_list(self, atom_idxs) -> list[tuple[int]]:
-        max_idx = max(atom_idxs)
-        bond_idxs = []
-        to_delete = []
-        bond_idxs_tmp = []
-        for key, value in self.d["HarmonicBondForce"][0].items():
-            # assume the exceptions are sorted!
-            if any(elem > max_idx for elem in key):
-                break
-            if all(element in atom_idxs for element in key):
-                bond_idxs_tmp.append(value)
-                to_delete.append(key)
-        bond_idxs.append(bond_idxs_tmp)
-        for key in to_delete:
-            del self.d["HarmonicBondForce"][0][key]
+    # def _get_bond_list(self, atom_idxs) -> list[tuple[int]]:
+    #     max_idx = max(atom_idxs)
+    #     bond_idxs = []
+    #     to_delete = []
+    #     bond_idxs_tmp = []
+    #     for key, value in self.d["HarmonicBondForce"][0].items():
+    #         # assume the exceptions are sorted!
+    #         if any(elem > max_idx for elem in key):
+    #             break
+    #         if all(element in atom_idxs for element in key):
+    #             bond_idxs_tmp.append(value)
+    #             to_delete.append(key)
+    #     bond_idxs.append(bond_idxs_tmp)
+    #     for key in to_delete:
+    #         del self.d["HarmonicBondForce"][0][key]
 
-        to_delete = []
-        bond_idxs_tmp = []
-        for key, value in self.d["HarmonicBondForce"][1].items():
-            # assume the exceptions are sorted!
-            if any(elem > max_idx for elem in key):
-                break
-            if all(element in atom_idxs for element in key):
-                bond_idxs_tmp.append(value)
-                to_delete.append(key)
-        bond_idxs.append(bond_idxs_tmp)
-        for key in to_delete:
-            del self.d["HarmonicBondForce"][1][key]
+    #     to_delete = []
+    #     bond_idxs_tmp = []
+    #     for key, value in self.d["HarmonicBondForce"][1].items():
+    #         # assume the exceptions are sorted!
+    #         if any(elem > max_idx for elem in key):
+    #             break
+    #         if all(element in atom_idxs for element in key):
+    #             bond_idxs_tmp.append(value)
+    #             to_delete.append(key)
+    #     bond_idxs.append(bond_idxs_tmp)
+    #     for key in to_delete:
+    #         del self.d["HarmonicBondForce"][1][key]
 
-        return bond_idxs
+    #     return bond_idxs
 
     def _set_initial_states(self) -> list:
         """set_initial_states.

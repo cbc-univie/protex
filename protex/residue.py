@@ -75,7 +75,7 @@ class Residue:
         angle_idxs=None,
         torsion_idxs=None,
         custom_torsion_idxs=None,
-        force_idxs=dict()
+        force_idxs=dict(),
     ) -> None:
         self.residue = residue
         self.original_name = residue.name
@@ -99,13 +99,13 @@ class Residue:
         }
         self.equivalent_atom_pos_in_list: int = None
         self.used_equivalent_atom: bool = False
-        self.nbond_exception_idxs: list[tuple[int]] | None = nbond_exception_idxs
-        self.drude_idxs: list[tuple[int]] | None = drude_idxs
-        self.thole_idxs: list[tuple[int]] | None = thole_idxs
-        self.bond_idxs: list[tuple[int]] | None = bond_idxs
-        self.angle_idxs: list[tuple[int]] | None = angle_idxs
-        self.torsion_idxs: list[tuple[int]] | None = torsion_idxs
-        self.custom_torsion_idxs: list[tuple[int]] | None = custom_torsion_idxs
+        # self.nbond_exception_idxs: list[tuple[int]] | None = nbond_exception_idxs
+        # self.drude_idxs: list[tuple[int]] | None = drude_idxs
+        # self.thole_idxs: list[tuple[int]] | None = thole_idxs
+        # self.bond_idxs: list[tuple[int]] | None = bond_idxs
+        # self.angle_idxs: list[tuple[int]] | None = angle_idxs
+        # self.torsion_idxs: list[tuple[int]] | None = torsion_idxs
+        # self.custom_torsion_idxs: list[tuple[int]] | None = custom_torsion_idxs
         self.force_idxs = force_idxs
 
     def __str__(self) -> str:
@@ -177,14 +177,14 @@ class Residue:
                     force.setParticleParameters(idx, charge, sigma, epsilon)
                 try:
                     lst = self.force_idxs[fgroup]["NonbondedForceExceptions"]
-                #if self.nbond_exception_idxs is not None:  # use the fast way
-                    for exc_idx, idx1, idx2 in lst: #self.nbond_exception_idxs:
+                    # if self.nbond_exception_idxs is not None:  # use the fast way
+                    for exc_idx, idx1, idx2 in lst:  # self.nbond_exception_idxs:
                         chargeprod, sigma, epsilon = parms_exceptions.popleft()
                         force.setExceptionParameters(
                             exc_idx, idx1, idx2, chargeprod, sigma, epsilon
                         )
                 except KeyError:
-                #else:  # use the old slow way
+                    # else:  # use the old slow way
                     for exc_idx in range(force.getNumExceptions()):
                         f = force.getExceptionParameters(exc_idx)
                         idx1 = f[0]
@@ -197,18 +197,18 @@ class Residue:
 
     def _set_HarmonicBondForce_parameters(self, parms) -> None:  # noqa: N802
         parms = deque(parms)
-        #harmbond_ctr = 0
+        # harmbond_ctr = 0
         for force in self.system.getForces():
             fgroup = force.getForceGroup()
             if type(force).__name__ == "HarmonicBondForce":
                 try:
                     lst = self.force_idxs[fgroup]["HarmonicBondForce"]
-                #if self.bond_idxs is not None:  # use the fast way
-                    for bond_idx, idx1, idx2 in lst: #self.bond_idxs[harmbond_ctr]:
+                    # if self.bond_idxs is not None:  # use the fast way
+                    for bond_idx, idx1, idx2 in lst:  # self.bond_idxs[harmbond_ctr]:
                         r, k = parms.popleft()
                         force.setBondParameters(bond_idx, idx1, idx2, r, k)
                 except KeyError:
-                #else:
+                    # else:
                     for bond_idx in range(force.getNumBonds()):
                         f = force.getBondParameters(bond_idx)
                         idx1 = f[0]
@@ -216,7 +216,7 @@ class Residue:
                         if idx1 in self.atom_idxs and idx2 in self.atom_idxs:
                             r, k = parms.popleft()
                             force.setBondParameters(bond_idx, idx1, idx2, r, k)
-         #       harmbond_ctr += 1
+        #       harmbond_ctr += 1
 
     def _set_HarmonicAngleForce_parameters(self, parms) -> None:  # noqa: N802
         parms = deque(parms)
@@ -226,12 +226,12 @@ class Residue:
                 fgroup = force.getForceGroup()
                 try:
                     lst = self.force_idxs[fgroup]["HarmonicAngleForce"]
-                #if self.angle_idxs is not None:  # use the fast way
-                    for angle_idx, idx1, idx2, idx3 in lst: #self.angle_idxs:
+                    # if self.angle_idxs is not None:  # use the fast way
+                    for angle_idx, idx1, idx2, idx3 in lst:  # self.angle_idxs:
                         thetha, k = parms.popleft()
                         force.setAngleParameters(angle_idx, idx1, idx2, idx3, thetha, k)
                 except KeyError:
-                #else:
+                    # else:
                     for angle_idx in range(force.getNumAngles()):
                         f = force.getAngleParameters(angle_idx)
                         idx1 = f[0]
@@ -255,14 +255,20 @@ class Residue:
                 fgroup = force.getForceGroup()
                 try:
                     lst = self.force_idxs[fgroup]["PeriodicTorsionForce"]
-                #if self.torsion_idxs is not None:
-                    for torsion_idx, idx1, idx2, idx3, idx4 in lst: #self.torsion_idxs:
+                    # if self.torsion_idxs is not None:
+                    for (
+                        torsion_idx,
+                        idx1,
+                        idx2,
+                        idx3,
+                        idx4,
+                    ) in lst:  # self.torsion_idxs:
                         per, phase, k = parms.popleft()
                         force.setTorsionParameters(
                             torsion_idx, idx1, idx2, idx3, idx4, per, phase, k
                         )
                 except KeyError:
-                #else:
+                    # else:
                     for torsion_idx in range(force.getNumTorsions()):
                         f = force.getTorsionParameters(torsion_idx)
                         idx1 = f[0]
@@ -289,20 +295,20 @@ class Residue:
                 fgroup = force.getForceGroup()
                 try:
                     lst = self.force_idxs[fgroup]["CustomTorsionForce"]
-                #if self.custom_torsion_idxs is not None:
+                    # if self.custom_torsion_idxs is not None:
                     for (
                         ctorsion_idx,
                         idx1,
                         idx2,
                         idx3,
                         idx4,
-                    ) in lst: #self.custom_torsion_idxs:
+                    ) in lst:  # self.custom_torsion_idxs:
                         k, psi0 = parms.popleft()  # tuple with (k,psi0)
                         force.setTorsionParameters(
                             ctorsion_idx, idx1, idx2, idx3, idx4, (k, psi0)
                         )
                 except KeyError:
-                #else:
+                    # else:
                     for torsion_idx in range(force.getNumTorsions()):
                         f = force.getTorsionParameters(torsion_idx)
                         idx1 = f[0]
@@ -329,8 +335,15 @@ class Residue:
                 fgroup = force.getForceGroup()
                 try:
                     lst = self.force_idxs[fgroup]["DrudeForce"]
-                #if self.drude_idxs is not None:  # use the fast way
-                    for drude_idx, idx1, idx2, idx3, idx4, idx5 in lst: #self.drude_idxs:
+                    # if self.drude_idxs is not None:  # use the fast way
+                    for (
+                        drude_idx,
+                        idx1,
+                        idx2,
+                        idx3,
+                        idx4,
+                        idx5,
+                    ) in lst:  # self.drude_idxs:
                         charge, pol, aniso12, aniso14 = parms_pol.popleft()
                         force.setParticleParameters(
                             drude_idx,
@@ -345,7 +358,7 @@ class Residue:
                             aniso14,
                         )
                 except KeyError:
-                #else:
+                    # else:
                     for drude_idx in range(force.getNumParticles()):
                         f = force.getParticleParameters(drude_idx)
                         idx1 = f[0]
@@ -369,12 +382,12 @@ class Residue:
                             )
                 try:
                     lst = self.force_idxs[fgroup]["DrudeForceThole"]
-                #if self.thole_idxs is not None:  # use the fast way
-                    for thole_idx, idx1, idx2 in lst: #self.thole_idxs:
+                    # if self.thole_idxs is not None:  # use the fast way
+                    for thole_idx, idx1, idx2 in lst:  # self.thole_idxs:
                         thole = parms_thole.popleft()
                         force.setScreenedPairParameters(thole_idx, idx1, idx2, thole)
                 except KeyError:
-                #else:
+                    # else:
                     for drude_idx in range(force.getNumScreenedPairs()):
                         f = force.getScreenedPairParameters(drude_idx)
                         idx1 = f[0]

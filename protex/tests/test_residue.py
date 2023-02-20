@@ -80,7 +80,7 @@ def test_update_single():
 
     templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
 
-    ionic_liquid = ProtexSystem(simulation, templates)
+    ionic_liquid = ProtexSystem(simulation, templates)  # , fast=False)
     FORCES = [
         "HarmonicBondForce",
         "HarmonicAngleForce",
@@ -90,32 +90,32 @@ def test_update_single():
         "NonbondedForce",
     ]
     LOGGER.debug(f"{FORCES=}")
-    name_function = {
-        "HarmonicBondForce": [
-            Residue._get_HarmonicBondForce_parameters_at_lambda,
-            Residue._set_HarmonicBondForce_parameters,
-        ],
-        "HarmonicAngleForce": [
-            Residue._get_HarmonicAngleForce_parameters_at_lambda,
-            Residue._set_HarmonicAngleForce_parameters,
-        ],
-        "PeriodicTorsionForce": [
-            Residue._get_PeriodicTorsionForce_parameters_at_lambda,
-            Residue._set_PeriodicTorsionForce_parameters,
-        ],
-        "CustomTorsionForce": [
-            Residue._get_CustomTorsionForce_parameters_at_lambda,
-            Residue._set_CustomTorsionForce_parameters,
-        ],
-        "DrudeForce": [
-            Residue._get_DrudeForce_parameters_at_lambda,
-            Residue._set_DrudeForce_parameters,
-        ],
-        "NonbondedForce": [
-            Residue._get_NonbondedForce_parameters_at_lambda,
-            Residue._set_DrudeForce_parameters,
-        ],
-    }
+    # name_function = {
+    #     "HarmonicBondForce": [
+    #         Residue._get_HarmonicBondForce_parameters_at_lambda,
+    #         Residue._set_HarmonicBondForce_parameters,
+    #     ],
+    #     "HarmonicAngleForce": [
+    #         Residue._get_HarmonicAngleForce_parameters_at_lambda,
+    #         Residue._set_HarmonicAngleForce_parameters,
+    #     ],
+    #     "PeriodicTorsionForce": [
+    #         Residue._get_PeriodicTorsionForce_parameters_at_lambda,
+    #         Residue._set_PeriodicTorsionForce_parameters,
+    #     ],
+    #     "CustomTorsionForce": [
+    #         Residue._get_CustomTorsionForce_parameters_at_lambda,
+    #         Residue._set_CustomTorsionForce_parameters,
+    #     ],
+    #     "DrudeForce": [
+    #         Residue._get_DrudeForce_parameters_at_lambda,
+    #         Residue._set_DrudeForce_parameters,
+    #     ],
+    #     "NonbondedForce": [
+    #         Residue._get_NonbondedForce_parameters_at_lambda,
+    #         Residue._set_DrudeForce_parameters,
+    #     ],
+    # }
 
     pair_12_13_list = ionic_liquid._build_exclusion_list(ionic_liquid.topology)
 
@@ -231,11 +231,16 @@ def test_update_single():
                 ionic_liquid.update_context(force_name)
                 params2 = get_params(force, force_name, atom_idxs, forces_dict1)
         # assert forces_dict1 == forces_alternativ # npt working because indices change
+        print(f'{forces_orig["HarmonicAngleForce"][7]=}')
+        print(f'{forces_alternativ["HarmonicAngleForce"][7]=}')
+        print(f'{forces_dict0["HarmonicAngleForce"][7]=}=orig')
+        print(f'{forces_dict1["HarmonicAngleForce"][7]=}=alternativ')
+
         for key in forces_dict1:
             # after update 1 -> changes
             q1 = get_quantities(forces_dict1, key)
             q2 = get_quantities(forces_alternativ, key)
-            assert q1 == q2
+            assert q1 == q2, f"{key=}, {q1=}, {q2=}"
 
 
 def test_residues():
