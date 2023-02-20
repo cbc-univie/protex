@@ -529,7 +529,7 @@ def test_create_IonicLiquidTemplate():
 
 
 def test_create_IonicLiquid():
-    #simulation = generate_small_box(use_plugin=False)
+    # simulation = generate_small_box(use_plugin=False)
     simulation = generate_im1h_oac_system()
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 2.33}
@@ -999,10 +999,11 @@ class ProtexSystemOld(ProtexSystem):
                 raise RuntimeError("Found resiude not present in Templates: {r.name}")
         return residues
 
+
 @pytest.mark.skipif(
     os.getenv("CI") == "true",
     reason="Will fail sporadicaly.",
-)<
+)
 def test_equivalence_new_old_method(caplog):
     caplog.set_level(logging.CRITICAL)
 
