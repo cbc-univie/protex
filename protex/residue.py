@@ -284,7 +284,7 @@ class Residue:
         parms = deque(parms)
 
         for force in self.system.getForces():
-            
+
             if type(force).__name__ == "CustomTorsionForce":
                 fgroup = force.getForceGroup()
                 try:
