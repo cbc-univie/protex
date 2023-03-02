@@ -26,8 +26,7 @@ class Update(ABC):
 
     Parameters
     ----------
-    ionic_liquid: IonicLiquidSystem
-        Needs the IonicLiquidSystem
+    ionic_liquid: ProtexSystem
     """
 
     @staticmethod
@@ -521,7 +520,14 @@ class StateUpdate:
         with open(fname, "wb") as outp:
             pickle.dump(to_pickle, outp, pickle.HIGHEST_PROTOCOL)
 
-    def write_charges(self, filename: str) -> None:
+    def write_charges(self, filename: str) -> None: #deprecated?
+        """Write current charges to a file
+
+        Parameters
+        ----------
+        filename : str
+            The name of the file to wrtie the charges to
+        """
         par = self.get_charges()
         with open(filename, "w+") as f:
             for atom_idx, atom, charge in par:
@@ -529,8 +535,20 @@ class StateUpdate:
                 f.write(
                     f"{atom.residue.name:>4}:{int(atom.id): 4}:{int(atom.residue.id): 4}:{atom.name:>4}:{charge}\n"
                 )
+    #instead of these to functions use the ChargeReporter probably
+    def get_charges(self) -> list: #deprecated?
+        """_summary_
 
-    def get_charges(self) -> list:
+        Returns
+        -------
+        list
+            atom_idxs, atom object, charge
+
+        Raises
+        ------
+        RuntimeError
+            If system does not contain a nonbonded force
+        """
         par = []
         for force in self.ionic_liquid.system.getForces():
             if type(force).__name__ == "NonbondedForce":
@@ -542,7 +560,9 @@ class StateUpdate:
                 return par
         raise RuntimeError("Something went wrong. There was no NonbondedForce")
 
+    #redundant with ProtexSystem.get_current_number_of_each_residue_type
     def get_num_residues(self) -> dict:
+        """deprecated 1.1"""
         res_dict = {
             "IM1H": 0,
             "OAC": 0,
