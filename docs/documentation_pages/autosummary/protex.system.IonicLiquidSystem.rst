@@ -1,4 +1,4 @@
-protex.system.IonicLiquidSystem
+﻿protex.system.IonicLiquidSystem
 ===============================
 
 .. currentmodule:: protex.system
@@ -20,7 +20,6 @@ protex.system.IonicLiquidSystem
       ~IonicLiquidSystem.loadCheckpoint
       ~IonicLiquidSystem.loadState
       ~IonicLiquidSystem.load_updates
-      ~IonicLiquidSystem.report_states
       ~IonicLiquidSystem.saveCheckpoint
       ~IonicLiquidSystem.saveState
       ~IonicLiquidSystem.save_updates

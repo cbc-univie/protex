@@ -24,6 +24,7 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+protex/_version.py
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -64,6 +65,7 @@ instance/
 
 # Sphinx documentation
 docs/_build/
+docs/documentation_pages/autosummary/
 
 # PyBuilder
 target/

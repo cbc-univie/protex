@@ -23,6 +23,7 @@ dependencies:
 
     # Pip-only installs
   - pip:
-  #  - codecov
     - git+https://github.com/ParmEd/ParmEd.git
+    # Doku emojis
+    - sphinxemoji
     

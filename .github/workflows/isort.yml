@@ -1,0 +1,33 @@
+name: isort 
+
+on: [pull_request, workflow_dispatch]
+
+permissions:
+  checks: write
+  contents: write
+  
+jobs:
+  isort:
+    name: Run isort
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Check out Git repository and current branch
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: ${{ github.head_ref }}
+          
+      - name: Install Python dependencies
+        run: pip install isort
+        
+      - name: Run python-isort
+        run: isort --profile black .
+      
+      - name: Commit changes
+        run: |
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "GitHub Action"
+          echo git status
+          git add -A && git diff-index --cached --quiet HEAD || git commit -m 'isort[bot] orderd import statements'
+          git push

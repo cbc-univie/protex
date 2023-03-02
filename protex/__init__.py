@@ -1,18 +1,23 @@
+"""protex
+Proton exchange using SAMS and openMM for ionic liquids.
 """
-protex
-Proton exchange using SAMS and openMM for ionic liquids
-"""
+
+# Handle versioneer
+#from ._version import get_versions
 
 # Add imports here
 from .protex import *
 
-# Handle versioneer
-from ._version import get_versions
-
-versions = get_versions()
-__version__ = versions["version"]
-__git_revision__ = versions["full-revisionid"]
-del get_versions, versions
+#versions = get_versions()
+#__version__ = versions["version"]
+#__git_revision__ = versions["full-revisionid"]
+#del get_versions, versions
+try:
+    from ._version import version as __version__
+    from ._version import version_tuple
+except ImportError:
+    __version__ = "unknown version"
+    version_tuple = (0, 0, "unknown version")
 
 import logging
 

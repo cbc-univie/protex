@@ -1,27 +1,34 @@
+from __future__ import annotations
+
 import itertools
 import logging
-from collections import ChainMap, defaultdict, deque
-from pdb import pm
-import numpy as np
+import pickle
+from collections import ChainMap, defaultdict
+
 import parmed
-import yaml, json
+import yaml
 
 try:
     import openmm
 except ImportError:
-    import simtk.openmm
+    import simtk.openmm as openmm
 
+from protex.helpers import CustomPSFFile
 from protex.residue import Residue
+
+# Use custom write function for now, remove with new parmed version
+# https://github.com/ParmEd/ParmEd/pull/1274
+# as in parmed/formats/__init__.py:
+parmed.Structure.write_psf = CustomPSFFile.write
 
 logger = logging.getLogger(__name__)
 
 
-class IonicLiquidTemplates:
-    """
-    Creates the basic foundation for the Ionic Liquid System.
+class ProtexTemplates:
+    """Creates the basic foundation for the Protex System.
 
     Parameters
-    -----------
+    ----------
     states:
         A list of dictionary depicting the residue name and the atom name which should be changed, i.e.:
 
@@ -48,7 +55,7 @@ class IonicLiquidTemplates:
             allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.155, "prob": 0.684}
 
     Attributes
-    -----------
+    ----------
     pairs:
         A list with the pairs where the hydrogen can be transfered
     states:
@@ -61,12 +68,18 @@ class IonicLiquidTemplates:
         the longest allowed distance for a possible transfer between two updates
     """
 
+    @staticmethod
+    def load(fname) -> ProtexTemplates:
+        with open(fname, "rb") as inp:
+            templates = pickle.load(inp)
+        return templates
+
     def __init__(
         self,
         states: list[dict[str, dict[str, str]]],
         allowed_updates: dict[frozenset[str], dict[str, float]],
     ) -> None:
-
+        self.__states = states
         self.pairs: list[list[str]] = [list(i.keys()) for i in states]
         self.states: dict[str, dict[str, str]] = dict(ChainMap(*states))
         self.names: list[str] = list(itertools.chain(*self.pairs))
@@ -74,10 +87,25 @@ class IonicLiquidTemplates:
         self.overall_max_distance: float = max(
             [value["r_max"] for value in self.allowed_updates.values()]
         )
+        # store names in variables, in case syntax for states dict changes
+        self._atom_name: str = "atom_name"
+        self._equivalent_atom: str = "equivalent_atom"
+
+    def dump(self, fname: str) -> None:
+        with open(fname, "wb") as outp:
+            pickle.dump(self, outp, pickle.HIGHEST_PROTOCOL)
+
+    def get_atom_name_for(self, resname: str) -> str:
+        return self.states[resname][self._atom_name]
+
+    def has_equivalent_atom(self, resname: str) -> bool:
+        return self._equivalent_atom in self.states[resname]
+
+    def get_equivalent_atom_for(self, resname: str) -> str:
+        return self.states[resname][self._equivalent_atom]
 
     def get_update_value_for(self, residue_set: frozenset[str], property: str) -> float:
-        """
-        returns the value in the allowed updates dictionary
+        """returns the value in the allowed updates dictionary.
 
         Parameters
         ----------
@@ -109,8 +137,7 @@ class IonicLiquidTemplates:
     def set_update_value_for(
         self, residue_set: frozenset[str], property: str, value: float
     ):
-        """
-        Updates a value in the allowed updates dictionary
+        """Updates a value in the allowed updates dictionary.
 
         Parameters
         ----------
@@ -130,7 +157,6 @@ class IonicLiquidTemplates:
         RuntimeError
             is raised if new residue_set or new property is trying to be inserted
         """
-
         if (
             residue_set in self.allowed_updates
             and property in self.allowed_updates[residue_set]
@@ -152,15 +178,15 @@ class IonicLiquidTemplates:
     ) -> None:
         self.allowed_updates = allowed_updates
 
-    def get_canonical_name(self, name: str) -> str:
-        assert name in self.names
-        for state in self.states:
-            if name in state:
-                return self.states[name]["canonical_name"]
+    # Not used(?)
+    # def get_canonical_name(self, name: str) -> str:
+    #     assert name in self.names
+    #     for state in self.states:
+    #         if name in state:
+    #             return self.states[name]["canonical_name"]
 
     def get_residue_name_for_coupled_state(self, name: str):
-        """
-        get_residue_name_of_paired_ion returns the paired residue name given a reisue name
+        """get_residue_name_of_paired_ion returns the paired residue name given a reisue name.
 
         Parameters
         ----------
@@ -190,8 +216,7 @@ class IonicLiquidTemplates:
 
     # Not used
     def get_charge_template_for(self, name: str):
-        """
-        get_charge_template_for returns the charge template for a residue
+        """get_charge_template_for returns the charge template for a residue.
 
         Parameters
         ----------
@@ -213,9 +238,8 @@ class IonicLiquidTemplates:
         return self.states[name]["charge"]
 
 
-class IonicLiquidSystem:
-    """
-    This class defines the full system, performs the MD steps and offers an
+class ProtexSystem:
+    """This class defines the full system, performs the MD steps and offers an
     interface for protonation state updates.
 
     Parameters
@@ -224,25 +248,49 @@ class IonicLiquidSystem:
         the OpenMM simulation object
     templates:
         An instance of the IonicLiquidTemplates class
+    simulation_for_parameters:
+        another OpenMM simulation object, set up with a psf that contains all possible forms (protonated and deprotonated) of all species,
+        needed for finding the parameters of the other form during an update
 
     """
+
+    @staticmethod
+    def load(
+        fname,
+        simulation: openmm.app.simulation.Simulation,
+        simulation_for_parameters: openmm.app.simulation.Simulation = None,
+    ) -> ProtexSystem:
+        with open(fname, "rb") as inp:
+            from_pickle = pickle.load(inp)  # ensure correct order of arguments
+        protex_system = ProtexSystem(
+            simulation, from_pickle[0], simulation_for_parameters
+        )
+        protex_system.residues = from_pickle[1]
+        return protex_system
 
     def __init__(
         self,
         simulation: openmm.app.simulation.Simulation,
-        templates: IonicLiquidTemplates,
+        templates: ProtexTemplates,
+        simulation_for_parameters: openmm.app.simulation.Simulation = None,
     ) -> None:
         self.system: openmm.openmm.System = simulation.system
         self.topology: openmm.app.topology.Topology = simulation.topology
         self.simulation: openmm.app.simulation.Simulation = simulation
-        self.templates: IonicLiquidTemplates = templates
+        self.templates: ProtexTemplates = templates
+        self.simulation_for_parameters = simulation_for_parameters
         self.residues: list[Residue] = self._set_initial_states()
-        self.boxlength: float = (
-            simulation.context.getState().getPeriodicBoxVectors()[0][0]._value
+        self.boxlength: openmm.Quantity = (
+            simulation.context.getState().getPeriodicBoxVectors()[0][0]
         )  # NOTE: supports only cubic boxes
 
+    def dump(self, fname: str) -> None:
+        to_pickle = [self.templates, self.residues]  # enusre correct order of arguments
+        with open(fname, "wb") as outp:
+            pickle.dump(to_pickle, outp, pickle.HIGHEST_PROTOCOL)
+
     def get_current_number_of_each_residue_type(self) -> dict[str, int]:
-        current_number_of_each_residue_type = defaultdict(int)
+        current_number_of_each_residue_type: dict[str, int] = defaultdict(int)
         for residue in self.residues:
             current_number_of_each_residue_type[residue.current_name] += 1
         return current_number_of_each_residue_type
@@ -251,12 +299,11 @@ class IonicLiquidSystem:
         for force in self.system.getForces():
             if type(force).__name__ == name:
                 force.updateParametersInContext(self.simulation.context)
-                break
 
-    def _build_exclusion_list(self):
+    def _build_exclusion_list(self, topology):
         pair_12_set = set()
         pair_13_set = set()
-        for bond in self.topology.bonds():
+        for bond in topology.bonds():
             a1, a2 = bond.atom1, bond.atom2
             if "H" not in a1.name and "H" not in a2.name:
                 pair = (
@@ -268,26 +315,40 @@ class IonicLiquidSystem:
             for b in pair_12_set:
                 shared = set(a).intersection(set(b))
                 if len(shared) == 1:
-                    pair = tuple(set(list(a) + list(b)) - shared)
+                    pair = tuple(sorted(set(list(a) + list(b)) - shared))
                     pair_13_set.add(pair)
+                    # there were duplicates in pair_13_set, e.g. (1,3) and (3,1), needs to be sorted
 
-        self.pair_12_list = list(sorted(pair_12_set))
-        self.pair_13_list = list(sorted(pair_13_set - pair_12_set))
-        self.pair_12_13_list = self.pair_12_list + self.pair_13_list
+        # self.pair_12_list = list(sorted(pair_12_set))
+        # self.pair_13_list = list(sorted(pair_13_set - pair_12_set))
+        # self.pair_12_13_list = self.pair_12_list + self.pair_13_list
         # change to return the list and set the parameters in the init method?
+        pair_12_list = list(sorted(pair_12_set))
+        pair_13_list = list(sorted(pair_13_set - pair_12_set))
+        pair_12_13_list = pair_12_list + pair_13_list
+        return pair_12_13_list
 
     def _extract_templates(self, query_name: str) -> defaultdict:
         # returns the forces for the residue name
         forces_dict = defaultdict(list)
 
-        for residue in self.topology.residues():
+        # if there is an additional parameter file with all possible residues,
+        # use this for getting the templates
+        if self.simulation_for_parameters is not None:
+            sim = self.simulation_for_parameters
+        else:
+            sim = self.simulation
+
+        pair_12_13_list_params = self._build_exclusion_list(sim.topology)
+
+        for residue in sim.topology.residues():
             if query_name == residue.name:
                 atom_idxs = [atom.index for atom in residue.atoms()]
                 atom_names = [atom.name for atom in residue.atoms()]
                 logger.debug(atom_idxs)
                 logger.debug(atom_names)
 
-                for force in self.system.getForces():
+                for force in sim.system.getForces():
                     # print(type(force).__name__)
                     if type(force).__name__ == "NonbondedForce":
                         forces_dict[type(force).__name__] = [
@@ -357,12 +418,15 @@ class IonicLiquidSystem:
                             idx2 = f[1]  # parentatom
                             if idx1 in atom_idxs and idx2 in atom_idxs:
                                 forces_dict[type(force).__name__].append(f)
-                        assert len(self.pair_12_13_list) == force.getNumScreenedPairs()
+                        # print(self.pair_12_13_list)
+                        assert (
+                            len(pair_12_13_list_params) == force.getNumScreenedPairs()
+                        ), f"{len(pair_12_13_list_params)=}, {force.getNumScreenedPairs()=}"
                         for drude_id in range(force.getNumScreenedPairs()):
                             f = force.getScreenedPairParameters(drude_id)
                             # idx1 = f[0]
                             # idx2 = f[1]
-                            parent1, parent2 = self.pair_12_13_list[drude_id]
+                            parent1, parent2 = pair_12_13_list_params[drude_id]
                             drude1, drude2 = parent1 + 1, parent2 + 1
                             # print(f"thole {idx1=}, {idx2=}")
                             # print(f"{drude_id=}, {f=}")
@@ -371,6 +435,8 @@ class IonicLiquidSystem:
                                 # print(f"{drude1=}, {drude2=}")
                                 forces_dict[type(force).__name__ + "Thole"].append(f)
                 break  # do this only for the relevant amino acid once
+        else:
+            raise RuntimeError("residue not found")
         return forces_dict
 
     @staticmethod
@@ -386,7 +452,10 @@ class IonicLiquidSystem:
                 logger.critical(len(forces_state1[force_name]))
                 logger.critical(len(forces_state2[force_name]))
 
-                for b1, b2, in zip(
+                for (
+                    b1,
+                    b2,
+                ) in zip(
                     forces_state1[force_name],
                     forces_state2[force_name],
                 ):
@@ -396,15 +465,16 @@ class IonicLiquidSystem:
                 logger.critical(f"{name}:{forces_state1[force_name][-1]}")
                 logger.critical(f"{name_of_paired_ion}:{forces_state2[force_name][-1]}")
 
-                raise AssertionError("ohoh")
+                raise AssertionError(
+                    "There are not the same number of forces or a wrong order. Possible Problems: Bond/Angle/... is missing. Urey_Bradley Term is not defined for both states, ...)"
+                )
 
     def _set_initial_states(self) -> list:
-        """
-        set_initial_states For each ionic liquid residue in the system the protonation state
+        """set_initial_states For each ionic liquid residue in the system the protonation state
         is interfered from the provided openMM system object and the protonation site is defined.
         """
-
-        self._build_exclusion_list()
+        # self._build_exclusion_list()
+        pair_12_13_list = self._build_exclusion_list(self.topology)
 
         residues = []
         templates = dict()
@@ -413,6 +483,16 @@ class IonicLiquidSystem:
         for r in self.topology.residues():
             name = r.name
             name_of_paired_ion = self.templates.get_residue_name_for_coupled_state(name)
+
+            ### do something like this, to precess meoh without having a template
+            #### problem: residues for psf are collected this way
+            # if name in self.templates.names:
+            # name_of_paired_ion = self.templates.get_residue_name_for_coupled_state(name)
+            #   if name in templates or name_of_paired_ion in templates:
+            #     continue
+
+            # templates[name] = self._extract_templates(name)
+            # templates[name_of_paired_ion] = self._extract_templates(name_of_paired_ion)
 
             if name in templates or name_of_paired_ion in templates:
                 continue
@@ -441,14 +521,24 @@ class IonicLiquidSystem:
                         self.system,
                         parameters_state1,
                         parameters_state2,
-                        self.templates.get_canonical_name(name),
-                        self.pair_12_13_list,
+                        # self.templates.get_canonical_name(name),
+                        pair_12_13_list,
+                        (
+                            self.templates.has_equivalent_atom(name),
+                            self.templates.has_equivalent_atom(name_of_paired_ion),
+                        ),
                     )
                 )
-                residues[-1].current_name = name
+                residues[
+                    -1
+                ].current_name = (
+                    name  # Why, isnt it done in the initializer of Residue?
+                )
 
             else:
-                raise RuntimeError("Found resiude not present in Templates: {r.name}")
+                raise RuntimeError(
+                    "Found resiude not present in Templates: {r.name}"
+                )  # we want to ignore meoh, doesn't work the way it actually is
         return residues
 
     # def save_current_names(self, file: str) -> None:
@@ -476,34 +566,78 @@ class IonicLiquidSystem:
     #     for residue, name in zip(self.residues, residue_names):
     #         residue.current_name = name
 
-    def report_states(self) -> None:
-        """
-        report_states prints out a summary of the current protonation state of the ionic liquid
-        """
-        pass
+    # not used
+    # def report_states(self) -> None:
+    #     """
+    #     report_states prints out a summary of the current protonation state of the ionic liquid
+    #     """
+    #     pass
 
     def _adapt_parmed_psf_file(
-        self, psf: parmed.charmm.CharmmPsfFile
+        self,
+        psf: parmed.charmm.CharmmPsfFile,
+        parameters: parmed.charmm.CharmmPsfFile,
     ) -> parmed.charmm.CharmmPsfFile:
-        """
-        Helper function to adapt the psf
-        """
+        """Helper function to adapt the psf."""
+        # print(len(self.residues), len(psf.residues))
         assert len(self.residues) == len(psf.residues)
 
         # make a dict with parmed representations of each residue, use it to assign the opposite one if a transfer occured
         pm_unique_residues: dict[str, parmed.Residue] = {}
-        residue_counts: dict[
-            str, int
-        ] = (
-            {}
-        )  # incremented by one each time it is used to track the current residue number
-        for residue in psf.residues:
-            if residue.name in pm_unique_residues:
+        # incremented by one each time it is used to track the current residue number
+        residue_counts: dict[str, int] = {}
+
+        for pm_residue in parameters.residues:
+            if pm_residue.name in pm_unique_residues:
                 continue
             else:
-                pm_unique_residues[residue.name] = residue
-                residue_counts[residue.name] = 1
+                pm_unique_residues[pm_residue.name] = pm_residue
+                residue_counts[pm_residue.name] = 1
 
+        # get offset for lonepairs which are defined differently.
+        # dict with lists for each LocalCoordinates frame, there is one for each LP in the residue
+        differences_dict: dict[tuple[str], list[list[int]]] = {}
+        for pair in self.templates.pairs:
+            name1, name2 = pair
+            pm_res1 = pm_unique_residues[name1]
+            pm_res2 = pm_unique_residues[name2]
+            # get first index to get relative difference
+            at1_idx1 = pm_res1.atoms[0].idx
+            at2_idx1 = pm_res2.atoms[0].idx
+
+            differences_dict[tuple([name1, name2])] = []
+            differences_dict[tuple([name2, name1])] = []
+
+            for at1, at2 in zip(pm_res1, pm_res2):
+                if isinstance(at1, parmed.topologyobjects.ExtraPoint) and isinstance(
+                    at1.frame_type, parmed.topologyobjects.LocalCoordinatesFrame
+                ):
+                    frame_hosts1 = [
+                        fatom
+                        for fatom in at1.frame_type.get_atoms()[
+                            : at1.frame_type.frame_size
+                        ]
+                    ]
+                    frame_hosts2 = [
+                        fatom
+                        for fatom in at2.frame_type.get_atoms()[
+                            : at2.frame_type.frame_size
+                        ]
+                    ]
+                    relative_pos1 = [fatom.idx - at1_idx1 for fatom in frame_hosts1]
+                    relative_pos2 = [fatom.idx - at2_idx1 for fatom in frame_hosts2]
+                    differences = [
+                        p1 - p2 for p1, p2 in zip(relative_pos1, relative_pos2)
+                    ]
+                    # Depending on the direction of the tranfer we either need the positive or negative value
+                    differences_dict[tuple([name1, name2])].append(differences)
+                    differences_dict[tuple([name2, name1])].append(
+                        [-d for d in differences]
+                    )
+
+        # either it is the same or just one group will be assumed. -> Not best for proteins, but hopefully Parmed will release new version soon, so that we do not need all this hacks.
+        n_residue_is_n_groups = len(psf.groups) == len(psf.residues)
+        group_iter = iter(psf.groups)
         for residue, pm_residue in zip(self.residues, psf.residues):
             # if the new residue (residue.current_name) is different than the original one from the old psf (pm_residue.name)
             # a proton transfer occured and we want to change this in the new psf, which means overwriting the parmed residue instance
@@ -511,6 +645,12 @@ class IonicLiquidSystem:
             # if residue.current_name != pm_residue.name:
             # do changes
             name = residue.current_name
+            name_change: tuple[str] = tuple([name, pm_residue.name])
+            # get the differences in LP position, make an iterator to yiled the next as needed
+            diff_iter = None
+            if name_change in differences_dict.keys():
+                differences_list = differences_dict[name_change]
+                diff_iter = iter(differences_list)
             pm_residue.name = name
             pm_residue.chain = name
             pm_residue.segid = name
@@ -521,19 +661,98 @@ class IonicLiquidSystem:
                 pm_atom._charge = unique_atom._charge
                 pm_atom.type = unique_atom.type
                 pm_atom.props = unique_atom.props
+                # NUMLP NUMLPH lonepair section update
+                if isinstance(
+                    unique_atom, parmed.topologyobjects.ExtraPoint
+                ) and isinstance(
+                    unique_atom.frame_type, parmed.topologyobjects.LocalCoordinatesFrame
+                ):
+                    pm_atom.frame_type.distance = unique_atom.frame_type.distance
+                    pm_atom.frame_type.angle = unique_atom.frame_type.angle
+                    pm_atom.frame_type.dihedral = unique_atom.frame_type.dihedral
+                    # if the positioning of the lonepair changes, update the corresponding atoms in the LocalCoordinateFrame
+                    if diff_iter:
+                        differences = next(diff_iter)
+                        first_idx = pm_residue.atoms[0].idx
+
+                        # normalize to the first idx in the list of atoms for one residue
+                        current_idx1 = pm_atom.frame_type.atom1.idx
+                        # print(f"{current_idx1=}")
+                        # print(f"{differences[0]=}")
+                        pm_atom.frame_type.atom1 = pm_residue.atoms[
+                            current_idx1 - first_idx + differences[0]
+                        ]
+                        current_idx2 = pm_atom.frame_type.atom2.idx
+                        # print(f"{current_idx2=}")
+                        # print(f"{differences[1]=}")
+                        pm_atom.frame_type.atom2 = pm_residue.atoms[
+                            current_idx2 - first_idx + differences[1]
+                        ]
+                        current_idx3 = pm_atom.frame_type.atom3.idx
+                        # print(f"{current_idx3=}")
+                        # print(f"{differences[2]=}")
+                        pm_atom.frame_type.atom3 = pm_residue.atoms[
+                            current_idx3 - first_idx + differences[2]
+                        ]
+
+                # NUMANISO Section update
+                if isinstance(unique_atom, parmed.topologyobjects.DrudeAtom):
+                    if unique_atom.anisotropy is None:
+                        continue
+                    pm_atom.anisotropy.params["k11"] = unique_atom.anisotropy.params[
+                        "k11"
+                    ]
+                    pm_atom.anisotropy.params["k22"] = unique_atom.anisotropy.params[
+                        "k22"
+                    ]
+                    pm_atom.anisotropy.params["k33"] = unique_atom.anisotropy.params[
+                        "k33"
+                    ]
             residue_counts[name] += 1
+
+            if n_residue_is_n_groups:
+                group = next(group_iter)
+                typ = 1 if abs(sum(a.charge for a in pm_residue.atoms)) < 1e-4 else 2
+                group.type = typ
+
+        if not n_residue_is_n_groups:
+            # Maybe a bit hacky to get Parmed to use all atoms as 1 group
+            # https://github.com/ParmEd/ParmEd/blob/master/parmed/formats/psf.py#L250
+            psf.groups = []
 
         return psf
 
-    def write_psf(self, old_psf_infname: str, new_psf_outfname: str) -> None:
+    def write_psf(
+        self,
+        old_psf_infname: str,
+        new_psf_outfname: str,
+        psf_for_parameters: str = None,
+    ) -> None:
+        """write a new psf file, which reflects the occured transfer events and changed residues
+        to load the written psf create a new ionic_liquid instance and load the new psf via OpenMM.
+
+        Parameters
+        ----------
+        old_psf_infname:
+            Name of the old psf_file, which serves for the basic strucutre, same number of atoms, same bonds, angles, ...
+        new_psf_outfname:
+            Name of the new psf that will be written
+        psf_for_parameters:
+            Optional psf file which contains all possible molecules/states, if they are not represented by the old_psf_infname.
+            I.e. one species gets protonated and is not present anymore, this file can be used to have all potential states.
+
+        Returns
+        -------
+        None
         """
-        write a new psf file, which reflects the occured transfer events and changed residues
-        to load the written psf create a new ionic_liquid instance and load the new psf via OpenMM
-        """
-        import parmed
+        if psf_for_parameters is None:
+            psf_for_parameters = old_psf_infname
 
         pm_old_psf = parmed.charmm.CharmmPsfFile(old_psf_infname)
-        pm_new_psf = self._adapt_parmed_psf_file(pm_old_psf)
+        # copying parmed structure did not work
+        # pm_old_psf_copy = parmed.charmm.CharmmPsfFile(old_psf_infname)
+        pm_parameters = parmed.charmm.CharmmPsfFile(psf_for_parameters)
+        pm_new_psf = self._adapt_parmed_psf_file(pm_old_psf, pm_parameters)
         pm_new_psf.write_psf(new_psf_outfname)
 
     # possibly in future when parmed and openmm drude connection is working
@@ -550,8 +769,7 @@ class IonicLiquidSystem:
     #     struct.save(fname, format=None, overwrite=False, **kwargs)
 
     def saveCheckpoint(self, file) -> None:
-        """
-        Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object
+        """Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object.
 
         Parameters
         ----------
@@ -562,7 +780,7 @@ class IonicLiquidSystem:
         self.simulation.saveCheckpoint(file)
 
     def loadCheckpoint(self, file) -> None:
-        """Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object
+        """Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object.
 
         Parameters
         ----------
@@ -573,7 +791,7 @@ class IonicLiquidSystem:
         self.simulation.loadCheckpoint(file)
 
     def saveState(self, file) -> None:
-        """Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object
+        """Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object.
 
         Parameters
         ----------
@@ -584,7 +802,7 @@ class IonicLiquidSystem:
         self.simulation.saveState(file)
 
     def loadState(self, file) -> None:
-        """Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object
+        """Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object.
 
         Parameters
         ----------
@@ -595,8 +813,7 @@ class IonicLiquidSystem:
         self.simulation.loadState(file)
 
     def save_updates(self, file) -> None:
-        """
-        Save the current update values into a yaml file. Used to have the current probability values.
+        """Save the current update values into a yaml file. Used to have the current probability values.
 
         Parameters
         ----------
@@ -611,14 +828,13 @@ class IonicLiquidSystem:
             yaml.dump(data, f, default_flow_style=False)
 
     def load_updates(self, file) -> None:
-        """
-        Load the current update values from a yaml file, which was generated using "save_updates".
+        """Load the current update values from a yaml file, which was generated using "save_updates".
 
         Parameters
         ----------
         file: string or file
         """
-        with open(file, "r") as f:
+        with open(file) as f:
             try:
                 data = yaml.safe_load(f)
             except yaml.YAMLError as exc:

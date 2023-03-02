@@ -1,12 +1,14 @@
-import numpy as np
-from collections import deque
 import itertools
+from collections import deque
+
+import numpy as np
+
 
 class Residue:
-    """Residue extends the OpenMM Residue Class by important features needed for the proton transfer
+    """Residue extends the OpenMM Residue Class by important features needed for the proton transfer.
 
     Parameters
-    -----------
+    ----------
     residue: openmm.app.topology.Residue
         The residue from  an OpenMM Topology
     alternativ_name: str
@@ -21,9 +23,11 @@ class Residue:
         A general name for both states (protonated/deprotonated)
     pair_12_13_exclusion_list: list
         1-2 and 1-3 exclusions in the system
+    equivalent_atoms: tuple
+        if current name and alternative name have equivalent atoms
 
     Attributes
-    -----------
+    ----------
     residue: openmm.app.topology.Residue
         The residue from  an OpenMM Topology
     original_name: str
@@ -44,6 +48,8 @@ class Residue:
         The system generated with openMM, where all residues are in
     pair_12_13_list: list
          1-2 and 1-3 exclusions in the system
+    has_equivalent_atoms: tuple(bool)
+        if orignal_name and alternative name have equivalent atoms
     """
 
     def __init__(
@@ -53,10 +59,11 @@ class Residue:
         system,
         inital_parameters,
         alternativ_parameters,
-        canonical_name,
+        # canonical_name,
         pair_12_13_exclusion_list,
+        # has_equivalent_atom,
+        has_equivalent_atoms,
     ) -> None:
-
         self.residue = residue
         self.original_name = residue.name
         self.current_name = self.original_name
@@ -67,17 +74,34 @@ class Residue:
             alternativ_name: alternativ_parameters,
         }
         self.record_charge_state = []
-        self.canonical_name = canonical_name
+        # self.canonical_name = canonical_name
         self.system = system
         self.record_charge_state.append(self.endstate_charge)  # Not used anywhere?
         self.pair_12_13_list = pair_12_13_exclusion_list
+        # self.has_equivalent_atom: bool = has_equivalent_atom
+        self.equivalent_atoms: dict[str, bool] = {
+            self.original_name: has_equivalent_atoms[0],
+            self.alternativ_name: has_equivalent_atoms[1],
+        }
+        self.equivalent_atom_pos_in_list: int = None
+        self.used_equivalent_atom: bool = False
+
+    def __str__(self):
+        return f"Residue {self.current_name}, {self.residue}"
+
+    @property
+    def has_equivalent_atom(self):
+        """Determines if the current residue has an equivalent atom defined.
+        It depends i.e if the residue is currently OAC (-> two equivalent O's) or HOAC (no equivlent O's).
+        """
+        return self.equivalent_atoms[self.current_name]
 
     @property
     def alternativ_name(self):
-        """Alternative name for the residue, e.g. the corresponding name for the protonated/deprotonated form
+        """Alternative name for the residue, e.g. the corresponding name for the protonated/deprotonated form.
 
         Returns
-        --------
+        -------
         str
         """
         for name in self.parameters.keys():
@@ -86,11 +110,13 @@ class Residue:
 
     def update(
         self, force_name: str, lamb: float
-    ) -> None:  # we don't need to call update in context since we are doing this in NaiveMCUpdate
-        """Update the requested force in that residue
+    ) -> (
+        None
+    ):  # we don't need to call update in context since we are doing this in NaiveMCUpdate
+        """Update the requested force in that residue.
 
         Parameters
-        -----------
+        ----------
         force_name: Name of the force to update
         lamb: lambda state at which to get corresponding values (between 0 and 1)
         """
@@ -112,6 +138,8 @@ class Residue:
         elif force_name == "DrudeForce":
             parms = self._get_DrudeForce_parameters_at_lambda(lamb)
             self._set_DrudeForce_parameters(parms)
+        else:
+            raise RuntimeWarning("Force name {force_name=} is not covered, no updates will happen on this one!")
 
     def _set_NonbondedForce_parameters(self, parms):
         parms_nonb = deque(parms[0])
@@ -133,7 +161,6 @@ class Residue:
                         )
 
     def _set_HarmonicBondForce_parameters(self, parms):
-
         parms = deque(parms)
         for force in self.system.getForces():
             if type(force).__name__ == "HarmonicBondForce":
@@ -208,7 +235,6 @@ class Residue:
                         )
 
     def _set_DrudeForce_parameters(self, parms):
-
         parms_pol = deque(parms[0])
         parms_thole = deque(parms[1])
         for force in self.system.getForces():
@@ -287,9 +313,9 @@ class Residue:
         for old_idx, old_parm in enumerate(self.parameters[current_name][force_name]):
             idx1, idx2 = old_parm[0], old_parm[1]
             for new_idx, new_parm in enumerate(self.parameters[new_name][force_name]):
-                if set(
-                    [new_parm[0] - new_parms_offset, new_parm[1] - new_parms_offset]
-                ) == set([idx1 - old_parms_offset, idx2 - old_parms_offset]):
+                if {
+                    new_parm[0] - new_parms_offset, new_parm[1] - new_parms_offset
+                } == {idx1 - old_parms_offset, idx2 - old_parms_offset}:
                     if old_idx != new_idx:
                         raise RuntimeError(
                             "Odering of Nonbonded Exception parameters is different between the two topologies."
@@ -317,9 +343,10 @@ class Residue:
 
         return [parm_interpolated, exceptions_interpolated]
 
-    def _get_offset(self, name):
+    def _get_offset(self, name, force_name=None):
         # get offset for atom idx
-        force_name = "HarmonicBondForce"
+        if force_name is None:
+            force_name = "HarmonicBondForce"
         return min(
             itertools.chain(
                 *[query_parm[0:2] for query_parm in self.parameters[name][force_name]]
@@ -356,9 +383,9 @@ class Residue:
         for old_idx, old_parm in enumerate(self.parameters[old_name][force_name]):
             idx1, idx2 = old_parm[0], old_parm[1]
             for new_idx, new_parm in enumerate(self.parameters[new_name][force_name]):
-                if set(
-                    [new_parm[0] - new_parms_offset, new_parm[1] - new_parms_offset]
-                ) == set([idx1 - old_parms_offset, idx2 - old_parms_offset]):
+                if {
+                    new_parm[0] - new_parms_offset, new_parm[1] - new_parms_offset
+                } == {idx1 - old_parms_offset, idx2 - old_parms_offset}:
                     if old_idx != new_idx:
                         raise RuntimeError(
                             "Odering of bond parameters is different between the two topologies.\n"
@@ -401,19 +428,15 @@ class Residue:
         for old_idx, old_parm in enumerate(self.parameters[old_name][force_name]):
             idx1, idx2, idx3 = old_parm[0], old_parm[1], old_parm[2]
             for new_idx, new_parm in enumerate(self.parameters[new_name][force_name]):
-                if set(
-                    [
+                if {
                         new_parm[0] - new_parms_offset,
                         new_parm[1] - new_parms_offset,
                         new_parm[2] - new_parms_offset,
-                    ]
-                ) == set(
-                    [
+                } == {
                         idx1 - old_parms_offset,
                         idx2 - old_parms_offset,
                         idx3 - old_parms_offset,
-                    ]
-                ):
+                }:
                     if old_idx != new_idx:
                         raise RuntimeError(
                             "Odering of angle parameters is different between the two topologies."
@@ -444,41 +467,83 @@ class Residue:
         new_name = self.alternativ_name
         parm_interpolated = []
         force_name = "PeriodicTorsionForce"
-        new_parms_offset = self._get_offset(new_name)
-        old_parms_offset = self._get_offset(old_name)
+        new_parms_offset = self._get_offset(new_name, force_name=force_name)
+        old_parms_offset = self._get_offset(old_name, force_name=force_name)
+
+        torsions = []  # list for atom indices in a dihedral
+
+        # fill list with all dihedrals
+        for old_idx, old_parm in enumerate(
+            self.parameters[self.current_name]["PeriodicTorsionForce"]
+        ):
+            idx1, idx2, idx3, idx4 = (
+                old_parm[0] - old_parms_offset,
+                old_parm[1] - old_parms_offset,
+                old_parm[2] - old_parms_offset,
+                old_parm[3] - old_parms_offset,
+            )
+            ids = [idx1, idx2, idx3, idx4]
+            torsions.append(ids)
 
         # match parameters
         parms_old = []
         parms_new = []
 
         for old_idx, old_parm in enumerate(self.parameters[old_name][force_name]):
-            idx1, idx2, idx3, idx4 = old_parm[0], old_parm[1], old_parm[2], old_parm[3]
-            for new_idx, new_parm in enumerate(self.parameters[new_name][force_name]):
-                if set(
-                    [
-                        new_parm[0] - new_parms_offset,
-                        new_parm[1] - new_parms_offset,
-                        new_parm[2] - new_parms_offset,
-                        new_parm[3] - new_parms_offset,
-                    ]
-                ) == set(
-                    [
-                        idx1 - old_parms_offset,
-                        idx2 - old_parms_offset,
-                        idx3 - old_parms_offset,
-                        idx4 - old_parms_offset,
-                    ]
-                ):
-                    if old_idx != new_idx:
-                        raise RuntimeError(
-                            "Odering of angle parameters is different between the two topologies."
-                        )
+            idx1, idx2, idx3, idx4, idx5 = (
+                old_parm[0] - old_parms_offset,
+                old_parm[1] - old_parms_offset,
+                old_parm[2] - old_parms_offset,
+                old_parm[3] - old_parms_offset,
+                old_parm[4],
+            )
+            # first 4 parms: atoms in dihedral, 5.: multiplicity -> need all 5, different multiplicities for same dihedral possible
+            ids = [idx1, idx2, idx3, idx4]  # get atoms in the current dihedral
 
-                    parms_old.append(old_parm)
-                    parms_new.append(new_parm)
-                    break
-            else:
-                raise RuntimeError()
+            if (
+                torsions.count(ids) == 1
+            ):  # only 1 dihedral with 1 multiplicity, multiplicity can be different between old and new -> ignore multiplicity
+                for new_idx, new_parm in enumerate(
+                    self.parameters[new_name][force_name]
+                ):
+                    if {
+                            new_parm[0] - new_parms_offset,
+                            new_parm[1] - new_parms_offset,
+                            new_parm[2] - new_parms_offset,
+                            new_parm[3] - new_parms_offset,
+                    } == {idx1, idx2, idx3, idx4}:
+                        if old_idx != new_idx:
+                            raise RuntimeError(
+                                "Odering of dihedral parameters is different between the two topologies."
+                            )
+
+                        parms_old.append(old_parm)
+                        parms_new.append(new_parm)
+                        break
+                else:
+                    raise RuntimeError()
+
+            else:  # count > 1: multiple dihedrals with different multiplicities for same set of atoms -> also match multiplicity
+                for new_idx, new_parm in enumerate(
+                    self.parameters[new_name][force_name]
+                ):
+                    if {
+                            new_parm[0] - new_parms_offset,
+                            new_parm[1] - new_parms_offset,
+                            new_parm[2] - new_parms_offset,
+                            new_parm[3] - new_parms_offset,
+                            new_parm[4],
+                    } == {idx1, idx2, idx3, idx4, idx5}:
+                        if old_idx != new_idx:
+                            raise RuntimeError(
+                                "Odering of dihedral parameters is different between the two topologies."
+                            )
+
+                        parms_old.append(old_parm)
+                        parms_new.append(new_parm)
+                        break
+                else:
+                    raise RuntimeError()
 
         # interpolate parameters
         # omm dihedral: [atom1, atom2, atom3, atom4, periodicity, Quantity(value=delta/phase, unit=radian), Quantity(value=Kchi, unit=kilojoule/mole)]
@@ -513,21 +578,17 @@ class Residue:
         for old_idx, old_parm in enumerate(self.parameters[old_name][force_name]):
             idx1, idx2, idx3, idx4 = old_parm[0], old_parm[1], old_parm[2], old_parm[3]
             for new_idx, new_parm in enumerate(self.parameters[new_name][force_name]):
-                if set(
-                    [
+                if {
                         new_parm[0] - new_parms_offset,
                         new_parm[1] - new_parms_offset,
                         new_parm[2] - new_parms_offset,
                         new_parm[3] - new_parms_offset,
-                    ]
-                ) == set(
-                    [
+                } == {
                         idx1 - old_parms_offset,
                         idx2 - old_parms_offset,
                         idx3 - old_parms_offset,
                         idx4 - old_parms_offset,
-                    ]
-                ):
+                }:
                     if old_idx != new_idx:
                         raise RuntimeError(
                             "Odering of improper parameters is different between the two topologies."
@@ -572,9 +633,9 @@ class Residue:
         for old_idx, old_parm in enumerate(self.parameters[old_name][force_name]):
             idx1, idx2 = old_parm[0], old_parm[1]
             for new_idx, new_parm in enumerate(self.parameters[new_name][force_name]):
-                if set(
-                    [new_parm[0] - new_parms_offset, new_parm[1] - new_parms_offset]
-                ) == set([idx1 - old_parms_offset, idx2 - old_parms_offset]):
+                if {
+                    new_parm[0] - new_parms_offset, new_parm[1] - new_parms_offset
+                } == {idx1 - old_parms_offset, idx2 - old_parms_offset}:
                     if old_idx != new_idx:
                         raise RuntimeError(
                             "Odering of bond parameters is different between the two topologies."
@@ -618,9 +679,9 @@ class Residue:
         for old_idx, old_parm in enumerate(self.parameters[old_name][force_name]):
             idx1, idx2 = old_parm[0], old_parm[1]
             for new_idx, new_parm in enumerate(self.parameters[new_name][force_name]):
-                if set(
-                    [new_parm[0] - new_parms_offset, new_parm[1] - new_parms_offset]
-                ) == set([idx1 - old_parms_offset, idx2 - old_parms_offset]):
+                if {
+                    new_parm[0] - new_parms_offset, new_parm[1] - new_parms_offset
+                } == {idx1 - old_parms_offset, idx2 - old_parms_offset}:
                     if old_idx != new_idx:
                         raise RuntimeError(
                             "Odering of bond parameters is different between the two topologies."
@@ -647,11 +708,13 @@ class Residue:
             if query_atom_name == atom_name:
                 return idx
         else:
-            raise RuntimeError()
+            raise RuntimeError(
+                f"Atom name '{query_atom_name}' not in atom names of residue '{self.current_name}'."
+            )
 
     @property
     def endstate_charge(self) -> int:
-        """Charge of the residue at the endstate (will be int)"""
+        """Charge of the residue at the endstate (will be int)."""
         charge = int(
             np.round(
                 sum(
@@ -667,7 +730,7 @@ class Residue:
 
     @property
     def current_charge(self) -> int:
-        """Current charge of the residue"""
+        """Current charge of the residue."""
         charge = 0
         for force in self.system.getForces():
             if type(force).__name__ == "NonbondedForce":
@@ -676,7 +739,3 @@ class Residue:
                     charge += charge_idx._value
 
         return np.round(charge, 3)
-
-
-
-
