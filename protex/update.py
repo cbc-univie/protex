@@ -521,7 +521,7 @@ class StateUpdate:
             pickle.dump(to_pickle, outp, pickle.HIGHEST_PROTOCOL)
 
     def write_charges(self, filename: str) -> None: #deprecated?
-        """Write current charges to a file
+        """Write current charges to a file.
 
         Parameters
         ----------
@@ -537,7 +537,7 @@ class StateUpdate:
                 )
     #instead of these to functions use the ChargeReporter probably
     def get_charges(self) -> list: #deprecated?
-        """_summary_
+        """_summary_.
 
         Returns
         -------
@@ -562,7 +562,7 @@ class StateUpdate:
 
     #redundant with ProtexSystem.get_current_number_of_each_residue_type
     def get_num_residues(self) -> dict:
-        """deprecated 1.1"""
+        """deprecated 1.1."""
         res_dict = {
             "IM1H": 0,
             "OAC": 0,

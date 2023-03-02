@@ -96,7 +96,7 @@ class ProtexTemplates:
             pickle.dump(self, outp, pickle.HIGHEST_PROTOCOL)
 
     def get_atom_name_for(self, resname: str) -> str:
-        """Get the atom name for a specific residue
+        """Get the atom name for a specific residue.
 
         Parameters
         ----------
@@ -111,7 +111,7 @@ class ProtexTemplates:
         return self.states[resname][self._atom_name]
 
     def has_equivalent_atom(self, resname: str) -> bool:
-        """Checks if a given residue has an equivalent atom defined
+        """Checks if a given residue has an equivalent atom defined.
 
         Parameters
         ----------
@@ -126,7 +126,7 @@ class ProtexTemplates:
         return self._equivalent_atom in self.states[resname]
 
     def get_equivalent_atom_for(self, resname: str) -> str:
-        """Get the name of the equivalent atom for a given residue name
+        """Get the name of the equivalent atom for a given residue name.
 
         Parameters
         ----------
@@ -326,7 +326,7 @@ class ProtexSystem:
             pickle.dump(to_pickle, outp, pickle.HIGHEST_PROTOCOL)
 
     def get_current_number_of_each_residue_type(self) -> dict[str, int]:
-        """Get a dictionary with the resname and the current number of residues belonging to that name
+        """Get a dictionary with the resname and the current number of residues belonging to that name.
 
         Returns
         -------
@@ -339,7 +339,7 @@ class ProtexSystem:
         return current_number_of_each_residue_type
 
     def update_context(self, name: str):
-        """Update the context for the given force
+        """Update the context for the given force.
 
         Parameters
         ----------
