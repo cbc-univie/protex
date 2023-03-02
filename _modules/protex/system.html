@@ -171,14 +171,50 @@
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">outp</span><span class="p">:</span>
             <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outp</span><span class="p">,</span> <span class="n">pickle</span><span class="o">.</span><span class="n">HIGHEST_PROTOCOL</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">get_atom_name_for</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">resname</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">resname</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">_atom_name</span><span class="p">]</span>
+<div class="viewcode-block" id="ProtexTemplates.get_atom_name_for"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.ProtexTemplates.html#protex.system.ProtexTemplates.get_atom_name_for">[docs]</a>    <span class="k">def</span> <span class="nf">get_atom_name_for</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">resname</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the atom name for a specific residue</span>
 
-    <span class="k">def</span> <span class="nf">has_equivalent_atom</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">resname</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_equivalent_atom</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">resname</span><span class="p">]</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        resname : str</span>
+<span class="sd">            The residue name</span>
 
-    <span class="k">def</span> <span class="nf">get_equivalent_atom_for</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">resname</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">resname</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">_equivalent_atom</span><span class="p">]</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            The atom name</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">resname</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">_atom_name</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="ProtexTemplates.has_equivalent_atom"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.ProtexTemplates.html#protex.system.ProtexTemplates.has_equivalent_atom">[docs]</a>    <span class="k">def</span> <span class="nf">has_equivalent_atom</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">resname</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Checks if a given residue has an equivalent atom defined</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        resname : str</span>
+<span class="sd">            The residue name</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            True if this residue has an equivalent atom defined, false otherwise</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_equivalent_atom</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">resname</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="ProtexTemplates.get_equivalent_atom_for"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.ProtexTemplates.html#protex.system.ProtexTemplates.get_equivalent_atom_for">[docs]</a>    <span class="k">def</span> <span class="nf">get_equivalent_atom_for</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">resname</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the name of the equivalent atom for a given residue name</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        resname : str</span>
+<span class="sd">            The residue name</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            The atom name</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">resname</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">_equivalent_atom</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="ProtexTemplates.get_update_value_for"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.ProtexTemplates.html#protex.system.ProtexTemplates.get_update_value_for">[docs]</a>    <span class="k">def</span> <span class="nf">get_update_value_for</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">residue_set</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">property</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;returns the value in the allowed updates dictionary.</span>
@@ -365,16 +401,30 @@
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">outp</span><span class="p">:</span>
             <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">to_pickle</span><span class="p">,</span> <span class="n">outp</span><span class="p">,</span> <span class="n">pickle</span><span class="o">.</span><span class="n">HIGHEST_PROTOCOL</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">get_current_number_of_each_residue_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<div class="viewcode-block" id="ProtexSystem.get_current_number_of_each_residue_type"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.ProtexSystem.html#protex.system.ProtexSystem.get_current_number_of_each_residue_type">[docs]</a>    <span class="k">def</span> <span class="nf">get_current_number_of_each_residue_type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a dictionary with the resname and the current number of residues belonging to that name</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict[str, int]</span>
+<span class="sd">            resname: number of residues</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">current_number_of_each_residue_type</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">residue</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">residues</span><span class="p">:</span>
             <span class="n">current_number_of_each_residue_type</span><span class="p">[</span><span class="n">residue</span><span class="o">.</span><span class="n">current_name</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
-        <span class="k">return</span> <span class="n">current_number_of_each_residue_type</span>
+        <span class="k">return</span> <span class="n">current_number_of_each_residue_type</span></div>
 
-    <span class="k">def</span> <span class="nf">update_context</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<div class="viewcode-block" id="ProtexSystem.update_context"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.ProtexSystem.html#protex.system.ProtexSystem.update_context">[docs]</a>    <span class="k">def</span> <span class="nf">update_context</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update the context for the given force</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        name : str</span>
+<span class="sd">            The name of the force to update</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">force</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">getForces</span><span class="p">():</span>
             <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">force</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="n">name</span><span class="p">:</span>
-                <span class="n">force</span><span class="o">.</span><span class="n">updateParametersInContext</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">context</span><span class="p">)</span>
+                <span class="n">force</span><span class="o">.</span><span class="n">updateParametersInContext</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">context</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_build_exclusion_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topology</span><span class="p">):</span>
         <span class="n">pair_12_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
@@ -932,7 +982,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2022, Florian Joerg &amp; Marcus Wieder. Project structure based on the Computational Molecular Science Python Cookiecutter version 1.5.</p>
+    <p>&#169; Copyright 2023, Florian Joerg &amp; Marcus Wieder. Project structure based on the Computational Molecular Science Python Cookiecutter version 1.5.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
