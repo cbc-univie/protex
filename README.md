@@ -16,7 +16,7 @@ protex
 [//]: <[![codecov](https://codecov.io/gh/florianj77/protex/branch/main/graph/badge.svg?token=ddqu0BzewU)](https://codecov.io/gh/florianj77/protex)>
 
 
-Proton exchange using openMM for ionic liquids
+Protex enables proton exchange in solvent molecules using openMM. The simulations are augmented by possible (de-)protonation events using a single topology approach with two different λ-states.[^1]
 
 ## Installation
 
@@ -30,6 +30,9 @@ git clone https://github.com/florianjoerg/protex.git
 cd protex
 pip install .
 ```
+
+## Usage
+Please see the [documentation](https://florianjoerg.github.io/protex) for usage examples.
 
 ## Maintainers
 
@@ -45,3 +48,5 @@ Copyright (c) 2023, Florian Joerg & Marcus Wieder
  
 Project based on the 
 [Computational Molecular Science Python Cookiecutter](https://github.com/molssi/cookiecutter-cms) version 1.5.
+
+[^1]: Joerg F., Wieder M., Schröder C. *Frontiers in Chemistry: Molecular Liquids* (2023), 11, [DOI]( https://doi.org/10.3389/fchem.2023.1140896) 

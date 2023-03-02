@@ -96,12 +96,48 @@ class ProtexTemplates:
             pickle.dump(self, outp, pickle.HIGHEST_PROTOCOL)
 
     def get_atom_name_for(self, resname: str) -> str:
+        """Get the atom name for a specific residue.
+
+        Parameters
+        ----------
+        resname : str
+            The residue name
+
+        Returns
+        -------
+        str
+            The atom name
+        """
         return self.states[resname][self._atom_name]
 
     def has_equivalent_atom(self, resname: str) -> bool:
+        """Checks if a given residue has an equivalent atom defined.
+
+        Parameters
+        ----------
+        resname : str
+            The residue name
+
+        Returns
+        -------
+        bool
+            True if this residue has an equivalent atom defined, false otherwise
+        """
         return self._equivalent_atom in self.states[resname]
 
     def get_equivalent_atom_for(self, resname: str) -> str:
+        """Get the name of the equivalent atom for a given residue name.
+
+        Parameters
+        ----------
+        resname : str
+            The residue name
+
+        Returns
+        -------
+        str
+            The atom name
+        """
         return self.states[resname][self._equivalent_atom]
 
     def get_update_value_for(self, residue_set: frozenset[str], property: str) -> float:
@@ -290,12 +326,26 @@ class ProtexSystem:
             pickle.dump(to_pickle, outp, pickle.HIGHEST_PROTOCOL)
 
     def get_current_number_of_each_residue_type(self) -> dict[str, int]:
+        """Get a dictionary with the resname and the current number of residues belonging to that name.
+
+        Returns
+        -------
+        dict[str, int]
+            resname: number of residues
+        """
         current_number_of_each_residue_type: dict[str, int] = defaultdict(int)
         for residue in self.residues:
             current_number_of_each_residue_type[residue.current_name] += 1
         return current_number_of_each_residue_type
 
     def update_context(self, name: str):
+        """Update the context for the given force.
+
+        Parameters
+        ----------
+        name : str
+            The name of the force to update
+        """
         for force in self.system.getForces():
             if type(force).__name__ == name:
                 force.updateParametersInContext(self.simulation.context)
