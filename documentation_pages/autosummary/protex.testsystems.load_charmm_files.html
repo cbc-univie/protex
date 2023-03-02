@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>protex.testsystems &mdash; protex  documentation</title>
+  <title>protex.testsystems.load_charmm_files &mdash; protex  documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/custom.css" type="text/css" />
@@ -19,8 +19,8 @@
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="protex.testsystems.generate_complete_system" href="protex.testsystems.generate_complete_system.html" />
-    <link rel="prev" title="protex.update.Update" href="protex.update.Update.html" /> 
+    <link rel="next" title="protex.testsystems.setup_simulation" href="protex.testsystems.setup_simulation.html" />
+    <link rel="prev" title="protex.testsystems.generate_small_box" href="protex.testsystems.generate_small_box.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -52,7 +52,7 @@
 <li class="toctree-l1 current"><a class="reference internal" href="../api.html">API Documentation</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="protex.system.html">protex.system</a></li>
 <li class="toctree-l2"><a class="reference internal" href="protex.update.html">protex.update</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">protex.testsystems</a><ul>
+<li class="toctree-l2 current"><a class="reference internal" href="protex.testsystems.html">protex.testsystems</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="protex.testsystems.generate_complete_system.html">protex.testsystems.generate_complete_system</a></li>
 <li class="toctree-l3"><a class="reference internal" href="protex.testsystems.generate_hpts_meoh_lj04_system.html">protex.testsystems.generate_hpts_meoh_lj04_system</a></li>
 <li class="toctree-l3"><a class="reference internal" href="protex.testsystems.generate_hpts_meoh_system.html">protex.testsystems.generate_hpts_meoh_system</a></li>
@@ -62,7 +62,10 @@
 <li class="toctree-l3"><a class="reference internal" href="protex.testsystems.generate_single_hpts_meoh_system.html">protex.testsystems.generate_single_hpts_meoh_system</a></li>
 <li class="toctree-l3"><a class="reference internal" href="protex.testsystems.generate_single_im1h_oac_system.html">protex.testsystems.generate_single_im1h_oac_system</a></li>
 <li class="toctree-l3"><a class="reference internal" href="protex.testsystems.generate_small_box.html">protex.testsystems.generate_small_box</a></li>
-<li class="toctree-l3"><a class="reference internal" href="protex.testsystems.load_charmm_files.html">protex.testsystems.load_charmm_files</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">protex.testsystems.load_charmm_files</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#protex.testsystems.load_charmm_files"><code class="docutils literal notranslate"><span class="pre">load_charmm_files()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="protex.testsystems.setup_simulation.html">protex.testsystems.setup_simulation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="protex.testsystems.setup_system.html">protex.testsystems.setup_system</a></li>
 </ul>
@@ -88,9 +91,10 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../api.html">API Documentation</a></li>
-      <li class="breadcrumb-item active">protex.testsystems</li>
+          <li class="breadcrumb-item"><a href="protex.testsystems.html">protex.testsystems</a></li>
+      <li class="breadcrumb-item active">protex.testsystems.load_charmm_files</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../../_sources/documentation_pages/autosummary/protex.testsystems.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../../_sources/documentation_pages/autosummary/protex.testsystems.load_charmm_files.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -98,57 +102,21 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="module-protex.testsystems">
-<span id="protex-testsystems"></span><h1>protex.testsystems<a class="headerlink" href="#module-protex.testsystems" title="Permalink to this heading"></a></h1>
-<p class="rubric">Functions</p>
-<table class="autosummary longtable docutils align-default">
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="protex.testsystems.generate_complete_system.html#protex.testsystems.generate_complete_system" title="protex.testsystems.generate_complete_system"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate_complete_system</span></code></a></p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="protex.testsystems.generate_hpts_meoh_lj04_system.html#protex.testsystems.generate_hpts_meoh_lj04_system" title="protex.testsystems.generate_hpts_meoh_lj04_system"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate_hpts_meoh_lj04_system</span></code></a></p></td>
-<td><p>Set up a solvated and parametrized system for IM1H/OAC/HPTS/MEOH.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="protex.testsystems.generate_hpts_meoh_system.html#protex.testsystems.generate_hpts_meoh_system" title="protex.testsystems.generate_hpts_meoh_system"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate_hpts_meoh_system</span></code></a></p></td>
-<td><p>Set up a solvated and parametrized system for IM1H/OAC/HPTS/MEOH.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="protex.testsystems.generate_hpts_system.html#protex.testsystems.generate_hpts_system" title="protex.testsystems.generate_hpts_system"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate_hpts_system</span></code></a></p></td>
-<td><p>Set up a solvated and parametrized system for IM1H/OAC/HPTS.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="protex.testsystems.generate_im1h_oac_dummy_system.html#protex.testsystems.generate_im1h_oac_dummy_system" title="protex.testsystems.generate_im1h_oac_dummy_system"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate_im1h_oac_dummy_system</span></code></a></p></td>
-<td><p>Set up a solvated and parametrized system for IM1H/OAC.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="protex.testsystems.generate_im1h_oac_system.html#protex.testsystems.generate_im1h_oac_system" title="protex.testsystems.generate_im1h_oac_system"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate_im1h_oac_system</span></code></a></p></td>
-<td><p>Set up a solvated and parametrized system for IM1H/OAC.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="protex.testsystems.generate_single_hpts_meoh_system.html#protex.testsystems.generate_single_hpts_meoh_system" title="protex.testsystems.generate_single_hpts_meoh_system"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate_single_hpts_meoh_system</span></code></a></p></td>
-<td><p>Set up a solvated and parametrized system for IM1H/OAC.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="protex.testsystems.generate_single_im1h_oac_system.html#protex.testsystems.generate_single_im1h_oac_system" title="protex.testsystems.generate_single_im1h_oac_system"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate_single_im1h_oac_system</span></code></a></p></td>
-<td><p>Set up a system with 1 IM1H, 1OAC, 1IM1 and 1 HOAC.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="protex.testsystems.generate_small_box.html#protex.testsystems.generate_small_box" title="protex.testsystems.generate_small_box"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate_small_box</span></code></a></p></td>
-<td><p>Set up a solvated and parametrized system for IM1H/OAC.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="protex.testsystems.load_charmm_files.html#protex.testsystems.load_charmm_files" title="protex.testsystems.load_charmm_files"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_charmm_files</span></code></a></p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="protex.testsystems.setup_simulation.html#protex.testsystems.setup_simulation" title="protex.testsystems.setup_simulation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setup_simulation</span></code></a></p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="protex.testsystems.setup_system.html#protex.testsystems.setup_system" title="protex.testsystems.setup_system"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setup_system</span></code></a></p></td>
-<td><p></p></td>
-</tr>
-</tbody>
-</table>
+  <section id="protex-testsystems-load-charmm-files">
+<h1>protex.testsystems.load_charmm_files<a class="headerlink" href="#protex-testsystems-load-charmm-files" title="Permalink to this heading"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="protex.testsystems.load_charmm_files">
+<span class="sig-prename descclassname"><span class="pre">protex.testsystems.</span></span><span class="sig-name descname"><span class="pre">load_charmm_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">psf_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crd_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">para_files</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boxl</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">48.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/protex/testsystems.html#load_charmm_files"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#protex.testsystems.load_charmm_files" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="protex.update.Update.html" class="btn btn-neutral float-left" title="protex.update.Update" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="protex.testsystems.generate_complete_system.html" class="btn btn-neutral float-right" title="protex.testsystems.generate_complete_system" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="protex.testsystems.generate_small_box.html" class="btn btn-neutral float-left" title="protex.testsystems.generate_small_box" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="protex.testsystems.setup_simulation.html" class="btn btn-neutral float-right" title="protex.testsystems.setup_simulation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

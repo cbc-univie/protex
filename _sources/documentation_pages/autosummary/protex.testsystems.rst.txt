@@ -15,15 +15,18 @@
       :toctree:
       :nosignatures:
    
+      generate_complete_system
       generate_hpts_meoh_lj04_system
       generate_hpts_meoh_system
       generate_hpts_system
       generate_im1h_oac_dummy_system
       generate_im1h_oac_system
-      generate_im1h_oac_system_clap
       generate_single_hpts_meoh_system
       generate_single_im1h_oac_system
       generate_small_box
+      load_charmm_files
+      setup_simulation
+      setup_system
    
    
 
