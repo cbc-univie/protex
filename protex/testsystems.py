@@ -116,7 +116,7 @@ def setup_simulation(
     dummies: list[tuple[str, str]] = [("IM1", "H7"), ("OAC", "H")],
     use_plugin: bool = True
 ):
-    if use_plugin: 
+    if use_plugin:
         # plugin
         # https://github.com/z-gong/openmm-velocityVerlet
         from velocityverletplugin import VVIntegrator
@@ -286,7 +286,7 @@ def generate_complete_system( #currently not in use
 #         dummies=dummies,
 #         use_plugin =use_plugin
 #     )
-    
+
 #     return simulation
 
 
@@ -511,7 +511,7 @@ def generate_im1h_oac_dummy_system(
     )
 
     return simulation
-    
+
 ### new generate
 def generate_hpts_system( #not in use? -> delete?
     psf_file: str = None,
