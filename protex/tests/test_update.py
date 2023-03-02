@@ -1416,7 +1416,7 @@ def test_single_im1h_oac():
 
 
 def test_force_selection():
-    simulation = generate_single_im1h_oac_system()
+    simulation = generate_single_im1h_oac_system(use_plugin=False)
     allowed_updates = {}
     # allowed updates according to simple protonation scheme
     allowed_updates[frozenset(["IM1H", "OAC"])] = {
@@ -2014,7 +2014,7 @@ def test_ubforce_update(caplog):
             state = simulation.context.getState(getEnergy=True, groups={group})
             print(f.getName(), state.getPotentialEnergy())
 
-    sim0 = generate_single_im1h_oac_system()
+    sim0 = generate_single_im1h_oac_system(use_plugin=False)
     allowed_updates = {}
     # allowed updates according to simple protonation scheme
     allowed_updates[frozenset(["IM1H", "OAC"])] = {

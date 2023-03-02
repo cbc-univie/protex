@@ -72,7 +72,7 @@ def test_update_single():
     """Test the residue update function and therefore all get and set methods if they work
     check if the parameters before and after have changed.
     """
-    simulation = generate_single_im1h_oac_system()
+    simulation = generate_single_im1h_oac_system(use_plugin=False)
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
@@ -238,7 +238,7 @@ def test_update_single():
 
 
 def test_residues():
-    simulation = generate_single_im1h_oac_system()
+    simulation = generate_single_im1h_oac_system(use_plugin=False)
     topology = simulation.topology
     for idx, r in enumerate(topology.residues()):
         if r.name == "IM1H":  # and idx == 0:
@@ -373,7 +373,7 @@ def test_residues():
 def test_single_harmonic_force(caplog):
     caplog.set_level(logging.DEBUG)
 
-    sim0 = generate_single_im1h_oac_system()
+    sim0 = generate_single_im1h_oac_system(use_plugin=False)
     allowed_updates = {}
     # allowed updates according to simple protonation scheme
     allowed_updates[frozenset(["IM1H", "OAC"])] = {
