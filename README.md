@@ -20,7 +20,7 @@ Protex enables proton exchange in solvent molecules using openMM. The simulation
 
 ## Installation
 
-protex can be easily installed from conda-forge: 
+protex can be easily installed from conda-forge:
 ```
 conda install protex -c conda-forge
 ```
