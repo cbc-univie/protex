@@ -136,7 +136,7 @@ def test_write_psf_save_load_single(tmp_path):
 
 
 def test_forces():
-    simulation = generate_single_im1h_oac_system()
+    simulation = generate_single_im1h_oac_system(use_plugin=False)
     system = simulation.system
     topology = simulation.topology
     force_state = defaultdict(list)  # store bond force
@@ -210,7 +210,7 @@ def test_forces():
 
 def test_torsion_forces():
     # simulation = generate_im1h_oac_system()
-    simulation = generate_single_im1h_oac_system()
+    simulation = generate_single_im1h_oac_system(use_plugin=False)
     system = simulation.system
     topology = simulation.topology
     force_state = defaultdict(list)  # store bond force
@@ -364,7 +364,7 @@ def test_torsion_forces():
 
 
 def test_drude_forces():
-    simulation = generate_single_im1h_oac_system()
+    simulation = generate_single_im1h_oac_system(use_plugin=False)
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 2.33}
     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": -2.33}
@@ -658,16 +658,16 @@ def test_available_platforms():
         "im1_d_dummy.str",
         "oac_d_dummy.str",
     ]
-    base = f"{protex.__path__[0]}/forcefield/small_box"  # NOTE: this points now to the installed files!
+    base = f"{protex.__path__[0]}/forcefield"  # NOTE: this points now to the installed files!
     params = CharmmParameterSet(
         *[f"{base}/toppar/{para_files}" for para_files in PARA_FILES]
     )
 
-    psf = CharmmPsfFile(f"{base}/small_box.psf")
+    psf = CharmmPsfFile(f"{base}/small_box/small_box.psf")
     xtl = 48.0 * angstroms
     psf.setBox(xtl, xtl, xtl)
     # cooridnates can be provieded by CharmmCrdFile, CharmmRstFile or PDBFile classes
-    CharmmCrdFile(f"{base}/small_box.crd")
+    CharmmCrdFile(f"{base}/small_box/small_box.crd")
 
     system = psf.createSystem(
         params,
