@@ -871,7 +871,7 @@ def test_updates(caplog):
     caplog.set_level(logging.DEBUG)
 
     #simulation = generate_im1h_oac_system()
-    simulation = generate_small_box(use_plugin=False)
+    simulation = generate_small_box(use_plugin=True)
     allowed_updates = {}
     # allowed updates according to simple protonation scheme
     allowed_updates[frozenset(["IM1H", "OAC"])] = {
