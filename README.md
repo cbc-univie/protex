@@ -32,7 +32,7 @@ pip install .
 ```
 
 ## Usage
-Please see the [documentation](florianjoerg.github.io/protex) for usage examples.
+Please see the [documentation](https://florianjoerg.github.io/protex) for usage examples.
 
 ## Maintainers
 
