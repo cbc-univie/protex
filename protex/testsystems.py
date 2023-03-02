@@ -304,11 +304,11 @@ def generate_im1h_oac_system(
     use_plugin: bool =True
 ):
     """Set up a solvated and parametrized system for IM1H/OAC."""
-    base = f"{protex.__path__[0]}/forcefield/dummy"
+    base = f"{protex.__path__[0]}/forcefield/"
     if psf_file is None:
-        psf_file = f"{base}/im1h_oac_150_im1_hoac_350.psf"
+        psf_file = f"{base}/dummy/im1h_oac_150_im1_hoac_350.psf"
     if crd_file is None:
-        crd_file = f"{base}/im1h_oac_150_im1_hoac_350.crd"
+        crd_file = f"{base}/dummy/im1h_oac_150_im1_hoac_350.crd"
     if para_files is None:
         PARA_FILES = [
             "toppar_drude_master_protein_2013f_lj025.str",
@@ -330,7 +330,6 @@ def generate_im1h_oac_system(
     )
 
     if restart_file is None:
-        base = f"{protex.__path__[0]}/forcefield"
         restart_file = f"{base}/traj/im1h_oac_150_im1_hoac_350_npt_7.rst"
 
     simulation = setup_simulation(
@@ -364,11 +363,11 @@ def generate_small_box(
     print(
         "This function should not be used for production. It uses a small system intended for testing"
     )
-    base = f"{protex.__path__[0]}/forcefield/small_box"
+    base = f"{protex.__path__[0]}/forcefield"
     if psf_file is None:
-        psf_file = f"{base}/small_box.psf"
+        psf_file = f"{base}/small_box/small_box.psf"
     if crd_file is None:
-        crd_file = f"{base}/small_box.crd"
+        crd_file = f"{base}/small_box/small_box.crd"
     if para_files is None:
         PARA_FILES = [
             "toppar_drude_master_protein_2013f_lj025.str",
@@ -474,11 +473,11 @@ def generate_im1h_oac_dummy_system(
     use_plugin: bool=True,
 ):
     """Set up a solvated and parametrized system for IM1H/OAC."""
-    base = f"{protex.__path__[0]}/forcefield/dummy"
+    base = f"{protex.__path__[0]}/forcefield"
     if psf_file is None:
-        psf_file = f"{base}/im1h_oac_im1_hoac_1.psf"
+        psf_file = f"{base}/dummy/im1h_oac_im1_hoac_1.psf"
     if crd_file is None:
-        crd_file = f"{base}/im1h_oac_im1_hoac_1.crd"
+        crd_file = f"{base}/dummy/im1h_oac_im1_hoac_1.crd"
     if para_files is None:
         PARA_FILES = [
             "toppar_drude_master_protein_2013f_lj025.str",

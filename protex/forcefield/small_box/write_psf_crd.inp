@@ -7,7 +7,7 @@ ioformat extended
 ! Force field
 !=======================================================================
 !set TOPPAR /site/raid2/florian/str/scaled_lj
-set TOPPAR toppar
+set TOPPAR ../toppar
 stream @TOPPAR/toppar_drude_master_protein_2013f_lj025.str
 stream @TOPPAR/im1h_d.str
 stream @TOPPAR/oac_d_dummy.str
