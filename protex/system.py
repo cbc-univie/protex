@@ -614,7 +614,6 @@ class ProtexSystem:
                         self.system,
                         parameters_state1,
                         parameters_state2,
-                        # self.templates.get_canonical_name(name),
                         pair_12_13_list,
                         (
                             self.templates.has_equivalent_atom(name),
