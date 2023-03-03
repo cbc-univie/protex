@@ -108,7 +108,7 @@
 <div class="viewcode-block" id="Update.load"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.update.Update.html#protex.update.Update.load">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="n">fname</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">protex_system</span><span class="p">:</span> <span class="n">ProtexSystem</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Update</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load a picklesUpdate instance</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load a picklesUpdate instance.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -156,7 +156,7 @@
 
 <div class="viewcode-block" id="Update.dump"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.update.Update.html#protex.update.Update.dump">[docs]</a>    <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">dump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fname</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pickle an Update instance</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pickle an Update instance.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -495,7 +495,7 @@
 
 <div class="viewcode-block" id="NaiveMCUpdate.load"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.update.NaiveMCUpdate.html#protex.update.NaiveMCUpdate.load">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="n">fname</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">protex_system</span><span class="p">:</span> <span class="n">ProtexSystem</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NaiveMCUpdate</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load a pickled NaiveMCUpdate instance</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load a pickled NaiveMCUpdate instance.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -531,7 +531,7 @@
             <span class="p">)</span>
 
 <div class="viewcode-block" id="NaiveMCUpdate.dump"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.update.NaiveMCUpdate.html#protex.update.NaiveMCUpdate.dump">[docs]</a>    <span class="k">def</span> <span class="nf">dump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fname</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pickle the NaiveMCUpdate instance</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pickle the NaiveMCUpdate instance.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -617,7 +617,7 @@
 
 <div class="viewcode-block" id="StateUpdate.load"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.update.StateUpdate.html#protex.update.StateUpdate.load">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="n">fname</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">updateMethod</span><span class="p">:</span> <span class="n">Update</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StateUpdate</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load a pickled StateUpdate instance</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load a pickled StateUpdate instance.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -645,7 +645,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">update_trial</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
 
 <div class="viewcode-block" id="StateUpdate.dump"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.update.StateUpdate.html#protex.update.StateUpdate.dump">[docs]</a>    <span class="k">def</span> <span class="nf">dump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fname</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pickle the StateUpdate instance</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pickle the StateUpdate instance.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -738,7 +738,7 @@
         <span class="p">)</span>
 
 <div class="viewcode-block" id="StateUpdate.update"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.update.StateUpdate.html#protex.update.StateUpdate.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nr_of_steps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">Residue</span><span class="p">,</span> <span class="n">Residue</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;updates the current state using the method defined in the UpdateMethod class.</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;updates the current state using the method defined in the UpdateMethod class.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
