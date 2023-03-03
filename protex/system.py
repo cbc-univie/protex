@@ -69,7 +69,19 @@ class ProtexTemplates:
     """
 
     @staticmethod
-    def load(fname) -> ProtexTemplates:
+    def load(fname: str) -> ProtexTemplates:
+        """Load a pickled ProtexTemplates instance
+
+        Parameters
+        ----------
+        fname : str
+            The file name
+
+        Returns
+        -------
+        ProtexTemplates
+            An instance of the ProtexTemplates
+        """
         with open(fname, "rb") as inp:
             templates = pickle.load(inp)
         return templates
@@ -92,6 +104,13 @@ class ProtexTemplates:
         self._equivalent_atom: str = "equivalent_atom"
 
     def dump(self, fname: str) -> None:
+        """Pickle the current ProtexTemplates object
+
+        Parameters
+        ----------
+        fname : str
+            The file name of the object
+        """
         with open(fname, "wb") as outp:
             pickle.dump(self, outp, pickle.HIGHEST_PROTOCOL)
 
@@ -292,10 +311,27 @@ class ProtexSystem:
 
     @staticmethod
     def load(
-        fname,
+        fname: str,
         simulation: openmm.app.simulation.Simulation,
         simulation_for_parameters: openmm.app.simulation.Simulation = None,
     ) -> ProtexSystem:
+        """Load pickled protex system
+
+        Parameters
+        ----------
+        fname : str
+            The file name to load
+        simulation : openmm.app.simulation.Simulation
+            An already generated OpenMM simulation object, needed to initialize the ProtesSystem instance
+        simulation_for_parameters : openmm.app.simulation.Simulation, optional
+            An OpenMM simulation object, which contains all possible residues
+            needed if the simulation object does not contain all possible residues, by default None
+
+        Returns
+        -------
+        ProtexSystem
+            A new instance of the ProtexSystem
+        """
         with open(fname, "rb") as inp:
             from_pickle = pickle.load(inp)  # ensure correct order of arguments
         protex_system = ProtexSystem(
@@ -321,6 +357,13 @@ class ProtexSystem:
         )  # NOTE: supports only cubic boxes
 
     def dump(self, fname: str) -> None:
+        """Pickle the current ProtexSystem object
+
+        Parameters
+        ----------
+        fname : str
+            The file name to store the object
+        """
         to_pickle = [self.templates, self.residues]  # enusre correct order of arguments
         with open(fname, "wb") as outp:
             pickle.dump(to_pickle, outp, pickle.HIGHEST_PROTOCOL)
