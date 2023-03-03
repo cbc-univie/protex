@@ -32,7 +32,7 @@ class Update(ABC):
     @staticmethod
     @abstractmethod
     def load(fname: str, protex_system: ProtexSystem) -> Update:
-        """Load a picklesUpdate instance
+        """Load a picklesUpdate instance.
 
         Parameters
         ----------
@@ -80,7 +80,7 @@ class Update(ABC):
 
     @abstractmethod
     def dump(self, fname: str) -> None:
-        """Pickle an Update instance
+        """Pickle an Update instance.
 
         Parameters
         ----------
@@ -419,7 +419,7 @@ class NaiveMCUpdate(Update):
 
     @staticmethod
     def load(fname: str, protex_system: ProtexSystem) -> NaiveMCUpdate:
-        """Load a pickled NaiveMCUpdate instance
+        """Load a pickled NaiveMCUpdate instance.
 
         Parameters
         ----------
@@ -455,7 +455,7 @@ class NaiveMCUpdate(Update):
             )
 
     def dump(self, fname: str) -> None:
-        """Pickle the NaiveMCUpdate instance
+        """Pickle the NaiveMCUpdate instance.
 
         Parameters
         ----------
@@ -541,7 +541,7 @@ class StateUpdate:
 
     @staticmethod
     def load(fname: str, updateMethod: Update) -> StateUpdate:
-        """Load a pickled StateUpdate instance
+        """Load a pickled StateUpdate instance.
 
         Parameters
         ----------
@@ -569,7 +569,7 @@ class StateUpdate:
         self.update_trial: int = 0
 
     def dump(self, fname: str) -> None:
-        """Pickle the StateUpdate instance
+        """Pickle the StateUpdate instance.
 
         Parameters
         ----------
@@ -662,7 +662,7 @@ class StateUpdate:
         )
 
     def update(self, nr_of_steps: int = 2) -> list[tuple[Residue, Residue]]:
-        """updates the current state using the method defined in the UpdateMethod class.
+        r"""updates the current state using the method defined in the UpdateMethod class.
 
         Parameters
         ----------
