@@ -113,14 +113,14 @@ needed for finding the parameters of the other form during an update</p></li>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">dump</span></code></p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#protex.system.ProtexSystem.dump" title="protex.system.ProtexSystem.dump"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dump</span></code></a></p></td>
+<td><p>Pickle the current ProtexSystem object.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#protex.system.ProtexSystem.get_current_number_of_each_residue_type" title="protex.system.ProtexSystem.get_current_number_of_each_residue_type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_current_number_of_each_residue_type</span></code></a></p></td>
 <td><p>Get a dictionary with the resname and the current number of residues belonging to that name.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">load</span></code></p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#protex.system.ProtexSystem.load" title="protex.system.ProtexSystem.load"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load</span></code></a></p></td>
+<td><p>Load pickled protex system.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#protex.system.ProtexSystem.loadCheckpoint" title="protex.system.ProtexSystem.loadCheckpoint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">loadCheckpoint</span></code></a></p></td>
 <td><p>Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object.</p></td>
@@ -149,6 +149,17 @@ needed for finding the parameters of the other form during an update</p></li>
 </tbody>
 </table>
 <dl class="py method">
+<dt class="sig sig-object py" id="protex.system.ProtexSystem.dump">
+<span class="sig-name descname"><span class="pre">dump</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/protex/system.html#ProtexSystem.dump"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#protex.system.ProtexSystem.dump" title="Permalink to this definition"></a></dt>
+<dd><p>Pickle the current ProtexSystem object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>fname</strong> (<em>str</em>) – The file name to store the object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="protex.system.ProtexSystem.get_current_number_of_each_residue_type">
 <span class="sig-name descname"><span class="pre">get_current_number_of_each_residue_type</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/protex/system.html#ProtexSystem.get_current_number_of_each_residue_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#protex.system.ProtexSystem.get_current_number_of_each_residue_type" title="Permalink to this definition"></a></dt>
 <dd><p>Get a dictionary with the resname and the current number of residues belonging to that name.</p>
@@ -158,6 +169,28 @@ needed for finding the parameters of the other form during an update</p></li>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>dict[str, int]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="protex.system.ProtexSystem.load">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">simulation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Simulation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">simulation_for_parameters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Simulation</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#protex.system.ProtexSystem" title="protex.system.ProtexSystem"><span class="pre">ProtexSystem</span></a></span></span><a class="reference internal" href="../../_modules/protex/system.html#ProtexSystem.load"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#protex.system.ProtexSystem.load" title="Permalink to this definition"></a></dt>
+<dd><p>Load pickled protex system.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fname</strong> (<em>str</em>) – The file name to load</p></li>
+<li><p><strong>simulation</strong> (<em>openmm.app.simulation.Simulation</em>) – An already generated OpenMM simulation object, needed to initialize the ProtesSystem instance</p></li>
+<li><p><strong>simulation_for_parameters</strong> (<em>openmm.app.simulation.Simulation, optional</em>) – An OpenMM simulation object, which contains all possible residues
+needed if the simulation object does not contain all possible residues, by default None</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A new instance of the ProtexSystem</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#protex.system.ProtexSystem" title="protex.system.ProtexSystem">ProtexSystem</a></p>
 </dd>
 </dl>
 </dd></dl>

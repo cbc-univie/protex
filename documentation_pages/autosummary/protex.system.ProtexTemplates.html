@@ -138,8 +138,8 @@ r_max is in nanometer and the prob between 0 and 1</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">dump</span></code></p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#protex.system.ProtexTemplates.dump" title="protex.system.ProtexTemplates.dump"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dump</span></code></a></p></td>
+<td><p>Pickle the current ProtexTemplates object.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#protex.system.ProtexTemplates.get_atom_name_for" title="protex.system.ProtexTemplates.get_atom_name_for"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_atom_name_for</span></code></a></p></td>
 <td><p>Get the atom name for a specific residue.</p></td>
@@ -159,8 +159,8 @@ r_max is in nanometer and the prob between 0 and 1</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#protex.system.ProtexTemplates.has_equivalent_atom" title="protex.system.ProtexTemplates.has_equivalent_atom"><code class="xref py py-obj docutils literal notranslate"><span class="pre">has_equivalent_atom</span></code></a></p></td>
 <td><p>Checks if a given residue has an equivalent atom defined.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">load</span></code></p></td>
-<td><p></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#protex.system.ProtexTemplates.load" title="protex.system.ProtexTemplates.load"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load</span></code></a></p></td>
+<td><p>Load a pickled ProtexTemplates instance.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_allowed_updates</span></code></p></td>
 <td><p></p></td>
@@ -170,6 +170,17 @@ r_max is in nanometer and the prob between 0 and 1</p>
 </tr>
 </tbody>
 </table>
+<dl class="py method">
+<dt class="sig sig-object py" id="protex.system.ProtexTemplates.dump">
+<span class="sig-name descname"><span class="pre">dump</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/protex/system.html#ProtexTemplates.dump"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#protex.system.ProtexTemplates.dump" title="Permalink to this definition"></a></dt>
+<dd><p>Pickle the current ProtexTemplates object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>fname</strong> (<em>str</em>) – The file name of the object</p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="protex.system.ProtexTemplates.get_atom_name_for">
 <span class="sig-name descname"><span class="pre">get_atom_name_for</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">resname</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="../../_modules/protex/system.html#ProtexTemplates.get_atom_name_for"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#protex.system.ProtexTemplates.get_atom_name_for" title="Permalink to this definition"></a></dt>
@@ -277,6 +288,23 @@ r_max is in nanometer and the prob between 0 and 1</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="protex.system.ProtexTemplates.load">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#protex.system.ProtexTemplates" title="protex.system.ProtexTemplates"><span class="pre">ProtexTemplates</span></a></span></span><a class="reference internal" href="../../_modules/protex/system.html#ProtexTemplates.load"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#protex.system.ProtexTemplates.load" title="Permalink to this definition"></a></dt>
+<dd><p>Load a pickled ProtexTemplates instance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>fname</strong> (<em>str</em>) – The file name</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>An instance of the ProtexTemplates</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#protex.system.ProtexTemplates" title="protex.system.ProtexTemplates">ProtexTemplates</a></p>
 </dd>
 </dl>
 </dd></dl>
