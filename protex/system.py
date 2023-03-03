@@ -70,7 +70,7 @@ class ProtexTemplates:
 
     @staticmethod
     def load(fname: str) -> ProtexTemplates:
-        """Load a pickled ProtexTemplates instance
+        """Load a pickled ProtexTemplates instance.
 
         Parameters
         ----------
@@ -104,7 +104,7 @@ class ProtexTemplates:
         self._equivalent_atom: str = "equivalent_atom"
 
     def dump(self, fname: str) -> None:
-        """Pickle the current ProtexTemplates object
+        """Pickle the current ProtexTemplates object.
 
         Parameters
         ----------
@@ -315,7 +315,7 @@ class ProtexSystem:
         simulation: openmm.app.simulation.Simulation,
         simulation_for_parameters: openmm.app.simulation.Simulation = None,
     ) -> ProtexSystem:
-        """Load pickled protex system
+        """Load pickled protex system.
 
         Parameters
         ----------
@@ -357,7 +357,7 @@ class ProtexSystem:
         )  # NOTE: supports only cubic boxes
 
     def dump(self, fname: str) -> None:
-        """Pickle the current ProtexSystem object
+        """Pickle the current ProtexSystem object.
 
         Parameters
         ----------
