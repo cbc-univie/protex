@@ -31,7 +31,21 @@ class Update(ABC):
 
     @staticmethod
     @abstractmethod
-    def load(fname, protex_system: ProtexSystem) -> Update:
+    def load(fname: str, protex_system: ProtexSystem) -> Update:
+        """Load a picklesUpdate instance
+
+        Parameters
+        ----------
+        fname : str
+            The file name
+        protex_system : ProtexSystem
+            An instance of ProtexSystem, used to create the Update instance
+
+        Returns
+        -------
+        Update
+            An update instance
+        """
         pass
 
     def __init__(
@@ -66,6 +80,13 @@ class Update(ABC):
 
     @abstractmethod
     def dump(self, fname: str) -> None:
+        """Pickle an Update instance
+
+        Parameters
+        ----------
+        fname : str
+            The file name
+        """
         pass
 
     @abstractmethod
@@ -397,7 +418,21 @@ class NaiveMCUpdate(Update):
     """
 
     @staticmethod
-    def load(fname, protex_system: ProtexSystem) -> NaiveMCUpdate:
+    def load(fname: str, protex_system: ProtexSystem) -> NaiveMCUpdate:
+        """Load a pickled NaiveMCUpdate instance
+
+        Parameters
+        ----------
+        fname : str
+            The file name
+        protex_system : ProtexSystem
+            A ProtexSystem instance
+
+        Returns
+        -------
+        NaiveMCUpdate
+            A NaiveMCUpdate instance
+        """
         with open(fname, "rb") as inp:
             from_pickle = pickle.load(inp)  # ensure correct order of arguments
         update = NaiveMCUpdate(protex_system, *from_pickle)
@@ -420,6 +455,13 @@ class NaiveMCUpdate(Update):
             )
 
     def dump(self, fname: str) -> None:
+        """Pickle the NaiveMCUpdate instance
+
+        Parameters
+        ----------
+        fname : str
+            The file name
+        """
         to_pickle = [
             self.all_forces,
             self.to_adapt,
@@ -498,7 +540,21 @@ class StateUpdate:
     """Controls the update sheme and proposes the residues that need an update."""
 
     @staticmethod
-    def load(fname, updateMethod: Update) -> StateUpdate:
+    def load(fname: str, updateMethod: Update) -> StateUpdate:
+        """Load a pickled StateUpdate instance
+
+        Parameters
+        ----------
+        fname : str
+            The file name
+        updateMethod : Update
+            The update method instance
+
+        Returns
+        -------
+        StateUpdate
+            An instance of StateUpdate
+        """
         state_update = StateUpdate(updateMethod)
         with open(fname, "rb") as inp:
             from_pickle = pickle.load(inp)  # ensure correct order of arguments
@@ -513,6 +569,13 @@ class StateUpdate:
         self.update_trial: int = 0
 
     def dump(self, fname: str) -> None:
+        """Pickle the StateUpdate instance
+
+        Parameters
+        ----------
+        fname : str
+            The file name
+        """
         to_pickle = [
             self.history,
             self.update_trial,
@@ -599,7 +662,20 @@ class StateUpdate:
         )
 
     def update(self, nr_of_steps: int = 2) -> list[tuple[Residue, Residue]]:
-        """updates the current state using the method defined in the UpdateMethod class."""
+        """updates the current state using the method defined in the UpdateMethod class.
+
+        Parameters
+        ----------
+        nr_of_steps : int, optional
+            The number of intermediate :math: `\lambda` states.
+            The default of two means 1 with the initial and one with the final state,
+            so no intermediate states, by default 2
+
+        Returns
+        -------
+        list[tuple[Residue, Residue]]
+            A list with all the updated residue tuples
+        """
         # calculate the distance betwen updateable residues
         pos_list, res_list = self._get_positions_for_mutation_sites()
         # propose the update candidates based on distances
