@@ -110,15 +110,15 @@ simulation.step(8)
 state_update.update(2)
 simulation.step(8)
 simulation.step(1)
-then the reporter is invoked directyl in the update, after the one step with the previous charge, but before any charge changes take effect.</p>
+then the reporter is invoked directly in the update, after the one step with the previous charge, but before any charge changes take effect.</p>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#protex.reporter.ChargeReporter.describeNextReport" title="protex.reporter.ChargeReporter.describeNextReport"><code class="xref py py-obj docutils literal notranslate"><span class="pre">describeNextReport</span></code></a></p></td>
 <td><p>Get information about the next report this object will generate.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">report</span></code></p></td>
-<td><p></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#protex.reporter.ChargeReporter.report" title="protex.reporter.ChargeReporter.report"><code class="xref py py-obj docutils literal notranslate"><span class="pre">report</span></code></a></p></td>
+<td><p>Generate a report.</p></td>
 </tr>
 </tbody>
 </table>
@@ -138,6 +138,20 @@ energies respectively.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="protex.reporter.ChargeReporter.report">
+<span class="sig-name descname"><span class="pre">report</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">simulation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/protex/reporter.html#ChargeReporter.report"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#protex.reporter.ChargeReporter.report" title="Permalink to this definition"></a></dt>
+<dd><p>Generate a report.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>simulation</strong> (<em>Simulation</em>) – The Simulation to generate a report for</p></li>
+<li><p><strong>state</strong> (<em>State</em>) – The current state of the simulation</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
