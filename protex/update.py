@@ -667,7 +667,7 @@ class StateUpdate:
         Parameters
         ----------
         nr_of_steps : int, optional
-            The number of intermediate :math: `\lambda` states.
+            The number of intermediate :math:`{\lambda}` states.
             The default of two means 1 with the initial and one with the final state,
             so no intermediate states, by default 2
 
