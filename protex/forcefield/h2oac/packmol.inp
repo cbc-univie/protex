@@ -1,0 +1,31 @@
+tolerance 2.0
+seed -1
+
+
+filetype pdb
+output small_box_init.pdb
+
+structure ../pdb/im1h_min.pdb 
+  number 15
+  inside box -11. -11. -11. 11. 11. 11.
+end structure
+
+structure ../pdb/oac_dummy_min.pdb
+  number 25
+  inside box -11. -11. -11. 11. 11. 11.
+end structure
+
+structure ../pdb/im1_min.pdb 
+  number 35
+  inside box -11. -11. -11. 11. 11. 11.
+end structure
+
+structure ../pdb/hoac_dummy_min.pdb
+  number 35
+  inside box -11. -11. -11. 11. 11. 11.
+end structure
+
+structure ../pdb/h2oac_min.pdb
+  number 10
+  inside box -11. -11. -11. 11. 11. 11.
+end structure

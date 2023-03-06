@@ -79,17 +79,48 @@ class ProtexTemplates:
         states: list[dict[str, dict[str, str]]],
         allowed_updates: dict[frozenset[str], dict[str, float]],
     ) -> None:
+        # store names in variables, in case syntax for states dict changes
+        self._atom_name: str = "atom_name"
+        self._equivalent_atom: str = "equivalent_atom"
+
         self.__states = states
         self.pairs: list[list[str]] = [list(i.keys()) for i in states]
-        self.states: dict[str, dict[str, str]] = dict(ChainMap(*states))
-        self.names: list[str] = list(itertools.chain(*self.pairs))
+        self.states: dict[str, dict[str, str]] = dict(
+            ChainMap(*states)
+        )  # first check that names are unique?
+        self._set_mode()
+        self.names: list[str] = list(
+            itertools.chain(*self.pairs)
+        )  # also what about duplicates
         self.allowed_updates: dict[frozenset[str], dict[str, float]] = allowed_updates
         self.overall_max_distance: float = max(
             [value["r_max"] for value in self.allowed_updates.values()]
         )
-        # store names in variables, in case syntax for states dict changes
-        self._atom_name: str = "atom_name"
-        self._equivalent_atom: str = "equivalent_atom"
+
+    def _set_mode(self):
+        allowed_modes = ["acceptor", "donor", "both"]
+        for name, value in self.states.items():
+            # only set mode if it is not supplied by the user
+            if "mode" in value and value["mode"] != "":
+                if value["mode"] not in allowed_modes:
+                    raise RuntimeError(
+                        f"Mode for {name} is set to {value['mode']}. It must be one of {allowed_modes}."
+                    )
+                logger.info(f"{name} is set as {value['mode']}")
+                # continue
+            else:
+                if "H" in value[self._atom_name]:
+                    # assume that the atom name has a H it is hydrogen and therefor a donor
+                    self.states[name]["mode"] = "donor"
+                    logger.info(
+                        f"Assuming {name} is a donor. If this is wrong set the mode directly by using 'mode': 'acceptor/donor/both'"
+                    )
+                else:
+                    # assume accepotor otherwise
+                    self.states[name]["mode"] = "acceptor"
+                    logger.info(
+                        f"Assuming {name} is an acceptor. If this is wrong set the mode directly by using 'mode': 'acceptor/donor/both'"
+                    )
 
     def dump(self, fname: str) -> None:
         with open(fname, "wb") as outp:
@@ -185,8 +216,9 @@ class ProtexTemplates:
     #         if name in state:
     #             return self.states[name]["canonical_name"]
 
+    # this one is the problematic one
     def get_residue_name_for_coupled_state(self, name: str):
-        """get_residue_name_of_paired_ion returns the paired residue name given a reisue name.
+        """get_residue_name_of_paired_ion returns the paired residue name given a residue name.
 
         Parameters
         ----------
@@ -214,32 +246,19 @@ class ProtexTemplates:
         else:
             raise RuntimeError("something went wrong")
 
-    # Not used
-    def get_charge_template_for(self, name: str):
-        """get_charge_template_for returns the charge template for a residue.
-
-        Parameters
-        ----------
-        name : str
-            Name of the residue
-
-        Returns
-        -------
-        list
-            charge state of residue
-
-        Raises
-        ------
-        RuntimeError
-            [description]
-        """
-        assert name in self.names
-
-        return self.states[name]["charge"]
+    def get_other_resnames(self, resname: str) -> list(str):
+        assert resname in self.names
+        for pair in self.pairs:
+            if resname in pair:
+                pair_copy = pair[:]
+                pair_copy.remove(resname)
+                return pair_copy
+        else:
+            raise RuntimeError("resname not found")
 
 
 class ProtexSystem:
-    """This class defines the full system, performs the MD steps and offers an
+    """Defines the full system, performs the MD steps and offers an
     interface for protonation state updates.
 
     Parameters
@@ -728,7 +747,7 @@ class ProtexSystem:
         new_psf_outfname: str,
         psf_for_parameters: str = None,
     ) -> None:
-        """write a new psf file, which reflects the occured transfer events and changed residues
+        """Write a new psf file, which reflects the occured transfer events and changed residues
         to load the written psf create a new ionic_liquid instance and load the new psf via OpenMM.
 
         Parameters

@@ -20,10 +20,13 @@ from ..system import ProtexSystem, ProtexTemplates
 from ..testsystems import (
     IM1H_IM1,
     OAC_HOAC,
+    HOAC_H2OAC,
+    OAC_HOAC_H2OAC,
     generate_im1h_oac_dummy_system,
     generate_im1h_oac_system,
     generate_single_im1h_oac_system,
     generate_small_box,
+    generate_h2oac_system,
 )
 from ..update import KeepHUpdate, NaiveMCUpdate, StateUpdate, Update
 
@@ -217,7 +220,7 @@ def test_get_and_interpolate_forces():
 
 
 def test_setting_forces():
-    #simulation = generate_im1h_oac_system()
+    # simulation = generate_im1h_oac_system()
     simulation = generate_small_box(use_plugin=False)
     allowed_updates = {}
     # allowed updates according to simple protonation scheme
@@ -631,7 +634,7 @@ def test_setting_forces():
 def test_single_update(caplog):
     # caplog.set_level(logging.DEBUG)
 
-    #simulation = generate_im1h_oac_system()
+    # simulation = generate_im1h_oac_system()
     simulation = generate_small_box(use_plugin=False)
     # get ionic liquid templates
     allowed_updates = {}
@@ -705,7 +708,7 @@ def test_single_update(caplog):
 def test_check_updated_charges(caplog, tmp_path):
     caplog.set_level(logging.DEBUG)
 
-    #simulation = generate_im1h_oac_system()
+    # simulation = generate_im1h_oac_system()
     simulation = generate_small_box(use_plugin=False)
     # get ionic liquid templates
     allowed_updates = {}
@@ -870,7 +873,7 @@ def test_transfer_with_distance_matrix(tmp_path):
 def test_updates(caplog):
     caplog.set_level(logging.DEBUG)
 
-    #simulation = generate_im1h_oac_system()
+    # simulation = generate_im1h_oac_system()
     simulation = generate_small_box(use_plugin=True)
     allowed_updates = {}
     # allowed updates according to simple protonation scheme
@@ -902,7 +905,7 @@ def test_updates(caplog):
 
 
 def test_adapt_probabilities(caplog):
-    #simulation = generate_im1h_oac_system()
+    # simulation = generate_im1h_oac_system()
     simulation = generate_small_box(use_plugin=False)
     allowed_updates = {}
     # allowed updates according to simple protonation scheme
@@ -952,7 +955,7 @@ def test_adapt_probabilities(caplog):
 def test_dry_updates(caplog):
     caplog.set_level(logging.DEBUG)
 
-    #simulation = generate_im1h_oac_system()
+    # simulation = generate_im1h_oac_system()
     simulation = generate_small_box(use_plugin=False)
     # get ionic liquid templates
     allowed_updates = {}
@@ -993,7 +996,7 @@ def test_dry_updates(caplog):
 )
 def test_parameters_after_update(tmp_path):
     simulation = generate_im1h_oac_system()
-    #simulation = generate_small_box()
+    # simulation = generate_small_box()
     # get ionic liquid templates
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
@@ -1241,7 +1244,7 @@ def test_parameters_after_update(tmp_path):
 #     reason="Will fail sporadicaly.",
 # )
 def test_pbc():
-    #simulation = generate_im1h_oac_system()
+    # simulation = generate_im1h_oac_system()
     simulation = generate_small_box(use_plugin=False)
     # get ionic liquid templates
     allowed_updates = {}
@@ -1452,7 +1455,7 @@ def test_force_selection():
 def test_update_all_forces(caplog):
     caplog.set_level(logging.DEBUG)
 
-    #simulation = generate_im1h_oac_system()
+    # simulation = generate_im1h_oac_system()
     simulation = generate_small_box(use_plugin=False)
     allowed_updates = {}
     # allowed updates according to simple protonation scheme
@@ -2239,7 +2242,7 @@ def test_single_energy_molecule(caplog):
 def test_wrong_atom_name(caplog):
     caplog.set_level(logging.DEBUG)
 
-    #simulation = generate_im1h_oac_system()
+    # simulation = generate_im1h_oac_system()
     simulation = generate_small_box(use_plugin=False)
     allowed_updates = {}
     # allowed updates according to simple protonation scheme
@@ -2270,7 +2273,7 @@ def test_wrong_atom_name(caplog):
 def test_save_load_updates(caplog, tmp_path):
     caplog.set_level(logging.DEBUG)
 
-    #simulation = generate_im1h_oac_system()
+    # simulation = generate_im1h_oac_system()
     simulation = generate_small_box(use_plugin=False)
     # get ionic liquid templates
     allowed_updates = {}
@@ -2301,3 +2304,35 @@ def test_save_load_updates(caplog, tmp_path):
     state_update = StateUpdate.load(f"{tmp_path}/stateupdate.pkl", update)
     assert update.all_forces is False
     assert state_update.update_trial == 100
+
+
+def test_h2oac():
+    simulation = generate_h2oac_system(use_plugin=False)
+    # get ionic liquid templates
+    allowed_updates = {}
+    # allowed updates according to simple protonation scheme
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.16, "prob": 1}
+    # advanced
+    allowed_updates[frozenset(["HOAC", "HOAC"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["OAC", "H2OAC"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["HOAC", "H2OAC"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["IM1", "H2OAC"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["IM1H", "HOAC"])] = {"r_max": 0.16, "prob": 1}
+
+    print(allowed_updates.keys())
+    templates = ProtexTemplates(
+        # [OAC_HOAC_chelpg, IM1H_IM1_chelpg], (set(["IM1H", "OAC"]), set(["IM1", "HOAC"]))
+        [IM1H_IM1, OAC_HOAC_H2OAC],
+        (allowed_updates),
+    )
+    print(templates.get_atom_name_for("HOAC"))
+    print(templates.get_other_resnames("HOAC"))
+    # wrap system in IonicLiquidSystem
+    # ionic_liquid = ProtexSystem(simulation, templates)
+    # update = NaiveMCUpdate(ionic_liquid)
+    # initialize state update class
+    # state_update = StateUpdate(update)
+    # print(state_update)

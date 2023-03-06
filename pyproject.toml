@@ -92,6 +92,8 @@ ignore = [
   "B023",
   # Functions defined inside a loop must not use variables redefined in the loop
   # "B301",  # not yet implemented
+  # Blank line between summary line and description
+  "D205",
 ]
 
 # Allow autofix for all enabled rules (when `--fix`) is provided.
