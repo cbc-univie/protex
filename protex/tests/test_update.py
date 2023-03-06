@@ -18,15 +18,15 @@ import protex
 
 from ..system import ProtexSystem, ProtexTemplates
 from ..testsystems import (
+    HOAC_H2OAC,
     IM1H_IM1,
     OAC_HOAC,
-    HOAC_H2OAC,
     OAC_HOAC_H2OAC,
+    generate_h2oac_system,
     generate_im1h_oac_dummy_system,
     generate_im1h_oac_system,
     generate_single_im1h_oac_system,
     generate_small_box,
-    generate_h2oac_system,
 )
 from ..update import KeepHUpdate, NaiveMCUpdate, StateUpdate, Update
 
