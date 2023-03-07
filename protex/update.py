@@ -26,13 +26,26 @@ class Update(ABC):
 
     Parameters
     ----------
-    ionic_liquid: IonicLiquidSystem
-        Needs the IonicLiquidSystem
+    ionic_liquid: ProtexSystem
     """
 
     @staticmethod
     @abstractmethod
-    def load(fname, protex_system: ProtexSystem) -> Update:
+    def load(fname: str, protex_system: ProtexSystem) -> Update:
+        """Load a picklesUpdate instance.
+
+        Parameters
+        ----------
+        fname : str
+            The file name
+        protex_system : ProtexSystem
+            An instance of ProtexSystem, used to create the Update instance
+
+        Returns
+        -------
+        Update
+            An update instance
+        """
         pass
 
     def __init__(
@@ -67,6 +80,13 @@ class Update(ABC):
 
     @abstractmethod
     def dump(self, fname: str) -> None:
+        """Pickle an Update instance.
+
+        Parameters
+        ----------
+        fname : str
+            The file name
+        """
         pass
 
     @abstractmethod
@@ -398,7 +418,21 @@ class NaiveMCUpdate(Update):
     """
 
     @staticmethod
-    def load(fname, protex_system: ProtexSystem) -> NaiveMCUpdate:
+    def load(fname: str, protex_system: ProtexSystem) -> NaiveMCUpdate:
+        """Load a pickled NaiveMCUpdate instance.
+
+        Parameters
+        ----------
+        fname : str
+            The file name
+        protex_system : ProtexSystem
+            A ProtexSystem instance
+
+        Returns
+        -------
+        NaiveMCUpdate
+            A NaiveMCUpdate instance
+        """
         with open(fname, "rb") as inp:
             from_pickle = pickle.load(inp)  # ensure correct order of arguments
         update = NaiveMCUpdate(protex_system, *from_pickle)
@@ -421,6 +455,13 @@ class NaiveMCUpdate(Update):
             )
 
     def dump(self, fname: str) -> None:
+        """Pickle the NaiveMCUpdate instance.
+
+        Parameters
+        ----------
+        fname : str
+            The file name
+        """
         to_pickle = [
             self.all_forces,
             self.to_adapt,
@@ -499,7 +540,21 @@ class StateUpdate:
     """Controls the update sheme and proposes the residues that need an update."""
 
     @staticmethod
-    def load(fname, updateMethod: Update) -> StateUpdate:
+    def load(fname: str, updateMethod: Update) -> StateUpdate:
+        """Load a pickled StateUpdate instance.
+
+        Parameters
+        ----------
+        fname : str
+            The file name
+        updateMethod : Update
+            The update method instance
+
+        Returns
+        -------
+        StateUpdate
+            An instance of StateUpdate
+        """
         state_update = StateUpdate(updateMethod)
         with open(fname, "rb") as inp:
             from_pickle = pickle.load(inp)  # ensure correct order of arguments
@@ -514,6 +569,13 @@ class StateUpdate:
         self.update_trial: int = 0
 
     def dump(self, fname: str) -> None:
+        """Pickle the StateUpdate instance.
+
+        Parameters
+        ----------
+        fname : str
+            The file name
+        """
         to_pickle = [
             self.history,
             self.update_trial,
@@ -521,7 +583,14 @@ class StateUpdate:
         with open(fname, "wb") as outp:
             pickle.dump(to_pickle, outp, pickle.HIGHEST_PROTOCOL)
 
-    def write_charges(self, filename: str) -> None:
+    def write_charges(self, filename: str) -> None: #deprecated?
+        """Write current charges to a file.
+
+        Parameters
+        ----------
+        filename : str
+            The name of the file to wrtie the charges to
+        """
         par = self.get_charges()
         with open(filename, "w+") as f:
             for atom_idx, atom, charge in par:
@@ -529,8 +598,20 @@ class StateUpdate:
                 f.write(
                     f"{atom.residue.name:>4}:{int(atom.id): 4}:{int(atom.residue.id): 4}:{atom.name:>4}:{charge}\n"
                 )
+    #instead of these to functions use the ChargeReporter probably
+    def get_charges(self) -> list: #deprecated?
+        """_summary_.
 
-    def get_charges(self) -> list:
+        Returns
+        -------
+        list
+            atom_idxs, atom object, charge
+
+        Raises
+        ------
+        RuntimeError
+            If system does not contain a nonbonded force
+        """
         par = []
         for force in self.ionic_liquid.system.getForces():
             if type(force).__name__ == "NonbondedForce":
@@ -542,7 +623,9 @@ class StateUpdate:
                 return par
         raise RuntimeError("Something went wrong. There was no NonbondedForce")
 
+    #redundant with ProtexSystem.get_current_number_of_each_residue_type
     def get_num_residues(self) -> dict:
+        """deprecated 1.1."""
         res_dict = {
             "IM1H": 0,
             "OAC": 0,
@@ -579,7 +662,20 @@ class StateUpdate:
         )
 
     def update(self, nr_of_steps: int = 2) -> list[tuple[Residue, Residue]]:
-        """updates the current state using the method defined in the UpdateMethod class."""
+        r"""updates the current state using the method defined in the UpdateMethod class.
+
+        Parameters
+        ----------
+        nr_of_steps : int, optional
+            The number of intermediate :math:`{\lambda}` states.
+            The default of two means 1 with the initial and one with the final state,
+            so no intermediate states, by default 2
+
+        Returns
+        -------
+        list[tuple[Residue, Residue]]
+            A list with all the updated residue tuples
+        """
         # calculate the distance betwen updateable residues
         pos_list, res_list = self._get_positions_for_mutation_sites()
         # propose the update candidates based on distances

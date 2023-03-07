@@ -22,7 +22,7 @@ class ChargeReporter:
     state_update.update(2)
     simulation.step(8)
     simulation.step(1)
-    then the reporter is invoked directyl in the update, after the one step with the previous charge, but before any charge changes take effect.
+    then the reporter is invoked directly in the update, after the one step with the previous charge, but before any charge changes take effect.
 
     """
 
@@ -64,6 +64,15 @@ class ChargeReporter:
         return (steps, False, False, False, False)
 
     def report(self, simulation, state):
+        """Generate a report.
+
+        Parameters
+        ----------
+        simulation : Simulation
+            The Simulation to generate a report for
+        state : State
+            The current state of the simulation
+        """
         if not self._hasInitialized:
             self._hasInitialized = True
             if isinstance(self.header_data, dict):
@@ -126,6 +135,15 @@ class EnergyReporter:
         return (steps, False, False, False, True)
 
     def report(self, simulation, state):
+        """Generate a report.
+
+        Parameters
+        ----------
+        simulation : Simulation
+            The Simulation to generate a report for
+        state : State
+            The current state of the simulation
+        """
         tab = "\t"  # becuase: SyntaxError: f-string expression part cannot include a backslash
         names = []
         values = []

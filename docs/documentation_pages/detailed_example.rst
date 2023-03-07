@@ -97,7 +97,7 @@ The ``IonicLiquidTemplates`` class accepts now a list, of all dictionaries with 
 
 .. code-block:: python
 
-    from protex.system import IonicLiquidTemplates
+    from protex.system import ProtexTemplates
 
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 0.994}
@@ -109,15 +109,15 @@ The ``IonicLiquidTemplates`` class accepts now a list, of all dictionaries with 
     OAC_HOAC = {"OAC" : {"atom_name": "O2", "canonical_name": "OAC"},
                 "HOAC": {"atom_name": "H", "canonical_name": "OAC"}}
 
-    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], allowed_updates)
+    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], allowed_updates)
 
-Now we have everything to build the ``IonicLiquidSystem``:
+Now we have everything to build the ``ProtexSystem``:
 
 .. code-block:: python
 
-    from protex.system import IonicLiquidSystem
+    from protex.system import ProtexSystem
 
-    ionic_liquid = IonicLiquidSystem(simulation, templates)
+    ionic_liquid = ProtexSystem(simulation, templates)
 
 
 Next define the update method. Currently there is one available update method called ``NaiveMCUpdate``.
@@ -128,13 +128,13 @@ NaiveMCUpdate accepts to more keywords:
  
    .. object:: parameters
  
-       .. option:: ionic_liquid: IonicLiquidSystem
+       .. option:: ionic_liquid: ProtexSystem
  
-           The ionic liquid system
+           The Protex system
  
        .. option:: all_forces: bool = True
  
-           Wheter to change all forces during an update (default), or just the non bonded force (all_force=False)
+           Wether to change all forces during an update (default), or just the non bonded force (all_force=False)
  
        .. option:: to_adapt: list[tuple[str, int, frozenset[str]]] = None
 

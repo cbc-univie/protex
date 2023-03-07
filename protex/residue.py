@@ -19,12 +19,10 @@ class Residue:
         The parameters for the residue
     alternativ_parameters: dict[list]
         The parameters for the alternativ (protonated/deprotonated) state
-    canonical_name: str
-        A general name for both states (protonated/deprotonated)
     pair_12_13_exclusion_list: list
         1-2 and 1-3 exclusions in the system
-    equivalent_atoms: tuple
-        if current name and alternative name have equivalent atoms
+    has_equivalent_atoms:  tuple[bool,bool]
+        if original name and alternative name have equivalent atoms
 
     Attributes
     ----------
@@ -41,14 +39,13 @@ class Residue:
     parameters: dict[str: dict[list]]
         Dictionary containnig the parameters for ``original_name`` and ``alternativ_name``
     record_charge_state: list
+        deprecated 1.1?
         Records the charge state of that residue
-    canonical_name: str
-        A general name for both states (protonated/deprotonated)
     system: openmm.openmm.System
         The system generated with openMM, where all residues are in
     pair_12_13_list: list
          1-2 and 1-3 exclusions in the system
-    has_equivalent_atoms: tuple(bool)
+    equivalent_atoms: dict[str, bool]
         if orignal_name and alternative name have equivalent atoms
     """
 
@@ -59,9 +56,7 @@ class Residue:
         system,
         inital_parameters,
         alternativ_parameters,
-        # canonical_name,
         pair_12_13_exclusion_list,
-        # has_equivalent_atom,
         has_equivalent_atoms,
     ) -> None:
         self.residue = residue
@@ -74,11 +69,9 @@ class Residue:
             alternativ_name: alternativ_parameters,
         }
         self.record_charge_state = []
-        # self.canonical_name = canonical_name
         self.system = system
         self.record_charge_state.append(self.endstate_charge)  # Not used anywhere?
         self.pair_12_13_list = pair_12_13_exclusion_list
-        # self.has_equivalent_atom: bool = has_equivalent_atom
         self.equivalent_atoms: dict[str, bool] = {
             self.original_name: has_equivalent_atoms[0],
             self.alternativ_name: has_equivalent_atoms[1],
@@ -90,19 +83,26 @@ class Residue:
         return f"Residue {self.current_name}, {self.residue}"
 
     @property
-    def has_equivalent_atom(self):
+    def has_equivalent_atom(self) -> bool:
         """Determines if the current residue has an equivalent atom defined.
+
         It depends i.e if the residue is currently OAC (-> two equivalent O's) or HOAC (no equivlent O's).
+
+        Returns
+        -------
+        bool
+            True if this residue currently has an equivalent atom, else otherwise
         """
         return self.equivalent_atoms[self.current_name]
 
     @property
-    def alternativ_name(self):
+    def alternativ_name(self) -> str:
         """Alternative name for the residue, e.g. the corresponding name for the protonated/deprotonated form.
 
         Returns
         -------
         str
+            The alternative name
         """
         for name in self.parameters.keys():
             if name != self.current_name:
@@ -117,8 +117,14 @@ class Residue:
 
         Parameters
         ----------
-        force_name: Name of the force to update
-        lamb: lambda state at which to get corresponding values (between 0 and 1)
+        force_name: str
+            Name of the force to update
+        lamb: float
+            lambda state at which to get corresponding values (between 0 and 1)
+
+        Returns
+        -------
+        None
         """
         if force_name == "NonbondedForce":
             parms = self._get_NonbondedForce_parameters_at_lambda(lamb)
