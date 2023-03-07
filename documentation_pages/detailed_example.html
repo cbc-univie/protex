@@ -165,7 +165,7 @@ So in our example from above, we want the hydrogen H7 from IM1H to be transfered
 This information belongs together, so it is grouped in one dictionary, as can be seen in the next code snippet.
 “canonical_name” is deprecated.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">IonicLiquidTemplates</span></code> class accepts now a list, of all dictionaries with the specified atoms, as well as the allowed_updates dictionary.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">protex.system</span> <span class="kn">import</span> <span class="n">ProtexTemplates</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">protex.system</span> <span class="kn">import</span> <span class="n">IonicLiquidTemplates</span>
 
 <span class="n">allowed_updates</span> <span class="o">=</span> <span class="p">{}</span>
 <span class="n">allowed_updates</span><span class="p">[</span><span class="nb">frozenset</span><span class="p">([</span><span class="s2">&quot;IM1H&quot;</span><span class="p">,</span> <span class="s2">&quot;OAC&quot;</span><span class="p">])]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;r_max&quot;</span><span class="p">:</span> <span class="mf">0.16</span><span class="p">,</span> <span class="s2">&quot;prob&quot;</span><span class="p">:</span> <span class="mf">0.994</span><span class="p">}</span>
@@ -177,13 +177,13 @@ This information belongs together, so it is grouped in one dictionary, as can be
 <span class="n">OAC_HOAC</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;OAC&quot;</span> <span class="p">:</span> <span class="p">{</span><span class="s2">&quot;atom_name&quot;</span><span class="p">:</span> <span class="s2">&quot;O2&quot;</span><span class="p">,</span> <span class="s2">&quot;canonical_name&quot;</span><span class="p">:</span> <span class="s2">&quot;OAC&quot;</span><span class="p">},</span>
             <span class="s2">&quot;HOAC&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;atom_name&quot;</span><span class="p">:</span> <span class="s2">&quot;H&quot;</span><span class="p">,</span> <span class="s2">&quot;canonical_name&quot;</span><span class="p">:</span> <span class="s2">&quot;OAC&quot;</span><span class="p">}}</span>
 
-<span class="n">templates</span> <span class="o">=</span> <span class="n">ProtexTemplates</span><span class="p">([</span><span class="n">OAC_HOAC</span><span class="p">,</span> <span class="n">IM1H_IM1</span><span class="p">],</span> <span class="n">allowed_updates</span><span class="p">)</span>
+<span class="n">templates</span> <span class="o">=</span> <span class="n">IonicLiquidTemplates</span><span class="p">([</span><span class="n">OAC_HOAC</span><span class="p">,</span> <span class="n">IM1H_IM1</span><span class="p">],</span> <span class="n">allowed_updates</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Now we have everything to build the <code class="docutils literal notranslate"><span class="pre">ProtexSystem</span></code>:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">protex.system</span> <span class="kn">import</span> <span class="n">ProtexSystem</span>
+<p>Now we have everything to build the <code class="docutils literal notranslate"><span class="pre">IonicLiquidSystem</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">protex.system</span> <span class="kn">import</span> <span class="n">IonicLiquidSystem</span>
 
-<span class="n">ionic_liquid</span> <span class="o">=</span> <span class="n">ProtexSystem</span><span class="p">(</span><span class="n">simulation</span><span class="p">,</span> <span class="n">templates</span><span class="p">)</span>
+<span class="n">ionic_liquid</span> <span class="o">=</span> <span class="n">IonicLiquidSystem</span><span class="p">(</span><span class="n">simulation</span><span class="p">,</span> <span class="n">templates</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Next define the update method. Currently there is one available update method called <code class="docutils literal notranslate"><span class="pre">NaiveMCUpdate</span></code>.
@@ -197,14 +197,14 @@ NaiveMCUpdate accepts to more keywords:</p>
 <span class="sig-name descname"><span class="pre">parameters</span></span></dt>
 <dd><dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-arg-ionic_liquid">
-<span id="cmdoption-arg-ionic-liquid"></span><span class="sig-name descname"><span class="pre">ionic_liquid:</span></span><span class="sig-prename descclassname"> <span class="pre">ProtexSystem</span></span><a class="headerlink" href="#cmdoption-arg-ionic_liquid" title="Permalink to this definition"></a></dt>
-<dd><p>The Protex system</p>
+<span id="cmdoption-arg-ionic-liquid"></span><span class="sig-name descname"><span class="pre">ionic_liquid:</span></span><span class="sig-prename descclassname"> <span class="pre">IonicLiquidSystem</span></span><a class="headerlink" href="#cmdoption-arg-ionic_liquid" title="Permalink to this definition"></a></dt>
+<dd><p>The ionic liquid system</p>
 </dd></dl>
 
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-arg-all_forces">
 <span id="cmdoption-arg-all-forces"></span><span class="sig-name descname"><span class="pre">all_forces:</span></span><span class="sig-prename descclassname"> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True</span></span><a class="headerlink" href="#cmdoption-arg-all_forces" title="Permalink to this definition"></a></dt>
-<dd><p>Wether to change all forces during an update (default), or just the non bonded force (all_force=False)</p>
+<dd><p>Wheter to change all forces during an update (default), or just the non bonded force (all_force=False)</p>
 </dd></dl>
 
 <dl class="std option">
@@ -305,7 +305,7 @@ Use the <cite>psf_file</cite> argument to load the current psf and the <cite>res
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2023, Florian Joerg &amp; Marcus Wieder. Project structure based on the Computational Molecular Science Python Cookiecutter version 1.5.</p>
+    <p>&#169; Copyright 2022, Florian Joerg &amp; Marcus Wieder. Project structure based on the Computational Molecular Science Python Cookiecutter version 1.5.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

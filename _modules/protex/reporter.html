@@ -98,7 +98,7 @@
 <span class="sd">    state_update.update(2)</span>
 <span class="sd">    simulation.step(8)</span>
 <span class="sd">    simulation.step(1)</span>
-<span class="sd">    then the reporter is invoked directly in the update, after the one step with the previous charge, but before any charge changes take effect.</span>
+<span class="sd">    then the reporter is invoked directyl in the update, after the one step with the previous charge, but before any charge changes take effect.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -139,16 +139,7 @@
         <span class="n">steps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reportInterval</span> <span class="o">-</span> <span class="n">simulation</span><span class="o">.</span><span class="n">currentStep</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reportInterval</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">steps</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="ChargeReporter.report"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.reporter.ChargeReporter.html#protex.reporter.ChargeReporter.report">[docs]</a>    <span class="k">def</span> <span class="nf">report</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">simulation</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Generate a report.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        simulation : Simulation</span>
-<span class="sd">            The Simulation to generate a report for</span>
-<span class="sd">        state : State</span>
-<span class="sd">            The current state of the simulation</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">report</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">simulation</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hasInitialized</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_hasInitialized</span> <span class="o">=</span> <span class="kc">True</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">header_data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
@@ -166,7 +157,7 @@
         <span class="p">)</span>
 
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_out</span><span class="p">,</span> <span class="s2">&quot;flush&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">callable</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_out</span><span class="o">.</span><span class="n">flush</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_out</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_out</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_out</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
@@ -210,16 +201,7 @@
         <span class="n">steps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reportInterval</span> <span class="o">-</span> <span class="n">simulation</span><span class="o">.</span><span class="n">currentStep</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reportInterval</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">steps</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="EnergyReporter.report"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.reporter.EnergyReporter.html#protex.reporter.EnergyReporter.report">[docs]</a>    <span class="k">def</span> <span class="nf">report</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">simulation</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Generate a report.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        simulation : Simulation</span>
-<span class="sd">            The Simulation to generate a report for</span>
-<span class="sd">        state : State</span>
-<span class="sd">            The current state of the simulation</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">report</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">simulation</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
         <span class="n">tab</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span>  <span class="c1"># becuase: SyntaxError: f-string expression part cannot include a backslash</span>
         <span class="n">names</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">values</span> <span class="o">=</span> <span class="p">[]</span>
@@ -248,7 +230,7 @@
         <span class="p">)</span>
 
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_out</span><span class="p">,</span> <span class="s2">&quot;flush&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">callable</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_out</span><span class="o">.</span><span class="n">flush</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_out</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_out</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_out</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
@@ -433,7 +415,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2023, Florian Joerg &amp; Marcus Wieder. Project structure based on the Computational Molecular Science Python Cookiecutter version 1.5.</p>
+    <p>&#169; Copyright 2022, Florian Joerg &amp; Marcus Wieder. Project structure based on the Computational Molecular Science Python Cookiecutter version 1.5.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
