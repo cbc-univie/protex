@@ -18,12 +18,12 @@ First, obtain an OpenMM ``simulation`` object. For purposes of this tutorial we 
 
     simulation = generate_im1h_oac_system()
     
-Afterwards the main pathway is to specifiy the allowed transfers and which atoms are subject to the transfer using ``IonicLiquidTemplates``. 
-Then wrap the simulation and templates into an ``IonicLiquidSystem``.
+Afterwards the main pathway is to specifiy the allowed transfers and which atoms are subject to the transfer using ``ProtexTemplates``. 
+Then wrap the simulation and templates into an ``ProtexSystem``.
 
 .. code-block:: python
 
-    from protex.system import IonicLiquidSystem, IonicLiquidTemplates
+    from protex.system import ProtexSystem, ProtexTemplates
 
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 0.994}
@@ -35,8 +35,8 @@ Then wrap the simulation and templates into an ``IonicLiquidSystem``.
     OAC_HOAC = {"OAC" : {"atom_name": "O2", "canonical_name": "OAC"},
                 "HOAC": {"atom_name": "H", "canonical_name": "OAC"}}
 
-    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], allowed_updates)
-    ionic_liquid = IonicLiquidSystem(simulation, templates)
+    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], allowed_updates)
+    ionic_liquid = ProtexSystem(simulation, templates)
 
 
 Next define the update method. 

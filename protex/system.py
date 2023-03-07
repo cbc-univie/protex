@@ -69,7 +69,19 @@ class ProtexTemplates:
     """
 
     @staticmethod
-    def load(fname) -> ProtexTemplates:
+    def load(fname: str) -> ProtexTemplates:
+        """Load a pickled ProtexTemplates instance.
+
+        Parameters
+        ----------
+        fname : str
+            The file name
+
+        Returns
+        -------
+        ProtexTemplates
+            An instance of the ProtexTemplates
+        """
         with open(fname, "rb") as inp:
             templates = pickle.load(inp)
         return templates
@@ -123,16 +135,59 @@ class ProtexTemplates:
                     )
 
     def dump(self, fname: str) -> None:
+        """Pickle the current ProtexTemplates object.
+
+        Parameters
+        ----------
+        fname : str
+            The file name of the object
+        """
         with open(fname, "wb") as outp:
             pickle.dump(self, outp, pickle.HIGHEST_PROTOCOL)
 
     def get_atom_name_for(self, resname: str) -> str:
+        """Get the atom name for a specific residue.
+
+        Parameters
+        ----------
+        resname : str
+            The residue name
+
+        Returns
+        -------
+        str
+            The atom name
+        """
         return self.states[resname][self._atom_name]
 
     def has_equivalent_atom(self, resname: str) -> bool:
+        """Checks if a given residue has an equivalent atom defined.
+
+        Parameters
+        ----------
+        resname : str
+            The residue name
+
+        Returns
+        -------
+        bool
+            True if this residue has an equivalent atom defined, false otherwise
+        """
         return self._equivalent_atom in self.states[resname]
 
     def get_equivalent_atom_for(self, resname: str) -> str:
+        """Get the name of the equivalent atom for a given residue name.
+
+        Parameters
+        ----------
+        resname : str
+            The residue name
+
+        Returns
+        -------
+        str
+            The atom name
+        """
         return self.states[resname][self._equivalent_atom]
 
     def get_update_value_for(self, residue_set: frozenset[str], property: str) -> float:
@@ -275,10 +330,27 @@ class ProtexSystem:
 
     @staticmethod
     def load(
-        fname,
+        fname: str,
         simulation: openmm.app.simulation.Simulation,
         simulation_for_parameters: openmm.app.simulation.Simulation = None,
     ) -> ProtexSystem:
+        """Load pickled protex system.
+
+        Parameters
+        ----------
+        fname : str
+            The file name to load
+        simulation : openmm.app.simulation.Simulation
+            An already generated OpenMM simulation object, needed to initialize the ProtesSystem instance
+        simulation_for_parameters : openmm.app.simulation.Simulation, optional
+            An OpenMM simulation object, which contains all possible residues
+            needed if the simulation object does not contain all possible residues, by default None
+
+        Returns
+        -------
+        ProtexSystem
+            A new instance of the ProtexSystem
+        """
         with open(fname, "rb") as inp:
             from_pickle = pickle.load(inp)  # ensure correct order of arguments
         protex_system = ProtexSystem(
@@ -304,17 +376,38 @@ class ProtexSystem:
         )  # NOTE: supports only cubic boxes
 
     def dump(self, fname: str) -> None:
+        """Pickle the current ProtexSystem object.
+
+        Parameters
+        ----------
+        fname : str
+            The file name to store the object
+        """
         to_pickle = [self.templates, self.residues]  # enusre correct order of arguments
         with open(fname, "wb") as outp:
             pickle.dump(to_pickle, outp, pickle.HIGHEST_PROTOCOL)
 
     def get_current_number_of_each_residue_type(self) -> dict[str, int]:
+        """Get a dictionary with the resname and the current number of residues belonging to that name.
+
+        Returns
+        -------
+        dict[str, int]
+            resname: number of residues
+        """
         current_number_of_each_residue_type: dict[str, int] = defaultdict(int)
         for residue in self.residues:
             current_number_of_each_residue_type[residue.current_name] += 1
         return current_number_of_each_residue_type
 
     def update_context(self, name: str):
+        """Update the context for the given force.
+
+        Parameters
+        ----------
+        name : str
+            The name of the force to update
+        """
         for force in self.system.getForces():
             if type(force).__name__ == name:
                 force.updateParametersInContext(self.simulation.context)
@@ -540,7 +633,6 @@ class ProtexSystem:
                         self.system,
                         parameters_state1,
                         parameters_state2,
-                        # self.templates.get_canonical_name(name),
                         pair_12_13_list,
                         (
                             self.templates.has_equivalent_atom(name),
