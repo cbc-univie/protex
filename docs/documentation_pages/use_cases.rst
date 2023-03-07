@@ -39,8 +39,8 @@ It is still under discussion, whether the deprotonated acid should accept any pr
     allowed_updates[frozenset(["MEOH2", "OAC"])] = {"r_max": 0.155, "prob": 1.000} 
     
 
-    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1, HPTSH_HPTS, MEOH_MEOH2], allowed_updates)
-    ionic_liquid = IonicLiquidSystem(simulation, templates)
+    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1, HPTSH_HPTS, MEOH_MEOH2], allowed_updates)
+    ionic_liquid = ProtexSystem(simulation, templates)
   
 To carry out tests, the new template needs to be  added to the test system explicitly, with the residue names and the atoms that are involved in the proton transfer:
 

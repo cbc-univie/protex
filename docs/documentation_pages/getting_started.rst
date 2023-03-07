@@ -22,11 +22,23 @@ get startet with setting up a system for Protex.
 
 .. _installation-instructions:
 
-Installing Protex from Source Code
-----------------------------------
+Installing Protex
+-----------------
 
-.. Important:: 
-    It is recommended to use a (conda) environment for the installation. Go to `install using conda env`_.
+conda-forge
+^^^^^^^^^^^
+
+.. tip:: 
+   The easiest and preferred way to install protex is, to just get it from conda-forge.
+
+.. code-block:: bash
+
+   conda install protex -c conda-forge
+
+Source Code
+^^^^^^^^^^^
+
+It is recommended to use a (conda) environment for the installation. Go to `install using conda env`_.
 
 **Source code** is available from
 https://github.com/florianjoerg/protex/ under the MIT License.
@@ -42,14 +54,15 @@ Obtain the sources with `git`_.
 
 .. _install using conda env:
 
-Installing Using a Conda Environment
-------------------------------------
+Conda Environment
+^^^^^^^^^^^^^^^^^
 
 Information how to obtain conda can be found `here <https://docs.conda.io/projects/conda/en/latest/>`_.
 
 First create a conda environment and install the dependencies. You can clone the github project and use the yml file. 
 
-.. Note::
+.. 
+   .. Note::
    If you plan to use protex with polarizable MD simulations it is import to get the current master branch of ParmEd.
    The last release (v3.4.3) is not enough since the very recently added Drude functionality is necessary.
 
@@ -122,8 +135,9 @@ Here a quick install guide is given. Use the documentation provided there for fu
 Citation
 --------
 
-When using Protex in published work, please cite
-tba.
+When using Protex in published work, please cite 
+
+- Joerg F., Wieder M., Schröder C. *Frontiers in Chemistry: Molecular Liquids* (2023), 11, `DOI <https://doi.org/10.3389/fchem.2023.1140896>`_.
 
 Thank you!
 
