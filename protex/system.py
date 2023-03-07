@@ -109,7 +109,7 @@ class ProtexTemplates:
         self.overall_max_distance: float = max(
             [value["r_max"] for value in self.allowed_updates.values()]
         )
-    
+
     def _setup_ordered_names(self) -> list[tuple[str]]:
         #from low H to many H
         #TODO: implement
@@ -168,7 +168,7 @@ class ProtexTemplates:
         """
         with open(fname, "wb") as outp:
             pickle.dump(self, outp, pickle.HIGHEST_PROTOCOL)
-    
+
     def get_mode_for(self, resname: str) -> str:
         """Get the mode for the given residue.
 
@@ -676,7 +676,7 @@ class ProtexSystem:
             name = r.name
             if name in self.templates.names:
                 # name_of_paired_ion = self.templates.get_residue_name_for_coupled_state(name)
-                other_names = self.templates.get_other_resnames(name) 
+                other_names = self.templates.get_other_resnames(name)
                 parameters = {}
                 has_equivalent_atoms = {}
                 modes = {}
@@ -687,7 +687,7 @@ class ProtexSystem:
                     parameters[oname] = templates[oname]
                     has_equivalent_atoms[oname] = self.templates.has_equivalent_atom(oname)
                     modes[oname] = self.templates.get_mode_for(oname)
-                
+
                 for name1, name2 in itertools.combinations(parameters, 2):
                     # check that we have the same number of parameters
                     self._check_nr_of_forces(
