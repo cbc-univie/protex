@@ -102,14 +102,27 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    ionic_liquid: IonicLiquidSystem</span>
-<span class="sd">        Needs the IonicLiquidSystem</span>
+<span class="sd">    ionic_liquid: ProtexSystem</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="Update.load"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.update.Update.html#protex.update.Update.load">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="nd">@abstractmethod</span>
-    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">protex_system</span><span class="p">:</span> <span class="n">ProtexSystem</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Update</span><span class="p">:</span>
-        <span class="k">pass</span>
+    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="n">fname</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">protex_system</span><span class="p">:</span> <span class="n">ProtexSystem</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Update</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load a picklesUpdate instance.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        fname : str</span>
+<span class="sd">            The file name</span>
+<span class="sd">        protex_system : ProtexSystem</span>
+<span class="sd">            An instance of ProtexSystem, used to create the Update instance</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Update</span>
+<span class="sd">            An update instance</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -141,9 +154,16 @@
             <span class="mi">10</span>  <span class="c1"># specify the number of update steps the same residue will be rejected</span>
         <span class="p">)</span>
 
-    <span class="nd">@abstractmethod</span>
+<div class="viewcode-block" id="Update.dump"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.update.Update.html#protex.update.Update.dump">[docs]</a>    <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">dump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fname</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">pass</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pickle an Update instance.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        fname : str</span>
+<span class="sd">            The file name</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
 
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">candidates</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">],</span> <span class="n">nr_of_steps</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -216,12 +236,12 @@
 <span class="sd">    keep the position of the original H when switching from dummy to real H.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="KeepHUpdate.load"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.update.KeepHUpdate.html#protex.update.KeepHUpdate.load">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">protex_system</span><span class="p">:</span> <span class="n">ProtexSystem</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">KeepHUpdate</span><span class="p">:</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">inp</span><span class="p">:</span>
             <span class="n">from_pickle</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">inp</span><span class="p">)</span>  <span class="c1"># ensure correct order of arguments</span>
         <span class="n">update</span> <span class="o">=</span> <span class="n">KeepHUpdate</span><span class="p">(</span><span class="n">protex_system</span><span class="p">,</span> <span class="o">*</span><span class="n">from_pickle</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">update</span>
+        <span class="k">return</span> <span class="n">update</span></div>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -235,7 +255,7 @@
             <span class="n">ionic_liquid</span><span class="p">,</span> <span class="n">to_adapt</span><span class="p">,</span> <span class="n">all_forces</span><span class="p">,</span> <span class="n">include_equivalent_atom</span><span class="p">,</span> <span class="n">reorient</span>
         <span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">dump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fname</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="KeepHUpdate.dump"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.update.KeepHUpdate.html#protex.update.KeepHUpdate.dump">[docs]</a>    <span class="k">def</span> <span class="nf">dump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fname</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">to_pickle</span> <span class="o">=</span> <span class="p">[</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">all_forces</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">to_adapt</span><span class="p">,</span>
@@ -243,7 +263,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">reorient</span><span class="p">,</span>
         <span class="p">]</span>  <span class="c1"># enusre correct order of arguments</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">outp</span><span class="p">:</span>
-            <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">to_pickle</span><span class="p">,</span> <span class="n">outp</span><span class="p">,</span> <span class="n">pickle</span><span class="o">.</span><span class="n">HIGHEST_PROTOCOL</span><span class="p">)</span>
+            <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">to_pickle</span><span class="p">,</span> <span class="n">outp</span><span class="p">,</span> <span class="n">pickle</span><span class="o">.</span><span class="n">HIGHEST_PROTOCOL</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_reorient_atoms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">candidate</span><span class="p">,</span> <span class="n">positions</span><span class="p">,</span> <span class="n">positions_copy</span><span class="p">):</span>
         <span class="c1"># Function to reorient atoms if the equivalent atom was used for shortest distance</span>
@@ -473,12 +493,26 @@
 <span class="sd">        [description]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">protex_system</span><span class="p">:</span> <span class="n">ProtexSystem</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NaiveMCUpdate</span><span class="p">:</span>
+<div class="viewcode-block" id="NaiveMCUpdate.load"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.update.NaiveMCUpdate.html#protex.update.NaiveMCUpdate.load">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="n">fname</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">protex_system</span><span class="p">:</span> <span class="n">ProtexSystem</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NaiveMCUpdate</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load a pickled NaiveMCUpdate instance.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        fname : str</span>
+<span class="sd">            The file name</span>
+<span class="sd">        protex_system : ProtexSystem</span>
+<span class="sd">            A ProtexSystem instance</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        NaiveMCUpdate</span>
+<span class="sd">            A NaiveMCUpdate instance</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">inp</span><span class="p">:</span>
             <span class="n">from_pickle</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">inp</span><span class="p">)</span>  <span class="c1"># ensure correct order of arguments</span>
         <span class="n">update</span> <span class="o">=</span> <span class="n">NaiveMCUpdate</span><span class="p">(</span><span class="n">protex_system</span><span class="p">,</span> <span class="o">*</span><span class="n">from_pickle</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">update</span>
+        <span class="k">return</span> <span class="n">update</span></div>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -496,7 +530,14 @@
                 <span class="s2">&quot;Currently reorienting atoms if equivalent atoms are used is not implemented. Set reorient=False.&quot;</span>
             <span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">dump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fname</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="NaiveMCUpdate.dump"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.update.NaiveMCUpdate.html#protex.update.NaiveMCUpdate.dump">[docs]</a>    <span class="k">def</span> <span class="nf">dump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fname</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pickle the NaiveMCUpdate instance.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        fname : str</span>
+<span class="sd">            The file name</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">to_pickle</span> <span class="o">=</span> <span class="p">[</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">all_forces</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">to_adapt</span><span class="p">,</span>
@@ -504,7 +545,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">reorient</span><span class="p">,</span>
         <span class="p">]</span>  <span class="c1"># enusre correct order of arguments</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">outp</span><span class="p">:</span>
-            <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">to_pickle</span><span class="p">,</span> <span class="n">outp</span><span class="p">,</span> <span class="n">pickle</span><span class="o">.</span><span class="n">HIGHEST_PROTOCOL</span><span class="p">)</span>
+            <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">to_pickle</span><span class="p">,</span> <span class="n">outp</span><span class="p">,</span> <span class="n">pickle</span><span class="o">.</span><span class="n">HIGHEST_PROTOCOL</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">candidates</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">],</span> <span class="n">nr_of_steps</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;called _update&quot;</span><span class="p">)</span>
@@ -574,14 +615,28 @@
 <div class="viewcode-block" id="StateUpdate"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.update.StateUpdate.html#protex.update.StateUpdate">[docs]</a><span class="k">class</span> <span class="nc">StateUpdate</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Controls the update sheme and proposes the residues that need an update.&quot;&quot;&quot;</span>
 
-    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">updateMethod</span><span class="p">:</span> <span class="n">Update</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StateUpdate</span><span class="p">:</span>
+<div class="viewcode-block" id="StateUpdate.load"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.update.StateUpdate.html#protex.update.StateUpdate.load">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="n">fname</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">updateMethod</span><span class="p">:</span> <span class="n">Update</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StateUpdate</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load a pickled StateUpdate instance.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        fname : str</span>
+<span class="sd">            The file name</span>
+<span class="sd">        updateMethod : Update</span>
+<span class="sd">            The update method instance</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        StateUpdate</span>
+<span class="sd">            An instance of StateUpdate</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">state_update</span> <span class="o">=</span> <span class="n">StateUpdate</span><span class="p">(</span><span class="n">updateMethod</span><span class="p">)</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">inp</span><span class="p">:</span>
             <span class="n">from_pickle</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">inp</span><span class="p">)</span>  <span class="c1"># ensure correct order of arguments</span>
         <span class="n">state_update</span><span class="o">.</span><span class="n">history</span> <span class="o">=</span> <span class="n">from_pickle</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">state_update</span><span class="o">.</span><span class="n">update_trial</span> <span class="o">=</span> <span class="n">from_pickle</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-        <span class="k">return</span> <span class="n">state_update</span>
+        <span class="k">return</span> <span class="n">state_update</span></div>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">updateMethod</span><span class="p">:</span> <span class="n">Update</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">updateMethod</span><span class="p">:</span> <span class="n">Update</span> <span class="o">=</span> <span class="n">updateMethod</span>
@@ -589,24 +644,50 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="p">:</span> <span class="n">deque</span> <span class="o">=</span> <span class="n">deque</span><span class="p">(</span><span class="n">maxlen</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">update_trial</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
 
-    <span class="k">def</span> <span class="nf">dump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fname</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="StateUpdate.dump"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.update.StateUpdate.html#protex.update.StateUpdate.dump">[docs]</a>    <span class="k">def</span> <span class="nf">dump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fname</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pickle the StateUpdate instance.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        fname : str</span>
+<span class="sd">            The file name</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">to_pickle</span> <span class="o">=</span> <span class="p">[</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">update_trial</span><span class="p">,</span>
         <span class="p">]</span>  <span class="c1"># enusre correct order of arguments</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">outp</span><span class="p">:</span>
-            <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">to_pickle</span><span class="p">,</span> <span class="n">outp</span><span class="p">,</span> <span class="n">pickle</span><span class="o">.</span><span class="n">HIGHEST_PROTOCOL</span><span class="p">)</span>
+            <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">to_pickle</span><span class="p">,</span> <span class="n">outp</span><span class="p">,</span> <span class="n">pickle</span><span class="o">.</span><span class="n">HIGHEST_PROTOCOL</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">write_charges</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="StateUpdate.write_charges"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.update.StateUpdate.html#protex.update.StateUpdate.write_charges">[docs]</a>    <span class="k">def</span> <span class="nf">write_charges</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span> <span class="c1">#deprecated?</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Write current charges to a file.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        filename : str</span>
+<span class="sd">            The name of the file to wrtie the charges to</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">par</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_charges</span><span class="p">()</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;w+&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">atom_idx</span><span class="p">,</span> <span class="n">atom</span><span class="p">,</span> <span class="n">charge</span> <span class="ow">in</span> <span class="n">par</span><span class="p">:</span>
                 <span class="n">charge</span> <span class="o">=</span> <span class="n">charge</span><span class="o">.</span><span class="n">_value</span>
                 <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
                     <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">atom</span><span class="o">.</span><span class="n">residue</span><span class="o">.</span><span class="n">name</span><span class="si">:</span><span class="s2">&gt;4</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">atom</span><span class="o">.</span><span class="n">id</span><span class="p">)</span><span class="si">:</span><span class="s2"> 4</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">atom</span><span class="o">.</span><span class="n">residue</span><span class="o">.</span><span class="n">id</span><span class="p">)</span><span class="si">:</span><span class="s2"> 4</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">atom</span><span class="o">.</span><span class="n">name</span><span class="si">:</span><span class="s2">&gt;4</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">charge</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
-                <span class="p">)</span>
+                <span class="p">)</span></div>
+    <span class="c1">#instead of these to functions use the ChargeReporter probably</span>
+<div class="viewcode-block" id="StateUpdate.get_charges"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.update.StateUpdate.html#protex.update.StateUpdate.get_charges">[docs]</a>    <span class="k">def</span> <span class="nf">get_charges</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span> <span class="c1">#deprecated?</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;_summary_.</span>
 
-    <span class="k">def</span> <span class="nf">get_charges</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list</span>
+<span class="sd">            atom_idxs, atom object, charge</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        RuntimeError</span>
+<span class="sd">            If system does not contain a nonbonded force</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">par</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">force</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ionic_liquid</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">getForces</span><span class="p">():</span>
             <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">force</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;NonbondedForce&quot;</span><span class="p">:</span>
@@ -616,9 +697,11 @@
                     <span class="n">charge</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">force</span><span class="o">.</span><span class="n">getParticleParameters</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
                     <span class="n">par</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">idx</span><span class="p">,</span> <span class="n">atom</span><span class="p">,</span> <span class="n">charge</span><span class="p">))</span>
                 <span class="k">return</span> <span class="n">par</span>
-        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Something went wrong. There was no NonbondedForce&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Something went wrong. There was no NonbondedForce&quot;</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">get_num_residues</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+    <span class="c1">#redundant with ProtexSystem.get_current_number_of_each_residue_type</span>
+<div class="viewcode-block" id="StateUpdate.get_num_residues"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.update.StateUpdate.html#protex.update.StateUpdate.get_num_residues">[docs]</a>    <span class="k">def</span> <span class="nf">get_num_residues</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;deprecated 1.1.&quot;&quot;&quot;</span>
         <span class="n">res_dict</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;IM1H&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
             <span class="s2">&quot;OAC&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
@@ -631,7 +714,7 @@
         <span class="p">}</span>
         <span class="k">for</span> <span class="n">residue</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ionic_liquid</span><span class="o">.</span><span class="n">residues</span><span class="p">:</span>
             <span class="n">res_dict</span><span class="p">[</span><span class="n">residue</span><span class="o">.</span><span class="n">current_name</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
-        <span class="k">return</span> <span class="n">res_dict</span>
+        <span class="k">return</span> <span class="n">res_dict</span></div>
 
     <span class="k">def</span> <span class="nf">_print_start</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="nb">print</span><span class="p">(</span>
@@ -655,7 +738,20 @@
         <span class="p">)</span>
 
 <div class="viewcode-block" id="StateUpdate.update"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.update.StateUpdate.html#protex.update.StateUpdate.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nr_of_steps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">Residue</span><span class="p">,</span> <span class="n">Residue</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;updates the current state using the method defined in the UpdateMethod class.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;updates the current state using the method defined in the UpdateMethod class.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        nr_of_steps : int, optional</span>
+<span class="sd">            The number of intermediate :math:`{\lambda}` states.</span>
+<span class="sd">            The default of two means 1 with the initial and one with the final state,</span>
+<span class="sd">            so no intermediate states, by default 2</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        list[tuple[Residue, Residue]]</span>
+<span class="sd">            A list with all the updated residue tuples</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># calculate the distance betwen updateable residues</span>
         <span class="n">pos_list</span><span class="p">,</span> <span class="n">res_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_positions_for_mutation_sites</span><span class="p">()</span>
         <span class="c1"># propose the update candidates based on distances</span>
@@ -865,7 +961,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2022, Florian Joerg &amp; Marcus Wieder. Project structure based on the Computational Molecular Science Python Cookiecutter version 1.5.</p>
+    <p>&#169; Copyright 2023, Florian Joerg &amp; Marcus Wieder. Project structure based on the Computational Molecular Science Python Cookiecutter version 1.5.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

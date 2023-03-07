@@ -48,8 +48,12 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Getting Started</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#getting-involved">Getting involved</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#user-guide">User Guide</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#installing-protex-from-source-code">Installing Protex from Source Code</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#installing-using-a-conda-environment">Installing Using a Conda Environment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#installing-protex">Installing Protex</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#conda-forge">conda-forge</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#source-code">Source Code</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#conda-environment">Conda Environment</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#citation">Citation</a></li>
 </ul>
 </li>
@@ -98,12 +102,21 @@ Tracker</a>.</p>
 <p>The Protex <a class="reference internal" href="quickstart.html#quick-start-guide"><span class="std std-ref">Quick Start Guide</span></a> provides information on how to
 get startet with setting up a system for Protex.</p>
 </section>
-<section id="installing-protex-from-source-code">
-<span id="installation-instructions"></span><h2>Installing Protex from Source Code<a class="headerlink" href="#installing-protex-from-source-code" title="Permalink to this heading"></a></h2>
-<div class="admonition important">
-<p class="admonition-title">Important</p>
-<p>It is recommended to use a (conda) environment for the installation. Go to <a class="reference internal" href="#install-using-conda-env">install using conda env</a>.</p>
+<section id="installing-protex">
+<span id="installation-instructions"></span><h2>Installing Protex<a class="headerlink" href="#installing-protex" title="Permalink to this heading"></a></h2>
+<section id="conda-forge">
+<h3>conda-forge<a class="headerlink" href="#conda-forge" title="Permalink to this heading"></a></h3>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>The easiest and preferred way to install protex is, to just get it from conda-forge.</p>
 </div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>install<span class="w"> </span>protex<span class="w"> </span>-c<span class="w"> </span>conda-forge
+</pre></div>
+</div>
+</section>
+<section id="source-code">
+<h3>Source Code<a class="headerlink" href="#source-code" title="Permalink to this heading"></a></h3>
+<p>It is recommended to use a (conda) environment for the installation. Go to <a class="reference internal" href="#install-using-conda-env">install using conda env</a>.</p>
 <p><strong>Source code</strong> is available from
 <a class="reference external" href="https://github.com/florianjoerg/protex/">https://github.com/florianjoerg/protex/</a> under the MIT License.
 Obtain the sources with <a class="reference external" href="https://git-scm.com/">git</a>.</p>
@@ -113,15 +126,10 @@ pip<span class="w"> </span>install<span class="w"> </span>.
 </pre></div>
 </div>
 </section>
-<section id="installing-using-a-conda-environment">
-<span id="install-using-conda-env"></span><h2>Installing Using a Conda Environment<a class="headerlink" href="#installing-using-a-conda-environment" title="Permalink to this heading"></a></h2>
+<section id="conda-environment">
+<span id="install-using-conda-env"></span><h3>Conda Environment<a class="headerlink" href="#conda-environment" title="Permalink to this heading"></a></h3>
 <p>Information how to obtain conda can be found <a class="reference external" href="https://docs.conda.io/projects/conda/en/latest/">here</a>.</p>
 <p>First create a conda environment and install the dependencies. You can clone the github project and use the yml file.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>If you plan to use protex with polarizable MD simulations it is import to get the current master branch of ParmEd.
-The last release (v3.4.3) is not enough since the very recently added Drude functionality is necessary.</p>
-</div>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/florianjoerg/protex.git
 <span class="nb">cd</span><span class="w"> </span>protex/devtools/conda_envs
 conda<span class="w"> </span>env<span class="w"> </span>create<span class="w"> </span>--file<span class="w"> </span>protex.yml
@@ -184,10 +192,13 @@ make<span class="w"> </span>PythonInstall
 <p>Now you are ready to go! Try protex using the <a class="reference internal" href="quickstart.html#quick-start-guide"><span class="std std-ref">Quick Start Guide</span></a>.</p>
 </div>
 </section>
+</section>
 <section id="citation">
 <h2>Citation<a class="headerlink" href="#citation" title="Permalink to this heading"></a></h2>
-<p>When using Protex in published work, please cite
-tba.</p>
+<p>When using Protex in published work, please cite</p>
+<ul class="simple">
+<li><p>Joerg F., Wieder M., Schröder C. <em>Frontiers in Chemistry: Molecular Liquids</em> (2023), 11, <a class="reference external" href="https://doi.org/10.3389/fchem.2023.1140896">DOI</a>.</p></li>
+</ul>
 <p>Thank you!</p>
 </section>
 </section>
@@ -203,7 +214,7 @@ tba.</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2022, Florian Joerg &amp; Marcus Wieder. Project structure based on the Computational Molecular Science Python Cookiecutter version 1.5.</p>
+    <p>&#169; Copyright 2023, Florian Joerg &amp; Marcus Wieder. Project structure based on the Computational Molecular Science Python Cookiecutter version 1.5.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

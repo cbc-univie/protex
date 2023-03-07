@@ -16,6 +16,7 @@
         <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/doctools.js"></script>
         <script src="../../_static/sphinx_highlight.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -104,30 +105,108 @@
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">dump</span></code></p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#protex.update.StateUpdate.dump" title="protex.update.StateUpdate.dump"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dump</span></code></a></p></td>
+<td><p>Pickle the StateUpdate instance.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_charges</span></code></p></td>
-<td><p></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#protex.update.StateUpdate.get_charges" title="protex.update.StateUpdate.get_charges"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_charges</span></code></a></p></td>
+<td><p>_summary_.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_num_residues</span></code></p></td>
-<td><p></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#protex.update.StateUpdate.get_num_residues" title="protex.update.StateUpdate.get_num_residues"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_num_residues</span></code></a></p></td>
+<td><p>deprecated 1.1.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">load</span></code></p></td>
-<td><p></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#protex.update.StateUpdate.load" title="protex.update.StateUpdate.load"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load</span></code></a></p></td>
+<td><p>Load a pickled StateUpdate instance.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#protex.update.StateUpdate.update" title="protex.update.StateUpdate.update"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update</span></code></a></p></td>
 <td><p>updates the current state using the method defined in the UpdateMethod class.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_charges</span></code></p></td>
-<td><p></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#protex.update.StateUpdate.write_charges" title="protex.update.StateUpdate.write_charges"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_charges</span></code></a></p></td>
+<td><p>Write current charges to a file.</p></td>
 </tr>
 </tbody>
 </table>
 <dl class="py method">
+<dt class="sig sig-object py" id="protex.update.StateUpdate.dump">
+<span class="sig-name descname"><span class="pre">dump</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/protex/update.html#StateUpdate.dump"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#protex.update.StateUpdate.dump" title="Permalink to this definition"></a></dt>
+<dd><p>Pickle the StateUpdate instance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>fname</strong> (<em>str</em>) – The file name</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="protex.update.StateUpdate.get_charges">
+<span class="sig-name descname"><span class="pre">get_charges</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span></span></span><a class="reference internal" href="../../_modules/protex/update.html#StateUpdate.get_charges"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#protex.update.StateUpdate.get_charges" title="Permalink to this definition"></a></dt>
+<dd><p>_summary_.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>atom_idxs, atom object, charge</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>list</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>RuntimeError</strong> – If system does not contain a nonbonded force</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="protex.update.StateUpdate.get_num_residues">
+<span class="sig-name descname"><span class="pre">get_num_residues</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="../../_modules/protex/update.html#StateUpdate.get_num_residues"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#protex.update.StateUpdate.get_num_residues" title="Permalink to this definition"></a></dt>
+<dd><p>deprecated 1.1.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="protex.update.StateUpdate.load">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">updateMethod</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="protex.update.Update.html#protex.update.Update" title="protex.update.Update"><span class="pre">Update</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#protex.update.StateUpdate" title="protex.update.StateUpdate"><span class="pre">StateUpdate</span></a></span></span><a class="reference internal" href="../../_modules/protex/update.html#StateUpdate.load"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#protex.update.StateUpdate.load" title="Permalink to this definition"></a></dt>
+<dd><p>Load a pickled StateUpdate instance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fname</strong> (<em>str</em>) – The file name</p></li>
+<li><p><strong>updateMethod</strong> (<em>Update</em>) – The update method instance</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>An instance of StateUpdate</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#protex.update.StateUpdate" title="protex.update.StateUpdate">StateUpdate</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="protex.update.StateUpdate.update">
 <span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nr_of_steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="protex.residue.Residue.html#protex.residue.Residue" title="protex.residue.Residue"><span class="pre">protex.residue.Residue</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="protex.residue.Residue.html#protex.residue.Residue" title="protex.residue.Residue"><span class="pre">protex.residue.Residue</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/protex/update.html#StateUpdate.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#protex.update.StateUpdate.update" title="Permalink to this definition"></a></dt>
 <dd><p>updates the current state using the method defined in the UpdateMethod class.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>nr_of_steps</strong> (<em>int, optional</em>) – The number of intermediate <span class="math notranslate nohighlight">\({\lambda}\)</span> states.
+The default of two means 1 with the initial and one with the final state,
+so no intermediate states, by default 2</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list with all the updated residue tuples</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list[tuple[<a class="reference internal" href="protex.residue.Residue.html#protex.residue.Residue" title="protex.residue.Residue">Residue</a>, <a class="reference internal" href="protex.residue.Residue.html#protex.residue.Residue" title="protex.residue.Residue">Residue</a>]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="protex.update.StateUpdate.write_charges">
+<span class="sig-name descname"><span class="pre">write_charges</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/protex/update.html#StateUpdate.write_charges"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#protex.update.StateUpdate.write_charges" title="Permalink to this definition"></a></dt>
+<dd><p>Write current charges to a file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>filename</strong> (<em>str</em>) – The name of the file to wrtie the charges to</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -145,7 +224,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2022, Florian Joerg &amp; Marcus Wieder. Project structure based on the Computational Molecular Science Python Cookiecutter version 1.5.</p>
+    <p>&#169; Copyright 2023, Florian Joerg &amp; Marcus Wieder. Project structure based on the Computational Molecular Science Python Cookiecutter version 1.5.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

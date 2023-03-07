@@ -105,9 +105,8 @@
 <li><p><strong>system</strong> (<em>openmm.openmm.System</em>) – The system generated with openMM, where all residues are in</p></li>
 <li><p><strong>initial_parameters</strong> (<em>dict[list]</em>) – The parameters for the residue</p></li>
 <li><p><strong>alternativ_parameters</strong> (<em>dict[list]</em>) – The parameters for the alternativ (protonated/deprotonated) state</p></li>
-<li><p><strong>canonical_name</strong> (<em>str</em>) – A general name for both states (protonated/deprotonated)</p></li>
 <li><p><strong>pair_12_13_exclusion_list</strong> (<em>list</em>) – 1-2 and 1-3 exclusions in the system</p></li>
-<li><p><strong>equivalent_atoms</strong> (<em>tuple</em>) – if current name and alternative name have equivalent atoms</p></li>
+<li><p><strong>has_equivalent_atoms</strong> (<em>tuple[bool,bool]</em>) – if original name and alternative name have equivalent atoms</p></li>
 </ul>
 </dd>
 <dt class="field-even">Variables<span class="colon">:</span></dt>
@@ -118,11 +117,11 @@
 <li><p><strong>atom_idxs</strong> (<em>list</em><em>[</em><em>int</em><em>]</em>) – List of all atom indices belonging to that residue</p></li>
 <li><p><strong>list</strong><strong>[</strong><strong>str</strong><strong>]</strong> (<em>atom_names;</em>) – List of all atom names belonging to that residue</p></li>
 <li><p><strong>parameters</strong> (<em>dict</em><em>[</em><em>str: dict</em><em>[</em><em>list</em><em>]</em><em>]</em>) – Dictionary containnig the parameters for <code class="docutils literal notranslate"><span class="pre">original_name</span></code> and <code class="docutils literal notranslate"><span class="pre">alternativ_name</span></code></p></li>
-<li><p><strong>record_charge_state</strong> (<em>list</em>) – Records the charge state of that residue</p></li>
-<li><p><strong>canonical_name</strong> (<em>str</em>) – A general name for both states (protonated/deprotonated)</p></li>
+<li><p><strong>record_charge_state</strong> (<em>list</em>) – deprecated 1.1?
+Records the charge state of that residue</p></li>
 <li><p><strong>system</strong> (<em>openmm.openmm.System</em>) – The system generated with openMM, where all residues are in</p></li>
 <li><p><strong>pair_12_13_list</strong> (<em>list</em>) – 1-2 and 1-3 exclusions in the system</p></li>
-<li><p><strong>has_equivalent_atoms</strong> (<em>tuple</em><em>(</em><em>bool</em><em>)</em>) – if orignal_name and alternative name have equivalent atoms</p></li>
+<li><p><strong>equivalent_atoms</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>bool</em><em>]</em>) – if orignal_name and alternative name have equivalent atoms</p></li>
 </ul>
 </dd>
 </dl>
@@ -156,11 +155,14 @@
 </table>
 <dl class="py property">
 <dt class="sig sig-object py" id="protex.residue.Residue.alternativ_name">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">alternativ_name</span></span><a class="headerlink" href="#protex.residue.Residue.alternativ_name" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">alternativ_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#protex.residue.Residue.alternativ_name" title="Permalink to this definition"></a></dt>
 <dd><p>Alternative name for the residue, e.g. the corresponding name for the protonated/deprotonated form.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>str</p>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The alternative name</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
 </dd>
 </dl>
 </dd></dl>
@@ -179,9 +181,17 @@
 
 <dl class="py property">
 <dt class="sig sig-object py" id="protex.residue.Residue.has_equivalent_atom">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">has_equivalent_atom</span></span><a class="headerlink" href="#protex.residue.Residue.has_equivalent_atom" title="Permalink to this definition"></a></dt>
-<dd><p>Determines if the current residue has an equivalent atom defined.
-It depends i.e if the residue is currently OAC (-&gt; two equivalent O’s) or HOAC (no equivlent O’s).</p>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">has_equivalent_atom</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#protex.residue.Residue.has_equivalent_atom" title="Permalink to this definition"></a></dt>
+<dd><p>Determines if the current residue has an equivalent atom defined.</p>
+<p>It depends i.e if the residue is currently OAC (-&gt; two equivalent O’s) or HOAC (no equivlent O’s).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>True if this residue currently has an equivalent atom, else otherwise</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py method">
@@ -191,9 +201,12 @@ It depends i.e if the residue is currently OAC (-&gt; two equivalent O’s) or H
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>force_name</strong> (<em>Name of the force to update</em>)</p></li>
-<li><p><strong>lamb</strong> (<em>lambda state at which to get corresponding values (between 0 and 1)</em>)</p></li>
+<li><p><strong>force_name</strong> (<em>str</em>) – Name of the force to update</p></li>
+<li><p><strong>lamb</strong> (<em>float</em>) – lambda state at which to get corresponding values (between 0 and 1)</p></li>
 </ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
 </dd>
 </dl>
 </dd></dl>
@@ -212,7 +225,7 @@ It depends i.e if the residue is currently OAC (-&gt; two equivalent O’s) or H
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2022, Florian Joerg &amp; Marcus Wieder. Project structure based on the Computational Molecular Science Python Cookiecutter version 1.5.</p>
+    <p>&#169; Copyright 2023, Florian Joerg &amp; Marcus Wieder. Project structure based on the Computational Molecular Science Python Cookiecutter version 1.5.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
