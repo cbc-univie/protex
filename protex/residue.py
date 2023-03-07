@@ -48,39 +48,84 @@ class Residue:
     equivalent_atoms: dict[str, bool]
         if orignal_name and alternative name have equivalent atoms
     """
-
+    
     def __init__(
         self,
         residue,
-        alternativ_name,
+        ordered_names,
         system,
-        inital_parameters,
-        alternativ_parameters,
+        parameters,
         pair_12_13_exclusion_list,
         has_equivalent_atoms,
+        modes
     ) -> None:
         self.residue = residue
         self.original_name = residue.name
         self.current_name = self.original_name
+        self.ordered_names = ordered_names
         self.atom_idxs = [atom.index for atom in residue.atoms()]
         self.atom_names = [atom.name for atom in residue.atoms()]
-        self.parameters = {
-            self.original_name: inital_parameters,
-            alternativ_name: alternativ_parameters,
-        }
+        # self.parameters = {
+        #     self.original_name: inital_parameters,
+        #     alternativ_name: alternativ_parameters,
+        # }
+        self.parameters = parameters
         self.record_charge_state = []
         self.system = system
         self.record_charge_state.append(self.endstate_charge)  # Not used anywhere?
         self.pair_12_13_list = pair_12_13_exclusion_list
-        self.equivalent_atoms: dict[str, bool] = {
-            self.original_name: has_equivalent_atoms[0],
-            self.alternativ_name: has_equivalent_atoms[1],
-        }
+        # self.equivalent_atoms: dict[str, bool] = {
+        #     self.original_name: has_equivalent_atoms[0],
+        #     self.alternativ_name: has_equivalent_atoms[1],
+        # }
+        self.has_equivalent_atoms = has_equivalent_atoms
+        self.modes = modes
         self.equivalent_atom_pos_in_list: int = None
         self.used_equivalent_atom: bool = False
 
-    def __str__(self):
+    def __str__(self)->str:
+        """Return the description of the current residue.
+
+        Returns
+        -------
+        str
+            The current name and the residue object
+        """
         return f"Residue {self.current_name}, {self.residue}"
+    
+    @property
+    def is_acceptor(self) -> bool:
+        """Determine if current molecule is an acceptor.
+
+        Returns
+        -------
+        bool
+            True if the current resname is an acceptor (can accept a H from another residue)
+            False otherwise
+        """
+        return self.modes[self.current_name] in ["acceptor", "both"]
+    
+    @property
+    def is_donor(self) -> bool:
+        """Determine if current molecule is a donor.
+
+        Returns
+        -------
+        bool
+            True if the current resname is a donor (can give a H to another residue)
+            False otherwise
+        """
+        return self.modes[self.current_name] in ["donor", "both"]
+
+    def get_mode(self) -> str:
+        """Return the mode of the current resname.
+
+        Returns
+        -------
+        str
+            The mode
+        """
+        return self.modes[self.current_name]
 
     @property
     def has_equivalent_atom(self) -> bool:
@@ -93,7 +138,7 @@ class Residue:
         bool
             True if this residue currently has an equivalent atom, else otherwise
         """
-        return self.equivalent_atoms[self.current_name]
+        return self.has_equivalent_atoms[self.current_name]
 
     @property
     def alternativ_name(self) -> str:
@@ -745,3 +790,54 @@ class Residue:
                     charge += charge_idx._value
 
         return np.round(charge, 3)
+
+def update_names(residue1: Residue, residue2: Residue) -> None:
+    """Change the current name of the two given residues to the respective new ones after the update.
+
+    Parameters
+    ----------
+    residue1 : Residue
+        Residue instance which was part of a transfer
+    residue2 : Residue
+        Residue instance which was part of a transfer
+    """
+    def _used_as(mode1, mode2):
+        if mode1 == "both" and mode2 == "both":
+            # well.. anything is possible now, we just use the first as donor and the second as acceptor
+            # TODO: we shoud check which atom was part? or sth like that????? 
+            return ("donor", "acceptor")
+        if mode1 == "both":
+            if mode2 == "acceptor":
+                return ("donor", mode2)
+            elif mode2 == "donor":
+                return ("acceptor", mode2)
+        elif mode2 == "both":
+            if mode1 == "acceptor":
+                return (mode1, "donor")
+            elif mode1 == "donor":
+                return (mode1, "acceptor")
+        else:
+            return (mode1, mode2)
+    
+    def _get_shift(mode):
+        if mode == "acceptor":
+            return 1
+        if mode == "donor":
+            return -1
+            
+    # check posiotion in ordered names and then decide if go to left (= less H -> donated), or right ->more H
+    name1 = residue1.current_name
+    current_pos1 = residue1.ordered_names.index(name1)
+    mode1 = residue1.get_mode()
+    
+    name2 = residue2.current_name
+    current_pos2 = residue2.ordered_names.index(name2)
+    mode2 = residue2.get_mode()
+
+    acutal_mode1, actual_mode2 = _used_as(mode1, mode2)
+
+    new_name1 = residue1.ordered_names[current_pos1+_get_shift(acutal_mode1)]
+    residue1.current_name = new_name1
+
+    new_name2 = residue2.ordered_names[current_pos2+_get_shift(actual_mode2)]
+    residue2.current_name = new_name2

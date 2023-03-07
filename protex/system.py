@@ -104,10 +104,34 @@ class ProtexTemplates:
         self.names: list[str] = list(
             itertools.chain(*self.pairs)
         )  # also what about duplicates
+        self.ordered_names: list[tuple[str]] = self._setup_ordered_names()
         self.allowed_updates: dict[frozenset[str], dict[str, float]] = allowed_updates
         self.overall_max_distance: float = max(
             [value["r_max"] for value in self.allowed_updates.values()]
         )
+    
+    def _setup_ordered_names(self) -> list[tuple[str]]:
+        #from low H to many H
+        #TODO: implement
+        return [("IM1", "IM1H"), ("OAC", "HOAC", "H2OAC")]
+
+    def get_ordered_names_for(self, resname: str) -> tuple[str]:
+        """Get the tuple of the correct resname sequences for a given resname.
+
+        Parameters
+        ----------
+        resname : str
+            The resname
+
+        Returns
+        -------
+        tuple[str]
+            A tuple with the order of resnames from low H (acceptor) to high H (donor) count
+        """
+        for tup in self.ordered_names:
+            if resname in tup:
+                return tup
+        return RuntimeError(f"Resname {resname} not found in the present names.")
 
     def _set_mode(self):
         allowed_modes = ["acceptor", "donor", "both"]
@@ -144,6 +168,21 @@ class ProtexTemplates:
         """
         with open(fname, "wb") as outp:
             pickle.dump(self, outp, pickle.HIGHEST_PROTOCOL)
+    
+    def get_mode_for(self, resname: str) -> str:
+        """Get the mode for the given residue.
+
+        Parameters
+        ----------
+        resname : str
+            The resname
+
+        Returns
+        -------
+        str
+            The mode of the given resname
+        """
+        return self.states[resname]["mode"]
 
     def get_atom_name_for(self, resname: str) -> str:
         """Get the atom name for a specific residue.
@@ -301,7 +340,24 @@ class ProtexTemplates:
         else:
             raise RuntimeError("something went wrong")
 
-    def get_other_resnames(self, resname: str) -> list(str):
+    def get_other_resnames(self, resname: str) -> list[str]:
+        """Return the corresponding alternative resname to the given one.
+
+        Parameters
+        ----------
+        resname : str
+            The resname
+
+        Returns
+        -------
+        list[str]
+            The other resnames connected to the current one
+
+        Raises
+        ------
+        RuntimeError
+            The given resname does not exist
+        """
         assert resname in self.names
         for pair in self.pairs:
             if resname in pair:
@@ -594,7 +650,8 @@ class ProtexSystem:
         # for each residue type get forces
         for r in self.topology.residues():
             name = r.name
-            name_of_paired_ion = self.templates.get_residue_name_for_coupled_state(name)
+            #name_of_paired_ion = self.templates.get_residue_name_for_coupled_state(name)
+            other_names = self.templates.get_other_resnames(name)
 
             ### do something like this, to precess meoh without having a template
             #### problem: residues for psf are collected this way
@@ -606,40 +663,62 @@ class ProtexSystem:
             # templates[name] = self._extract_templates(name)
             # templates[name_of_paired_ion] = self._extract_templates(name_of_paired_ion)
 
-            if name in templates or name_of_paired_ion in templates:
+            #if name in templates or name_of_paired_ion in templates:
+            if name in templates or all(oname in templates for oname in other_names):
                 continue
 
             templates[name] = self._extract_templates(name)
-            templates[name_of_paired_ion] = self._extract_templates(name_of_paired_ion)
+            for oname in other_names:
+                templates[oname] = self._extract_templates(oname)
+            #templates[name_of_paired_ion] = self._extract_templates(name_of_paired_ion)
 
         for r in self.topology.residues():
             name = r.name
             if name in self.templates.names:
-                name_of_paired_ion = self.templates.get_residue_name_for_coupled_state(
-                    name
-                )
-
-                parameters_state1 = templates[name]
-                parameters_state2 = templates[name_of_paired_ion]
-                # check that we have the same number of parameters
-                self._check_nr_of_forces(
-                    parameters_state1, parameters_state2, name, name_of_paired_ion
-                )
-
-                residues.append(
-                    Residue(
-                        r,
-                        name_of_paired_ion,
-                        self.system,
-                        parameters_state1,
-                        parameters_state2,
-                        pair_12_13_list,
-                        (
-                            self.templates.has_equivalent_atom(name),
-                            self.templates.has_equivalent_atom(name_of_paired_ion),
-                        ),
+                # name_of_paired_ion = self.templates.get_residue_name_for_coupled_state(name)
+                other_names = self.templates.get_other_resnames(name) 
+                parameters = {}
+                has_equivalent_atoms = {}
+                modes = {}
+                parameters[name] = templates[name]
+                has_equivalent_atoms[name] = self.templates.has_equivalent_atom(name)
+                modes[name] = self.templates.get_mode_for(name)
+                for oname in other_names:
+                    parameters[oname] = templates[oname]
+                    has_equivalent_atoms[oname] = self.templates.has_equivalent_atom(oname)
+                    modes[oname] = self.templates.get_mode_for(oname)
+                
+                for name1, name2 in itertools.combinations(parameters, 2):
+                    # check that we have the same number of parameters
+                    self._check_nr_of_forces(
+                        parameters[name1], parameters[name2], name1, name2
                     )
-                )
+
+                #parameters_state1 = templates[name]
+                #parameters_state2 = templates[name_of_paired_ion]
+                # check that we have the same number of parameters
+                #self._check_nr_of_forces(
+                #    parameters_state1, parameters_state2, name, name_of_paired_ion
+                #)
+
+
+                residue = Residue(r, self.templates.get_ordered_names_for(name), self.system, parameters, pair_12_13_list, has_equivalent_atoms, modes)
+                residues.append(residue)
+
+                # residues.append(
+                #     Residue(
+                #         r,
+                #         name_of_paired_ion,
+                #         self.system,
+                #         parameters_state1,
+                #         parameters_state2,
+                #         pair_12_13_list,
+                #         (
+                #             self.templates.has_equivalent_atom(name),
+                #             self.templates.has_equivalent_atom(name_of_paired_ion),
+                #         ),
+                #     )
+                # )
                 residues[
                     -1
                 ].current_name = (

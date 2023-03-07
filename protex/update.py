@@ -15,7 +15,7 @@ try:
 except ImportError:
     from simtk.unit import nanometers
 
-from protex.residue import Residue
+from protex.residue import Residue, update_names
 from protex.system import ProtexSystem
 
 logger = logging.getLogger(__name__)
@@ -518,13 +518,14 @@ class NaiveMCUpdate(Update):
             self.ionic_liquid.simulation.step(1)
 
         for candidate in candidates:
-            candidate1_residue, candidate2_residue = candidate
+            update_names(*candidate)
+            #candidate1_residue, candidate2_residue = candidate
             # after the update is finished the current_name attribute is updated (and since alternative_name depends on current_name it too is updated)
-            candidate1_residue.current_name = candidate1_residue.alternativ_name
-            candidate2_residue.current_name = candidate2_residue.alternativ_name
+            #candidate1_residue.current_name = candidate1_residue.alternativ_name
+            #candidate2_residue.current_name = candidate2_residue.alternativ_name
 
-            assert candidate1_residue.current_name != candidate1_residue.alternativ_name
-            assert candidate2_residue.current_name != candidate2_residue.alternativ_name
+            #assert candidate1_residue.current_name != candidate1_residue.alternativ_name
+            #assert candidate2_residue.current_name != candidate2_residue.alternativ_name
 
         # get new energy
         state = self.ionic_liquid.simulation.context.getState(getEnergy=True)
@@ -662,7 +663,7 @@ class StateUpdate:
         )
 
     def update(self, nr_of_steps: int = 2) -> list[tuple[Residue, Residue]]:
-        r"""updates the current state using the method defined in the UpdateMethod class.
+        r"""Update the current state using the method defined in the UpdateMethod class.
 
         Parameters
         ----------
@@ -703,7 +704,7 @@ class StateUpdate:
     def _propose_candidate_pair(
         self, pos_list: list[float], res_list: list[Residue], use_pbc: bool = True
     ) -> list[tuple[Residue, Residue]]:
-        """Takes the return value of _get_positions_of_mutation_sites."""
+        """Take the return value of _get_positions_of_mutation_sites."""
         assert len(pos_list) == len(
             res_list
         ), "Should be equal length and same order, because residue is found by index of pos list"

@@ -18,8 +18,8 @@ import protex
 
 from ..system import ProtexSystem, ProtexTemplates
 from ..testsystems import (
-    HOAC_H2OAC,
     IM1H_IM1,
+    IM1H_IM1_2,
     OAC_HOAC,
     OAC_HOAC_H2OAC,
     generate_h2oac_system,
@@ -2330,8 +2330,13 @@ def test_h2oac():
     )
     print(templates.get_atom_name_for("HOAC"))
     print(templates.get_other_resnames("HOAC"))
+    print(templates.get_mode_for("HOAC"))
     # wrap system in IonicLiquidSystem
-    # ionic_liquid = ProtexSystem(simulation, templates)
+    ionic_liquid = ProtexSystem(simulation, templates)
+    h2oac = ionic_liquid.residues[-1]
+    print(h2oac)
+    assert h2oac.is_donor
+    assert not h2oac.is_acceptor
     # update = NaiveMCUpdate(ionic_liquid)
     # initialize state update class
     # state_update = StateUpdate(update)

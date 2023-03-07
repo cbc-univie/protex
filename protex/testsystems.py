@@ -845,6 +845,11 @@ IM1H_IM1 = {
     },
 }
 
+IM1H_IM1_2 = {
+    "IM1H": {"atoms": [{"name": "H7", "mode": "donor"}]},
+    "IM1":  {"atoms": [{"name": "N2", "mode": "acceptor"}]}
+    }
+
 OAC_HOAC = {
     "OAC": {
         "atom_name": "O2",
@@ -853,23 +858,34 @@ OAC_HOAC = {
     "HOAC": {"atom_name": "H", "mode": "both"},
 }
 
-HOAC_H2OAC = {
-    "HOAC": {"atom_name": "H", "mode": "both"},
-    "H2OAC": {
-        "atom_name": "HO1",
-    },
+# HOAC_H2OAC = {
+#     "HOAC": {"atom_name": "H", "mode": "both"},
+#     "H2OAC": {
+#         "atom_name": "HO1",
+#     },
+# }
+
+# OAC_HOAC_H2OAC = {
+#     "OAC": {
+#         "atom_name": "O2",
+#         "equivalent_atom": "O1",
+#     },
+#     "HOAC": {"atom_name": "H", "mode": "both"},
+#     "H2OAC": {
+#         "atom_name": "HO1",
+#     },
+# }
+
+#auch blöd ohne equivalent atom falls es kein definiertes H/Dummy gibt!
+OAC_HOAC_H2OAC = {
+    "OAC":   {"atoms": [{"name": "O2", "mode": "acceptor"},
+                        {"name": "O1", "mode": "acceptor"}]},
+    "HOAC":  {"atoms": [{"name": "H",  "mode": "donor"},
+                        {"name": "O1", "mode": "acceptor"}]},
+    "H2OAC": {"atoms": [{"name": "HO1","mode": "donor"},
+                        {"name": "HO2","mode": "donor"}]},
 }
 
-OAC_HOAC_H2OAC = {
-    "OAC": {
-        "atom_name": "O2",
-        "equivalent_atom": "O1",
-    },
-    "HOAC": {"atom_name": "H", "mode": "both"},
-    "H2OAC": {
-        "atom_name": "HO1",
-    },
-}
 
 HPTSH_HPTS = {
     "HPTSH": {
