@@ -20,11 +20,11 @@ AUTO ANGL DIHE DRUD
 !copied from drude model, dort ACEH (acetic acid) vorhanden
 RESI HOAC          0.000 ! acetic acid
 !
-!  H1      O1-HO2
+!  H1      O1-HO1(DUM)
 !    \    //
 ! H2-C2--C1
 !    /     \
-!  H3       O2-HO1
+!  H3       O2-H
 GROUP
 ATOM C1   CD2O3A   0.858  ALPHA -1.207 THOLE  0.708
 ATOM C2   CD33C   -0.300  ALPHA -2.114 THOLE  0.750
@@ -34,7 +34,7 @@ ATOM H3   HDA3A    0.092
 ATOM O1   OD2C3A   0.000  ALPHA -0.922 THOLE  1.539
 ATOM O2   OD31F    0.000  ALPHA -1.280 THOLE  1.124
 ATOM H    HDP1A    0.374
-ATOM HO2  DUMH     0.000 !dummy H for pt
+ATOM HO1  DUMH     0.000 !dummy H for pt
 ATOM LPO11 LPD     -0.319
 ATOM LPO12 LPD     -0.319
 ATOM LPO21 LPD     -0.285
@@ -48,7 +48,7 @@ BOND C2 H1
 BOND C2 H2
 BOND C2 H3
 BOND O2 H
-BOND O1 HO2
+BOND O1 HO1
 BOND O1 LPO11
 BOND O1 LPO12
 BOND O2 LPO21

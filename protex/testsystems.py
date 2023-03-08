@@ -1,4 +1,5 @@
 import os
+import logging
 
 import protex
 
@@ -38,6 +39,8 @@ except ImportError:
         Simulation,
     )
     from simtk.unit import angstroms, kelvin, picoseconds
+
+logger = logging.getLogger(__name__)
 
 
 # general functions
@@ -135,6 +138,7 @@ def setup_simulation(
             0.0005 * picoseconds,
         )
         print("Using VVIntegrator Plugin")
+        # logger.info("Using VVIntegrator Plugin")
     else:
         integrator = DrudeNoseHooverIntegrator(
             300 * kelvin,
@@ -150,30 +154,32 @@ def setup_simulation(
     #    f"{coll_freq=}, {drude_coll_freq=}"
     # )  # tested with 20, 40, 80, 100, 120, 140, 160: 20,40 bad; 80 - 120 good; 140, 160 crashed
     integrator.setMaxDrudeDistance(0.25 * angstroms)
-    try:
-        platform = Platform.getPlatformByName("CUDA")
-        prop = dict(CudaPrecision="single")  # default is single
-        # prop = dict(CudaPrecision="double")
-        # Moved creating the simulation object inside the try...except block, because i.e.
-        # Error loading CUDA module: CUDA_ERROR_INVALID_PTX (218)
-        # message was only thrown during simulation creation not by specifying the platform
-        simulation = Simulation(
-            psf.topology,
-            system,
-            integrator,
-            platform=platform,
-            platformProperties=prop,
-        )
-    except OpenMMException:
-        platform = Platform.getPlatformByName("CPU")
-        prop = dict()
-        simulation = Simulation(
-            psf.topology,
-            system,
-            integrator,
-            platform=platform,
-            platformProperties=prop,
-        )
+    # try:
+    platform = Platform.getPlatformByName("CUDA")
+    prop = dict(CudaPrecision="single")  # default is single
+    logger.info("Using CUDA")
+    # prop = dict(CudaPrecision="double")
+    # Moved creating the simulation object inside the try...except block, because i.e.
+    # Error loading CUDA module: CUDA_ERROR_INVALID_PTX (218)
+    # message was only thrown during simulation creation not by specifying the platform
+    simulation = Simulation(
+        psf.topology,
+        system,
+        integrator,
+        platform=platform,
+        platformProperties=prop,
+    )
+    # except OpenMMException:
+    #     platform = Platform.getPlatformByName("CPU")
+    #     prop = dict()
+    #     logger.info("Using CPU")
+    #     simulation = Simulation(
+    #         psf.topology,
+    #         system,
+    #         integrator,
+    #         platform=platform,
+    #         platformProperties=prop,
+    #     )
 
     simulation.context.setPositions(crd.positions)
     # Try with positions from equilibrated system:
@@ -425,8 +431,8 @@ def generate_h2oac_system(
     dummies: list[tuple[str, str]] = [
         ("IM1", "H7"),
         ("OAC", "H"),
-        ("OAC", "HO2"),
-        ("HOAC", "HO2"),
+        ("OAC", "HO1"),
+        ("HOAC", "HO1"),
     ],
     use_plugin: bool = True,
 ):
@@ -847,8 +853,8 @@ IM1H_IM1 = {
 
 IM1H_IM1_2 = {
     "IM1H": {"atoms": [{"name": "H7", "mode": "donor"}]},
-    "IM1":  {"atoms": [{"name": "N2", "mode": "acceptor"}]}
-    }
+    "IM1": {"atoms": [{"name": "N2", "mode": "acceptor"}]},
+}
 
 OAC_HOAC = {
     "OAC": {
@@ -858,33 +864,22 @@ OAC_HOAC = {
     "HOAC": {"atom_name": "H", "mode": "both"},
 }
 
-# HOAC_H2OAC = {
-#     "HOAC": {"atom_name": "H", "mode": "both"},
-#     "H2OAC": {
-#         "atom_name": "HO1",
-#     },
-# }
-
-# OAC_HOAC_H2OAC = {
-#     "OAC": {
-#         "atom_name": "O2",
-#         "equivalent_atom": "O1",
-#     },
-#     "HOAC": {"atom_name": "H", "mode": "both"},
-#     "H2OAC": {
-#         "atom_name": "HO1",
-#     },
-# }
-
-#auch blöd ohne equivalent atom falls es kein definiertes H/Dummy gibt!
+# use equivalent atom, if this atom is equivalent, but the dummy-real_atom conversion is fixed to the other topology -
+# it is then internally managed to swap the two atoms
 OAC_HOAC_H2OAC = {
-    "OAC":   {"atoms": [{"name": "O2", "mode": "acceptor"},
-                        {"name": "O1", "mode": "acceptor"}]},
-    "HOAC":  {"atoms": [{"name": "H",  "mode": "donor"},
-                        {"name": "O1", "mode": "acceptor"}]},
-    "H2OAC": {"atoms": [{"name": "HO1","mode": "donor"},
-                        {"name": "HO2","mode": "donor"}]},
+    "OAC": {"atoms": [{"name": "O2", "mode": "acceptor"}]},
+    "HOAC": {
+        "atoms": [{"name": "H", "mode": "donor"}, {"name": "O1", "mode": "acceptor"}]
+    },
+    "H2OAC": {"atoms": [{"name": "HO1", "mode": "donor"}]},
 }
+# OAC_HOAC_H2OAC = {
+#     "OAC": {"atoms": [{"name": "O2", "mode": "acceptor", "equivalent_atom": "O1"}]},
+#     "HOAC": {
+#         "atoms": [{"name": "H", "mode": "donor"}, {"name": "O1", "mode": "acceptor"}]
+#     },
+#     "H2OAC": {"atoms": [{"name": "HO1", "mode": "donor", "equivalent_atom:": "H"}]},
+# }
 
 
 HPTSH_HPTS = {

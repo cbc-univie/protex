@@ -2307,37 +2307,46 @@ def test_save_load_updates(caplog, tmp_path):
 
 
 def test_h2oac():
-    simulation = generate_h2oac_system(use_plugin=False)
+    simulation = generate_h2oac_system(use_plugin=True)
     # get ionic liquid templates
     allowed_updates = {}
     # allowed updates according to simple protonation scheme
-    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
-    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
-    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 1}
-    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.26, "prob": 1}
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.26, "prob": 1}
+    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.26, "prob": 1}
+    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.26, "prob": 1}
     # advanced
-    allowed_updates[frozenset(["HOAC", "HOAC"])] = {"r_max": 0.16, "prob": 1}
-    allowed_updates[frozenset(["OAC", "H2OAC"])] = {"r_max": 0.16, "prob": 1}
-    allowed_updates[frozenset(["HOAC", "H2OAC"])] = {"r_max": 0.16, "prob": 1}
-    allowed_updates[frozenset(["IM1", "H2OAC"])] = {"r_max": 0.16, "prob": 1}
-    allowed_updates[frozenset(["IM1H", "HOAC"])] = {"r_max": 0.16, "prob": 1}
+    # allowed_updates[frozenset(["HOAC", "HOAC"])] = {"r_max": 0.16, "prob": 1}
+    # allowed_updates[frozenset(["OAC", "H2OAC"])] = {"r_max": 0.16, "prob": 1}
+    # allowed_updates[frozenset(["HOAC", "H2OAC"])] = {"r_max": 0.16, "prob": 1}
+    # allowed_updates[frozenset(["IM1", "H2OAC"])] = {"r_max": 0.16, "prob": 1}
+    # allowed_updates[frozenset(["IM1H", "HOAC"])] = {"r_max": 0.16, "prob": 1}
 
     print(allowed_updates.keys())
     templates = ProtexTemplates(
         # [OAC_HOAC_chelpg, IM1H_IM1_chelpg], (set(["IM1H", "OAC"]), set(["IM1", "HOAC"]))
-        [IM1H_IM1, OAC_HOAC_H2OAC],
+        [IM1H_IM1_2, OAC_HOAC_H2OAC],
         (allowed_updates),
+        legacy_mode=False,
     )
-    print(templates.get_atom_name_for("HOAC"))
+    names = templates.get_atom_names_for("HOAC")
+    print(names)
     print(templates.get_other_resnames("HOAC"))
-    print(templates.get_mode_for("HOAC"))
+    print(templates.get_mode_for("HOAC", names[0]))
+    print(templates.get_all_states_for("H2OAC"))
     # wrap system in IonicLiquidSystem
     ionic_liquid = ProtexSystem(simulation, templates)
     h2oac = ionic_liquid.residues[-1]
     print(h2oac)
-    assert h2oac.is_donor
-    assert not h2oac.is_acceptor
-    # update = NaiveMCUpdate(ionic_liquid)
+    assert h2oac.is_donor("HO1")
+    assert not h2oac.is_acceptor("HO1")
+    update = NaiveMCUpdate(ionic_liquid)
     # initialize state update class
-    # state_update = StateUpdate(update)
-    # print(state_update)
+    state_update = StateUpdate(update)
+    state = ionic_liquid.simulation.context.getState(getEnergy=True)
+    print(state.getPotentialEnergy())
+    ionic_liquid.simulation.step(1000)
+    state = ionic_liquid.simulation.context.getState(getEnergy=True)
+    print(state.getPotentialEnergy())
+    state_update.update(2)
+    print(state_update)

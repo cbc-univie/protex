@@ -15,11 +15,11 @@ AUTO ANGL DIHE DRUD
 RESI OAC         -1.000 ! acetate, Harder, Sep 09
 ! Topologies copied from /site/raid9/florian/im1h_oac_500/drude_toppar/toppar_drude_model_2013f.str
 !
-!   H1      O1-HO2
+!   H1      O1-HO1(DUM)
 !     \    //
 ! H2--C2--C1 (-1)
 !     /    \
-!   H3      O2-H
+!   H3      O2-H(DUM)
 GROUP
 ATOM C1     CD2O2A   0.708  ALPHA -1.016  THOLE 0.899
 ATOM C2     CD33A   -0.194  ALPHA -1.681  THOLE 1.414
@@ -29,7 +29,7 @@ ATOM H3     HDA3A    0.004
 ATOM O1     OD2C2A   0.003  ALPHA -0.699  THOLE 2.399
 ATOM O2     OD2C2A   0.003  ALPHA -0.699  THOLE 2.399
 ATOM H      DUMH     0.000 ! dummy H for proton transfer
-ATOM HO2    DUMH     0.000 ! dummy H for proton transfer
+ATOM HO1    DUMH     0.000 ! dummy H for proton transfer
 ATOM LPO11  LPD     -0.383
 ATOM LPO12  LPD     -0.383
 ATOM LPO21  LPD     -0.383
@@ -42,7 +42,7 @@ BOND C2 H1
 BOND C2 H2
 BOND C2 H3
 BOND O2 H
-BOND O1 HO2
+BOND O1 HO1
 BOND O1 LPO11
 BOND O1 LPO12
 BOND O2 LPO21

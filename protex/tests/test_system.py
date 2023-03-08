@@ -44,13 +44,42 @@ from ..reporter import ChargeReporter, EnergyReporter
 from ..system import ProtexSystem, ProtexTemplates
 from ..testsystems import (
     IM1H_IM1,
+    IM1H_IM1_2,
     OAC_HOAC,
+    OAC_HOAC_H2OAC,
+    generate_h2oac_system,
     generate_im1h_oac_dummy_system,
     generate_im1h_oac_system,
     generate_single_im1h_oac_system,
     generate_small_box,
 )
 from ..update import NaiveMCUpdate, StateUpdate
+
+
+###
+# H2OAC neue templates class test
+###
+def test_new_templates():
+    states_old = [OAC_HOAC, IM1H_IM1]
+    states_new = [OAC_HOAC_H2OAC, IM1H_IM1_2]
+    allowed_updates = {}
+    # allowed updates according to simple protonation scheme
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.16, "prob": 1}
+    # advanced
+    allowed_updates[frozenset(["HOAC", "HOAC"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["OAC", "H2OAC"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["HOAC", "H2OAC"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["IM1", "H2OAC"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["IM1H", "HOAC"])] = {"r_max": 0.16, "prob": 1}
+
+    templates_old = ProtexTemplates(states_old, allowed_updates, legacy_mode=True)
+    print(templates_old)
+
+    templates_new = ProtexTemplates(states_new, allowed_updates, legacy_mode=False)
+    print(templates_new)
 
 
 #################

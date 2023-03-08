@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import itertools
 from collections import deque
 
@@ -56,8 +58,9 @@ class Residue:
         system,
         parameters,
         pair_12_13_exclusion_list,
-        has_equivalent_atoms,
-        modes
+        # has_equivalent_atoms,
+        # modes,
+        states,
     ) -> None:
         self.residue = residue
         self.original_name = residue.name
@@ -78,12 +81,14 @@ class Residue:
         #     self.original_name: has_equivalent_atoms[0],
         #     self.alternativ_name: has_equivalent_atoms[1],
         # }
-        self.has_equivalent_atoms = has_equivalent_atoms
-        self.modes = modes
+        # self.has_equivalent_atoms = has_equivalent_atoms
+        # self.modes = modes
+        self.states = states
         self.equivalent_atom_pos_in_list: int = None
         self.used_equivalent_atom: bool = False
+        self.used_atom: str | None = None
 
-    def __str__(self)->str:
+    def __str__(self) -> str:
         """Return the description of the current residue.
 
         Returns
@@ -94,8 +99,27 @@ class Residue:
         return f"Residue {self.current_name}, {self.residue}"
 
     @property
-    def is_acceptor(self) -> bool:
-        """Determine if current molecule is an acceptor.
+    def update_name(self):
+        assert self.used_atom is not None
+
+        def _get_shift(mode):
+            if mode == "acceptor":
+                return 1
+            if mode == "donor":
+                return -1
+
+        # check posiotion in ordered names and then decide if go to left (= less H -> donated), or right ->more H
+        name = self.current_name
+        atom_name = self.used_atom
+        current_pos = self.ordered_names.index(name)
+        mode = self.get_mode_for(atom_name)
+        new_name = self.ordered_names[current_pos + _get_shift(mode)]
+        self.current_name = new_name
+
+        self.used_atom = None
+
+    def is_acceptor(self, atom_name) -> bool:
+        """Determine if given atom_name for current molecule is an acceptor.
 
         Returns
         -------
@@ -103,10 +127,12 @@ class Residue:
             True if the current resname is an acceptor (can accept a H from another residue)
             False otherwise
         """
-        return self.modes[self.current_name] in ["acceptor", "both"]
+        for atom in self.states[self.current_name]["atoms"]:
+            if atom["name"] == atom_name:
+                return atom["mode"] == "acceptor"
+        return False
 
-    @property
-    def is_donor(self) -> bool:
+    def is_donor(self, atom_name) -> bool:
         """Determine if current molecule is a donor.
 
         Returns
@@ -115,9 +141,12 @@ class Residue:
             True if the current resname is a donor (can give a H to another residue)
             False otherwise
         """
-        return self.modes[self.current_name] in ["donor", "both"]
+        for atom in self.states[self.current_name]["atoms"]:
+            if atom["name"] == atom_name:
+                return atom["mode"] == "donor"
+        return False
 
-    def get_mode(self) -> str:
+    def get_mode_for(self, atom_name) -> str:
         """Return the mode of the current resname.
 
         Returns
@@ -125,7 +154,9 @@ class Residue:
         str
             The mode
         """
-        return self.modes[self.current_name]
+        for atom in self.states[self.current_name]["atoms"]:
+            if atom["name"] == atom_name:
+                return atom["mode"]
 
     @property
     def has_equivalent_atom(self) -> bool:
@@ -190,7 +221,9 @@ class Residue:
             parms = self._get_DrudeForce_parameters_at_lambda(lamb)
             self._set_DrudeForce_parameters(parms)
         else:
-            raise RuntimeWarning("Force name {force_name=} is not covered, no updates will happen on this one!")
+            raise RuntimeWarning(
+                "Force name {force_name=} is not covered, no updates will happen on this one!"
+            )
 
     def _set_NonbondedForce_parameters(self, parms):
         parms_nonb = deque(parms[0])
@@ -364,9 +397,10 @@ class Residue:
         for old_idx, old_parm in enumerate(self.parameters[current_name][force_name]):
             idx1, idx2 = old_parm[0], old_parm[1]
             for new_idx, new_parm in enumerate(self.parameters[new_name][force_name]):
-                if {
-                    new_parm[0] - new_parms_offset, new_parm[1] - new_parms_offset
-                } == {idx1 - old_parms_offset, idx2 - old_parms_offset}:
+                if {new_parm[0] - new_parms_offset, new_parm[1] - new_parms_offset} == {
+                    idx1 - old_parms_offset,
+                    idx2 - old_parms_offset,
+                }:
                     if old_idx != new_idx:
                         raise RuntimeError(
                             "Odering of Nonbonded Exception parameters is different between the two topologies."
@@ -434,9 +468,10 @@ class Residue:
         for old_idx, old_parm in enumerate(self.parameters[old_name][force_name]):
             idx1, idx2 = old_parm[0], old_parm[1]
             for new_idx, new_parm in enumerate(self.parameters[new_name][force_name]):
-                if {
-                    new_parm[0] - new_parms_offset, new_parm[1] - new_parms_offset
-                } == {idx1 - old_parms_offset, idx2 - old_parms_offset}:
+                if {new_parm[0] - new_parms_offset, new_parm[1] - new_parms_offset} == {
+                    idx1 - old_parms_offset,
+                    idx2 - old_parms_offset,
+                }:
                     if old_idx != new_idx:
                         raise RuntimeError(
                             "Odering of bond parameters is different between the two topologies.\n"
@@ -480,13 +515,13 @@ class Residue:
             idx1, idx2, idx3 = old_parm[0], old_parm[1], old_parm[2]
             for new_idx, new_parm in enumerate(self.parameters[new_name][force_name]):
                 if {
-                        new_parm[0] - new_parms_offset,
-                        new_parm[1] - new_parms_offset,
-                        new_parm[2] - new_parms_offset,
+                    new_parm[0] - new_parms_offset,
+                    new_parm[1] - new_parms_offset,
+                    new_parm[2] - new_parms_offset,
                 } == {
-                        idx1 - old_parms_offset,
-                        idx2 - old_parms_offset,
-                        idx3 - old_parms_offset,
+                    idx1 - old_parms_offset,
+                    idx2 - old_parms_offset,
+                    idx3 - old_parms_offset,
                 }:
                     if old_idx != new_idx:
                         raise RuntimeError(
@@ -558,10 +593,10 @@ class Residue:
                     self.parameters[new_name][force_name]
                 ):
                     if {
-                            new_parm[0] - new_parms_offset,
-                            new_parm[1] - new_parms_offset,
-                            new_parm[2] - new_parms_offset,
-                            new_parm[3] - new_parms_offset,
+                        new_parm[0] - new_parms_offset,
+                        new_parm[1] - new_parms_offset,
+                        new_parm[2] - new_parms_offset,
+                        new_parm[3] - new_parms_offset,
                     } == {idx1, idx2, idx3, idx4}:
                         if old_idx != new_idx:
                             raise RuntimeError(
@@ -579,11 +614,11 @@ class Residue:
                     self.parameters[new_name][force_name]
                 ):
                     if {
-                            new_parm[0] - new_parms_offset,
-                            new_parm[1] - new_parms_offset,
-                            new_parm[2] - new_parms_offset,
-                            new_parm[3] - new_parms_offset,
-                            new_parm[4],
+                        new_parm[0] - new_parms_offset,
+                        new_parm[1] - new_parms_offset,
+                        new_parm[2] - new_parms_offset,
+                        new_parm[3] - new_parms_offset,
+                        new_parm[4],
                     } == {idx1, idx2, idx3, idx4, idx5}:
                         if old_idx != new_idx:
                             raise RuntimeError(
@@ -630,15 +665,15 @@ class Residue:
             idx1, idx2, idx3, idx4 = old_parm[0], old_parm[1], old_parm[2], old_parm[3]
             for new_idx, new_parm in enumerate(self.parameters[new_name][force_name]):
                 if {
-                        new_parm[0] - new_parms_offset,
-                        new_parm[1] - new_parms_offset,
-                        new_parm[2] - new_parms_offset,
-                        new_parm[3] - new_parms_offset,
+                    new_parm[0] - new_parms_offset,
+                    new_parm[1] - new_parms_offset,
+                    new_parm[2] - new_parms_offset,
+                    new_parm[3] - new_parms_offset,
                 } == {
-                        idx1 - old_parms_offset,
-                        idx2 - old_parms_offset,
-                        idx3 - old_parms_offset,
-                        idx4 - old_parms_offset,
+                    idx1 - old_parms_offset,
+                    idx2 - old_parms_offset,
+                    idx3 - old_parms_offset,
+                    idx4 - old_parms_offset,
                 }:
                     if old_idx != new_idx:
                         raise RuntimeError(
@@ -684,9 +719,10 @@ class Residue:
         for old_idx, old_parm in enumerate(self.parameters[old_name][force_name]):
             idx1, idx2 = old_parm[0], old_parm[1]
             for new_idx, new_parm in enumerate(self.parameters[new_name][force_name]):
-                if {
-                    new_parm[0] - new_parms_offset, new_parm[1] - new_parms_offset
-                } == {idx1 - old_parms_offset, idx2 - old_parms_offset}:
+                if {new_parm[0] - new_parms_offset, new_parm[1] - new_parms_offset} == {
+                    idx1 - old_parms_offset,
+                    idx2 - old_parms_offset,
+                }:
                     if old_idx != new_idx:
                         raise RuntimeError(
                             "Odering of bond parameters is different between the two topologies."
@@ -730,9 +766,10 @@ class Residue:
         for old_idx, old_parm in enumerate(self.parameters[old_name][force_name]):
             idx1, idx2 = old_parm[0], old_parm[1]
             for new_idx, new_parm in enumerate(self.parameters[new_name][force_name]):
-                if {
-                    new_parm[0] - new_parms_offset, new_parm[1] - new_parms_offset
-                } == {idx1 - old_parms_offset, idx2 - old_parms_offset}:
+                if {new_parm[0] - new_parms_offset, new_parm[1] - new_parms_offset} == {
+                    idx1 - old_parms_offset,
+                    idx2 - old_parms_offset,
+                }:
                     if old_idx != new_idx:
                         raise RuntimeError(
                             "Odering of bond parameters is different between the two topologies."
@@ -791,53 +828,80 @@ class Residue:
 
         return np.round(charge, 3)
 
-def update_names(residue1: Residue, residue2: Residue) -> None:
-    """Change the current name of the two given residues to the respective new ones after the update.
+
+def is_allowed_mode_combination(mode1: str, mode2: str) -> bool:
+    """Determine if the two modes are once acceptor and once donor.
 
     Parameters
     ----------
-    residue1 : Residue
-        Residue instance which was part of a transfer
-    residue2 : Residue
-        Residue instance which was part of a transfer
+    mode1 : str
+        first mode, either 'donor' or 'acceptor'
+    mode2 : str
+        second mode, either 'donor' or 'acceptor'
+
+    Returns
+    -------
+    bool
+        True if once acceptor once donor, false otherwise
     """
-    def _used_as(mode1, mode2):
-        if mode1 == "both" and mode2 == "both":
-            # well.. anything is possible now, we just use the first as donor and the second as acceptor
-            # TODO: we shoud check which atom was part? or sth like that?????
-            return ("donor", "acceptor")
-        if mode1 == "both":
-            if mode2 == "acceptor":
-                return ("donor", mode2)
-            elif mode2 == "donor":
-                return ("acceptor", mode2)
-        elif mode2 == "both":
-            if mode1 == "acceptor":
-                return (mode1, "donor")
-            elif mode1 == "donor":
-                return (mode1, "acceptor")
-        else:
-            return (mode1, mode2)
+    if mode1 == "acceptor" and mode2 == "donor":
+        return True
+    elif mode1 == "donor" and mode2 == "acceptor":
+        return True
+    else:
+        return False
 
-    def _get_shift(mode):
-        if mode == "acceptor":
-            return 1
-        if mode == "donor":
-            return -1
 
-    # check posiotion in ordered names and then decide if go to left (= less H -> donated), or right ->more H
-    name1 = residue1.current_name
-    current_pos1 = residue1.ordered_names.index(name1)
-    mode1 = residue1.get_mode()
+# def update_names(residue1: Residue, residue2: Residue) -> None:
+#     """Change the current name of the two given residues to the respective new ones after the update.
 
-    name2 = residue2.current_name
-    current_pos2 = residue2.ordered_names.index(name2)
-    mode2 = residue2.get_mode()
+#     Parameters
+#     ----------
+#     residue1 : Residue
+#         Residue instance which was part of a transfer
+#     residue2 : Residue
+#         Residue instance which was part of a transfer
+#     """
 
-    acutal_mode1, actual_mode2 = _used_as(mode1, mode2)
+#     def _used_as(mode1, mode2):
+#         if mode1 == "both" and mode2 == "both":
+#             # well.. anything is possible now, we just use the first as donor and the second as acceptor
+#             # TODO: we shoud check which atom was part? or sth like that?????
+#             return ("donor", "acceptor")
+#         if mode1 == "both":
+#             if mode2 == "acceptor":
+#                 return ("donor", mode2)
+#             elif mode2 == "donor":
+#                 return ("acceptor", mode2)
+#         elif mode2 == "both":
+#             if mode1 == "acceptor":
+#                 return (mode1, "donor")
+#             elif mode1 == "donor":
+#                 return (mode1, "acceptor")
+#         else:
+#             return (mode1, mode2)
 
-    new_name1 = residue1.ordered_names[current_pos1+_get_shift(acutal_mode1)]
-    residue1.current_name = new_name1
+#     def _get_shift(mode):
+#         if mode == "acceptor":
+#             return 1
+#         if mode == "donor":
+#             return -1
 
-    new_name2 = residue2.ordered_names[current_pos2+_get_shift(actual_mode2)]
-    residue2.current_name = new_name2
+#     # check posiotion in ordered names and then decide if go to left (= less H -> donated), or right ->more H
+#     name1 = residue1.current_name
+#     atom_name1 = residue1.used_atom
+#     current_pos1 = residue1.ordered_names.index(name1)
+#     mode1 = residue1.get_mode_for(atom_name1)
+
+#     name2 = residue2.current_name
+#     atom_name2 = residue2.used_atom
+#     current_pos2 = residue2.ordered_names.index(name2)
+#     mode2 = residue2.get_mode_for(atom_name2)
+
+#     # acutal_mode1, actual_mode2 = _used_as(mode1, mode2)
+
+#     new_name1 = residue1.ordered_names[current_pos1 + _get_shift(mode1)]
+#     residue1.current_name = new_name1
+
+#     new_name2 = residue2.ordered_names[current_pos2 + _get_shift(mode2)]
+#     residue2.current_name = new_name2
