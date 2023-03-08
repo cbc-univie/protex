@@ -2423,4 +2423,4 @@ def test_exchange_positions():
         p1, p2, length, k = drude_force.getParticleParameters(i)
         if p1 != p2:
             bond_list.append((p1, p2))
-            
+
