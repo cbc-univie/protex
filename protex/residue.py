@@ -6,6 +6,29 @@ from collections import deque
 import numpy as np
 
 
+def is_allowed_mode_combination(mode1: str, mode2: str) -> bool:
+    """Determine if the two modes are one acceptor and one donor.
+
+    Parameters
+    ----------
+    mode1 : str
+        first mode, either 'donor' or 'acceptor'
+    mode2 : str
+        second mode, either 'donor' or 'acceptor'
+
+    Returns
+    -------
+    bool
+        True if one acceptor one donor, false otherwise
+    """
+    if mode1 == "acceptor" and mode2 == "donor":
+        return True
+    elif mode1 == "donor" and mode2 == "acceptor":
+        return True
+    else:
+        return False
+
+
 class Residue:
     """Residue extends the OpenMM Residue Class by important features needed for the proton transfer.
 
@@ -84,7 +107,7 @@ class Residue:
         # self.has_equivalent_atoms = has_equivalent_atoms
         # self.modes = modes
         self.states = states
-        self.equivalent_atom_pos_in_list: int = None
+        # self.equivalent_atom_pos_in_list: int = None
         self.used_equivalent_atom: bool = False
         self.used_atom: str | None = None
 
@@ -118,6 +141,104 @@ class Residue:
 
         self.used_atom = None
 
+    def get_mode_for(self, atom_name: str) -> str:
+        """Return the mode of the current resname and atom_name.
+
+        Parameters
+        ----------
+        atom_name: str
+            Name of the atom
+
+        Returns
+        -------
+        str
+            The mode
+        """
+        assert atom_name is not None
+        for atom in self.states[self.current_name]["atoms"]:
+            # also check if it is an equivalent atom, then the transfer is also fine
+            possible_atom_names = [atom["name"], atom.get("equivalent_atom", None)]
+            if atom_name in possible_atom_names:
+                return atom["mode"]
+
+    def has_equivalent_atom(self, atom_name: str) -> bool:
+        """Determine if the current residue has an equivalent atom defined.
+
+        It depends i.e if the residue is currently OAC (-> two equivalent O's) or HOAC (no equivlent O's).
+
+        Parameters
+        ----------
+        atom_name: str
+            Name of the atom
+
+        Returns
+        -------
+        bool
+            True if this residue currently has an equivalent atom, else otherwise
+        """
+        for atom in self.states[self.current_name]["atoms"]:
+            if atom["name"] == atom_name:
+                return "equivalent_atom" in atom
+        raise RuntimeError(f"atom_name {atom_name} not found")
+
+    def get_atom_name_from_equivalent_name(self, equivalent_name: str) -> str:
+        """Get the atom name for a given euqivalent name.
+
+        Parameters
+        ----------
+        equivalent_name : str
+            The euqivalent atom name
+
+        Returns
+        -------
+        str
+            The atom name
+        """
+        for atom in self.states[self.current_name]["atoms"]:
+            if atom["equivalent_atom"] == equivalent_name:
+                return atom["name"]
+        raise RuntimeError(f"Ups, equivalent name {equivalent_name} not found")
+
+    def get_equivalent_atom_name(self, atom_name: str) -> str:
+        """Get the equivalent atom name to a given atom_name.
+
+        It depends i.e if the residue is currently OAC (-> two equivalent O's) or HOAC (no equivlent O's).
+
+        Parameters
+        ----------
+        atom_name: str
+            Name of the atom
+
+        Returns
+        -------
+        str
+            The equivalent atom name
+        """
+        for atom in self.states[self.current_name]["atoms"]:
+            if atom["name"] == atom_name:
+                return atom["equivalent_atom"]
+        raise RuntimeError(f"atom_name {atom_name} not found")
+
+    def is_equivalent_atom_name(self, atom_name: str) -> bool:
+        """Determine if the given atom name is the name for the equivalent atom in the current residue.
+
+        Parameters
+        ----------
+        atom_name : str
+            The name to check
+
+        Returns
+        -------
+        bool
+            True if the atom_name matches the equivalent atom, false otherwise
+
+        """
+        assert atom_name is not None
+        for atom in self.states[self.current_name]["atoms"]:
+            if atom_name == atom.get("equivalent_atom", None):
+                return True
+        return False
+
     def is_acceptor(self, atom_name) -> bool:
         """Determine if given atom_name for current molecule is an acceptor.
 
@@ -127,8 +248,10 @@ class Residue:
             True if the current resname is an acceptor (can accept a H from another residue)
             False otherwise
         """
+        assert atom_name is not None
         for atom in self.states[self.current_name]["atoms"]:
-            if atom["name"] == atom_name:
+            possible_atom_names = [atom["name"], atom.get("equivalent_atom", None)]
+            if atom_name in possible_atom_names:
                 return atom["mode"] == "acceptor"
         return False
 
@@ -142,35 +265,12 @@ class Residue:
             False otherwise
         """
         for atom in self.states[self.current_name]["atoms"]:
-            if atom["name"] == atom_name:
+            possible_atom_names = [atom["name"], atom.get("equivalent_atom", None)]
+            if atom_name in possible_atom_names:
                 return atom["mode"] == "donor"
         return False
 
-    def get_mode_for(self, atom_name) -> str:
-        """Return the mode of the current resname.
-
-        Returns
-        -------
-        str
-            The mode
-        """
-        for atom in self.states[self.current_name]["atoms"]:
-            if atom["name"] == atom_name:
-                return atom["mode"]
-
-    @property
-    def has_equivalent_atom(self) -> bool:
-        """Determines if the current residue has an equivalent atom defined.
-
-        It depends i.e if the residue is currently OAC (-> two equivalent O's) or HOAC (no equivlent O's).
-
-        Returns
-        -------
-        bool
-            True if this residue currently has an equivalent atom, else otherwise
-        """
-        return self.has_equivalent_atoms[self.current_name]
-
+    # deprecated? change?
     @property
     def alternativ_name(self) -> str:
         """Alternative name for the residue, e.g. the corresponding name for the protonated/deprotonated form.
@@ -183,6 +283,44 @@ class Residue:
         for name in self.parameters.keys():
             if name != self.current_name:
                 return name
+
+    # NOTE: this is a bug!
+    def get_idx_for_atom_name(self, query_atom_name: str) -> int:
+        for idx, atom_name in zip(self.atom_idxs, self.atom_names):
+            if query_atom_name == atom_name:
+                return idx
+        else:
+            raise RuntimeError(
+                f"Atom name '{query_atom_name}' not in atom names of residue '{self.current_name}'."
+            )
+
+    @property
+    def endstate_charge(self) -> int:
+        """Charge of the residue at the endstate (will be int)."""
+        charge = int(
+            np.round(
+                sum(
+                    [
+                        parm[0]._value
+                        for parm in self.parameters[self.current_name]["NonbondedForce"]
+                    ]
+                ),
+                4,
+            )
+        )
+        return charge
+
+    @property
+    def current_charge(self) -> int:
+        """Current charge of the residue."""
+        charge = 0
+        for force in self.system.getForces():
+            if type(force).__name__ == "NonbondedForce":
+                for idx in self.atom_idxs:
+                    charge_idx, _, _ = force.getParticleParameters(idx)
+                    charge += charge_idx._value
+
+        return np.round(charge, 3)
 
     def update(
         self, force_name: str, lamb: float
@@ -789,119 +927,3 @@ class Residue:
             parm_interpolated_thole.append(thole_interpolated)
 
         return [parm_interpolated, parm_interpolated_thole]
-
-    # NOTE: this is a bug!
-    def get_idx_for_atom_name(self, query_atom_name: str) -> int:
-        for idx, atom_name in zip(self.atom_idxs, self.atom_names):
-            if query_atom_name == atom_name:
-                return idx
-        else:
-            raise RuntimeError(
-                f"Atom name '{query_atom_name}' not in atom names of residue '{self.current_name}'."
-            )
-
-    @property
-    def endstate_charge(self) -> int:
-        """Charge of the residue at the endstate (will be int)."""
-        charge = int(
-            np.round(
-                sum(
-                    [
-                        parm[0]._value
-                        for parm in self.parameters[self.current_name]["NonbondedForce"]
-                    ]
-                ),
-                4,
-            )
-        )
-        return charge
-
-    @property
-    def current_charge(self) -> int:
-        """Current charge of the residue."""
-        charge = 0
-        for force in self.system.getForces():
-            if type(force).__name__ == "NonbondedForce":
-                for idx in self.atom_idxs:
-                    charge_idx, _, _ = force.getParticleParameters(idx)
-                    charge += charge_idx._value
-
-        return np.round(charge, 3)
-
-
-def is_allowed_mode_combination(mode1: str, mode2: str) -> bool:
-    """Determine if the two modes are once acceptor and once donor.
-
-    Parameters
-    ----------
-    mode1 : str
-        first mode, either 'donor' or 'acceptor'
-    mode2 : str
-        second mode, either 'donor' or 'acceptor'
-
-    Returns
-    -------
-    bool
-        True if once acceptor once donor, false otherwise
-    """
-    if mode1 == "acceptor" and mode2 == "donor":
-        return True
-    elif mode1 == "donor" and mode2 == "acceptor":
-        return True
-    else:
-        return False
-
-
-# def update_names(residue1: Residue, residue2: Residue) -> None:
-#     """Change the current name of the two given residues to the respective new ones after the update.
-
-#     Parameters
-#     ----------
-#     residue1 : Residue
-#         Residue instance which was part of a transfer
-#     residue2 : Residue
-#         Residue instance which was part of a transfer
-#     """
-
-#     def _used_as(mode1, mode2):
-#         if mode1 == "both" and mode2 == "both":
-#             # well.. anything is possible now, we just use the first as donor and the second as acceptor
-#             # TODO: we shoud check which atom was part? or sth like that?????
-#             return ("donor", "acceptor")
-#         if mode1 == "both":
-#             if mode2 == "acceptor":
-#                 return ("donor", mode2)
-#             elif mode2 == "donor":
-#                 return ("acceptor", mode2)
-#         elif mode2 == "both":
-#             if mode1 == "acceptor":
-#                 return (mode1, "donor")
-#             elif mode1 == "donor":
-#                 return (mode1, "acceptor")
-#         else:
-#             return (mode1, mode2)
-
-#     def _get_shift(mode):
-#         if mode == "acceptor":
-#             return 1
-#         if mode == "donor":
-#             return -1
-
-#     # check posiotion in ordered names and then decide if go to left (= less H -> donated), or right ->more H
-#     name1 = residue1.current_name
-#     atom_name1 = residue1.used_atom
-#     current_pos1 = residue1.ordered_names.index(name1)
-#     mode1 = residue1.get_mode_for(atom_name1)
-
-#     name2 = residue2.current_name
-#     atom_name2 = residue2.used_atom
-#     current_pos2 = residue2.ordered_names.index(name2)
-#     mode2 = residue2.get_mode_for(atom_name2)
-
-#     # acutal_mode1, actual_mode2 = _used_as(mode1, mode2)
-
-#     new_name1 = residue1.ordered_names[current_pos1 + _get_shift(mode1)]
-#     residue1.current_name = new_name1
-
-#     new_name2 = residue2.ordered_names[current_pos2 + _get_shift(mode2)]
-#     residue2.current_name = new_name2

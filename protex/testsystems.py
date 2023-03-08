@@ -154,32 +154,32 @@ def setup_simulation(
     #    f"{coll_freq=}, {drude_coll_freq=}"
     # )  # tested with 20, 40, 80, 100, 120, 140, 160: 20,40 bad; 80 - 120 good; 140, 160 crashed
     integrator.setMaxDrudeDistance(0.25 * angstroms)
-    # try:
-    platform = Platform.getPlatformByName("CUDA")
-    prop = dict(CudaPrecision="single")  # default is single
-    logger.info("Using CUDA")
-    # prop = dict(CudaPrecision="double")
-    # Moved creating the simulation object inside the try...except block, because i.e.
-    # Error loading CUDA module: CUDA_ERROR_INVALID_PTX (218)
-    # message was only thrown during simulation creation not by specifying the platform
-    simulation = Simulation(
-        psf.topology,
-        system,
-        integrator,
-        platform=platform,
-        platformProperties=prop,
-    )
-    # except OpenMMException:
-    #     platform = Platform.getPlatformByName("CPU")
-    #     prop = dict()
-    #     logger.info("Using CPU")
-    #     simulation = Simulation(
-    #         psf.topology,
-    #         system,
-    #         integrator,
-    #         platform=platform,
-    #         platformProperties=prop,
-    #     )
+    try:
+        platform = Platform.getPlatformByName("CUDA")
+        prop = dict(CudaPrecision="single")  # default is single
+        logger.info("Using CUDA")
+        # prop = dict(CudaPrecision="double")
+        # Moved creating the simulation object inside the try...except block, because i.e.
+        # Error loading CUDA module: CUDA_ERROR_INVALID_PTX (218)
+        # message was only thrown during simulation creation not by specifying the platform
+        simulation = Simulation(
+            psf.topology,
+            system,
+            integrator,
+            platform=platform,
+            platformProperties=prop,
+        )
+    except OpenMMException:
+        platform = Platform.getPlatformByName("CPU")
+        prop = dict()
+        logger.info("Using CPU")
+        simulation = Simulation(
+            psf.topology,
+            system,
+            integrator,
+            platform=platform,
+            platformProperties=prop,
+        )
 
     simulation.context.setPositions(crd.positions)
     # Try with positions from equilibrated system:
@@ -862,6 +862,11 @@ OAC_HOAC = {
         "equivalent_atom": "O1",
     },
     "HOAC": {"atom_name": "H", "mode": "both"},
+}
+
+OAC_HOAC_2 = {
+    "OAC": {"atoms": [{"name": "O2", "mode": "acceptor", "equivalent_atom": "O1"}]},
+    "HOAC": {"atoms": [{"name": "H", "mode": "donor"}]},
 }
 
 # use equivalent atom, if this atom is equivalent, but the dummy-real_atom conversion is fixed to the other topology -

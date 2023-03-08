@@ -21,6 +21,7 @@ from ..testsystems import (
     IM1H_IM1,
     IM1H_IM1_2,
     OAC_HOAC,
+    OAC_HOAC_2,
     OAC_HOAC_H2OAC,
     generate_h2oac_system,
     generate_im1h_oac_dummy_system,
@@ -2350,3 +2351,76 @@ def test_h2oac():
     print(state.getPotentialEnergy())
     state_update.update(2)
     print(state_update)
+
+
+def test_exchange_positions():
+    simulation = generate_single_im1h_oac_system(use_plugin=False)
+    allowed_updates = {}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.165, "prob": 1}
+    templates = ProtexTemplates(
+        [OAC_HOAC_2, IM1H_IM1_2], (allowed_updates), legacy_mode=False
+    )
+    ionic_liquid = ProtexSystem(simulation, templates)
+    # update = NaiveMCUpdate(ionic_liquid, all_forces=True)
+    # state_update = StateUpdate(update)
+
+    positions = ionic_liquid.simulation.context.getState(
+        getPositions=True
+    ).getPositions(asNumpy=True)
+    im1h = ionic_liquid.residues[0]
+    assert im1h.current_name == "IM1H"
+    oac = ionic_liquid.residues[1]
+    assert oac.current_name == "OAC"
+    idxs = oac.atom_idxs
+    names = oac.atom_names
+    oac_pos = positions[idxs]
+
+    # print(oac_pos)
+    import copy
+
+    positions_copy = copy.deepcopy(positions)
+    update = NaiveMCUpdate(ionic_liquid, all_forces=True)
+    oac.used_atom = "O1"
+    im1h.used_atom = "H7"
+    positions_neu = update._reorient_atoms((im1h, oac), positions, positions_copy)
+    pos_neu = positions_neu[idxs]
+    for i in range(len(names)):
+        print(names[i], oac_pos[i], pos_neu[i])
+    bonded_to_used_atom = []
+    bonded_to_other_atom = []
+    for atom in oac.residue.external_bonds():
+        print(atom)
+    if ionic_liquid.system.isVirtualSite(35): #need to get the index of LPs, iterate over system particles
+        print("HIer sind wir")
+        virtual_site = ionic_liquid.system.getVirtualSite(35)
+        print(dir(virtual_site))
+        print(virtual_site.getNumParticles())
+        print(virtual_site.getParticle(0)) #thats the index i want
+        print(virtual_site.getParticle(1))
+        print(virtual_site.getParticle(2))
+    for bond in oac.residue.bonds():
+        atoms = (bond.atom1.name, bond.atom2.name)
+        print(atoms)
+        if "O1" in atoms:
+            bonded_to_used_atom.extend([bond.atom1, bond.atom2])
+        if "O2" in atoms:
+            bonded_to_other_atom.extend([bond.atom1, bond.atom2])
+    bonded_to_used_atom = set(bonded_to_used_atom)
+    bonded_to_other_atom = set(bonded_to_other_atom)
+    print(bonded_to_other_atom)
+    print(bonded_to_used_atom)
+
+    #um noch drude force zu kriegen
+    # Get the DrudeForce object
+    forces = system.getForces()
+    for force in forces:
+        if isinstance(force, DrudeForce):
+            drude_force = force
+
+    # Get the bonds between parent and drude atoms
+    bond_list = []
+    for i in range(drude_force.getNumParticles()):
+        p1, p2, length, k = drude_force.getParticleParameters(i)
+        if p1 != p2:
+            bond_list.append((p1, p2))
+            

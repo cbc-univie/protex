@@ -474,6 +474,87 @@ class NaiveMCUpdate(Update):
         with open(fname, "wb") as outp:
             pickle.dump(to_pickle, outp, pickle.HIGHEST_PROTOCOL)
 
+    def _reorient_atoms(self, candidate: tuple[Residue], positions, positions_copy):
+        # Function to reorient atoms if the equivalent atom was used for shortest distance
+        # exchange positions of atom and equivalent atom
+        # and set the position of the "new" H
+        res1, res2 = candidate
+        # if none of the two residues used the equivlaent atom we do not have to reorient
+        if not (
+            res1.is_equivalent_atom_name(res1.used_atom)
+            or res2.is_equivalent_atom_name(res2.used_atom)
+        ):
+            return positions
+
+        # exchange positions of equivalent atoms
+        for residue in candidate:
+            # if residue.used_equivalent_atom:
+            if residue.is_equivalent_atom_name(residue.used_atom):
+                equivalent_name = residue.used_atom
+                atom_name = residue.get_atom_name_from_equivalent_name(equivalent_name)
+                atom_idx = residue.get_idx_for_atom_name(atom_name)
+                equivalent_idx = residue.get_idx_for_atom_name(equivalent_name)
+
+                pos_atom = positions_copy[atom_idx]
+                print(f"{pos_atom=}")
+                pos_equivalent = positions_copy[equivalent_idx]
+                print(f"{pos_equivalent=}")
+
+                positions[atom_idx] = pos_equivalent
+                positions[equivalent_idx] = pos_atom
+
+                print(
+                    f"setting position of {atom_name} to {positions[atom_idx]} and {equivalent_name} to {positions[equivalent_idx]}"
+                )
+
+        # set new H position:
+        if res1.is_donor(res1.used_atom):
+            assert not res1.is_acceptor(res1.used_atom)
+            donor = res1
+            acceptor = res2
+        else:
+            assert res2.is_donor(res2.used_atom)
+            donor = res2
+            acceptor = res1
+
+        idx_donated_h = donor.get_idx_for_atom_name(donor.used_atom)
+        idx_acceptor_atom = acceptor.get_idx_for_atom_name(acceptor.used_atom)
+
+        # account for PBC
+        boxl_vec = (
+            self.ionic_liquid.boxlength
+        )  # changed to store boxl as quantity in system class
+
+        pos_acceptor_atom = positions_copy[idx_acceptor_atom]
+        pos_donated_h = positions_copy[idx_donated_h]
+
+        for i in range(0, 3):
+            if (
+                abs(pos_acceptor_atom[i] - pos_donated_h[i]) > boxl_vec / 2
+            ):  # could also be some other value
+                if pos_acceptor_atom[i] > pos_donated_h[i]:
+                    pos_donated_h[i] = pos_donated_h[i] + boxl_vec
+                else:
+                    pos_donated_h[i] = pos_donated_h[i] - boxl_vec
+
+        pos_accepted_h = pos_donated_h - 0.33 * (
+            pos_donated_h - pos_acceptor_atom
+        )  # set position at ca. 1 angstrom from acceptor -> more stable
+
+        # atom name of acceptor alternative is the H that used to be the dummy H
+        # idx_accepted_h = acceptor.get_idx_for_atom_name(
+        #    self.ionic_liquid.templates.get_atom_name_for(acceptor.alternativ_name)
+        # )
+
+        # update position of the once-dummy H on the acceptor - original H line
+        # positions[idx_accepted_h] = pos_accepted_h
+
+        # print(
+        #    f"donated H: {pos_donated_h}, acceptor atom: {pos_acceptor_atom}, H set to: {pos_accepted_h}"
+        # )
+
+        return positions
+
     def _update(self, candidates: list[tuple], nr_of_steps: int) -> None:
         logger.info("called _update")
         # get current state
@@ -520,7 +601,16 @@ class NaiveMCUpdate(Update):
 
             self.ionic_liquid.simulation.step(1)
 
+        if self.reorient:
+            positions = self.ionic_liquid.simulation.context.getState(
+                getPositions=True
+            ).getPositions(asNumpy=True)
+
+            positions_copy = copy.deepcopy(positions)
+
         for candidate in candidates:
+            if self.reorient:
+                positions = self._reorient_atoms(candidate, positions, positions_copy)
             # update_names(*candidate)
             candidate1_residue, candidate2_residue = candidate
             # after the update is finished the current_name attribute is updated (and since alternative_name depends on current_name it too is updated)
@@ -891,7 +981,6 @@ class StateUpdate:
         pos = self.ionic_liquid.simulation.context.getState(
             getPositions=True
         ).getPositions(asNumpy=True)
-        print(pos)
 
         # fill in the positions for each species
         pos_list = []
@@ -899,7 +988,7 @@ class StateUpdate:
 
         # loop over all residues and add the positions of the atoms that can be updated to the pos_dict
         for residue in self.ionic_liquid.residues:
-            residue.equivalent_atom_pos_in_list = None
+            residue.equivalent_atom_pos_in_list = None  # TODO
             assert residue.current_name in self.ionic_liquid.templates.names
             # get the position of the atom (Hydrogen or the possible acceptor)
             # new idea: just make one list with all positions and then calc distances of everything with everything... -> not so fast, but i need i.e. IM1H-IM1
@@ -916,32 +1005,20 @@ class StateUpdate:
                 )
                 res_list.append((residue, atom_name))
 
-            # if there is an equivalent atom, there is currently only one atom_name allowed
-            if (
-                self.updateMethod.include_equivalent_atom
-                and residue.has_equivalent_atom(residue.current_name)
-            ):
-                pos_list.append(
-                    pos[
-                        residue.get_idx_for_atom_name(
-                            self.ionic_liquid.templates.get_equivalent_atom_for(
-                                residue.current_name
-                            )
-                        )
-                    ]
-                )
-                residue.equivalent_atom_pos_in_list = len(
-                    res_list
-                )  # store idx to know which coordinates where used for distance
+                # if there is an equivalent atom, there is currently only one atom_name allowed
+                if (
+                    self.updateMethod.include_equivalent_atom
+                    and residue.has_equivalent_atom(atom_name)
+                ):
+                    equivalent_atom = residue.get_equivalent_atom_name(atom_name)
+                    pos_list.append(pos[residue.get_idx_for_atom_name(equivalent_atom)])
+                    # residue.equivalent_atom_pos_in_list = len(
+                    #     res_list
+                    # )  # store idx to know which coordinates where used for distance
 
-                res_list.append(
-                    (
-                        residue,
-                        self.ionic_liquid.templates.get_equivalent_atom_for(
-                            residue.current_name
-                        ),
-                    )
-                )  # add second time the residue to have same length of pos_list and res_list
+                    res_list.append(
+                        (residue, equivalent_atom)
+                    )  # add second time the residue to have same length of pos_list and res_list
 
         return pos_list, res_list
 
@@ -998,6 +1075,7 @@ class StateUpdate:
         # check if charge transfer is possible
         for candidate_idx1, candidate_idx2 in idx:
             residue1, atom_name1 = res_list[candidate_idx1]
+            # atom_name is either the name or the equivalent_atom name
             mode1 = residue1.get_mode_for(atom_name1)
             residue2, atom_name2 = res_list[candidate_idx2]
             mode2 = residue2.get_mode_for(atom_name2)
@@ -1049,12 +1127,15 @@ class StateUpdate:
                         continue
                     # accept otherwise
                     proposed_candidate_pairs.append(proposed_candidate_pair)
-                    if (
-                        candidate_idx1 == residue1.equivalent_atom_pos_in_list
-                    ):  # check if we used the actual atom or onyl the equivalent
+                    # if (
+                    #    candidate_idx1 == residue1.equivalent_atom_pos_in_list
+                    # ):
+                    # check if we used the actual atom or only the equivalent
+                    if residue1.is_equivalent_atom_name(atom_name1):
                         residue1.used_equivalent_atom = True
-                    if candidate_idx2 == residue2.equivalent_atom_pos_in_list:
+                    if residue2.is_equivalent_atom_name(atom_name2):
                         residue2.used_equivalent_atom = True
+                    # maybe the 4 lines above not needed, ask ffor used atom in update method and if it is equivalent atom
                     residue1.used_atom = atom_name1
                     residue2.used_atom = atom_name2
                     used_residues.append(residue1)
