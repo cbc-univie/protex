@@ -140,7 +140,7 @@ class Residue:
         self.current_name = new_name
 
         self.used_atom = None
-    
+
     @property
     def alternativ_resname(self) -> str:
         """Alternative name for the residue, e.g. the corresponding name for the protonated/deprotonated form.
@@ -152,7 +152,7 @@ class Residue:
         """
         if self.used_atom is None:
             raise RuntimeError("Currently no atom is selected that was used for the update. Determination of the alternative atom is not possible. Define self.used_atom first.")
-        # check position in ordered names and then decide if go to left (= less H -> donated), or right ->more H       
+        # check position in ordered names and then decide if go to left (= less H -> donated), or right ->more H
         current_pos = self.ordered_names.index(self.current_name)
         mode = self.get_mode_for()
         new_name = self.ordered_names[current_pos + self._get_shift(mode)]
@@ -175,7 +175,7 @@ class Residue:
             raise RuntimeError("Either set self.used_atom or supply an atom name!")
         if atom_name is None:
             atom_name = self.used_atom
-            
+
         for atom in self.states[self.current_name]["atoms"]:
             # also check if it is an equivalent atom, then the transfer is also fine
             possible_atom_names = [atom["name"], atom.get("equivalent_atom", None)]
