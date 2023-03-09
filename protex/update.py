@@ -473,9 +473,9 @@ class NaiveMCUpdate(Update):
         ]  # enusre correct order of arguments
         with open(fname, "wb") as outp:
             pickle.dump(to_pickle, outp, pickle.HIGHEST_PROTOCOL)
-    
+
     def _get_atom_name_of_alternativ_resname(self, acceptor):
-        #outsourced this bit because we should really change it    
+        #outsourced this bit because we should really change it
 
         # atom name of acceptor alternative is the H that used to be the dummy H
         # this may be a bit problematic, if the names do not correspond...
@@ -574,7 +574,7 @@ class NaiveMCUpdate(Update):
             pos_donated_h - pos_acceptor_atom
         )  # set position at ca. 1 angstrom from acceptor -> more stable
 
-        
+
         atom_name_of_alternativ_resname = self._get_atom_name_of_alternativ_resname(acceptor)
         # the residue resname state does not matter for the get_idx_for_atom_name function
         idx_accepted_h = acceptor.get_idx_for_atom_name(atom_name_of_alternativ_resname)
@@ -596,7 +596,7 @@ class NaiveMCUpdate(Update):
         initial_e = state.getPotentialEnergy()
         if np.isnan(initial_e._value):
             raise RuntimeError(f"Energy is {initial_e}")
-        
+
         if self.reorient:
             positions = state.getPositions(asNumpy=True)
             positions_copy = copy.deepcopy(positions)
