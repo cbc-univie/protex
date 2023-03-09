@@ -509,7 +509,7 @@ class Residue:
         # returns interpolated sorted nonbonded Forces.
         assert lamb >= 0 and lamb <= 1
         current_name = self.current_name
-        new_name = self.alternativ_name
+        new_name = self.alternativ_resname
 
         nonbonded_parm_old = [
             parm for parm in self.parameters[current_name]["NonbondedForce"]
@@ -603,7 +603,7 @@ class Residue:
         assert lamb >= 0 and lamb <= 1
         # get the names of new and current state
         old_name = self.current_name
-        new_name = self.alternativ_name
+        new_name = self.alternativ_resname
         parm_interpolated = []
         force_name = "HarmonicBondForce"
         new_parms_offset = self._get_offset(new_name)
@@ -652,7 +652,7 @@ class Residue:
         assert lamb >= 0 and lamb <= 1
         # get the names of new and current state
         old_name = self.current_name
-        new_name = self.alternativ_name
+        new_name = self.alternativ_resname
         parm_interpolated = []
         force_name = "HarmonicAngleForce"
         new_parms_offset = self._get_offset(new_name)
@@ -701,7 +701,7 @@ class Residue:
         assert lamb >= 0 and lamb <= 1
         # get the names of new and current state
         old_name = self.current_name
-        new_name = self.alternativ_name
+        new_name = self.alternativ_resname
         parm_interpolated = []
         force_name = "PeriodicTorsionForce"
         new_parms_offset = self._get_offset(new_name, force_name=force_name)
@@ -802,7 +802,7 @@ class Residue:
         assert lamb >= 0 and lamb <= 1
         # get the names of new and current state
         old_name = self.current_name
-        new_name = self.alternativ_name
+        new_name = self.alternativ_resname
         parm_interpolated = []
         force_name = "CustomTorsionForce"
         new_parms_offset = self._get_offset(new_name)
@@ -858,7 +858,7 @@ class Residue:
         assert lamb >= 0 and lamb <= 1
         # get the names of new and current state
         old_name = self.current_name
-        new_name = self.alternativ_name
+        new_name = self.alternativ_resname
         parm_interpolated = []
         force_name = "DrudeForce"
         new_parms_offset = self._get_offset(new_name)
