@@ -90,7 +90,7 @@ class Update(ABC):
         pass
 
     @abstractmethod
-    def _update(self, candidates: list[tuple], nr_of_steps: int) -> None:
+    def _update(self, candidates: list[tuple[Residue,Residue]], nr_of_steps: int) -> None:
         pass
 
     def _adapt_probabilities(
@@ -310,7 +310,7 @@ class KeepHUpdate(Update):
 
         return positions
 
-    def _update(self, candidates: list[tuple], nr_of_steps: int) -> None:
+    def _update(self, candidates: list[tuple[Residue,Residue]], nr_of_steps: int) -> None:
         logger.info("called _update")
 
         # get current state
@@ -473,8 +473,39 @@ class NaiveMCUpdate(Update):
         ]  # enusre correct order of arguments
         with open(fname, "wb") as outp:
             pickle.dump(to_pickle, outp, pickle.HIGHEST_PROTOCOL)
+    
+    def _get_atom_name_of_alternativ_resname(self, acceptor):
+        #outsourced this bit because we should really change it    
 
-    def _reorient_atoms(self, candidate: tuple[Residue], positions, positions_copy):
+        # atom name of acceptor alternative is the H that used to be the dummy H
+        # this may be a bit problematic, if the names do not correspond...
+        # ATTENTION: Bad coding comes here...
+        bonded_atoms_to_acceptor = []
+        atom_name = acceptor.used_atom
+        if acceptor.is_equivalent_atom_name(acceptor.used_atom):
+            #use the name where the atom is actually bond to
+            atom_name = acceptor.get_atom_name_from_equivalent_name(acceptor.used_atom)
+        for bond in acceptor.residue.bonds():
+            #add the name to the list which is not the used_atom name, but a bond
+            if bond.atom1.name == atom_name:
+                bonded_atoms_to_acceptor.append(bond.atom2.name)
+            elif bond.atom2.name == atom_name:
+                bonded_atoms_to_acceptor.append(bond.atom1.name)
+        #now we hope, that the dummy atom name and the real atom name of the corresponding acceptor have the same name!
+        for atom in acceptor.states[acceptor.alternativ_resname]["atoms"]:
+            print(atom)
+            if atom["name"] in bonded_atoms_to_acceptor:
+                #we just use the first occuence, if there are more, well.. hopefully that does not happen
+                atom_name_of_alternativ_resname = atom["name"]
+                return atom_name_of_alternativ_resname
+                #break
+        else:
+            raise RuntimeError("Well that's bad... Contact the developer team or name the Dummy atom and correspoding real atom the same.")
+
+    def _update_drude_lp_positions():
+        raise NotImplementedError("This function is currently not implemented.")
+
+    def _reorient_atoms(self, candidate: tuple[Residue, Residue], positions, positions_copy):
         # Function to reorient atoms if the equivalent atom was used for shortest distance
         # exchange positions of atom and equivalent atom
         # and set the position of the "new" H
@@ -491,9 +522,9 @@ class NaiveMCUpdate(Update):
             # if residue.used_equivalent_atom:
             if residue.is_equivalent_atom_name(residue.used_atom):
                 equivalent_name = residue.used_atom
+                equivalent_idx = residue.get_idx_for_atom_name(equivalent_name)
                 atom_name = residue.get_atom_name_from_equivalent_name(equivalent_name)
                 atom_idx = residue.get_idx_for_atom_name(atom_name)
-                equivalent_idx = residue.get_idx_for_atom_name(equivalent_name)
 
                 pos_atom = positions_copy[atom_idx]
                 print(f"{pos_atom=}")
@@ -506,6 +537,8 @@ class NaiveMCUpdate(Update):
                 print(
                     f"setting position of {atom_name} to {positions[atom_idx]} and {equivalent_name} to {positions[equivalent_idx]}"
                 )
+                #maybe for later to not have to rely on the simulation.step() call to update drude and lp positions
+                #self._update_drude_lp_positions()
 
         # set new H position:
         if res1.is_donor(res1.used_atom):
@@ -541,28 +574,38 @@ class NaiveMCUpdate(Update):
             pos_donated_h - pos_acceptor_atom
         )  # set position at ca. 1 angstrom from acceptor -> more stable
 
-        # atom name of acceptor alternative is the H that used to be the dummy H
-        # idx_accepted_h = acceptor.get_idx_for_atom_name(
-        #    self.ionic_liquid.templates.get_atom_name_for(acceptor.alternativ_name)
-        # )
+        
+        atom_name_of_alternativ_resname = self._get_atom_name_of_alternativ_resname(acceptor)
+        # the residue resname state does not matter for the get_idx_for_atom_name function
+        idx_accepted_h = acceptor.get_idx_for_atom_name(atom_name_of_alternativ_resname)
 
         # update position of the once-dummy H on the acceptor - original H line
-        # positions[idx_accepted_h] = pos_accepted_h
+        positions[idx_accepted_h] = pos_accepted_h
 
-        # print(
-        #    f"donated H: {pos_donated_h}, acceptor atom: {pos_acceptor_atom}, H set to: {pos_accepted_h}"
-        # )
+        print(
+           f"donated H: {pos_donated_h}, acceptor atom: {pos_acceptor_atom}, H set to: {pos_accepted_h}"
+        )
 
         return positions
 
-    def _update(self, candidates: list[tuple], nr_of_steps: int) -> None:
+    def _update(self, candidates: list[tuple[Residue,Residue]], nr_of_steps: int) -> None:
         logger.info("called _update")
         # get current state
-        state = self.ionic_liquid.simulation.context.getState(getEnergy=True)
+        state = self.ionic_liquid.simulation.context.getState(getEnergy=True, getPositions=True)
         # get initial energy
         initial_e = state.getPotentialEnergy()
         if np.isnan(initial_e._value):
             raise RuntimeError(f"Energy is {initial_e}")
+        
+        if self.reorient:
+            positions = state.getPositions(asNumpy=True)
+            positions_copy = copy.deepcopy(positions)
+            for candidate_tuple in candidates:
+                positions = self._reorient_atoms(candidate_tuple, positions, positions_copy)
+            # important! Positions of corresponding drude particle and lonepairs are not changed
+            # tehy get automatically updates after the next simulation step
+            #TODO: maybe add it manually to the _reorient_atoms function
+            self.ionic_liquid.simulation.context.setPositions(positions)
 
         logger.info("Start changing states ...")
         assert nr_of_steps > 1, "Use an update step number of at least 2."
@@ -601,21 +644,12 @@ class NaiveMCUpdate(Update):
 
             self.ionic_liquid.simulation.step(1)
 
-        if self.reorient:
-            positions = self.ionic_liquid.simulation.context.getState(
-                getPositions=True
-            ).getPositions(asNumpy=True)
-
-            positions_copy = copy.deepcopy(positions)
-
         for candidate in candidates:
-            if self.reorient:
-                positions = self._reorient_atoms(candidate, positions, positions_copy)
             # update_names(*candidate)
             candidate1_residue, candidate2_residue = candidate
             # after the update is finished the current_name attribute is updated (and since alternative_name depends on current_name it too is updated)
-            candidate1_residue.update_name
-            candidate2_residue.update_name
+            candidate1_residue.update_resname
+            candidate2_residue.update_resname
             # candidate1_residue.current_name = candidate1_residue.alternativ_name
             # candidate2_residue.current_name = candidate2_residue.alternativ_name
 

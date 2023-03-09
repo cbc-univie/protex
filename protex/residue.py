@@ -121,27 +121,44 @@ class Residue:
         """
         return f"Residue {self.current_name}, {self.residue}"
 
-    @property
-    def update_name(self):
-        assert self.used_atom is not None
-
-        def _get_shift(mode):
+    def _get_shift(self, mode):
             if mode == "acceptor":
                 return 1
             if mode == "donor":
                 return -1
 
-        # check posiotion in ordered names and then decide if go to left (= less H -> donated), or right ->more H
-        name = self.current_name
-        atom_name = self.used_atom
-        current_pos = self.ordered_names.index(name)
-        mode = self.get_mode_for(atom_name)
-        new_name = self.ordered_names[current_pos + _get_shift(mode)]
+    @property
+    def update_resname(self):
+        """Updates the current name to the new name.
+
+        This is based on the current residue name and the used_atom for this update.
+        The used_atom is reset afterwards, and has to be set again before using this funciton again.
+        This is on purpose, to only allow name changes once per update.
+        """
+        new_name = self.alternativ_resname
+        # should be used only once per update
         self.current_name = new_name
 
         self.used_atom = None
+    
+    @property
+    def alternativ_resname(self) -> str:
+        """Alternative name for the residue, e.g. the corresponding name for the protonated/deprotonated form.
 
-    def get_mode_for(self, atom_name: str) -> str:
+        Returns
+        -------
+        str
+            The alternative name
+        """
+        if self.used_atom is None:
+            raise RuntimeError("Currently no atom is selected that was used for the update. Determination of the alternative atom is not possible. Define self.used_atom first.")
+        # check position in ordered names and then decide if go to left (= less H -> donated), or right ->more H       
+        current_pos = self.ordered_names.index(self.current_name)
+        mode = self.get_mode_for()
+        new_name = self.ordered_names[current_pos + self._get_shift(mode)]
+        return new_name
+
+    def get_mode_for(self, atom_name: str | None = None) -> str:
         """Return the mode of the current resname and atom_name.
 
         Parameters
@@ -154,7 +171,11 @@ class Residue:
         str
             The mode
         """
-        assert atom_name is not None
+        if atom_name is None and self.used_atom is None:
+            raise RuntimeError("Either set self.used_atom or supply an atom name!")
+        if atom_name is None:
+            atom_name = self.used_atom
+            
         for atom in self.states[self.current_name]["atoms"]:
             # also check if it is an equivalent atom, then the transfer is also fine
             possible_atom_names = [atom["name"], atom.get("equivalent_atom", None)]
@@ -239,6 +260,12 @@ class Residue:
                 return True
         return False
 
+    # use once the attribute is deprecated
+    #@property
+    #def used_equivalent_atom(self):
+    #    return self.is_equivalent_atom_name(self.used_atom)
+
+
     def is_acceptor(self, atom_name) -> bool:
         """Determine if given atom_name for current molecule is an acceptor.
 
@@ -269,20 +296,6 @@ class Residue:
             if atom_name in possible_atom_names:
                 return atom["mode"] == "donor"
         return False
-
-    # deprecated? change?
-    @property
-    def alternativ_name(self) -> str:
-        """Alternative name for the residue, e.g. the corresponding name for the protonated/deprotonated form.
-
-        Returns
-        -------
-        str
-            The alternative name
-        """
-        for name in self.parameters.keys():
-            if name != self.current_name:
-                return name
 
     # NOTE: this is a bug!
     def get_idx_for_atom_name(self, query_atom_name: str) -> int:

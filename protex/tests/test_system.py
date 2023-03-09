@@ -43,9 +43,10 @@ except ImportError:
 from ..reporter import ChargeReporter, EnergyReporter
 from ..system import ProtexSystem, ProtexTemplates
 from ..testsystems import (
-    IM1H_IM1,
+    #IM1H_IM1,
     IM1H_IM1_2,
-    OAC_HOAC,
+    #OAC_HOAC,
+    OAC_HOAC_2,
     OAC_HOAC_H2OAC,
     generate_h2oac_system,
     generate_im1h_oac_dummy_system,
@@ -55,6 +56,9 @@ from ..testsystems import (
 )
 from ..update import NaiveMCUpdate, StateUpdate
 
+# to check with new syntax
+IM1H_IM1 = IM1H_IM1_2
+OAC_HOAC = OAC_HOAC_2
 
 ###
 # H2OAC neue templates class test
@@ -520,17 +524,26 @@ def test_create_IonicLiquidTemplate():
 
     templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
 
-    r = templates.get_residue_name_for_coupled_state("OAC")
-    assert r == "HOAC"
-    r = templates.get_residue_name_for_coupled_state("HOAC")
-    assert r == "OAC"
-    r = templates.get_residue_name_for_coupled_state("IM1H")
-    assert r == "IM1"
+    # r = templates.get_residue_name_for_coupled_state("OAC")
+    # assert r == "HOAC"
+    # r = templates.get_residue_name_for_coupled_state("HOAC")
+    # assert r == "OAC"
+    # r = templates.get_residue_name_for_coupled_state("IM1H")
+    # assert r == "IM1"
+    r = templates.get_other_resnames("OAC")
+    assert r == ["HOAC"]
+    r = templates.get_other_resnames("HOAC")
+    assert r == ["OAC"]
+    r = templates.get_other_resnames("IM1H")
+    assert r == ["IM1"]
 
     print("###################")
     assert templates.pairs == [["OAC", "HOAC"], ["IM1H", "IM1"]]
-    assert templates.states["IM1H"]["atom_name"] == "H7"
-    assert templates.states["IM1"]["atom_name"] == "N2"
+    assert templates.get_atom_names_for("IM1H") == ["H7"]
+    assert templates.get_atom_names_for("IM1") == ["N2"]
+
+    #assert templates.states["IM1H"]["atom_name"] == "H7"
+    #assert templates.states["IM1"]["atom_name"] == "N2"
 
     assert sorted(templates.names) == sorted(["OAC", "HOAC", "IM1H", "IM1"])
     print(templates.allowed_updates)

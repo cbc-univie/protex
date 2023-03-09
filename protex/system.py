@@ -90,7 +90,7 @@ class ProtexTemplates:
         self,
         states: list[dict[str, dict[str, str]]],
         allowed_updates: dict[frozenset[str], dict[str, float]],
-        legacy_mode: bool = True,
+        legacy_mode: bool = False,
     ) -> None:
         # store names in variables, in case syntax for states dict changes
         self._atom_name: str = "atom_name"
