@@ -76,7 +76,7 @@ def test_update_single():
     check if the parameters before and after have changed.
     """
     simulation = generate_single_im1h_oac_system(use_plugin=False)
-    
+
 
     templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], ALLOWED_UPDATES)
 
@@ -203,7 +203,7 @@ def test_update_single():
                 if isinstance(value, mm.unit.Quantity):
                     quantities.append(value)
         return quantities
-    
+
     used_atoms = {"IM1H": "H7", "OAC": "O2", "IM1": "N2", "HOAC": "H"}
     for residue in ionic_liquid.residues:
         LOGGER.debug(f"Processing {residue}")
@@ -227,7 +227,7 @@ def test_update_single():
                 atom_idxs = residue.atom_idxs
                 params0 = get_params(force, force_name, atom_idxs, forces_dict0)
 
-        assert forces[residue.current_name] == forces_dict0 
+        assert forces[residue.current_name] == forces_dict0
 
         for force in ionic_liquid.system.getForces():
             force_name = type(force).__name__

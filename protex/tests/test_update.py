@@ -41,7 +41,7 @@ ALLOWERD_UPDATES[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
 def test_create_update():
     # simulation = generate_im1h_oac_system()
     simulation = generate_small_box(use_plugin=False)
-    
+
     templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], ALLOWERD_UPDATES)
     ionic_liquid = ProtexSystem(simulation, templates)
     try:
@@ -700,7 +700,7 @@ def test_check_updated_charges(caplog, tmp_path):
     update = NaiveMCUpdate(ionic_liquid)
     # initialize state update class
     state_update = StateUpdate(update)
-    
+
     # define mutation
     res1 = state_update.ionic_liquid.residues[0] #at the beginning IM1H
     res2 = state_update.ionic_liquid.residues[20] #at the beginning OAC

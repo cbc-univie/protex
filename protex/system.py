@@ -751,7 +751,7 @@ class ProtexSystem:
                 parameters = {}
                 for oname in ordered_names:
                     parameters[oname] = templates[oname]
-                    
+
                 for name1, name2 in itertools.combinations(parameters, 2):
                     # check that we have the same number of parameters
                     self._check_nr_of_forces(
