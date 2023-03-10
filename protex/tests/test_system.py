@@ -46,8 +46,6 @@ from ..testsystems import (
     IM1H_IM1,
     OAC_HOAC,
     OAC_HOAC_H2OAC,
-    IM1H_IM1_old,
-    OAC_HOAC_old,
     generate_h2oac_system,
     generate_im1h_oac_dummy_system,
     generate_im1h_oac_system,
@@ -61,7 +59,6 @@ from ..update import NaiveMCUpdate, StateUpdate
 # H2OAC neue templates class test
 ###
 def test_new_templates():
-    states_old = [OAC_HOAC_old, IM1H_IM1_old]
     states_new = [OAC_HOAC_H2OAC, IM1H_IM1]
     allowed_updates = {}
     # allowed updates according to simple protonation scheme
@@ -76,10 +73,7 @@ def test_new_templates():
     allowed_updates[frozenset(["IM1", "H2OAC"])] = {"r_max": 0.16, "prob": 1}
     allowed_updates[frozenset(["IM1H", "HOAC"])] = {"r_max": 0.16, "prob": 1}
 
-    templates_old = ProtexTemplates(states_old, allowed_updates, legacy_mode=True)
-    print(templates_old)
-
-    templates_new = ProtexTemplates(states_new, allowed_updates, legacy_mode=False)
+    templates_new = ProtexTemplates(states_new, allowed_updates)
     print(templates_new)
 
 

@@ -210,7 +210,7 @@ class ProtexTemplates:
         for atom in self.states[resname]["atoms"]:
             if atom["name"] == atom_name:
                 return atom["mode"]
-        return RuntimeError("There was a problem.")
+        raise RuntimeError("There was a problem.")
 
     def get_modes_for(self, resname: str) -> list[tuple[str, str]]:
         """Get the modes for the given residue.
