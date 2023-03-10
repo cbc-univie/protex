@@ -842,7 +842,7 @@ def generate_single_hpts_meoh_system(
     return simulation
 
 
-IM1H_IM1 = {
+IM1H_IM1_old = {
     "IM1H": {
         "atom_name": "H7",
     },
@@ -851,12 +851,12 @@ IM1H_IM1 = {
     },
 }
 
-IM1H_IM1_2 = {
+IM1H_IM1 = {
     "IM1H": {"atoms": [{"name": "H7", "mode": "donor"}]},
     "IM1": {"atoms": [{"name": "N2", "mode": "acceptor"}]},
 }
 
-OAC_HOAC = {
+OAC_HOAC_old = {
     "OAC": {
         "atom_name": "O2",
         "equivalent_atom": "O1",
@@ -864,7 +864,7 @@ OAC_HOAC = {
     "HOAC": {"atom_name": "H", "mode": "both"},
 }
 
-OAC_HOAC_2 = {
+OAC_HOAC = {
     "OAC": {"atoms": [{"name": "O2", "mode": "acceptor", "equivalent_atom": "O1"}]},
     "HOAC": {"atoms": [{"name": "H", "mode": "donor"}]},
 }
@@ -886,8 +886,17 @@ OAC_HOAC_H2OAC = {
 #     "H2OAC": {"atoms": [{"name": "HO1", "mode": "donor", "equivalent_atom:": "H"}]},
 # }
 
-
 HPTSH_HPTS = {
+    "HPTSH": { "atoms": [{"name": "H7", "mode":"donor"}]},
+    "HPTS": { "atoms": [{"name": "O7", "mode": "acceptor"}]}
+}
+
+MEOH_MEOH2 = {
+    "MEOH": {"atoms": [{"name": "O1", "mode":"acceptor"}]},
+    "MEOH2": {"atoms": [{"name": "HO2", "mode":"acceptor", "equivalent_atom": "HO1"}]}
+}
+
+HPTSH_HPTS_old = {
     "HPTSH": {
         "atom_name": "H7",
         "canonical_name": "HPTS",
@@ -898,7 +907,7 @@ HPTSH_HPTS = {
     },
 }
 
-MEOH_MEOH2 = {
+MEOH_MEOH2_old = {
     "MEOH": {
         "atom_name": "O1",
     },

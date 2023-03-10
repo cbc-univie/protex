@@ -205,16 +205,16 @@ def test_create_IonicLiquidTemplate():
         [OAC_HOAC, IM1H_IM1, HPTSH_HPTS, MEOH_MEOH2], (allowed_updates)
     )
 
-    r = templates.get_residue_name_for_coupled_state("OAC")
-    assert r == "HOAC"
-    r = templates.get_residue_name_for_coupled_state("HOAC")
-    assert r == "OAC"
-    r = templates.get_residue_name_for_coupled_state("IM1H")
-    assert r == "IM1"
-    r = templates.get_residue_name_for_coupled_state("HPTS")
-    assert r == "HPTSH"
-    r = templates.get_residue_name_for_coupled_state("MEOH")
-    assert r == "MEOH2"
+    r = templates.get_other_resnames("OAC")
+    assert r == ["HOAC"]
+    r = templates.get_other_resnames("HOAC")
+    assert r == ["OAC"]
+    r = templates.get_other_resnames("IM1H")
+    assert r == ["IM1"]
+    r = templates.get_other_resnames("HPTS")
+    assert r == ["HPTSH"]
+    r = templates.get_other_resnames("MEOH")
+    assert r ==   ["MEOH2"]
 
     print("###################")
     assert templates.pairs == [
@@ -223,12 +223,12 @@ def test_create_IonicLiquidTemplate():
         ["HPTSH", "HPTS"],
         ["MEOH", "MEOH2"],
     ]
-    assert templates.states["IM1H"]["atom_name"] == "H7"
-    assert templates.states["IM1"]["atom_name"] == "N2"
-    assert templates.states["HPTS"]["atom_name"] == "O7"
-    assert templates.states["HPTSH"]["atom_name"] == "H7"
-    assert templates.states["MEOH"]["atom_name"] == "O1"
-    assert templates.states["MEOH2"]["atom_name"] == "HO2"
+    assert templates.states["IM1H"]["atoms"][0]["name"] == "H7"
+    assert templates.states["IM1"]["atoms"][0]["name"] == "N2"
+    assert templates.states["HPTS"]["atoms"][0]["name"] == "O7"
+    assert templates.states["HPTSH"]["atoms"][0]["name"] == "H7"
+    assert templates.states["MEOH"]["atoms"][0]["name"] == "O1"
+    assert templates.states["MEOH2"]["atoms"][0]["name"] == "HO2"
 
     assert sorted(templates.names) == sorted(
         ["OAC", "HOAC", "IM1H", "IM1", "HPTS", "HPTSH", "MEOH", "MEOH2"]

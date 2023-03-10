@@ -43,11 +43,11 @@ except ImportError:
 from ..reporter import ChargeReporter, EnergyReporter
 from ..system import ProtexSystem, ProtexTemplates
 from ..testsystems import (
-    #IM1H_IM1,
-    IM1H_IM1_2,
-    #OAC_HOAC,
-    OAC_HOAC_2,
+    IM1H_IM1,
+    OAC_HOAC,
     OAC_HOAC_H2OAC,
+    IM1H_IM1_old,
+    OAC_HOAC_old,
     generate_h2oac_system,
     generate_im1h_oac_dummy_system,
     generate_im1h_oac_system,
@@ -56,16 +56,13 @@ from ..testsystems import (
 )
 from ..update import NaiveMCUpdate, StateUpdate
 
-# to check with new syntax
-IM1H_IM1 = IM1H_IM1_2
-OAC_HOAC = OAC_HOAC_2
 
 ###
 # H2OAC neue templates class test
 ###
 def test_new_templates():
-    states_old = [OAC_HOAC, IM1H_IM1]
-    states_new = [OAC_HOAC_H2OAC, IM1H_IM1_2]
+    states_old = [OAC_HOAC_old, IM1H_IM1_old]
+    states_new = [OAC_HOAC_H2OAC, IM1H_IM1]
     allowed_updates = {}
     # allowed updates according to simple protonation scheme
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}

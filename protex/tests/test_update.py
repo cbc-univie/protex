@@ -16,12 +16,11 @@ except ImportError:
 
 import protex
 
+from ..residue import is_allowed_mode_combination
 from ..system import ProtexSystem, ProtexTemplates
 from ..testsystems import (
     IM1H_IM1,
-    IM1H_IM1_2,
     OAC_HOAC,
-    OAC_HOAC_2,
     OAC_HOAC_H2OAC,
     generate_h2oac_system,
     generate_im1h_oac_dummy_system,
@@ -31,6 +30,10 @@ from ..testsystems import (
 )
 from ..update import KeepHUpdate, NaiveMCUpdate, StateUpdate, Update
 
+logger = logging.getLogger(__name__)
+ALLOWERD_UPDATES = {}
+ALLOWERD_UPDATES[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
+ALLOWERD_UPDATES[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
 
 #############
 # small box
@@ -38,10 +41,8 @@ from ..update import KeepHUpdate, NaiveMCUpdate, StateUpdate, Update
 def test_create_update():
     # simulation = generate_im1h_oac_system()
     simulation = generate_small_box(use_plugin=False)
-    allowed_updates = {}
-    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
-    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
-    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+    
+    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], ALLOWERD_UPDATES)
     ionic_liquid = ProtexSystem(simulation, templates)
     try:
         update = Update(ionic_liquid)
@@ -88,11 +89,8 @@ def test_distance_calculation():
     # simulation = generate_im1h_oac_system()
     simulation = generate_small_box(use_plugin=False)
     # get ionic liquid templates
-    allowed_updates = {}
-    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
-    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
 
-    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], ALLOWERD_UPDATES)
     # wrap system in IonicLiquidSystem
     ionic_liquid = ProtexSystem(simulation, templates)
 
@@ -109,13 +107,16 @@ def test_distance_calculation():
     idx = np.dstack(np.unravel_index(np.argsort(distance.ravel()), shape))[0]
     distances = []
     for candidate_idx1, candidate_idx2 in idx:
-        residue1 = res_list[candidate_idx1]
-        residue2 = res_list[candidate_idx2]
+        residue1, atom_name1 = res_list[candidate_idx1]
+        # atom_name is either the name or the equivalent_atom name
+        mode1 = residue1.get_mode_for(atom_name1)
+        residue2, atom_name2 = res_list[candidate_idx2]
+        mode2 = residue2.get_mode_for(atom_name2)
         # is this combination allowed?
         if (
             frozenset([residue1.current_name, residue2.current_name])
-            in state_update.ionic_liquid.templates.allowed_updates
-        ):
+            in ionic_liquid.templates.allowed_updates.keys()
+        ) and is_allowed_mode_combination(mode1, mode2):
             charge_candidate_idx1 = residue1.endstate_charge
             charge_candidate_idx2 = residue2.endstate_charge
 
@@ -133,91 +134,91 @@ def test_get_and_interpolate_forces():
     # simulation = generate_im1h_oac_system()
     simulation = generate_small_box(use_plugin=False)
     # get ionic liquid templates
-    allowed_updates = {}
-    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
-    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
 
-    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], ALLOWERD_UPDATES)
     # wrap system in IonicLiquidSystem
     ionic_liquid = ProtexSystem(simulation, templates)
 
-    # test _get*_parameters
-    int_force_0 = ionic_liquid.residues[0]._get_NonbondedForce_parameters_at_lambda(0.0)
-    int_force_1 = ionic_liquid.residues[0]._get_NonbondedForce_parameters_at_lambda(1.0)
-    int_force_01 = ionic_liquid.residues[0]._get_NonbondedForce_parameters_at_lambda(
-        0.1
-    )
-    assert (
-        int_force_0[0][0][0]._value * 0.9 + int_force_1[0][0][0]._value * 0.1
-        == int_force_01[0][0][0]._value
-    )
-    assert (
-        int_force_0[0][0][1]._value * 0.9 + int_force_1[0][0][1]._value * 0.1
-        == int_force_01[0][0][1]._value
-    )
-    # exceptions
-    assert (
-        int_force_0[1][0][0]._value * 0.9 + int_force_1[1][0][0]._value * 0.1
-        == int_force_01[1][0][0]._value
-    )
-    assert (
-        int_force_0[1][0][1]._value * 0.9 + int_force_1[1][0][1]._value * 0.1
-        == int_force_01[1][0][1]._value
-    )
+    different_residues = []
+    names = []
+    prev_name = ""
+    for residue in ionic_liquid.residues:
+        name = residue.current_name
+        if prev_name == name:
+            continue
+        different_residues.append(residue)
+        names.append(name)
+        prev_name = name
+    logger.debug(names)
 
-    int_force_0 = ionic_liquid.residues[0]._get_HarmonicBondForce_parameters_at_lambda(
-        0.0
-    )
-    int_force_1 = ionic_liquid.residues[0]._get_HarmonicBondForce_parameters_at_lambda(
-        1.0
-    )
-    int_force_01 = ionic_liquid.residues[0]._get_HarmonicBondForce_parameters_at_lambda(
-        0.1
-    )
-    assert (
-        int_force_0[0][0]._value * 0.9 + int_force_1[0][0]._value * 0.1
-        == int_force_01[0][0]._value
-    )
-    assert (
-        int_force_0[0][1]._value * 0.9 + int_force_1[0][1]._value * 0.1
-        == int_force_01[0][1]._value
-    )
+    used_atoms = {"IM1H": "H7", "OAC": "O2", "IM1": "N2", "HOAC": "H"}
+    for residue in different_residues:
+        used_atom = used_atoms[residue.current_name]
+        residue.used_atom = used_atom
 
-    int_force_0 = ionic_liquid.residues[0]._get_HarmonicAngleForce_parameters_at_lambda(
-        0.0
-    )
-    int_force_1 = ionic_liquid.residues[0]._get_HarmonicAngleForce_parameters_at_lambda(
-        1.0
-    )
-    int_force_01 = ionic_liquid.residues[
-        0
-    ]._get_HarmonicAngleForce_parameters_at_lambda(0.1)
-    assert (
-        int_force_0[0][0]._value * 0.9 + int_force_1[0][0]._value * 0.1
-        == int_force_01[0][0]._value
-    )
-    assert (
-        int_force_0[0][1]._value * 0.9 + int_force_1[0][1]._value * 0.1
-        == int_force_01[0][1]._value
-    )
-    # Drude
-    # charges, pol
-    int_force_0 = ionic_liquid.residues[0]._get_DrudeForce_parameters_at_lambda(0.0)[0]
-    int_force_1 = ionic_liquid.residues[0]._get_DrudeForce_parameters_at_lambda(1.0)[0]
-    int_force_01 = ionic_liquid.residues[0]._get_DrudeForce_parameters_at_lambda(0.1)[0]
-    assert (
-        int_force_0[0][0]._value * 0.9 + int_force_1[0][0]._value * 0.1
-        == int_force_01[0][0]._value
-    )
-    assert (
-        int_force_0[0][1]._value * 0.9 + int_force_1[0][1]._value * 0.1
-        == int_force_01[0][1]._value
-    )
-    # thole
-    int_force_0 = ionic_liquid.residues[0]._get_DrudeForce_parameters_at_lambda(0.0)[1]
-    int_force_1 = ionic_liquid.residues[0]._get_DrudeForce_parameters_at_lambda(1.0)[1]
-    int_force_01 = ionic_liquid.residues[0]._get_DrudeForce_parameters_at_lambda(0.1)[1]
-    assert int_force_0[0] * 0.9 + int_force_1[0] * 0.1 == int_force_01[0]
+        # test _get*_parameters
+        int_force_0 = residue._get_NonbondedForce_parameters_at_lambda(0.0)
+        int_force_1 = residue._get_NonbondedForce_parameters_at_lambda(1.0)
+        int_force_01 = residue._get_NonbondedForce_parameters_at_lambda(    0.1   )
+        assert (
+            int_force_0[0][0][0]._value * 0.9 + int_force_1[0][0][0]._value * 0.1
+            == int_force_01[0][0][0]._value
+        )
+        assert (
+            int_force_0[0][0][1]._value * 0.9 + int_force_1[0][0][1]._value * 0.1
+            == int_force_01[0][0][1]._value
+        )
+        # exceptions
+        assert (
+            int_force_0[1][0][0]._value * 0.9 + int_force_1[1][0][0]._value * 0.1
+            == int_force_01[1][0][0]._value
+        )
+        assert (
+            int_force_0[1][0][1]._value * 0.9 + int_force_1[1][0][1]._value * 0.1
+            == int_force_01[1][0][1]._value
+        )
+
+        int_force_0 = residue._get_HarmonicBondForce_parameters_at_lambda(     0.0 )
+        int_force_1 = residue._get_HarmonicBondForce_parameters_at_lambda(     1.0 )
+        int_force_01 = residue._get_HarmonicBondForce_parameters_at_lambda(    0.1)
+        assert (
+            int_force_0[0][0]._value * 0.9 + int_force_1[0][0]._value * 0.1
+            == int_force_01[0][0]._value
+        )
+        assert (
+            int_force_0[0][1]._value * 0.9 + int_force_1[0][1]._value * 0.1
+            == int_force_01[0][1]._value
+        )
+
+        int_force_0 = residue._get_HarmonicAngleForce_parameters_at_lambda( 0.0 )
+        int_force_1 = residue._get_HarmonicAngleForce_parameters_at_lambda(   1.0)
+        int_force_01 = residue._get_HarmonicAngleForce_parameters_at_lambda(0.1)
+        assert (
+            int_force_0[0][0]._value * 0.9 + int_force_1[0][0]._value * 0.1
+            == int_force_01[0][0]._value
+        )
+        assert (
+            int_force_0[0][1]._value * 0.9 + int_force_1[0][1]._value * 0.1
+            == int_force_01[0][1]._value
+        )
+        # Drude
+        # charges, pol
+        int_force_0 = residue._get_DrudeForce_parameters_at_lambda(0.0)[0]
+        int_force_1 = residue._get_DrudeForce_parameters_at_lambda(1.0)[0]
+        int_force_01 = residue._get_DrudeForce_parameters_at_lambda(0.1)[0]
+        assert (
+            int_force_0[0][0]._value * 0.9 + int_force_1[0][0]._value * 0.1
+            == int_force_01[0][0]._value
+        )
+        assert (
+            int_force_0[0][1]._value * 0.9 + int_force_1[0][1]._value * 0.1
+            == int_force_01[0][1]._value
+        )
+        # thole
+        int_force_0 = residue._get_DrudeForce_parameters_at_lambda(0.0)[1]
+        int_force_1 = residue._get_DrudeForce_parameters_at_lambda(1.0)[1]
+        int_force_01 = residue._get_DrudeForce_parameters_at_lambda(0.1)[1]
+        assert int_force_0[0] * 0.9 + int_force_1[0] * 0.1 == int_force_01[0]
 
 
 def test_setting_forces():
@@ -240,6 +241,9 @@ def test_setting_forces():
     # wrap system in IonicLiquidSystem
     ionic_liquid = ProtexSystem(simulation, templates)
 
+    im1h = ionic_liquid.residues[0]
+    assert im1h.current_name == "IM1H"
+    im1h.used_atom = "H7"
     ##################################################
     ##################################################
     # test set*parameters HarmonicBondForce
@@ -253,16 +257,16 @@ def test_setting_forces():
                 idx1 = f[0]
                 idx2 = f[1]
                 if (
-                    idx1 in ionic_liquid.residues[0].atom_idxs
-                    and idx2 in ionic_liquid.residues[0].atom_idxs
+                    idx1 in im1h.atom_idxs
+                    and idx2 in im1h.atom_idxs
                 ):
                     parm_lambda_00.append(f)
 
     # update HarmonicBondForce
-    int_force_0a = ionic_liquid.residues[0]._get_HarmonicBondForce_parameters_at_lambda(
+    int_force_0a = im1h._get_HarmonicBondForce_parameters_at_lambda(
         0.5
     )
-    ionic_liquid.residues[0]._set_HarmonicBondForce_parameters(int_force_0a)
+    im1h._set_HarmonicBondForce_parameters(int_force_0a)
     print("Lambda: 0.5")
     parm_lambda_05 = []
     for force in ionic_liquid.system.getForces():
@@ -272,17 +276,13 @@ def test_setting_forces():
                 idx1 = f[0]
                 idx2 = f[1]
                 if (
-                    idx1 in ionic_liquid.residues[0].atom_idxs
-                    and idx2 in ionic_liquid.residues[0].atom_idxs
+                    idx1 in im1h.atom_idxs
+                    and idx2 in im1h.atom_idxs
                 ):
                     parm_lambda_05.append(f)
     # update HarmonicBondForce
-    int_force_0a = ionic_liquid.residues[0]._get_HarmonicBondForce_parameters_at_lambda(
-        1.0
-    )
-    ionic_liquid.residues[0]._set_HarmonicBondForce_parameters(
-        int_force_0a,
-    )
+    int_force_0a = im1h._get_HarmonicBondForce_parameters_at_lambda(   1.0)
+    im1h._set_HarmonicBondForce_parameters(  int_force_0a )
     print("Lambda: 1.0")
     parm_lambda_10 = []
     for force in ionic_liquid.system.getForces():
@@ -292,8 +292,8 @@ def test_setting_forces():
                 idx1 = f[0]
                 idx2 = f[1]
                 if (
-                    idx1 in ionic_liquid.residues[0].atom_idxs
-                    and idx2 in ionic_liquid.residues[0].atom_idxs
+                    idx1 in im1h.atom_idxs
+                    and idx2 in im1h.atom_idxs
                 ):
                     parm_lambda_10.append(f)
 
@@ -317,17 +317,15 @@ def test_setting_forces():
                 idx2 = f[1]
                 idx3 = f[2]
                 if (
-                    idx1 in ionic_liquid.residues[0].atom_idxs
-                    and idx2 in ionic_liquid.residues[0].atom_idxs
-                    and idx3 in ionic_liquid.residues[0].atom_idxs
+                    idx1 in im1h.atom_idxs
+                    and idx2 in im1h.atom_idxs
+                    and idx3 in im1h.atom_idxs
                 ):
                     parm_lambda_00.append(f)
 
     # update HarmonicAngleForce
-    int_force_0a = ionic_liquid.residues[
-        0
-    ]._get_HarmonicAngleForce_parameters_at_lambda(0.5)
-    ionic_liquid.residues[0]._set_HarmonicAngleForce_parameters(int_force_0a)
+    int_force_0a = im1h._get_HarmonicAngleForce_parameters_at_lambda(0.5)
+    im1h._set_HarmonicAngleForce_parameters(int_force_0a)
     print("Lambda: 0.5")
     parm_lambda_05 = []
     for force in ionic_liquid.system.getForces():
@@ -338,16 +336,14 @@ def test_setting_forces():
                 idx2 = f[1]
                 idx3 = f[2]
                 if (
-                    idx1 in ionic_liquid.residues[0].atom_idxs
-                    and idx2 in ionic_liquid.residues[0].atom_idxs
-                    and idx3 in ionic_liquid.residues[0].atom_idxs
+                    idx1 in im1h.atom_idxs
+                    and idx2 in im1h.atom_idxs
+                    and idx3 in im1h.atom_idxs
                 ):
                     parm_lambda_05.append(f)
     # update HarmonicAngleForce
-    int_force_0a = ionic_liquid.residues[
-        0
-    ]._get_HarmonicAngleForce_parameters_at_lambda(1.0)
-    ionic_liquid.residues[0]._set_HarmonicAngleForce_parameters(int_force_0a)
+    int_force_0a = im1h._get_HarmonicAngleForce_parameters_at_lambda(1.0)
+    im1h._set_HarmonicAngleForce_parameters(int_force_0a)
     print("Lambda: 1.0")
     parm_lambda_10 = []
     for force in ionic_liquid.system.getForces():
@@ -358,9 +354,9 @@ def test_setting_forces():
                 idx2 = f[1]
                 idx3 = f[2]
                 if (
-                    idx1 in ionic_liquid.residues[0].atom_idxs
-                    and idx2 in ionic_liquid.residues[0].atom_idxs
-                    and idx3 in ionic_liquid.residues[0].atom_idxs
+                    idx1 in im1h.atom_idxs
+                    and idx2 in im1h.atom_idxs
+                    and idx3 in im1h.atom_idxs
                 ):
                     parm_lambda_10.append(f)
 
@@ -385,18 +381,16 @@ def test_setting_forces():
                 idx3 = f[2]
                 idx4 = f[3]
                 if (
-                    idx1 in ionic_liquid.residues[0].atom_idxs
-                    and idx2 in ionic_liquid.residues[0].atom_idxs
-                    and idx3 in ionic_liquid.residues[0].atom_idxs
-                    and idx4 in ionic_liquid.residues[0].atom_idxs
+                    idx1 in im1h.atom_idxs
+                    and idx2 in im1h.atom_idxs
+                    and idx3 in im1h.atom_idxs
+                    and idx4 in im1h.atom_idxs
                 ):
                     parm_lambda_00.append(f)
 
     # update PeriodicTorsionForce
-    int_force_0a = ionic_liquid.residues[
-        0
-    ]._get_PeriodicTorsionForce_parameters_at_lambda(0.5)
-    ionic_liquid.residues[0]._set_PeriodicTorsionForce_parameters(int_force_0a)
+    int_force_0a = im1h._get_PeriodicTorsionForce_parameters_at_lambda(0.5)
+    im1h._set_PeriodicTorsionForce_parameters(int_force_0a)
     print("Lambda: 0.5")
     parm_lambda_05 = []
     for force in ionic_liquid.system.getForces():
@@ -408,18 +402,16 @@ def test_setting_forces():
                 idx3 = f[2]
                 idx4 = f[3]
                 if (
-                    idx1 in ionic_liquid.residues[0].atom_idxs
-                    and idx2 in ionic_liquid.residues[0].atom_idxs
-                    and idx3 in ionic_liquid.residues[0].atom_idxs
-                    and idx4 in ionic_liquid.residues[0].atom_idxs
+                    idx1 in im1h.atom_idxs
+                    and idx2 in im1h.atom_idxs
+                    and idx3 in im1h.atom_idxs
+                    and idx4 in im1h.atom_idxs
                 ):
                     parm_lambda_05.append(f)
 
     # update PeriodicTorsionForce
-    int_force_0a = ionic_liquid.residues[
-        0
-    ]._get_PeriodicTorsionForce_parameters_at_lambda(1.0)
-    ionic_liquid.residues[0]._set_PeriodicTorsionForce_parameters(int_force_0a)
+    int_force_0a = im1h._get_PeriodicTorsionForce_parameters_at_lambda(1.0)
+    im1h._set_PeriodicTorsionForce_parameters(int_force_0a)
     print("Lambda: 1.0")
     parm_lambda_10 = []
     for force in ionic_liquid.system.getForces():
@@ -431,10 +423,10 @@ def test_setting_forces():
                 idx3 = f[2]
                 idx4 = f[3]
                 if (
-                    idx1 in ionic_liquid.residues[0].atom_idxs
-                    and idx2 in ionic_liquid.residues[0].atom_idxs
-                    and idx3 in ionic_liquid.residues[0].atom_idxs
-                    and idx4 in ionic_liquid.residues[0].atom_idxs
+                    idx1 in im1h.atom_idxs
+                    and idx2 in im1h.atom_idxs
+                    and idx3 in im1h.atom_idxs
+                    and idx4 in im1h.atom_idxs
                 ):
                     parm_lambda_10.append(f)
 
@@ -444,6 +436,9 @@ def test_setting_forces():
         assert i[6]._value * 0.5 + k[6]._value * 0.5 == j[6]._value
         # assert i[4]._value * 0.5 + k[4]._value * 0.5 == j[4]._value
 
+    oac = ionic_liquid.residues[20]
+    assert oac.current_name == "OAC"
+    oac.used_atom = "O2"
     ##################################################
     ##################################################
     # test set*parameters CustomTorsionForce
@@ -459,20 +454,16 @@ def test_setting_forces():
                 idx3 = f[2]
                 idx4 = f[3]
                 if (
-                    idx1 in ionic_liquid.residues[20].atom_idxs
-                    and idx2 in ionic_liquid.residues[20].atom_idxs
-                    and idx3 in ionic_liquid.residues[20].atom_idxs
-                    and idx4 in ionic_liquid.residues[20].atom_idxs
+                    idx1 in oac.atom_idxs
+                    and idx2 in oac.atom_idxs
+                    and idx3 in oac.atom_idxs
+                    and idx4 in oac.atom_idxs
                 ):
                     parm_lambda_00.append(f)
 
     # update CustomTorsionForce
-    int_force_0a = ionic_liquid.residues[
-        20
-    ]._get_CustomTorsionForce_parameters_at_lambda(0.5)
-    ionic_liquid.residues[20]._set_CustomTorsionForce_parameters(
-        int_force_0a,
-    )
+    int_force_0a = oac._get_CustomTorsionForce_parameters_at_lambda(0.5)
+    oac._set_CustomTorsionForce_parameters(   int_force_0a, )
     print("Lambda: 0.5")
     parm_lambda_05 = []
     for force in ionic_liquid.system.getForces():
@@ -484,20 +475,16 @@ def test_setting_forces():
                 idx3 = f[2]
                 idx4 = f[3]
                 if (
-                    idx1 in ionic_liquid.residues[20].atom_idxs
-                    and idx2 in ionic_liquid.residues[20].atom_idxs
-                    and idx3 in ionic_liquid.residues[20].atom_idxs
-                    and idx4 in ionic_liquid.residues[20].atom_idxs
+                    idx1 in oac.atom_idxs
+                    and idx2 in oac.atom_idxs
+                    and idx3 in oac.atom_idxs
+                    and idx4 in oac.atom_idxs
                 ):
                     parm_lambda_05.append(f)
 
     # update CustomTorsionForce
-    int_force_0a = ionic_liquid.residues[
-        20
-    ]._get_CustomTorsionForce_parameters_at_lambda(1.0)
-    ionic_liquid.residues[20]._set_CustomTorsionForce_parameters(
-        int_force_0a,
-    )
+    int_force_0a = oac._get_CustomTorsionForce_parameters_at_lambda(1.0)
+    oac._set_CustomTorsionForce_parameters(   int_force_0a, )
     print("Lambda: 1.0")
     parm_lambda_10 = []
     for force in ionic_liquid.system.getForces():
@@ -509,10 +496,10 @@ def test_setting_forces():
                 idx3 = f[2]
                 idx4 = f[3]
                 if (
-                    idx1 in ionic_liquid.residues[20].atom_idxs
-                    and idx2 in ionic_liquid.residues[20].atom_idxs
-                    and idx3 in ionic_liquid.residues[20].atom_idxs
-                    and idx4 in ionic_liquid.residues[20].atom_idxs
+                    idx1 in oac.atom_idxs
+                    and idx2 in oac.atom_idxs
+                    and idx3 in oac.atom_idxs
+                    and idx4 in oac.atom_idxs
                 ):
                     parm_lambda_10.append(f)
     assert parm_lambda_00 != parm_lambda_10
@@ -537,8 +524,7 @@ def test_setting_forces():
                 # idx4 = f[3]
                 # idx5 = f[4]
                 if (
-                    idx1 in ionic_liquid.residues[0].atom_idxs
-                    and idx2 in ionic_liquid.residues[0].atom_idxs
+                    idx1 in im1h.atom_idxs and idx2 in im1h.atom_idxs
                 ):
                     parm_lambda_00_charges_pol.append(f)
             for drude_idx in range(force.getNumScreenedPairs()):
@@ -546,17 +532,15 @@ def test_setting_forces():
                 idx1 = f[0]
                 idx2 = f[1]
                 if (
-                    idx1 in ionic_liquid.residues[0].atom_idxs
-                    and idx2 in ionic_liquid.residues[0].atom_idxs
+                    idx1 in im1h.atom_idxs
+                    and idx2 in im1h.atom_idxs
                 ):
                     parm_lambda_00_thole.append(f)
     parm_lambda_00 = [parm_lambda_00_charges_pol, parm_lambda_00_thole]
 
     # update DrudeForce
-    int_force_0a = ionic_liquid.residues[0]._get_DrudeForce_parameters_at_lambda(0.5)
-    ionic_liquid.residues[0]._set_DrudeForce_parameters(
-        int_force_0a,
-    )
+    int_force_0a = im1h._get_DrudeForce_parameters_at_lambda(0.5)
+    im1h._set_DrudeForce_parameters(     int_force_0a, )
     print("Lambda: 0.5")
     parm_lambda_05_charges_pol = []
     parm_lambda_05_thole = []
@@ -570,8 +554,8 @@ def test_setting_forces():
                 # idx4 = f[3]
                 # idx5 = f[4]
                 if (
-                    idx1 in ionic_liquid.residues[0].atom_idxs
-                    and idx2 in ionic_liquid.residues[0].atom_idxs
+                    idx1 in im1h.atom_idxs
+                    and idx2 in im1h.atom_idxs
                 ):
                     parm_lambda_05_charges_pol.append(f)
             for drude_idx in range(force.getNumScreenedPairs()):
@@ -579,17 +563,15 @@ def test_setting_forces():
                 idx1 = f[0]
                 idx2 = f[1]
                 if (
-                    idx1 in ionic_liquid.residues[0].atom_idxs
-                    and idx2 in ionic_liquid.residues[0].atom_idxs
+                    idx1 in im1h.atom_idxs
+                    and idx2 in im1h.atom_idxs
                 ):
                     parm_lambda_05_thole.append(f)
     parm_lambda_05 = [parm_lambda_05_charges_pol, parm_lambda_05_thole]
 
     # update DrudeForce
-    int_force_0a = ionic_liquid.residues[0]._get_DrudeForce_parameters_at_lambda(1.0)
-    ionic_liquid.residues[0]._set_DrudeForce_parameters(
-        int_force_0a,
-    )
+    int_force_0a = im1h._get_DrudeForce_parameters_at_lambda(1.0)
+    im1h._set_DrudeForce_parameters( int_force_0a )
     print("Lambda: 1.0")
     parm_lambda_10_charges_pol = []
     parm_lambda_10_thole = []
@@ -603,8 +585,8 @@ def test_setting_forces():
                 # idx4 = f[3]
                 # idx5 = f[4]
                 if (
-                    idx1 in ionic_liquid.residues[0].atom_idxs
-                    and idx2 in ionic_liquid.residues[0].atom_idxs
+                    idx1 in im1h.atom_idxs
+                    and idx2 in im1h.atom_idxs
                 ):
                     parm_lambda_10_charges_pol.append(f)
             for drude_idx in range(force.getNumScreenedPairs()):
@@ -612,8 +594,8 @@ def test_setting_forces():
                 idx1 = f[0]
                 idx2 = f[1]
                 if (
-                    idx1 in ionic_liquid.residues[0].atom_idxs
-                    and idx2 in ionic_liquid.residues[0].atom_idxs
+                    idx1 in im1h.atom_idxs
+                    and idx2 in im1h.atom_idxs
                 ):
                     parm_lambda_05_thole.append(f)
     parm_lambda_10 = [parm_lambda_10_charges_pol, parm_lambda_10_thole]
@@ -638,11 +620,8 @@ def test_single_update(caplog):
     # simulation = generate_im1h_oac_system()
     simulation = generate_small_box(use_plugin=False)
     # get ionic liquid templates
-    allowed_updates = {}
-    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
-    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
 
-    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], ALLOWERD_UPDATES)
     # wrap system in IonicLiquidSystem
     ionic_liquid = ProtexSystem(simulation, templates)
     ionic_liquid.simulation.minimizeEnergy(maxIterations=500)
@@ -657,49 +636,51 @@ def test_single_update(caplog):
     # check that we have all atoms
     assert len(pos) == 1800
     # check properties of residue that will be tested
-    idx1 = 0
-    idx2 = 20
-    assert state_update.ionic_liquid.residues[idx1].current_name == "IM1H"
-    assert state_update.ionic_liquid.residues[idx1].original_name == "IM1H"
-    assert state_update.ionic_liquid.residues[idx1].current_charge == 1.00
-    assert state_update.ionic_liquid.residues[idx1].endstate_charge == 1
+    res1 = state_update.ionic_liquid.residues[0] #at the beginning IM1H
+    res2 = state_update.ionic_liquid.residues[20] #at the beginning OAC
 
-    assert state_update.ionic_liquid.residues[idx2].current_name == "OAC"
-    assert state_update.ionic_liquid.residues[idx2].original_name == "OAC"
-    assert state_update.ionic_liquid.residues[idx2].current_charge == -1.00
-    assert state_update.ionic_liquid.residues[idx2].endstate_charge == -1
+    assert res1.current_name == "IM1H"
+    assert res1.original_name == "IM1H"
+    assert res1.current_charge == 1.00
+    assert res1.endstate_charge == 1
 
-    candidate_pairs = [
-        (
-            state_update.ionic_liquid.residues[idx1],
-            state_update.ionic_liquid.residues[idx2],
-        )
-    ]
+    assert res2.current_name == "OAC"
+    assert res2.original_name == "OAC"
+    assert res2.current_charge == -1.00
+    assert res2.endstate_charge == -1
+
+    res1.used_atom = "H7"
+    res2.used_atom = "O2"
+
+    candidate_pairs = [     (      res1,      res2,  )  ]
+    ###### update
+    state_update.updateMethod._update(candidate_pairs, 2) #used atom gets reset to None
+
+    assert res1.current_name == "IM1"
+    assert res1.original_name == "IM1H"
+    assert res1.endstate_charge == 0
+    assert res2.current_charge == 0.00
+
+    assert res2.current_name == "HOAC"
+    assert res2.original_name == "OAC"
+    assert res2.endstate_charge == 0
+    assert res2.current_charge == 0.00
+
+    res1.used_atom = "N2" #now im1
+    res2.used_atom = "H" #now hoac
+
     ###### update
     state_update.updateMethod._update(candidate_pairs, 2)
 
-    assert state_update.ionic_liquid.residues[idx1].current_name == "IM1"
-    assert state_update.ionic_liquid.residues[idx1].original_name == "IM1H"
-    assert state_update.ionic_liquid.residues[idx1].endstate_charge == 0
-    assert state_update.ionic_liquid.residues[idx2].current_charge == 0.00
+    assert res1.current_name == "IM1H"
+    assert res1.original_name == "IM1H"
+    assert res1.endstate_charge == 1
+    assert res1.current_charge == 1
 
-    assert state_update.ionic_liquid.residues[idx2].current_name == "HOAC"
-    assert state_update.ionic_liquid.residues[idx2].original_name == "OAC"
-    assert state_update.ionic_liquid.residues[idx2].endstate_charge == 0
-    assert state_update.ionic_liquid.residues[idx2].current_charge == 0.00
-
-    ###### update
-    state_update.updateMethod._update(candidate_pairs, 2)
-
-    assert state_update.ionic_liquid.residues[idx1].current_name == "IM1H"
-    assert state_update.ionic_liquid.residues[idx1].original_name == "IM1H"
-    assert state_update.ionic_liquid.residues[idx1].endstate_charge == 1
-    assert state_update.ionic_liquid.residues[idx1].current_charge == 1
-
-    assert state_update.ionic_liquid.residues[idx2].current_name == "OAC"
-    assert state_update.ionic_liquid.residues[idx2].original_name == "OAC"
-    assert state_update.ionic_liquid.residues[idx2].endstate_charge == -1
-    assert state_update.ionic_liquid.residues[idx2].current_charge == -1
+    assert res2.current_name == "OAC"
+    assert res2.original_name == "OAC"
+    assert res2.endstate_charge == -1
+    assert res2.current_charge == -1
 
 
 @pytest.mark.skipif(
@@ -712,31 +693,30 @@ def test_check_updated_charges(caplog, tmp_path):
     # simulation = generate_im1h_oac_system()
     simulation = generate_small_box(use_plugin=False)
     # get ionic liquid templates
-    allowed_updates = {}
-    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
-    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
-
-    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], ALLOWERD_UPDATES)
     # wrap system in IonicLiquidSystem
     ionic_liquid = ProtexSystem(simulation, templates)
 
     update = NaiveMCUpdate(ionic_liquid)
     # initialize state update class
     state_update = StateUpdate(update)
+    
     # define mutation
-    idx1, idx2 = 0, 20
+    res1 = state_update.ionic_liquid.residues[0] #at the beginning IM1H
+    res2 = state_update.ionic_liquid.residues[20] #at the beginning OAC
 
-    candidate_pairs = [
-        {
-            state_update.ionic_liquid.residues[idx1],
-            state_update.ionic_liquid.residues[idx2],
-        }
-    ]
+    used_atoms = {"IM1H": "H7", "OAC": "O2", "IM1": "N2", "HOAC": "H"}
+
+    candidate_pairs = [    {     res1,     res2, } ]
 
     state_update.write_charges(f"{tmp_path}/output_initial1.txt")
     par_initial = state_update.get_charges()
+    res1.used_atom= used_atoms[res1.current_name]
+    res2.used_atom = used_atoms[res2.current_name]
     state_update.updateMethod._update(candidate_pairs, 21)
     par_after_first_update = state_update.get_charges()
+    res1.used_atom= used_atoms[res1.current_name]
+    res2.used_atom = used_atoms[res2.current_name]
     state_update.updateMethod._update(candidate_pairs, 21)
     par_after_second_update = state_update.get_charges()
 
@@ -772,17 +752,9 @@ def test_check_updated_charges(caplog, tmp_path):
 )
 def test_transfer_with_distance_matrix(tmp_path):
     simulation = generate_im1h_oac_system()
-    # get ionic liquid templates
-    allowed_updates = {}
-    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
-    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
-
-    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
-    # wrap system in IonicLiquidSystem
+    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], ALLOWERD_UPDATES)
     ionic_liquid = ProtexSystem(simulation, templates)
-
     update = NaiveMCUpdate(ionic_liquid)
-    # initialize state update class
     state_update = StateUpdate(update)
     state_update.write_charges(f"{tmp_path}/output_initial.txt")
     par_initial = state_update.get_charges()
@@ -998,13 +970,7 @@ def test_dry_updates(caplog):
 def test_parameters_after_update(tmp_path):
     simulation = generate_im1h_oac_system()
     # simulation = generate_small_box()
-    # get ionic liquid templates
-    allowed_updates = {}
-    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
-    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
-
-    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
-    # wrap system in IonicLiquidSystem
+    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], ALLOWERD_UPDATES)
     ionic_liquid = ProtexSystem(simulation, templates)
     ionic_liquid.simulation.reporters.append(
         DCDReporter(f"{tmp_path}/test_transfer.dcd", 1)
@@ -1247,15 +1213,7 @@ def test_parameters_after_update(tmp_path):
 def test_pbc():
     # simulation = generate_im1h_oac_system()
     simulation = generate_small_box(use_plugin=False)
-    # get ionic liquid templates
-    allowed_updates = {}
-    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
-    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
-    # allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 1}
-    # allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.16, "prob": 1}
-
-    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
-    # wrap system in IonicLiquidSystem
+    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], ALLOWERD_UPDATES)
     ionic_liquid = ProtexSystem(simulation, templates)
 
     boxl = ionic_liquid.boxlength.value_in_unit(nanometers)
@@ -1422,17 +1380,7 @@ def test_single_im1h_oac():
 def test_force_selection():
     simulation = generate_single_im1h_oac_system(use_plugin=False)
     allowed_updates = {}
-    # allowed updates according to simple protonation scheme
-    allowed_updates[frozenset(["IM1H", "OAC"])] = {
-        "r_max": 0.16,
-        "delta_e": 2.33,
-    }  # r_max in nanometer, delta_e in kcal/mol
-    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "delta_e": -2.33}
-    # allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "delta_e": 1.78}
-    # allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.16, "delta_e": 0.68}
-    # get ionic liquid templates
     templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
-    # wrap system in IonicLiquidSystem
     ionic_liquid = ProtexSystem(simulation, templates)
     update = NaiveMCUpdate(ionic_liquid)
     assert update.allowed_forces == ["NonbondedForce", "DrudeForce"]
@@ -2255,8 +2203,8 @@ def test_wrong_atom_name(caplog):
     allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 1}
     allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.16, "prob": 1}
     # get ionic liquid templates
-    IM1H_IM1 = {"IM1H": {"atom_name": "H72313"}, "IM1": {"atom_name": "wrong_name"}}
-    OAC_HOAC = {"OAC": {"atom_name": "O2"}, "HOAC": {"atom_name": "H"}}
+    IM1H_IM1 = {"IM1H": {"atoms":[{"name": "H72313", "mode": "donor"}]}, "IM1": {"atoms":[{"name": "wrong_name", "mode":"acceptor"}]}}
+    OAC_HOAC = {"OAC": {"atoms":[{"name": "O2", "mode": "acceptor"}]}, "HOAC": {"atoms": [{"name": "H", "mode": "donor"}]}}
     templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
     # wrap system in IonicLiquidSystem
     ionic_liquid = ProtexSystem(simulation, templates)
@@ -2326,7 +2274,7 @@ def test_h2oac():
     print(allowed_updates.keys())
     templates = ProtexTemplates(
         # [OAC_HOAC_chelpg, IM1H_IM1_chelpg], (set(["IM1H", "OAC"]), set(["IM1", "HOAC"]))
-        [IM1H_IM1_2, OAC_HOAC_H2OAC],
+        [IM1H_IM1, OAC_HOAC_H2OAC],
         (allowed_updates),
         legacy_mode=False,
     )
@@ -2358,7 +2306,7 @@ def test_exchange_positions():
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.165, "prob": 1}
     templates = ProtexTemplates(
-        [OAC_HOAC_2, IM1H_IM1_2], (allowed_updates), legacy_mode=False
+        [OAC_HOAC, IM1H_IM1], (allowed_updates), legacy_mode=False
     )
     ionic_liquid = ProtexSystem(simulation, templates)
     # update = NaiveMCUpdate(ionic_liquid, all_forces=True)

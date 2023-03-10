@@ -36,18 +36,17 @@ class Residue:
     ----------
     residue: openmm.app.topology.Residue
         The residue from  an OpenMM Topology
-    alternativ_name: str
-        The name of the corresponding protonated/deprotonated form (eg. OAC for HOAC)
+    ordered_names: tuple[str,...]
+        All possible residue states from the most deprotonated to the most protonated one
+        I.e. (OAC, HOAC, H2OAC)
     system: openmm.openmm.System
         The system generated with openMM, where all residues are in
-    initial_parameters: dict[list]
+    parameters: dict[list]
         The parameters for the residue
-    alternativ_parameters: dict[list]
-        The parameters for the alternativ (protonated/deprotonated) state
     pair_12_13_exclusion_list: list
         1-2 and 1-3 exclusions in the system
-    has_equivalent_atoms:  tuple[bool,bool]
-        if original name and alternative name have equivalent atoms
+    states: dict[str,dict[str,list[dict[str,str]]]]  
+        all the state information for a specific resname and all corresponding resname
 
     Attributes
     ----------
@@ -57,6 +56,8 @@ class Residue:
         The name of the residue given by the OpenMM Residue, will not change throughout the simulation(?)
     current_name: str
         The current name of the residue, depending on the protonation state
+    ordered_names: tuple[str,...]
+        All possible residue states from the most deprotonated to the most protonated one
     atom_idxs: list[int]
         List of all atom indices belonging to that residue
     atom_names; list[str]
@@ -70,8 +71,10 @@ class Residue:
         The system generated with openMM, where all residues are in
     pair_12_13_list: list
          1-2 and 1-3 exclusions in the system
-    equivalent_atoms: dict[str, bool]
-        if orignal_name and alternative name have equivalent atoms
+    states: dict[str,dict[str,list[dict[str,str]]]]  
+        all the state information for a specific resname and all corresponding resname
+    used_atom: str | None
+        usually None, during an update process it specifies the atom that was used    
     """
 
     def __init__(
@@ -81,8 +84,6 @@ class Residue:
         system,
         parameters,
         pair_12_13_exclusion_list,
-        # has_equivalent_atoms,
-        # modes,
         states,
     ) -> None:
         self.residue = residue
@@ -91,24 +92,12 @@ class Residue:
         self.ordered_names = ordered_names
         self.atom_idxs = [atom.index for atom in residue.atoms()]
         self.atom_names = [atom.name for atom in residue.atoms()]
-        # self.parameters = {
-        #     self.original_name: inital_parameters,
-        #     alternativ_name: alternativ_parameters,
-        # }
         self.parameters = parameters
         self.record_charge_state = []
         self.system = system
         self.record_charge_state.append(self.endstate_charge)  # Not used anywhere?
         self.pair_12_13_list = pair_12_13_exclusion_list
-        # self.equivalent_atoms: dict[str, bool] = {
-        #     self.original_name: has_equivalent_atoms[0],
-        #     self.alternativ_name: has_equivalent_atoms[1],
-        # }
-        # self.has_equivalent_atoms = has_equivalent_atoms
-        # self.modes = modes
         self.states = states
-        # self.equivalent_atom_pos_in_list: int = None
-        self.used_equivalent_atom: bool = False
         self.used_atom: str | None = None
 
     def __str__(self) -> str:
@@ -254,16 +243,25 @@ class Residue:
             True if the atom_name matches the equivalent atom, false otherwise
 
         """
-        assert atom_name is not None
+        assert atom_name is not None #just to make sure...
         for atom in self.states[self.current_name]["atoms"]:
             if atom_name == atom.get("equivalent_atom", None):
                 return True
         return False
 
     # use once the attribute is deprecated
-    #@property
-    #def used_equivalent_atom(self):
-    #    return self.is_equivalent_atom_name(self.used_atom)
+    @property
+    def used_equivalent_atom(self) -> bool:
+        """Determine if the equivalent atom was used for the update.
+
+        Returns
+        -------
+        bool
+            True if the equivalent atom was used, false otherwise
+        """
+        if self.used_atom is None:
+            raise RuntimeError("Currently no atom is selected that was used for the update. Determination if it is the equivalent atom is therefore noot possible. Define self.used_atom first.")
+        return self.is_equivalent_atom_name(self.used_atom)
 
 
     def is_acceptor(self, atom_name) -> bool:

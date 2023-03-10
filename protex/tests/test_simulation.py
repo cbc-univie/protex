@@ -21,7 +21,6 @@ except ImportError:
 
 LOGGER = logging.getLogger(__name__)
 
-
 @pytest.mark.skipif(
     os.getenv("CI") == "true",
     reason="Skipping tests that cannot pass in github actions",
@@ -51,7 +50,7 @@ def test_outline(tmp_path):
     # ionic_liquid.simulation.minimizeEnergy(maxIterations=200)
     # adding reporter
     ionic_liquid.simulation.reporters.append(
-        DCDReporter(f"{tmp_path}/outline1.dcd", 500)
+        DCDReporter(f"{tmp_path}/outline.dcd", 500)
     )
 
     ionic_liquid.simulation.reporters.append(
@@ -67,7 +66,7 @@ def test_outline(tmp_path):
         )
     )
     ionic_liquid.simulation.reporters.append(
-        DrudeTemperatureReporter(f"{tmp_path}/drude_temp1.out", 500)
+        DrudeTemperatureReporter(f"{tmp_path}/drude_temp.out", 500)
     )
 
     ionic_liquid.simulation.reporters.append(
@@ -140,7 +139,7 @@ def test_small_box(tmp_path):
     )
 
     ionic_liquid.simulation.reporters.append(
-        EnergyReporter(f"{tmp_path}/energy.out", 500)
+        EnergyReporter(f"{tmp_path}/energy1.out", 500)
     )
 
     charge_info = {"dcd_save_freq": 500}
