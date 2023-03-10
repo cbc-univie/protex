@@ -16,7 +16,7 @@ except ImportError:
 
 import protex
 
-from ..residue import is_allowed_mode_combination
+from ..residue import Residue, is_allowed_mode_combination
 from ..system import ProtexSystem, ProtexTemplates
 from ..testsystems import (
     IM1H_IM1,
@@ -31,9 +31,9 @@ from ..testsystems import (
 from ..update import KeepHUpdate, NaiveMCUpdate, StateUpdate, Update
 
 logger = logging.getLogger(__name__)
-ALLOWERD_UPDATES = {}
-ALLOWERD_UPDATES[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
-ALLOWERD_UPDATES[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
+ALLOWED_UPDATES = {}
+ALLOWED_UPDATES[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
+ALLOWED_UPDATES[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
 
 #############
 # small box
@@ -42,7 +42,7 @@ def test_create_update():
     # simulation = generate_im1h_oac_system()
     simulation = generate_small_box(use_plugin=False)
 
-    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], ALLOWERD_UPDATES)
+    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], ALLOWED_UPDATES)
     ionic_liquid = ProtexSystem(simulation, templates)
     try:
         update = Update(ionic_liquid)
@@ -90,7 +90,7 @@ def test_distance_calculation():
     simulation = generate_small_box(use_plugin=False)
     # get ionic liquid templates
 
-    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], ALLOWERD_UPDATES)
+    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], ALLOWED_UPDATES)
     # wrap system in IonicLiquidSystem
     ionic_liquid = ProtexSystem(simulation, templates)
 
@@ -135,7 +135,7 @@ def test_get_and_interpolate_forces():
     simulation = generate_small_box(use_plugin=False)
     # get ionic liquid templates
 
-    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], ALLOWERD_UPDATES)
+    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], ALLOWED_UPDATES)
     # wrap system in IonicLiquidSystem
     ionic_liquid = ProtexSystem(simulation, templates)
 
@@ -621,7 +621,7 @@ def test_single_update(caplog):
     simulation = generate_small_box(use_plugin=False)
     # get ionic liquid templates
 
-    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], ALLOWERD_UPDATES)
+    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], ALLOWED_UPDATES)
     # wrap system in IonicLiquidSystem
     ionic_liquid = ProtexSystem(simulation, templates)
     ionic_liquid.simulation.minimizeEnergy(maxIterations=500)
@@ -693,7 +693,7 @@ def test_check_updated_charges(caplog, tmp_path):
     # simulation = generate_im1h_oac_system()
     simulation = generate_small_box(use_plugin=False)
     # get ionic liquid templates
-    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], ALLOWERD_UPDATES)
+    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], ALLOWED_UPDATES)
     # wrap system in IonicLiquidSystem
     ionic_liquid = ProtexSystem(simulation, templates)
 
@@ -752,7 +752,7 @@ def test_check_updated_charges(caplog, tmp_path):
 )
 def test_transfer_with_distance_matrix(tmp_path):
     simulation = generate_im1h_oac_system()
-    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], ALLOWERD_UPDATES)
+    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], ALLOWED_UPDATES)
     ionic_liquid = ProtexSystem(simulation, templates)
     update = NaiveMCUpdate(ionic_liquid)
     state_update = StateUpdate(update)
@@ -970,7 +970,7 @@ def test_dry_updates(caplog):
 def test_parameters_after_update(tmp_path):
     simulation = generate_im1h_oac_system()
     # simulation = generate_small_box()
-    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], ALLOWERD_UPDATES)
+    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], ALLOWED_UPDATES)
     ionic_liquid = ProtexSystem(simulation, templates)
     ionic_liquid.simulation.reporters.append(
         DCDReporter(f"{tmp_path}/test_transfer.dcd", 1)
@@ -1213,7 +1213,7 @@ def test_parameters_after_update(tmp_path):
 def test_pbc():
     # simulation = generate_im1h_oac_system()
     simulation = generate_small_box(use_plugin=False)
-    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], ALLOWERD_UPDATES)
+    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], ALLOWED_UPDATES)
     ionic_liquid = ProtexSystem(simulation, templates)
 
     boxl = ionic_liquid.boxlength.value_in_unit(nanometers)
@@ -1379,7 +1379,7 @@ def test_single_im1h_oac():
 
 def test_force_selection():
     simulation = generate_single_im1h_oac_system(use_plugin=False)
-    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (ALLOWERD_UPDATES))
+    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], ALLOWED_UPDATES)
     ionic_liquid = ProtexSystem(simulation, templates)
     update = NaiveMCUpdate(ionic_liquid)
     assert update.allowed_forces == ["NonbondedForce", "DrudeForce"]
@@ -2258,6 +2258,7 @@ def test_save_load_updates(caplog, tmp_path):
     reason="Will fail sporadicaly.",
 )
 def test_h2oac():
+    #TODO: probably first better strucutre and crd, file, then test everything else
     simulation = generate_h2oac_system(use_plugin=True)
     # get ionic liquid templates
     allowed_updates = {}
@@ -2274,12 +2275,7 @@ def test_h2oac():
     # allowed_updates[frozenset(["IM1H", "HOAC"])] = {"r_max": 0.16, "prob": 1}
 
     print(allowed_updates.keys())
-    templates = ProtexTemplates(
-        # [OAC_HOAC_chelpg, IM1H_IM1_chelpg], (set(["IM1H", "OAC"]), set(["IM1", "HOAC"]))
-        [IM1H_IM1, OAC_HOAC_H2OAC],
-        (allowed_updates),
-        legacy_mode=False,
-    )
+    templates = ProtexTemplates( [IM1H_IM1, OAC_HOAC_H2OAC],      (allowed_updates)    )
     names = templates.get_atom_names_for("HOAC")
     print(names)
     print(templates.get_other_resnames("HOAC"))
@@ -2311,8 +2307,7 @@ def test_exchange_positions():
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.165, "prob": 1}
     templates = ProtexTemplates(
-        [OAC_HOAC, IM1H_IM1], (allowed_updates), legacy_mode=False
-    )
+        [OAC_HOAC, IM1H_IM1], (allowed_updates))
     ionic_liquid = ProtexSystem(simulation, templates)
     # update = NaiveMCUpdate(ionic_liquid, all_forces=True)
     # state_update = StateUpdate(update)
@@ -2388,3 +2383,60 @@ def test_exchange_positions():
     #     p1, p2, length, k = drude_force.getParticleParameters(i)
     #     if p1 != p2:
     #         bond_list.append((p1, p2))
+
+@pytest.mark.skipif(
+    os.getenv("CI") == "true",
+    reason="Cant pass github, gpu needed.",
+)
+def test_reorient(tmp_path):
+    def update_neu(self, nr_of_steps: int = 2) -> list[tuple[Residue, Residue]]:
+        r"""manually to explicitliy use the equivalent atom.
+        """
+        print("Called update_neu")
+        # calculate the distance betwen updateable residues
+        pos_list, res_list = self._get_positions_for_mutation_sites()
+        # propose the update candidates based on distances
+        self._print_start()
+        candidate_pairs = self._propose_candidate_pair(pos_list, res_list)
+        im1h = self.ionic_liquid.residues[0]
+        oac = self.ionic_liquid.residues[1]
+        candidate_pairs = [(im1h,oac)]
+        im1h.used_atom = "H7"
+        oac.used_atom = "O1" #the equivalent one
+        print(f"{len(candidate_pairs)=}")
+
+        if len(candidate_pairs) == 0:
+            print("No transfers this time")
+            self.ionic_liquid.simulation.step(
+                nr_of_steps
+            )  # also do the simulation steps if no update occurs, to be consistent in simulation time
+        elif len(candidate_pairs) > 0:
+            self.updateMethod._update(candidate_pairs, nr_of_steps)
+
+        self.update_trial += 1
+
+        if self.updateMethod.to_adapt is not None:
+            self.updateMethod._adapt_probabilities(self.updateMethod.to_adapt)
+
+        self._print_stop()
+
+        return candidate_pairs
+    simulation = generate_single_im1h_oac_system(use_plugin=True)
+    allowed_updates = {}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 1.165, "prob": 1}
+    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+    ionic_liquid = ProtexSystem(simulation, templates)
+    update = NaiveMCUpdate(ionic_liquid, all_forces=True, include_equivalent_atom=True, reorient=True)
+    state_update = StateUpdate(update)
+    import types
+    state_update.update = types.MethodType(update_neu, state_update)
+    print(f"{tmp_path=}")
+    ionic_liquid.simulation.reporters.append(
+        DCDReporter(f"{tmp_path}/test.dcd", 1)
+    )
+    ionic_liquid.simulation.step(10)
+    residues = state_update.update(2)
+    res1, res2 = residues[0]
+    print(res1.current_name, res1.used_atom)
+    print(res2.current_name, res2.used_atom)
+    ionic_liquid.simulation.step(10)

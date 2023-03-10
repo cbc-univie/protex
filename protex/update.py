@@ -504,10 +504,6 @@ class NaiveMCUpdate(Update):
         super().__init__(
             ionic_liquid, to_adapt, all_forces, include_equivalent_atom, reorient
         )
-        if reorient:
-            raise NotImplementedError(
-                "Currently reorienting atoms if equivalent atoms are used is not implemented. Set reorient=False."
-            )
 
     def dump(self, fname: str) -> None:
         """Pickle the NaiveMCUpdate instance.

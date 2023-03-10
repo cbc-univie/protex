@@ -871,20 +871,20 @@ OAC_HOAC = {
 
 # use equivalent atom, if this atom is equivalent, but the dummy-real_atom conversion is fixed to the other topology -
 # it is then internally managed to swap the two atoms
-OAC_HOAC_H2OAC = {
-    "OAC": {"atoms": [{"name": "O2", "mode": "acceptor"}]},
-    "HOAC": {
-        "atoms": [{"name": "H", "mode": "donor"}, {"name": "O1", "mode": "acceptor"}]
-    },
-    "H2OAC": {"atoms": [{"name": "HO1", "mode": "donor"}]},
-}
 # OAC_HOAC_H2OAC = {
-#     "OAC": {"atoms": [{"name": "O2", "mode": "acceptor", "equivalent_atom": "O1"}]},
+#     "OAC": {"atoms": [{"name": "O2", "mode": "acceptor"}]},
 #     "HOAC": {
 #         "atoms": [{"name": "H", "mode": "donor"}, {"name": "O1", "mode": "acceptor"}]
 #     },
-#     "H2OAC": {"atoms": [{"name": "HO1", "mode": "donor", "equivalent_atom:": "H"}]},
+#     "H2OAC": {"atoms": [{"name": "HO1", "mode": "donor"}]},
 # }
+OAC_HOAC_H2OAC = {
+    "OAC": {"atoms": [{"name": "O2", "mode": "acceptor", "equivalent_atom": "O1"}]},
+    "HOAC": {
+        "atoms": [{"name": "H", "mode": "donor"}, {"name": "O1", "mode": "acceptor"}]
+    },
+    "H2OAC": {"atoms": [{"name": "HO1", "mode": "donor", "equivalent_atom:": "H"}]},
+}
 
 HPTSH_HPTS = {
     "HPTSH": { "atoms": [{"name": "H7", "mode":"donor"}]},
