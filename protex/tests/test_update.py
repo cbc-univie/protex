@@ -2390,8 +2390,7 @@ def test_exchange_positions():
 )
 def test_reorient(tmp_path):
     def update_neu(self, nr_of_steps: int = 2) -> list[tuple[Residue, Residue]]:
-        r"""manually to explicitliy use the equivalent atom.
-        """
+        r"""manually to explicitliy use the equivalent atom."""
         print("Called update_neu")
         # calculate the distance betwen updateable residues
         pos_list, res_list = self._get_positions_for_mutation_sites()
