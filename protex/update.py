@@ -188,7 +188,7 @@ class KeepHUpdate(Update):
         ]  # enusre correct order of arguments
         with open(fname, "wb") as outp:
             pickle.dump(to_pickle, outp, pickle.HIGHEST_PROTOCOL)
-    
+
     def _get_atom_name_of_alternativ_resname(self, acceptor):
         #outsourced this bit because we should really change it
 

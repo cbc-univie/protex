@@ -45,7 +45,7 @@ class Residue:
         The parameters for the residue
     pair_12_13_exclusion_list: list
         1-2 and 1-3 exclusions in the system
-    states: dict[str,dict[str,list[dict[str,str]]]]  
+    states: dict[str,dict[str,list[dict[str,str]]]]
         all the state information for a specific resname and all corresponding resname
 
     Attributes
@@ -71,10 +71,10 @@ class Residue:
         The system generated with openMM, where all residues are in
     pair_12_13_list: list
          1-2 and 1-3 exclusions in the system
-    states: dict[str,dict[str,list[dict[str,str]]]]  
+    states: dict[str,dict[str,list[dict[str,str]]]]
         all the state information for a specific resname and all corresponding resname
     used_atom: str | None
-        usually None, during an update process it specifies the atom that was used    
+        usually None, during an update process it specifies the atom that was used
     """
 
     def __init__(
