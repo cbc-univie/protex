@@ -4,6 +4,8 @@ import copy
 import logging
 import pickle
 import random
+import sys
+import typing
 from abc import ABC, abstractmethod
 from collections import Counter, deque
 
@@ -541,7 +543,7 @@ class NaiveMCUpdate(Update):
                 bonded_atoms_to_acceptor.append(bond.atom1.name)
         #now we hope, that the dummy atom name and the real atom name of the corresponding acceptor have the same name!
         for atom in acceptor.states[acceptor.alternativ_resname]["atoms"]:
-            print(atom)
+            #print(atom)
             if atom["name"] in bonded_atoms_to_acceptor:
                 #we just use the first occuence, if there are more, well.. hopefully that does not happen
                 atom_name_of_alternativ_resname = atom["name"]
@@ -550,7 +552,7 @@ class NaiveMCUpdate(Update):
         else:
             raise RuntimeError("Well that's bad... Contact the developer team or name the Dummy atom and correspoding real atom the same.")
 
-    def _update_drude_lp_positions():
+    def _update_drude_lp_positions(self):
         raise NotImplementedError("This function is currently not implemented.")
 
     def _reorient_atoms(self, candidate: tuple[Residue, Residue], positions, positions_copy):
@@ -569,22 +571,23 @@ class NaiveMCUpdate(Update):
         for residue in candidate:
             # if residue.used_equivalent_atom:
             if residue.used_equivalent_atom:
+                print(f"Used equivalent atom for {residue.current_name}:{residue.residue.index}")
                 equivalent_name = residue.used_atom
                 equivalent_idx = residue.get_idx_for_atom_name(equivalent_name)
                 atom_name = residue.get_atom_name_from_equivalent_name(equivalent_name)
                 atom_idx = residue.get_idx_for_atom_name(atom_name)
 
                 pos_atom = positions_copy[atom_idx]
-                print(f"{pos_atom=}")
+                #print(f"{pos_atom=}")
                 pos_equivalent = positions_copy[equivalent_idx]
-                print(f"{pos_equivalent=}")
+                #print(f"{pos_equivalent=}")
 
                 positions[atom_idx] = pos_equivalent
                 positions[equivalent_idx] = pos_atom
 
-                print(
-                    f"setting position of {atom_name} to {positions[atom_idx]} and {equivalent_name} to {positions[equivalent_idx]}"
-                )
+                # print(
+                #     f"setting position of {atom_name} to {positions[atom_idx]} and {equivalent_name} to {positions[equivalent_idx]}"
+                # )
                 #maybe for later to not have to rely on the simulation.step() call to update drude and lp positions
                 #self._update_drude_lp_positions()
 
@@ -630,9 +633,9 @@ class NaiveMCUpdate(Update):
         # update position of the once-dummy H on the acceptor - original H line
         positions[idx_accepted_h] = pos_accepted_h
 
-        print(
-           f"donated H: {pos_donated_h}, acceptor atom: {pos_acceptor_atom}, H set to: {pos_accepted_h}"
-        )
+        # print(
+        #    f"donated H: {pos_donated_h}, acceptor atom: {pos_acceptor_atom}, H set to: {pos_accepted_h}"
+        # )
 
         return positions
 
@@ -734,11 +737,20 @@ class StateUpdate:
         state_update.update_trial = from_pickle[1]
         return state_update
 
-    def __init__(self, updateMethod: Update) -> None:
+    def __init__(self, updateMethod: Update, file: str | typing.IO = sys.stdout) -> None:
         self.updateMethod: Update = updateMethod
         self.ionic_liquid: ProtexSystem = self.updateMethod.ionic_liquid
         self.history: deque = deque(maxlen=10)
         self.update_trial: int = 0
+        self._openedFile = isinstance(file, str)
+        if self._openedFile:
+            self._out = open(file, "w")
+        else:
+            self._out = file
+    
+    def __del__(self):
+        if self._openedFile:
+            self._out.close()
 
     def dump(self, fname: str) -> None:
         """Pickle the StateUpdate instance.
@@ -822,7 +834,7 @@ class StateUpdate:
             ##############################
             ##############################
             """
-        )
+        ,file=self._out)
         # --- Nr of charged residues: ---
         # --- Nr of uncharged residues: ---
 
@@ -831,7 +843,7 @@ class StateUpdate:
             """
             ##############################
             ##############################
-            """
+            """, file=self._out
         )
 
     def update(self, nr_of_steps: int = 2) -> list[tuple[Residue, Residue]]:
@@ -854,10 +866,10 @@ class StateUpdate:
         # propose the update candidates based on distances
         self._print_start()
         candidate_pairs = self._propose_candidate_pair(pos_list, res_list)
-        print(f"{len(candidate_pairs)=}")
+        print(f"{len(candidate_pairs)=}", file=self._out)
 
         if len(candidate_pairs) == 0:
-            print("No transfers this time")
+            print("No transfers this time", file=self._out)
             self.ionic_liquid.simulation.step(
                 nr_of_steps
             )  # also do the simulation steps if no update occurs, to be consistent in simulation time
@@ -1027,11 +1039,11 @@ class StateUpdate:
                     used_residues.append(residue2)
                     proposed_candidate_pair_sets.append(set(proposed_candidate_pair))
                     print(
-                        f"{residue1.current_name}:{residue1.residue.id}:{charge_candidate_idx1}-{residue2.current_name}:{residue2.residue.id}:{charge_candidate_idx2} pair accepted ..."
+                        f"{residue1.current_name}:{residue1.residue.id}:{charge_candidate_idx1}-{residue2.current_name}:{residue2.residue.id}:{charge_candidate_idx2} pair accepted ...", file=self._out
                     )
                     # residue.index 0-based through whole topology
                     print(
-                        f"UpdatePair:{residue1.current_name}:{residue1.residue.index}:{charge_candidate_idx1}:{residue2.current_name}:{residue2.residue.index}:{charge_candidate_idx2}"
+                        f"UpdatePair:{residue1.current_name}:{residue1.residue.index}:{charge_candidate_idx1}:{residue2.current_name}:{residue2.residue.index}:{charge_candidate_idx2}", file=self._out
                     )
                 # return proposed_candidate_pair
         if len(proposed_candidate_pair_sets) == 0:

@@ -2266,7 +2266,7 @@ def test_h2oac():
     allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.18, "prob": 1}
     allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.18, "prob": 1}
     # advanced
-    allowed_updates[frozenset(["HOAC", "HOAC"])] = {"r_max": 0.2, "prob": 1} #irreführend aber funktioniert, mit tuple probelm ordering
+    allowed_updates[frozenset(["HOAC", "HOAC"])] = {"r_max": 0.2, "prob": 1} #irreführend aber funktioniert, mit tuple probelm ordering #featurenotbug
     allowed_updates[frozenset(["OAC", "H2OAC"])] = {"r_max": 0.18, "prob": 1}
     allowed_updates[frozenset(["HOAC", "H2OAC"])] = {"r_max": 0.28, "prob": 1}
     allowed_updates[frozenset(["IM1", "H2OAC"])] = {"r_max": 0.24, "prob": 1}
