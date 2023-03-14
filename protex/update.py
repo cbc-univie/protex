@@ -747,7 +747,7 @@ class StateUpdate:
             self._out = open(file, "w")
         else:
             self._out = file
-    
+
     def __del__(self):
         if self._openedFile:
             self._out.close()

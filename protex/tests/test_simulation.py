@@ -233,6 +233,5 @@ def test_h2oac(tmp_path):
         state_update.update(update_steps)
         ionic_liquid.simulation.step(int(sim_steps - update_steps))
     ionic_liquid.simulation.step(int(update_steps / 2))
-    
-    print(f"{tmp_path=}")
 
+    print(f"{tmp_path=}")
