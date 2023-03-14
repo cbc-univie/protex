@@ -691,7 +691,7 @@ class NaiveMCUpdate(Update):
                 raise RuntimeError(f"Energy is {new_e}")
 
             self.ionic_liquid.simulation.step(1)
-        
+
         for candidate in candidates:
             candidate1_residue, candidate2_residue = candidate
             #update the names
