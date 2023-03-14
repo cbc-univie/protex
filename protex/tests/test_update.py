@@ -2261,16 +2261,16 @@ def test_h2oac():
     # get ionic liquid templates
     allowed_updates = {}
     # allowed updates according to simple protonation scheme
-    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.26, "prob": 1}
-    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.26, "prob": 1}
-    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.26, "prob": 1}
-    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.26, "prob": 1}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.18, "prob": 1}
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.18, "prob": 1}
+    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.18, "prob": 1}
+    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.18, "prob": 1}
     # advanced
-    # allowed_updates[frozenset(["HOAC", "HOAC"])] = {"r_max": 0.16, "prob": 1}
-    # allowed_updates[frozenset(["OAC", "H2OAC"])] = {"r_max": 0.16, "prob": 1}
-    # allowed_updates[frozenset(["HOAC", "H2OAC"])] = {"r_max": 0.16, "prob": 1}
-    # allowed_updates[frozenset(["IM1", "H2OAC"])] = {"r_max": 0.16, "prob": 1}
-    # allowed_updates[frozenset(["IM1H", "HOAC"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["HOAC", "HOAC"])] = {"r_max": 0.2, "prob": 1} #irreführend aber funktioniert, mit tuple probelm ordering
+    allowed_updates[frozenset(["OAC", "H2OAC"])] = {"r_max": 0.18, "prob": 1}
+    allowed_updates[frozenset(["HOAC", "H2OAC"])] = {"r_max": 0.28, "prob": 1}
+    allowed_updates[frozenset(["IM1", "H2OAC"])] = {"r_max": 0.24, "prob": 1}
+    allowed_updates[frozenset(["IM1H", "HOAC"])] = {"r_max": 0.24, "prob": 1}
 
     print(allowed_updates.keys())
     templates = ProtexTemplates([IM1H_IM1, OAC_HOAC_H2OAC], (allowed_updates))
@@ -2293,9 +2293,21 @@ def test_h2oac():
     ionic_liquid.simulation.step(1000)
     state = ionic_liquid.simulation.context.getState(getEnergy=True)
     print(state.getPotentialEnergy())
-    state_update.update(2)
-    print(state_update)
-
+    updates = state_update.update(2)
+    print(updates)
+    for possible_update in allowed_updates.keys():
+        print(possible_update)
+        #check that we have at least one update of this kind
+        for res1, res2 in updates:
+            #attention: only valid since we have one update process
+            name1 = res1.original_name
+            name2 = res2.original_name
+            if frozenset([name1, name2]) == possible_update:
+                print("found")
+                #check changes
+                break
+        else:
+            pytest.fail(f"Did not find match for {name1},{name2}")
 
 @pytest.mark.skipif(
     os.getenv("CI") == "true",

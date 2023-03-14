@@ -15,7 +15,7 @@ try:
 except ImportError:
     from simtk.unit import nanometers
 
-from protex.residue import Residue, is_allowed_mode_combination  # , update_names
+from protex.residue import Residue, is_allowed_combination
 from protex.system import ProtexSystem
 
 logger = logging.getLogger(__name__)
@@ -691,7 +691,7 @@ class NaiveMCUpdate(Update):
                 raise RuntimeError(f"Energy is {new_e}")
 
             self.ionic_liquid.simulation.step(1)
-
+        
         for candidate in candidates:
             candidate1_residue, candidate2_residue = candidate
             #update the names
@@ -972,14 +972,12 @@ class StateUpdate:
         for candidate_idx1, candidate_idx2 in idx:
             residue1, atom_name1 = res_list[candidate_idx1]
             # atom_name is either the name or the equivalent_atom name
-            mode1 = residue1.get_mode_for(atom_name1)
             residue2, atom_name2 = res_list[candidate_idx2]
-            mode2 = residue2.get_mode_for(atom_name2)
             # is this combination allowed?
             if (
                 frozenset([residue1.current_name, residue2.current_name])
                 in self.ionic_liquid.templates.allowed_updates.keys()
-            ) and is_allowed_mode_combination(mode1, mode2):
+            ) and is_allowed_combination(residue1, atom_name1, residue2, atom_name2):
                 r_max = self.ionic_liquid.templates.allowed_updates[
                     frozenset([residue1.current_name, residue2.current_name])
                 ]["r_max"]

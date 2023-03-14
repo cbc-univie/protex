@@ -1,10 +1,39 @@
 from __future__ import annotations
 
 import itertools
+import logging
 from collections import deque
 
 import numpy as np
 
+logger = logging.getLogger(__name__)
+
+
+def is_allowed_combination(residue1: Residue, atom_name1: str, residue2: Residue, atom_name2: str) -> bool:
+    """Check if the two residues are different residues and if the mode combination is allowed.
+
+    Parameters
+    ----------
+    residue1 : Residue
+        The first residue in the update
+    atom_name1 : str
+        The atom used of residue 1
+    residue2 : Residue
+        the second residue in the update
+    atom_name2 : str
+        The atom used of residue 2
+
+    Returns
+    -------
+    bool
+        True if the combination is allowed, false otherwise
+    """
+    mode1 = residue1.get_mode_for(atom_name1)
+    mode2 = residue2.get_mode_for(atom_name2)
+    idx1 = residue1.residue.index
+    idx2 = residue2.residue.index
+
+    return idx1 != idx2 and is_allowed_mode_combination(mode1, mode2)
 
 def is_allowed_mode_combination(mode1: str, mode2: str) -> bool:
     """Determine if the two modes are one acceptor and one donor.
@@ -140,6 +169,7 @@ class Residue:
             The alternative name
         """
         if self.used_atom is None:
+            logger.critical(f"{self.original_name=}, {self.current_name=}, {self.residue.index=}, {self.residue=}")
             raise RuntimeError("Currently no atom is selected that was used for the update. Determination of the alternative atom is not possible. Define self.used_atom first.")
         # check position in ordered names and then decide if go to left (= less H -> donated), or right ->more H
         current_pos = self.ordered_names.index(self.current_name)
