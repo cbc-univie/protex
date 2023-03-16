@@ -163,6 +163,10 @@ def test_small_box(tmp_path):
         ionic_liquid.simulation.step(int(sim_steps - update_steps))
     ionic_liquid.simulation.step(int(update_steps / 2))
 
+@pytest.mark.skipif(
+    os.getenv("CI") == "true",
+    reason="Skipping tests that cannot pass in github actions",
+)
 def test_h2oac(tmp_path):
     LOGGER.setLevel(logging.CRITICAL)
     of = open(F"{tmp_path}/statedata_h2oac.out", "w")
