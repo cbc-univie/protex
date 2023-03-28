@@ -1,7 +1,61 @@
+from __future__ import annotations
+
 import itertools
+import logging
 from collections import deque
 
 import numpy as np
+
+logger = logging.getLogger(__name__)
+
+
+def is_allowed_combination(residue1: Residue, atom_name1: str, residue2: Residue, atom_name2: str) -> bool:
+    """Check if the two residues are different residues and if the mode combination is allowed.
+
+    Parameters
+    ----------
+    residue1 : Residue
+        The first residue in the update
+    atom_name1 : str
+        The atom used of residue 1
+    residue2 : Residue
+        the second residue in the update
+    atom_name2 : str
+        The atom used of residue 2
+
+    Returns
+    -------
+    bool
+        True if the combination is allowed, false otherwise
+    """
+    mode1 = residue1.get_mode_for(atom_name1)
+    mode2 = residue2.get_mode_for(atom_name2)
+    idx1 = residue1.residue.index
+    idx2 = residue2.residue.index
+
+    return idx1 != idx2 and is_allowed_mode_combination(mode1, mode2)
+
+def is_allowed_mode_combination(mode1: str, mode2: str) -> bool:
+    """Determine if the two modes are one acceptor and one donor.
+
+    Parameters
+    ----------
+    mode1 : str
+        first mode, either 'donor' or 'acceptor'
+    mode2 : str
+        second mode, either 'donor' or 'acceptor'
+
+    Returns
+    -------
+    bool
+        True if one acceptor one donor, false otherwise
+    """
+    if mode1 == "acceptor" and mode2 == "donor":
+        return True
+    elif mode1 == "donor" and mode2 == "acceptor":
+        return True
+    else:
+        return False
 
 
 class Residue:
@@ -11,18 +65,17 @@ class Residue:
     ----------
     residue: openmm.app.topology.Residue
         The residue from  an OpenMM Topology
-    alternativ_name: str
-        The name of the corresponding protonated/deprotonated form (eg. OAC for HOAC)
+    ordered_names: tuple[str,...]
+        All possible residue states from the most deprotonated to the most protonated one
+        I.e. (OAC, HOAC, H2OAC)
     system: openmm.openmm.System
         The system generated with openMM, where all residues are in
-    initial_parameters: dict[list]
+    parameters: dict[list]
         The parameters for the residue
-    alternativ_parameters: dict[list]
-        The parameters for the alternativ (protonated/deprotonated) state
     pair_12_13_exclusion_list: list
         1-2 and 1-3 exclusions in the system
-    has_equivalent_atoms:  tuple[bool,bool]
-        if original name and alternative name have equivalent atoms
+    states: dict[str,dict[str,list[dict[str,str]]]]
+        all the state information for a specific resname and all corresponding resname
 
     Attributes
     ----------
@@ -32,6 +85,8 @@ class Residue:
         The name of the residue given by the OpenMM Residue, will not change throughout the simulation(?)
     current_name: str
         The current name of the residue, depending on the protonation state
+    ordered_names: tuple[str,...]
+        All possible residue states from the most deprotonated to the most protonated one
     atom_idxs: list[int]
         List of all atom indices belonging to that residue
     atom_names; list[str]
@@ -45,58 +100,67 @@ class Residue:
         The system generated with openMM, where all residues are in
     pair_12_13_list: list
          1-2 and 1-3 exclusions in the system
-    equivalent_atoms: dict[str, bool]
-        if orignal_name and alternative name have equivalent atoms
+    states: dict[str,dict[str,list[dict[str,str]]]]
+        all the state information for a specific resname and all corresponding resname
+    used_atom: str | None
+        usually None, during an update process it specifies the atom that was used
     """
 
     def __init__(
         self,
         residue,
-        alternativ_name,
+        ordered_names,
         system,
-        inital_parameters,
-        alternativ_parameters,
+        parameters,
         pair_12_13_exclusion_list,
-        has_equivalent_atoms,
+        states,
     ) -> None:
         self.residue = residue
         self.original_name = residue.name
         self.current_name = self.original_name
+        self.ordered_names = ordered_names
         self.atom_idxs = [atom.index for atom in residue.atoms()]
         self.atom_names = [atom.name for atom in residue.atoms()]
-        self.parameters = {
-            self.original_name: inital_parameters,
-            alternativ_name: alternativ_parameters,
-        }
+        self.parameters = parameters
         self.record_charge_state = []
         self.system = system
         self.record_charge_state.append(self.endstate_charge)  # Not used anywhere?
         self.pair_12_13_list = pair_12_13_exclusion_list
-        self.equivalent_atoms: dict[str, bool] = {
-            self.original_name: has_equivalent_atoms[0],
-            self.alternativ_name: has_equivalent_atoms[1],
-        }
-        self.equivalent_atom_pos_in_list: int = None
-        self.used_equivalent_atom: bool = False
+        self.states = states
+        self.used_atom: str | None = None
 
-    def __str__(self):
-        return f"Residue {self.current_name}, {self.residue}"
-
-    @property
-    def has_equivalent_atom(self) -> bool:
-        """Determines if the current residue has an equivalent atom defined.
-
-        It depends i.e if the residue is currently OAC (-> two equivalent O's) or HOAC (no equivlent O's).
+    def __str__(self) -> str:
+        """Return the description of the current residue.
 
         Returns
         -------
-        bool
-            True if this residue currently has an equivalent atom, else otherwise
+        str
+            The current name and the residue object
         """
-        return self.equivalent_atoms[self.current_name]
+        return f"Residue {self.current_name}, {self.residue}"
+
+    def _get_shift(self, mode):
+            if mode == "acceptor":
+                return 1
+            if mode == "donor":
+                return -1
 
     @property
-    def alternativ_name(self) -> str:
+    def update_resname(self):
+        """Updates the current name to the new name.
+
+        This is based on the current residue name and the used_atom for this update.
+        The used_atom is reset afterwards, and has to be set again before using this funciton again.
+        This is on purpose, to only allow name changes once per update.
+        """
+        new_name = self.alternativ_resname
+        # should be used only once per update
+        self.current_name = new_name
+
+        self.used_atom = None
+
+    @property
+    def alternativ_resname(self) -> str:
         """Alternative name for the residue, e.g. the corresponding name for the protonated/deprotonated form.
 
         Returns
@@ -104,9 +168,200 @@ class Residue:
         str
             The alternative name
         """
-        for name in self.parameters.keys():
-            if name != self.current_name:
-                return name
+        if self.used_atom is None:
+            logger.critical(f"{self.original_name=}, {self.current_name=}, {self.residue.index=}, {self.residue=}")
+            raise RuntimeError("Currently no atom is selected that was used for the update. Determination of the alternative atom is not possible. Define self.used_atom first.")
+        # check position in ordered names and then decide if go to left (= less H -> donated), or right ->more H
+        current_pos = self.ordered_names.index(self.current_name)
+        mode = self.get_mode_for()
+        new_name = self.ordered_names[current_pos + self._get_shift(mode)]
+        return new_name
+
+    def get_mode_for(self, atom_name: str | None = None) -> str:
+        """Return the mode of the current resname and atom_name.
+
+        Parameters
+        ----------
+        atom_name: str
+            Name of the atom
+
+        Returns
+        -------
+        str
+            The mode
+        """
+        if atom_name is None and self.used_atom is None:
+            raise RuntimeError("Either set self.used_atom or supply an atom name!")
+        if atom_name is None:
+            atom_name = self.used_atom
+
+        for atom in self.states[self.current_name]["atoms"]:
+            # also check if it is an equivalent atom, then the transfer is also fine
+            possible_atom_names = [atom["name"], atom.get("equivalent_atom", None)]
+            if atom_name in possible_atom_names:
+                return atom["mode"]
+
+    def has_equivalent_atom(self, atom_name: str) -> bool:
+        """Determine if the current residue has an equivalent atom defined.
+
+        It depends i.e if the residue is currently OAC (-> two equivalent O's) or HOAC (no equivlent O's).
+
+        Parameters
+        ----------
+        atom_name: str
+            Name of the atom
+
+        Returns
+        -------
+        bool
+            True if this residue currently has an equivalent atom, else otherwise
+        """
+        for atom in self.states[self.current_name]["atoms"]:
+            if atom["name"] == atom_name:
+                return "equivalent_atom" in atom
+        raise RuntimeError(f"atom_name {atom_name} not found")
+
+    def get_atom_name_from_equivalent_name(self, equivalent_name: str) -> str:
+        """Get the atom name for a given euqivalent name.
+
+        Parameters
+        ----------
+        equivalent_name : str
+            The euqivalent atom name
+
+        Returns
+        -------
+        str
+            The atom name
+        """
+        for atom in self.states[self.current_name]["atoms"]:
+            if atom["equivalent_atom"] == equivalent_name:
+                return atom["name"]
+        raise RuntimeError(f"Ups, equivalent name {equivalent_name} not found")
+
+    def get_equivalent_atom_name(self, atom_name: str) -> str:
+        """Get the equivalent atom name to a given atom_name.
+
+        It depends i.e if the residue is currently OAC (-> two equivalent O's) or HOAC (no equivlent O's).
+
+        Parameters
+        ----------
+        atom_name: str
+            Name of the atom
+
+        Returns
+        -------
+        str
+            The equivalent atom name
+        """
+        for atom in self.states[self.current_name]["atoms"]:
+            if atom["name"] == atom_name:
+                return atom["equivalent_atom"]
+        raise RuntimeError(f"atom_name {atom_name} not found")
+
+    def is_equivalent_atom_name(self, atom_name: str) -> bool:
+        """Determine if the given atom name is the name for the equivalent atom in the current residue.
+
+        Parameters
+        ----------
+        atom_name : str
+            The name to check
+
+        Returns
+        -------
+        bool
+            True if the atom_name matches the equivalent atom, false otherwise
+
+        """
+        assert atom_name is not None #just to make sure...
+        for atom in self.states[self.current_name]["atoms"]:
+            if atom_name == atom.get("equivalent_atom", None):
+                return True
+        return False
+
+    # use once the attribute is deprecated
+    @property
+    def used_equivalent_atom(self) -> bool:
+        """Determine if the equivalent atom was used for the update.
+
+        Returns
+        -------
+        bool
+            True if the equivalent atom was used, false otherwise
+        """
+        if self.used_atom is None:
+            raise RuntimeError("Currently no atom is selected that was used for the update. Determination if it is the equivalent atom is therefore noot possible. Define self.used_atom first.")
+        return self.is_equivalent_atom_name(self.used_atom)
+
+
+    def is_acceptor(self, atom_name) -> bool:
+        """Determine if given atom_name for current molecule is an acceptor.
+
+        Returns
+        -------
+        bool
+            True if the current resname is an acceptor (can accept a H from another residue)
+            False otherwise
+        """
+        assert atom_name is not None
+        for atom in self.states[self.current_name]["atoms"]:
+            possible_atom_names = [atom["name"], atom.get("equivalent_atom", None)]
+            if atom_name in possible_atom_names:
+                return atom["mode"] == "acceptor"
+        return False
+
+    def is_donor(self, atom_name) -> bool:
+        """Determine if current molecule is a donor.
+
+        Returns
+        -------
+        bool
+            True if the current resname is a donor (can give a H to another residue)
+            False otherwise
+        """
+        for atom in self.states[self.current_name]["atoms"]:
+            possible_atom_names = [atom["name"], atom.get("equivalent_atom", None)]
+            if atom_name in possible_atom_names:
+                return atom["mode"] == "donor"
+        return False
+
+    # NOTE: this is a bug!
+    def get_idx_for_atom_name(self, query_atom_name: str) -> int:
+        for idx, atom_name in zip(self.atom_idxs, self.atom_names):
+            if query_atom_name == atom_name:
+                return idx
+        else:
+            raise RuntimeError(
+                f"Atom name '{query_atom_name}' not in atom names of residue '{self.current_name}'."
+            )
+
+    @property
+    def endstate_charge(self) -> int:
+        """Charge of the residue at the endstate (will be int)."""
+        charge = int(
+            np.round(
+                sum(
+                    [
+                        parm[0]._value
+                        for parm in self.parameters[self.current_name]["NonbondedForce"]
+                    ]
+                ),
+                4,
+            )
+        )
+        return charge
+
+    @property
+    def current_charge(self) -> int:
+        """Current charge of the residue."""
+        charge = 0
+        for force in self.system.getForces():
+            if type(force).__name__ == "NonbondedForce":
+                for idx in self.atom_idxs:
+                    charge_idx, _, _ = force.getParticleParameters(idx)
+                    charge += charge_idx._value
+
+        return np.round(charge, 3)
 
     def update(
         self, force_name: str, lamb: float
@@ -145,7 +400,9 @@ class Residue:
             parms = self._get_DrudeForce_parameters_at_lambda(lamb)
             self._set_DrudeForce_parameters(parms)
         else:
-            raise RuntimeWarning("Force name {force_name=} is not covered, no updates will happen on this one!")
+            raise RuntimeWarning(
+                "Force name {force_name=} is not covered, no updates will happen on this one!"
+            )
 
     def _set_NonbondedForce_parameters(self, parms):
         parms_nonb = deque(parms[0])
@@ -280,7 +537,7 @@ class Residue:
         # returns interpolated sorted nonbonded Forces.
         assert lamb >= 0 and lamb <= 1
         current_name = self.current_name
-        new_name = self.alternativ_name
+        new_name = self.alternativ_resname
 
         nonbonded_parm_old = [
             parm for parm in self.parameters[current_name]["NonbondedForce"]
@@ -319,9 +576,10 @@ class Residue:
         for old_idx, old_parm in enumerate(self.parameters[current_name][force_name]):
             idx1, idx2 = old_parm[0], old_parm[1]
             for new_idx, new_parm in enumerate(self.parameters[new_name][force_name]):
-                if {
-                    new_parm[0] - new_parms_offset, new_parm[1] - new_parms_offset
-                } == {idx1 - old_parms_offset, idx2 - old_parms_offset}:
+                if {new_parm[0] - new_parms_offset, new_parm[1] - new_parms_offset} == {
+                    idx1 - old_parms_offset,
+                    idx2 - old_parms_offset,
+                }:
                     if old_idx != new_idx:
                         raise RuntimeError(
                             "Odering of Nonbonded Exception parameters is different between the two topologies."
@@ -373,7 +631,7 @@ class Residue:
         assert lamb >= 0 and lamb <= 1
         # get the names of new and current state
         old_name = self.current_name
-        new_name = self.alternativ_name
+        new_name = self.alternativ_resname
         parm_interpolated = []
         force_name = "HarmonicBondForce"
         new_parms_offset = self._get_offset(new_name)
@@ -389,9 +647,10 @@ class Residue:
         for old_idx, old_parm in enumerate(self.parameters[old_name][force_name]):
             idx1, idx2 = old_parm[0], old_parm[1]
             for new_idx, new_parm in enumerate(self.parameters[new_name][force_name]):
-                if {
-                    new_parm[0] - new_parms_offset, new_parm[1] - new_parms_offset
-                } == {idx1 - old_parms_offset, idx2 - old_parms_offset}:
+                if {new_parm[0] - new_parms_offset, new_parm[1] - new_parms_offset} == {
+                    idx1 - old_parms_offset,
+                    idx2 - old_parms_offset,
+                }:
                     if old_idx != new_idx:
                         raise RuntimeError(
                             "Odering of bond parameters is different between the two topologies.\n"
@@ -421,7 +680,7 @@ class Residue:
         assert lamb >= 0 and lamb <= 1
         # get the names of new and current state
         old_name = self.current_name
-        new_name = self.alternativ_name
+        new_name = self.alternativ_resname
         parm_interpolated = []
         force_name = "HarmonicAngleForce"
         new_parms_offset = self._get_offset(new_name)
@@ -435,13 +694,13 @@ class Residue:
             idx1, idx2, idx3 = old_parm[0], old_parm[1], old_parm[2]
             for new_idx, new_parm in enumerate(self.parameters[new_name][force_name]):
                 if {
-                        new_parm[0] - new_parms_offset,
-                        new_parm[1] - new_parms_offset,
-                        new_parm[2] - new_parms_offset,
+                    new_parm[0] - new_parms_offset,
+                    new_parm[1] - new_parms_offset,
+                    new_parm[2] - new_parms_offset,
                 } == {
-                        idx1 - old_parms_offset,
-                        idx2 - old_parms_offset,
-                        idx3 - old_parms_offset,
+                    idx1 - old_parms_offset,
+                    idx2 - old_parms_offset,
+                    idx3 - old_parms_offset,
                 }:
                     if old_idx != new_idx:
                         raise RuntimeError(
@@ -470,7 +729,7 @@ class Residue:
         assert lamb >= 0 and lamb <= 1
         # get the names of new and current state
         old_name = self.current_name
-        new_name = self.alternativ_name
+        new_name = self.alternativ_resname
         parm_interpolated = []
         force_name = "PeriodicTorsionForce"
         new_parms_offset = self._get_offset(new_name, force_name=force_name)
@@ -513,10 +772,10 @@ class Residue:
                     self.parameters[new_name][force_name]
                 ):
                     if {
-                            new_parm[0] - new_parms_offset,
-                            new_parm[1] - new_parms_offset,
-                            new_parm[2] - new_parms_offset,
-                            new_parm[3] - new_parms_offset,
+                        new_parm[0] - new_parms_offset,
+                        new_parm[1] - new_parms_offset,
+                        new_parm[2] - new_parms_offset,
+                        new_parm[3] - new_parms_offset,
                     } == {idx1, idx2, idx3, idx4}:
                         if old_idx != new_idx:
                             raise RuntimeError(
@@ -534,11 +793,11 @@ class Residue:
                     self.parameters[new_name][force_name]
                 ):
                     if {
-                            new_parm[0] - new_parms_offset,
-                            new_parm[1] - new_parms_offset,
-                            new_parm[2] - new_parms_offset,
-                            new_parm[3] - new_parms_offset,
-                            new_parm[4],
+                        new_parm[0] - new_parms_offset,
+                        new_parm[1] - new_parms_offset,
+                        new_parm[2] - new_parms_offset,
+                        new_parm[3] - new_parms_offset,
+                        new_parm[4],
                     } == {idx1, idx2, idx3, idx4, idx5}:
                         if old_idx != new_idx:
                             raise RuntimeError(
@@ -571,7 +830,7 @@ class Residue:
         assert lamb >= 0 and lamb <= 1
         # get the names of new and current state
         old_name = self.current_name
-        new_name = self.alternativ_name
+        new_name = self.alternativ_resname
         parm_interpolated = []
         force_name = "CustomTorsionForce"
         new_parms_offset = self._get_offset(new_name)
@@ -585,15 +844,15 @@ class Residue:
             idx1, idx2, idx3, idx4 = old_parm[0], old_parm[1], old_parm[2], old_parm[3]
             for new_idx, new_parm in enumerate(self.parameters[new_name][force_name]):
                 if {
-                        new_parm[0] - new_parms_offset,
-                        new_parm[1] - new_parms_offset,
-                        new_parm[2] - new_parms_offset,
-                        new_parm[3] - new_parms_offset,
+                    new_parm[0] - new_parms_offset,
+                    new_parm[1] - new_parms_offset,
+                    new_parm[2] - new_parms_offset,
+                    new_parm[3] - new_parms_offset,
                 } == {
-                        idx1 - old_parms_offset,
-                        idx2 - old_parms_offset,
-                        idx3 - old_parms_offset,
-                        idx4 - old_parms_offset,
+                    idx1 - old_parms_offset,
+                    idx2 - old_parms_offset,
+                    idx3 - old_parms_offset,
+                    idx4 - old_parms_offset,
                 }:
                     if old_idx != new_idx:
                         raise RuntimeError(
@@ -627,7 +886,7 @@ class Residue:
         assert lamb >= 0 and lamb <= 1
         # get the names of new and current state
         old_name = self.current_name
-        new_name = self.alternativ_name
+        new_name = self.alternativ_resname
         parm_interpolated = []
         force_name = "DrudeForce"
         new_parms_offset = self._get_offset(new_name)
@@ -639,9 +898,10 @@ class Residue:
         for old_idx, old_parm in enumerate(self.parameters[old_name][force_name]):
             idx1, idx2 = old_parm[0], old_parm[1]
             for new_idx, new_parm in enumerate(self.parameters[new_name][force_name]):
-                if {
-                    new_parm[0] - new_parms_offset, new_parm[1] - new_parms_offset
-                } == {idx1 - old_parms_offset, idx2 - old_parms_offset}:
+                if {new_parm[0] - new_parms_offset, new_parm[1] - new_parms_offset} == {
+                    idx1 - old_parms_offset,
+                    idx2 - old_parms_offset,
+                }:
                     if old_idx != new_idx:
                         raise RuntimeError(
                             "Odering of bond parameters is different between the two topologies."
@@ -685,9 +945,10 @@ class Residue:
         for old_idx, old_parm in enumerate(self.parameters[old_name][force_name]):
             idx1, idx2 = old_parm[0], old_parm[1]
             for new_idx, new_parm in enumerate(self.parameters[new_name][force_name]):
-                if {
-                    new_parm[0] - new_parms_offset, new_parm[1] - new_parms_offset
-                } == {idx1 - old_parms_offset, idx2 - old_parms_offset}:
+                if {new_parm[0] - new_parms_offset, new_parm[1] - new_parms_offset} == {
+                    idx1 - old_parms_offset,
+                    idx2 - old_parms_offset,
+                }:
                     if old_idx != new_idx:
                         raise RuntimeError(
                             "Odering of bond parameters is different between the two topologies."
@@ -707,41 +968,3 @@ class Residue:
             parm_interpolated_thole.append(thole_interpolated)
 
         return [parm_interpolated, parm_interpolated_thole]
-
-    # NOTE: this is a bug!
-    def get_idx_for_atom_name(self, query_atom_name: str) -> int:
-        for idx, atom_name in zip(self.atom_idxs, self.atom_names):
-            if query_atom_name == atom_name:
-                return idx
-        else:
-            raise RuntimeError(
-                f"Atom name '{query_atom_name}' not in atom names of residue '{self.current_name}'."
-            )
-
-    @property
-    def endstate_charge(self) -> int:
-        """Charge of the residue at the endstate (will be int)."""
-        charge = int(
-            np.round(
-                sum(
-                    [
-                        parm[0]._value
-                        for parm in self.parameters[self.current_name]["NonbondedForce"]
-                    ]
-                ),
-                4,
-            )
-        )
-        return charge
-
-    @property
-    def current_charge(self) -> int:
-        """Current charge of the residue."""
-        charge = 0
-        for force in self.system.getForces():
-            if type(force).__name__ == "NonbondedForce":
-                for idx in self.atom_idxs:
-                    charge_idx, _, _ = force.getParticleParameters(idx)
-                    charge += charge_idx._value
-
-        return np.round(charge, 3)

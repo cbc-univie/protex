@@ -1,0 +1,13 @@
+REMARK  STRUCTURE OPTIMIZATION                                                        
+REMARK   DATE:     5/ 5/20      9:48:22      CREATED BY USER: florian                 
+ATOM      1  C1  OAC     1       0.014   0.005   0.009  1.00  0.00      OAC
+ATOM      2  C2  OAC     1      -1.026   0.207  -1.020  1.00  0.00      OAC
+ATOM      3  H1  OAC     1      -0.566   0.266  -2.013  1.00  0.00      OAC
+ATOM      4  H2  OAC     1      -1.689  -0.676  -0.989  1.00  0.00      OAC
+ATOM      5  H3  OAC     1      -1.620   1.098  -0.783  1.00  0.00      OAC
+ATOM      6  O1  OAC     1       1.093  -0.603  -0.342  1.00  0.00      OAC
+ATOM      7  O2  OAC     1      -0.229   0.431   1.198  1.00  0.00      OAC
+ATOM      8  H   OAC     1       0.473   0.251   1.857  1.00  0.00      OAC
+ATOM      9  HO1 OAC     1       1.744  -0.743   0.375  1.00  0.00      OAC
+TER      10      OAC      1
+END

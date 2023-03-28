@@ -92,6 +92,8 @@ ignore = [
   "B023",
   # Functions defined inside a loop must not use variables redefined in the loop
   # "B301",  # not yet implemented
+  # Blank line between summary line and description
+  "D205",
 ]
 
 # Allow autofix for all enabled rules (when `--fix`) is provided.
@@ -128,7 +130,7 @@ line-length = 88
 # Allow unused variables when underscore-prefixed.
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
-# Assume Python 3.11.
+# Assume Python 3.9.
 target-version = "py39"
 
 [tool.ruff.per-file-ignores]

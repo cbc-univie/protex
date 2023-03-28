@@ -64,6 +64,9 @@ from ..testsystems import (
 from ..update import NaiveMCUpdate, StateUpdate
 
 LOGGER = logging.getLogger(__name__)
+ALLOWED_UPDATES = {}
+ALLOWED_UPDATES[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
+ALLOWED_UPDATES[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
 
 ###########################################
 # Short tests with only single moleucle box
@@ -73,11 +76,9 @@ def test_update_single():
     check if the parameters before and after have changed.
     """
     simulation = generate_single_im1h_oac_system(use_plugin=False)
-    allowed_updates = {}
-    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
-    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
 
-    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+
+    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], ALLOWED_UPDATES)
 
     ionic_liquid = ProtexSystem(simulation, templates)
     FORCES = [
@@ -203,12 +204,17 @@ def test_update_single():
                     quantities.append(value)
         return quantities
 
+    used_atoms = {"IM1H": "H7", "OAC": "O2", "IM1": "N2", "HOAC": "H"}
     for residue in ionic_liquid.residues:
         LOGGER.debug(f"Processing {residue}")
-        res_name = residue.current_name
-        alternativ_name = residue.alternativ_name
-        forces_orig = residue.parameters[res_name]
-        forces_alternativ = residue.parameters[alternativ_name]
+        names = residue.ordered_names
+        forces = {}
+        for name in names:
+            forces[name] = residue.parameters[name]
+        #res_name = residue.current_name
+        #alternativ_name = residue.alternativ_resname
+        #forces_orig = residue.parameters[residue.current_name]
+        #forces_alternativ = residue.parameters[alternativ_name]
         # print(f"hallo2 {residue}") # uses __str__
         # print(f"hallo3 {residue=}") # uses __repr__
         forces_dict0 = defaultdict(list)
@@ -221,11 +227,12 @@ def test_update_single():
                 atom_idxs = residue.atom_idxs
                 params0 = get_params(force, force_name, atom_idxs, forces_dict0)
 
-        assert forces_dict0 == forces_orig
+        assert forces[residue.current_name] == forces_dict0
 
         for force in ionic_liquid.system.getForces():
             force_name = type(force).__name__
             if force_name in FORCES:
+                residue.used_atom = used_atoms[residue.current_name]
                 residue.update(force_name, 1)
                 ionic_liquid.update_context(force_name)
                 params2 = get_params(force, force_name, atom_idxs, forces_dict1)
@@ -233,8 +240,10 @@ def test_update_single():
         for key in forces_dict1:
             # after update 1 -> changes
             q1 = get_quantities(forces_dict1, key)
-            q2 = get_quantities(forces_alternativ, key)
+            q2 = get_quantities(forces[residue.alternativ_resname], key)
             assert q1 == q2
+        residue.used_atom = None
+
 
 
 def test_residues():
@@ -334,27 +343,25 @@ def test_residues():
                 "LPO22",
             ]
 
-    allowed_updates = {}
-    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
-    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
-
-    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (ALLOWED_UPDATES))
 
     ionic_liquid = ProtexSystem(simulation, templates)
-
+    #this list assume just the used atoms for the simple protonation scheme
+    used_atoms = {"IM1H": "H7", "OAC": "O2", "IM1": "N2", "HOAC": "H"}
     for residue in ionic_liquid.residues:
+        residue.used_atom = used_atoms[residue.current_name]
         if residue.residue.name == "IM1H":
             assert residue.current_name == "IM1H"
-            assert residue.alternativ_name == "IM1"
+            assert residue.alternativ_resname == "IM1"
         if residue.residue.name == "IM1":
             assert residue.current_name == "IM1"
-            assert residue.alternativ_name == "IM1H"
+            assert residue.alternativ_resname == "IM1H"
         if residue.residue.name == "OAC":
             assert residue.current_name == "OAC"
-            assert residue.alternativ_name == "HOAC"
+            assert residue.alternativ_resname == "HOAC"
         if residue.residue.name == "HOAC":
             assert residue.current_name == "HOAC"
-            assert residue.alternativ_name == "OAC"
+            assert residue.alternativ_resname == "OAC"
 
     assert len(ionic_liquid.residues) == 4
 

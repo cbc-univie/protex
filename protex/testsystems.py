@@ -1,3 +1,4 @@
+import logging
 import os
 
 import protex
@@ -39,6 +40,8 @@ except ImportError:
     )
     from simtk.unit import angstroms, kelvin, picoseconds
 
+logger = logging.getLogger(__name__)
+
 
 # general functions
 def load_charmm_files(
@@ -56,7 +59,12 @@ def load_charmm_files(
     return psf, crd, params
 
 
-def setup_system(psf: CharmmPsfFile, params: CharmmParameterSet, constraints=None, dummy_atom_type: str = "DUMH"):
+def setup_system(
+    psf: CharmmPsfFile,
+    params: CharmmParameterSet,
+    constraints=None,
+    dummy_atom_type: str = "DUMH",
+):
     if dummy_atom_type is not None:
         # print(params.atom_types_str["DUM"].epsilon)
         # print(params.atom_types_str["DUM"].rmin)
@@ -114,7 +122,7 @@ def setup_simulation(
     coll_freq: int = 10,
     drude_coll_freq: int = 100,
     dummies: list[tuple[str, str]] = [("IM1", "H7"), ("OAC", "H")],
-    use_plugin: bool = True
+    use_plugin: bool = True,
 ):
     if use_plugin:
         # plugin
@@ -130,6 +138,7 @@ def setup_simulation(
             0.0005 * picoseconds,
         )
         print("Using VVIntegrator Plugin")
+        # logger.info("Using VVIntegrator Plugin")
     else:
         integrator = DrudeNoseHooverIntegrator(
             300 * kelvin,
@@ -148,6 +157,7 @@ def setup_simulation(
     try:
         platform = Platform.getPlatformByName("CUDA")
         prop = dict(CudaPrecision="single")  # default is single
+        logger.info("Using CUDA")
         # prop = dict(CudaPrecision="double")
         # Moved creating the simulation object inside the try...except block, because i.e.
         # Error loading CUDA module: CUDA_ERROR_INVALID_PTX (218)
@@ -162,6 +172,7 @@ def setup_simulation(
     except OpenMMException:
         platform = Platform.getPlatformByName("CPU")
         prop = dict()
+        logger.info("Using CPU")
         simulation = Simulation(
             psf.topology,
             system,
@@ -200,22 +211,25 @@ def setup_simulation(
             idx2 = f[1]
             chargeProd, sigma, epsilon = f[2:]
             if idx1 in dummy_atoms or idx2 in dummy_atoms:
-                nonbonded_force.setExceptionParameters(exc_id, idx1, idx2, 0.0, sigma, 0.0)
+                nonbonded_force.setExceptionParameters(
+                    exc_id, idx1, idx2, 0.0, sigma, 0.0
+                )
 
     return simulation
 
-def generate_complete_system( #currently not in use
+
+def generate_complete_system(  # currently not in use
     psf_file: str,
     crd_file: str,
-    restart_file: str, # | None,
-    constraints: str, # | None,
+    restart_file: str,  # | None,
+    constraints: str,  # | None,
     boxl: float,
     para_files: list[str],
     coll_freq: int,
     drude_coll_freq: int,
     dummy_atom_type: str,
-    dummies: list[tuple[str,str]],
-    use_plugin: bool
+    dummies: list[tuple[str, str]],
+    use_plugin: bool,
 ):
     psf, crd, params = load_charmm_files(
         psf_file=psf_file,
@@ -235,10 +249,11 @@ def generate_complete_system( #currently not in use
         coll_freq=coll_freq,
         drude_coll_freq=drude_coll_freq,
         dummies=dummies,
-        use_plugin=use_plugin
+        use_plugin=use_plugin,
     )
 
     return simulation
+
 
 # def generate_im1h_oac_system( # using generate_complete_system
 #     psf_file: str = None,
@@ -297,11 +312,11 @@ def generate_im1h_oac_system(
     constraints: str = None,
     boxl: float = 48.0,
     para_files: list[str] = None,
-    coll_freq: int=10,
-    drude_coll_freq: int=100,
-    dummy_atom_type: str="DUMH",
-    dummies: list[tuple[str,str]] = [("IM1", "H7"), ("OAC", "H")],
-    use_plugin: bool =True
+    coll_freq: int = 10,
+    drude_coll_freq: int = 100,
+    dummy_atom_type: str = "DUMH",
+    dummies: list[tuple[str, str]] = [("IM1", "H7"), ("OAC", "H")],
+    use_plugin: bool = True,
 ):
     """Set up a solvated and parametrized system for IM1H/OAC."""
     base = f"{protex.__path__[0]}/forcefield/"
@@ -340,10 +355,11 @@ def generate_im1h_oac_system(
         coll_freq=coll_freq,
         drude_coll_freq=drude_coll_freq,
         dummies=dummies,
-        use_plugin=use_plugin
+        use_plugin=use_plugin,
     )
 
     return simulation
+
 
 # used for faster tests, not for production!
 def generate_small_box(
@@ -353,11 +369,11 @@ def generate_small_box(
     constraints: str = None,
     boxl: float = 22.0,
     para_files: list[str] = None,
-    coll_freq: int=10,
-    drude_coll_freq: int=100,
-    dummy_atom_type: str="DUMH",
-    dummies: list[tuple[str,str]]=[("IM1", "H7"), ("OAC", "H")],
-    use_plugin: bool=True,
+    coll_freq: int = 10,
+    drude_coll_freq: int = 100,
+    dummy_atom_type: str = "DUMH",
+    dummies: list[tuple[str, str]] = [("IM1", "H7"), ("OAC", "H")],
+    use_plugin: bool = True,
 ):
     """Set up a solvated and parametrized system for IM1H/OAC."""
     print(
@@ -396,24 +412,87 @@ def generate_small_box(
         coll_freq=coll_freq,
         drude_coll_freq=drude_coll_freq,
         dummies=dummies,
-        use_plugin=use_plugin
+        use_plugin=use_plugin,
     )
 
     return simulation
 
-def generate_single_im1h_oac_system( #does not have dummies
+
+def generate_h2oac_system(
     psf_file: str = None,
     crd_file: str = None,
     restart_file: str = None,
     constraints: str = None,
     boxl: float = 22.0,
     para_files: list[str] = None,
-    coll_freq: int=10,
-    drude_coll_freq: int=100,
-    dummy_atom_type: str=None, #"DUMH",
-    dummies: list[tuple[str,str]] = None, #[("IM1", "H7"), ("OAC", "H")]
-    use_plugin: bool=True,
-    ):
+    coll_freq: int = 10,
+    drude_coll_freq: int = 100,
+    dummy_atom_type: str = "DUMH",
+    dummies: list[tuple[str, str]] = [
+        ("IM1", "H7"),
+        ("OAC", "H"),
+        ("OAC", "HO1"),
+        ("HOAC", "HO1"),
+    ],
+    use_plugin: bool = True,
+):
+    """Set up a solvated and parametrized system for IM1H/OAC."""
+    print(
+        "This function should not be used for production. It uses a small system intended for testing"
+    )
+    base = f"{protex.__path__[0]}/forcefield"
+    if psf_file is None:
+        psf_file = f"{base}/h2oac/small_box.psf"
+    if crd_file is None:
+        crd_file = f"{base}/h2oac/small_box.crd"
+    if para_files is None:
+        PARA_FILES = [
+            "toppar_drude_master_protein_2013f_lj025.str",
+            "hoac_d_dummy.str",
+            "im1h_d.str",
+            "im1_d_dummy.str",
+            "oac_d_dummy2.str",
+            "h2oac_d.str",
+        ]
+        para_files = [f"{base}/toppar/{para_files}" for para_files in PARA_FILES]
+
+    psf, crd, params = load_charmm_files(
+        psf_file=psf_file,
+        crd_file=crd_file,
+        para_files=para_files,
+        boxl=boxl,
+    )
+    system = setup_system(
+        psf, params, constraints=constraints, dummy_atom_type=dummy_atom_type
+    )
+
+    simulation = setup_simulation(
+        psf,
+        crd,
+        system,
+        restart_file=restart_file,
+        coll_freq=coll_freq,
+        drude_coll_freq=drude_coll_freq,
+        dummies=dummies,
+        use_plugin=use_plugin,
+    )
+
+    return simulation
+
+
+def generate_single_im1h_oac_system(  # does not have dummies
+    psf_file: str = None,
+    crd_file: str = None,
+    restart_file: str = None,
+    constraints: str = None,
+    boxl: float = 22.0,
+    para_files: list[str] = None,
+    coll_freq: int = 10,
+    drude_coll_freq: int = 100,
+    dummy_atom_type: str = None,  # "DUMH",
+    dummies: list[tuple[str, str]] = None,  # [("IM1", "H7"), ("OAC", "H")]
+    use_plugin: bool = True,
+):
     """Set up a system with 1 IM1H, 1OAC, 1IM1 and 1 HOAC.
 
     Was for testing the deformation of the imidazole ring -> solved by adding the nonbonded exception to the updates.
@@ -454,10 +533,11 @@ def generate_single_im1h_oac_system( #does not have dummies
         coll_freq=coll_freq,
         drude_coll_freq=drude_coll_freq,
         dummies=dummies,
-        use_plugin=use_plugin
+        use_plugin=use_plugin,
     )
 
     return simulation
+
 
 def generate_im1h_oac_dummy_system(
     psf_file: str = None,
@@ -468,9 +548,9 @@ def generate_im1h_oac_dummy_system(
     para_files: list[str] = None,
     coll_freq=10,
     drude_coll_freq=100,
-    dummy_atom_type: str="DUMH",
-    dummies: list[tuple[str,str]]=[("IM1", "H7"), ("OAC", "H")],
-    use_plugin: bool=True,
+    dummy_atom_type: str = "DUMH",
+    dummies: list[tuple[str, str]] = [("IM1", "H7"), ("OAC", "H")],
+    use_plugin: bool = True,
 ):
     """Set up a solvated and parametrized system for IM1H/OAC."""
     base = f"{protex.__path__[0]}/forcefield"
@@ -506,24 +586,25 @@ def generate_im1h_oac_dummy_system(
         coll_freq=coll_freq,
         drude_coll_freq=drude_coll_freq,
         dummies=dummies,
-        use_plugin=use_plugin
+        use_plugin=use_plugin,
     )
 
     return simulation
 
+
 ### new generate
-def generate_hpts_system( #not in use? -> delete?
+def generate_hpts_system(  # not in use? -> delete?
     psf_file: str = None,
     crd_file: str = None,
     restart_file: str = None,
     constraints: str = None,
     boxl: float = 48.0,
     para_files: list[str] = None,
-    coll_freq: int=10,
-    drude_coll_freq: int=100,
-    dummy_atom_type: str="DUMH",
-    dummies: list[tuple[str,str]] = [("IM1", "H7"), ("OAC", "H"), ("HPTS", "H7")],
-    use_plugin: bool=True,
+    coll_freq: int = 10,
+    drude_coll_freq: int = 100,
+    dummy_atom_type: str = "DUMH",
+    dummies: list[tuple[str, str]] = [("IM1", "H7"), ("OAC", "H"), ("HPTS", "H7")],
+    use_plugin: bool = True,
 ):
     """Set up a solvated and parametrized system for IM1H/OAC/HPTS."""
     base = f"{protex.__path__[0]}/forcefield/"
@@ -565,7 +646,7 @@ def generate_hpts_system( #not in use? -> delete?
         coll_freq=coll_freq,
         drude_coll_freq=drude_coll_freq,
         dummies=dummies,
-        use_plugin=use_plugin
+        use_plugin=use_plugin,
     )
 
     return simulation
@@ -578,11 +659,16 @@ def generate_hpts_meoh_system(
     constraints: str = None,
     boxl: float = 70.0,
     para_files: list[str] = None,
-    coll_freq: int =10,
-    drude_coll_freq: int =100,
-    dummy_atom_type: str="DUMH",
-    dummies: list[tuple[str,str]] = [("IM1", "H7"), ("OAC", "H"), ("HPTS", "H7"), ("MEOH", "HO2")],
-    use_plugin: bool=True,
+    coll_freq: int = 10,
+    drude_coll_freq: int = 100,
+    dummy_atom_type: str = "DUMH",
+    dummies: list[tuple[str, str]] = [
+        ("IM1", "H7"),
+        ("OAC", "H"),
+        ("HPTS", "H7"),
+        ("MEOH", "HO2"),
+    ],
+    use_plugin: bool = True,
 ):
     """Set up a solvated and parametrized system for IM1H/OAC/HPTS/MEOH."""
     base = f"{protex.__path__[0]}/forcefield/"
@@ -622,10 +708,11 @@ def generate_hpts_meoh_system(
         coll_freq=coll_freq,
         drude_coll_freq=drude_coll_freq,
         dummies=dummies,
-        use_plugin=use_plugin
+        use_plugin=use_plugin,
     )
 
     return simulation
+
 
 def generate_hpts_meoh_lj04_system(
     psf_file: str = None,
@@ -636,9 +723,14 @@ def generate_hpts_meoh_lj04_system(
     para_files: list[str] = None,
     coll_freq=10,
     drude_coll_freq=100,
-    dummy_atom_type: str="DUMH",
-    dummies: list[tuple[str,str]] = [("IM1", "H7"), ("OAC", "H"), ("HPTS", "H7"), ("MEOH", "HO2")],
-    use_plugin: bool=True,
+    dummy_atom_type: str = "DUMH",
+    dummies: list[tuple[str, str]] = [
+        ("IM1", "H7"),
+        ("OAC", "H"),
+        ("HPTS", "H7"),
+        ("MEOH", "HO2"),
+    ],
+    use_plugin: bool = True,
 ):
     """Set up a solvated and parametrized system for IM1H/OAC/HPTS/MEOH."""
     base = f"{protex.__path__[0]}/forcefield/"
@@ -678,10 +770,11 @@ def generate_hpts_meoh_lj04_system(
         coll_freq=coll_freq,
         drude_coll_freq=drude_coll_freq,
         dummies=dummies,
-        use_plugin=use_plugin
+        use_plugin=use_plugin,
     )
 
     return simulation
+
 
 # used for faster tests, not for production!
 def generate_single_hpts_meoh_system(
@@ -694,7 +787,12 @@ def generate_single_hpts_meoh_system(
     coll_freq=10,
     drude_coll_freq=100,
     dummy_atom_type="DUMH",
-    dummies: list[tuple[str,str]] = [("IM1", "H7"), ("OAC", "H"), ("HPTS", "H7"), ("MEOH", "HO2")],
+    dummies: list[tuple[str, str]] = [
+        ("IM1", "H7"),
+        ("OAC", "H"),
+        ("HPTS", "H7"),
+        ("MEOH", "HO2"),
+    ],
     use_plugin=True,
 ):
     """Set up a solvated and parametrized system for IM1H/OAC."""
@@ -738,15 +836,13 @@ def generate_single_hpts_meoh_system(
         coll_freq=coll_freq,
         drude_coll_freq=drude_coll_freq,
         dummies=dummies,
-        use_plugin=use_plugin
+        use_plugin=use_plugin,
     )
 
     return simulation
 
 
-
-
-IM1H_IM1 = {
+IM1H_IM1_old = {
     "IM1H": {
         "atom_name": "H7",
     },
@@ -755,17 +851,52 @@ IM1H_IM1 = {
     },
 }
 
-OAC_HOAC = {
+IM1H_IM1 = {
+    "IM1H": {"atoms": [{"name": "H7", "mode": "donor"}]},
+    "IM1": {"atoms": [{"name": "N2", "mode": "acceptor"}]},
+}
+
+OAC_HOAC_old = {
     "OAC": {
         "atom_name": "O2",
         "equivalent_atom": "O1",
     },
+    "HOAC": {"atom_name": "H", "mode": "both"},
+}
+
+OAC_HOAC = {
+    "OAC": {"atoms": [{"name": "O2", "mode": "acceptor", "equivalent_atom": "O1"}]},
+    "HOAC": {"atoms": [{"name": "H", "mode": "donor"}]},
+}
+
+# use equivalent atom, if this atom is equivalent, but the dummy-real_atom conversion is fixed to the other topology -
+# it is then internally managed to swap the two atoms
+# OAC_HOAC_H2OAC = {
+#     "OAC": {"atoms": [{"name": "O2", "mode": "acceptor"}]},
+#     "HOAC": {
+#         "atoms": [{"name": "H", "mode": "donor"}, {"name": "O1", "mode": "acceptor"}]
+#     },
+#     "H2OAC": {"atoms": [{"name": "HO1", "mode": "donor"}]},
+# }
+OAC_HOAC_H2OAC = {
+    "OAC": {"atoms": [{"name": "O2", "mode": "acceptor", "equivalent_atom": "O1"}]},
     "HOAC": {
-        "atom_name": "H",
+        "atoms": [{"name": "H", "mode": "donor"}, {"name": "O1", "mode": "acceptor"}]
     },
+    "H2OAC": {"atoms": [{"name": "HO1", "mode": "donor", "equivalent_atom:": "H"}]},
 }
 
 HPTSH_HPTS = {
+    "HPTSH": { "atoms": [{"name": "H7", "mode":"donor"}]},
+    "HPTS": { "atoms": [{"name": "O7", "mode": "acceptor"}]}
+}
+
+MEOH_MEOH2 = {
+    "MEOH": {"atoms": [{"name": "O1", "mode":"acceptor"}]},
+    "MEOH2": {"atoms": [{"name": "HO2", "mode":"acceptor", "equivalent_atom": "HO1"}]}
+}
+
+HPTSH_HPTS_old = {
     "HPTSH": {
         "atom_name": "H7",
         "canonical_name": "HPTS",
@@ -776,7 +907,7 @@ HPTSH_HPTS = {
     },
 }
 
-MEOH_MEOH2 = {
+MEOH_MEOH2_old = {
     "MEOH": {
         "atom_name": "O1",
     },

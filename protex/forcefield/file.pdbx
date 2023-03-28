@@ -1,0 +1,28 @@
+data_file
+loop_
+_atom_site.group_PDB
+_atom_site.id
+_atom_site.type_symbol
+_atom_site.label_atom_id
+_atom_site.label_alt_id
+_atom_site.label_comp_id
+_atom_site.label_asym_id
+_atom_site.label_entity_id
+_atom_site.label_seq_id
+_atom_site.pdbx_PDB_ins_code
+_atom_site.Cartn_x
+_atom_site.Cartn_y
+_atom_site.Cartn_z
+_atom_site.occupancy
+_atom_site.pdbx_formal_charge
+_atom_site.auth_asym_id
+ATOM 1  C1  C1 . H2OA C . 1 ? 0.014000 0.000000 5.000000 9.000000 0.000000 C
+ATOM 2  C2  C2 . H2OA C . 1 ? -1.026000 0.200000 7.000000 20.000000 0.000000 C
+ATOM 3  H1  H1 . H2OA C . 1 ? -0.566000 0.260000 6.000000 13.000000 0.000000 C
+ATOM 4  H2  H2 . H2OA C . 1 ? -1.689000 -0.670000 6.000000 89.000000 0.000000 C
+ATOM 5  H3  H3 . H2OA C . 1 ? -1.620000 1.090000 8.000000 83.000000 0.000000 C
+ATOM 6  O1  O1 . H2OA C . 1 ? -0.229000 0.430000 1.000000 98.000000 0.000000 C
+ATOM 7  O2  O2 . H2OA C . 1 ? 1.093000 -0.600000 3.000000 42.000000 0.000000 C
+ATOM 8  H   H . H2OA C . 1 ? 1.744000 -0.740000 3.000000 75.000000 0.000000 C
+ATOM 9  HO1 HO1 . H2OA C . 1 ? 0.473000 0.250000 1.000000 57.000000 0.000000 C
+#
