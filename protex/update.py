@@ -625,7 +625,7 @@ class StateUpdate:
 
     #redundant with ProtexSystem.get_current_number_of_each_residue_type
     def get_num_residues(self) -> dict:
-        """deprecated 1.1."""
+        """Deprecated 1.1."""
         res_dict = {
             "IM1H": 0,
             "OAC": 0,
@@ -662,7 +662,7 @@ class StateUpdate:
         )
 
     def update(self, nr_of_steps: int = 2) -> list[tuple[Residue, Residue]]:
-        r"""updates the current state using the method defined in the UpdateMethod class.
+        r"""Updates the current state using the method defined in the UpdateMethod class.
 
         Parameters
         ----------

@@ -160,7 +160,7 @@ class ProtexTemplates:
         return self.states[resname][self._equivalent_atom]
 
     def get_update_value_for(self, residue_set: frozenset[str], property: str) -> float:
-        """returns the value in the allowed updates dictionary.
+        """Returns the value in the allowed updates dictionary.
 
         Parameters
         ----------
@@ -820,7 +820,7 @@ class ProtexSystem:
         new_psf_outfname: str,
         psf_for_parameters: str = None,
     ) -> None:
-        """write a new psf file, which reflects the occured transfer events and changed residues
+        """Write a new psf file, which reflects the occured transfer events and changed residues
         to load the written psf create a new ionic_liquid instance and load the new psf via OpenMM.
 
         Parameters
