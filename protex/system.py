@@ -505,22 +505,29 @@ class ProtexSystem:
                     # Number of these two is not the same -> i did two loops, and called the thole parameters DrudeForceThole.
                     # Not ideal but i could not think of anything better, pay attention to the set and get methods for drudes.
                     if type(force).__name__ == "DrudeForce":
+                        particle_map = {}
                         for drude_id in range(force.getNumParticles()):
                             f = force.getParticleParameters(drude_id)
                             idx1 = f[0]  # drude
                             idx2 = f[1]  # parentatom
                             if idx1 in atom_idxs and idx2 in atom_idxs:
                                 forces_dict[type(force).__name__].append(f)
+                            #store the drude idx as they are in the system
+                            particle_map[drude_id] = idx1
                         # print(self.pair_12_13_list)
-                        assert (
-                            len(pair_12_13_list_params) == force.getNumScreenedPairs()
-                        ), f"{len(pair_12_13_list_params)=}, {force.getNumScreenedPairs()=}"
+                        #assert ( #? not working with tfa, investigate
+                        #    len(pair_12_13_list_params) == force.getNumScreenedPairs()
+                        #), f"{len(pair_12_13_list_params)=}, {force.getNumScreenedPairs()=}"
                         for drude_id in range(force.getNumScreenedPairs()):
                             f = force.getScreenedPairParameters(drude_id)
-                            # idx1 = f[0]
-                            # idx2 = f[1]
-                            parent1, parent2 = pair_12_13_list_params[drude_id]
-                            drude1, drude2 = parent1 + 1, parent2 + 1
+                            idx1 = f[0] # yields the id within this force == drude_id from getNumParticles
+                            idx2 = f[1]
+                            thole = f[2]
+                            #get the drude idxs in the system 
+                            drude1 = particle_map[idx1] 
+                            drude2 = particle_map[idx2]
+                            #parent1, parent2 = pair_12_13_list_params[drude_id]
+                            #drude1, drude2 = parent1 + 1, parent2 + 1
                             # print(f"thole {idx1=}, {idx2=}")
                             # print(f"{drude_id=}, {f=}")
                             if drude1 in atom_idxs and drude2 in atom_idxs:
