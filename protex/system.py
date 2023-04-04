@@ -523,8 +523,8 @@ class ProtexSystem:
                             idx1 = f[0] # yields the id within this force == drude_id from getNumParticles
                             idx2 = f[1]
                             thole = f[2]
-                            #get the drude idxs in the system 
-                            drude1 = particle_map[idx1] 
+                            #get the drude idxs in the system
+                            drude1 = particle_map[idx1]
                             drude2 = particle_map[idx2]
                             #parent1, parent2 = pair_12_13_list_params[drude_id]
                             #drude1, drude2 = parent1 + 1, parent2 + 1
