@@ -72,10 +72,11 @@ class Residue:
         self.system = system
         self.record_charge_state.append(self.endstate_charge)  # Not used anywhere?
         #self.pair_12_13_list = pair_12_13_exclusion_list
-        self.equivalent_atoms: dict[str, bool] = {
-            self.original_name: has_equivalent_atoms[0],
-            self.alternativ_name: has_equivalent_atoms[1],
-        }
+        if has_equivalent_atoms is not None:
+            self.equivalent_atoms: dict[str, bool] = {
+                self.original_name: has_equivalent_atoms[0],
+                self.alternativ_name: has_equivalent_atoms[1],
+            }
         self.equivalent_atom_pos_in_list: int = None
         self.used_equivalent_atom: bool = False
 

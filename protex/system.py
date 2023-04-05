@@ -600,6 +600,10 @@ class ProtexSystem:
 
                 templates[name] = self._extract_templates(name)
                 templates[name_of_paired_ion] = self._extract_templates(name_of_paired_ion)
+            else:
+                if name in templates:# or name_of_paired_ion in templates:
+                    continue
+                templates[name] = self._extract_templates(name)
 
         for r in self.topology.residues():
             name = r.name
@@ -635,10 +639,19 @@ class ProtexSystem:
                     name  # Why, isnt it done in the initializer of Residue?
                 )
             else:
+                parameters_state1 = templates[name]
+                r = Residue(
+                        r,
+                        None,
+                        self.system,
+                        parameters_state1,
+                        None,
+                        None
+                    )
                 # the residue is not part of any proton transfers,
                 # we still need it in the residue list for the parmed hack...
                 # there we need the current_name attribute, hence give it to the residue
-                r.current_name = r.name
+                #r.current_name = r.name
                 residues.append(r)
             #else: #if there are residues on purpose not with protex we want to just ignore them
             #    raise RuntimeError(
