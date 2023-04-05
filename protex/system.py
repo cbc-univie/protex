@@ -634,7 +634,12 @@ class ProtexSystem:
                 ].current_name = (
                     name  # Why, isnt it done in the initializer of Residue?
                 )
-
+            else:
+                # the residue is not part of any proton transfers,
+                # we still need it in the residue list for the parmed hack...
+                # there we need the current_name attribute, hence give it to the residue
+                r.current_name = r.name
+                residues.append(r)
             #else: #if there are residues on purpose not with protex we want to just ignore them
             #    raise RuntimeError(
             #        f"Found resiude not present in Templates: {r.name}"
@@ -679,7 +684,7 @@ class ProtexSystem:
         parameters: parmed.charmm.CharmmPsfFile,
     ) -> parmed.charmm.CharmmPsfFile:
         """Helper function to adapt the psf."""
-        # print(len(self.residues), len(psf.residues))
+        print(len(self.residues), len(psf.residues))
         assert len(self.residues) == len(psf.residues)
 
         # make a dict with parmed representations of each residue, use it to assign the opposite one if a transfer occured
