@@ -345,6 +345,64 @@ def generate_im1h_oac_system(
 
     return simulation
 
+def generate_tfa_system(
+    psf_file: str = None,
+    crd_file: str = None,
+    restart_file: str = None,
+    constraints: str = None,
+    boxl: float = 48.0,
+    para_files: list[str] = None,
+    coll_freq: int=10,
+    drude_coll_freq: int=100,
+    dummy_atom_type: str="DUMH",
+    dummies: list[tuple[str,str]] = [("IM1", "H7"), ("OAC", "H")],
+    use_plugin: bool =True,
+    tfa_percent: int = 10
+):
+    """Set up a solvated and parametrized system for IM1H/OAC with tfa."""
+    base = f"{protex.__path__[0]}/forcefield/"
+    if psf_file is None:
+        psf_file = f"{base}/tfa/tfa_{tfa_percent}.psf"
+    if crd_file is None:
+        crd_file = f"{base}/tfa/tfa_{tfa_percent}.crd"
+    if para_files is None:
+        PARA_FILES = [
+            "toppar_drude_master_protein_2013f_lj04.str",
+            "hoac_d.str",
+            "im1h_d.str",
+            "im1_d_dummy.str",
+            "oac_d_dummy.str",
+            "tfa_d.str"
+        ]
+        para_files = [f"{base}/toppar/{para_files}" for para_files in PARA_FILES]
+
+    psf, crd, params = load_charmm_files(
+        psf_file=psf_file,
+        crd_file=crd_file,
+        para_files=para_files,
+        boxl=boxl,
+    )
+    system = setup_system(
+        psf, params, constraints=constraints, dummy_atom_type=dummy_atom_type
+    )
+
+    if restart_file is None:
+        restart_file = f"{base}/tfa/tfa_{tfa_percent}_npt_7.rst"
+
+    simulation = setup_simulation(
+        psf,
+        crd,
+        system,
+        restart_file=restart_file,
+        coll_freq=coll_freq,
+        drude_coll_freq=drude_coll_freq,
+        dummies=dummies,
+        use_plugin=use_plugin
+    )
+
+    return simulation
+
+
 # used for faster tests, not for production!
 def generate_small_box(
     psf_file: str = None,

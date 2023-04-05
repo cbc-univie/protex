@@ -49,6 +49,7 @@ from ..testsystems import (
     generate_im1h_oac_system,
     generate_single_im1h_oac_system,
     generate_small_box,
+    generate_tfa_system,
 )
 from ..update import NaiveMCUpdate, StateUpdate
 
@@ -63,6 +64,18 @@ from ..update import NaiveMCUpdate, StateUpdate
 def test_parmed_hack(tmp_path):
     psf_file = "protex/forcefield/dummy/nonumaniso.psf"
     simulation = generate_im1h_oac_system(psf_file=psf_file)
+    allowed_updates = {}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.165, "prob": 1}
+    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+    ionic_liquid = ProtexSystem(simulation, templates)
+    ionic_liquid.write_psf(
+        psf_file,
+        f"{tmp_path}/test.psf",
+    )
+
+def test_parmed_hack_tfa(tmp_path):
+    psf_file = "protex/forcefield/tfa/tfa_10.psf"
+    simulation = generate_tfa_system(use_plugin=False)
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.165, "prob": 1}
     templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
