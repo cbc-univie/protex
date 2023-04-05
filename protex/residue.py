@@ -56,7 +56,7 @@ class Residue:
         system,
         inital_parameters,
         alternativ_parameters,
-        pair_12_13_exclusion_list,
+        #pair_12_13_exclusion_list,
         has_equivalent_atoms,
     ) -> None:
         self.residue = residue
@@ -71,7 +71,7 @@ class Residue:
         self.record_charge_state = []
         self.system = system
         self.record_charge_state.append(self.endstate_charge)  # Not used anywhere?
-        self.pair_12_13_list = pair_12_13_exclusion_list
+        #self.pair_12_13_list = pair_12_13_exclusion_list
         self.equivalent_atoms: dict[str, bool] = {
             self.original_name: has_equivalent_atoms[0],
             self.alternativ_name: has_equivalent_atoms[1],
@@ -243,6 +243,7 @@ class Residue:
     def _set_DrudeForce_parameters(self, parms):
         parms_pol = deque(parms[0])
         parms_thole = deque(parms[1])
+        particle_map = {}
         for force in self.system.getForces():
             if type(force).__name__ == "DrudeForce":
                 for drude_idx in range(force.getNumParticles()):
@@ -266,12 +267,15 @@ class Residue:
                             aniso12,
                             aniso14,
                         )
+                    particle_map[drude_idx] = idx1
                 for drude_idx in range(force.getNumScreenedPairs()):
                     f = force.getScreenedPairParameters(drude_idx)
                     idx1 = f[0]
                     idx2 = f[1]
-                    parent1, parent2 = self.pair_12_13_list[drude_idx]
-                    drude1, drude2 = parent1 + 1, parent2 + 1
+                    drude1 = particle_map[idx1]
+                    drude2 = particle_map[idx2]
+                    #parent1, parent2 = self.pair_12_13_list[drude_idx]
+                    #drude1, drude2 = parent1 + 1, parent2 + 1
                     if drude1 in self.atom_idxs and drude2 in self.atom_idxs:
                         thole = parms_thole.popleft()
                         force.setScreenedPairParameters(drude_idx, idx1, idx2, thole)
