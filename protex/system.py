@@ -582,23 +582,24 @@ class ProtexSystem:
         # for each residue type get forces
         for r in self.topology.residues():
             name = r.name
-            name_of_paired_ion = self.templates.get_residue_name_for_coupled_state(name)
+            if name in self.templates.names:
+                name_of_paired_ion = self.templates.get_residue_name_for_coupled_state(name)
 
-            ### do something like this, to precess meoh without having a template
-            #### problem: residues for psf are collected this way
-            # if name in self.templates.names:
-            # name_of_paired_ion = self.templates.get_residue_name_for_coupled_state(name)
-            #   if name in templates or name_of_paired_ion in templates:
-            #     continue
+                ### do something like this, to precess meoh without having a template
+                #### problem: residues for psf are collected this way
+                # if name in self.templates.names:
+                # name_of_paired_ion = self.templates.get_residue_name_for_coupled_state(name)
+                #   if name in templates or name_of_paired_ion in templates:
+                #     continue
 
-            # templates[name] = self._extract_templates(name)
-            # templates[name_of_paired_ion] = self._extract_templates(name_of_paired_ion)
+                # templates[name] = self._extract_templates(name)
+                # templates[name_of_paired_ion] = self._extract_templates(name_of_paired_ion)
 
-            if name in templates or name_of_paired_ion in templates:
-                continue
+                if name in templates or name_of_paired_ion in templates:
+                    continue
 
-            templates[name] = self._extract_templates(name)
-            templates[name_of_paired_ion] = self._extract_templates(name_of_paired_ion)
+                templates[name] = self._extract_templates(name)
+                templates[name_of_paired_ion] = self._extract_templates(name_of_paired_ion)
 
         for r in self.topology.residues():
             name = r.name
@@ -634,10 +635,10 @@ class ProtexSystem:
                     name  # Why, isnt it done in the initializer of Residue?
                 )
 
-            else:
-                raise RuntimeError(
-                    "Found resiude not present in Templates: {r.name}"
-                )  # we want to ignore meoh, doesn't work the way it actually is
+            #else: #if there are residues on purpose not with protex we want to just ignore them
+            #    raise RuntimeError(
+            #        f"Found resiude not present in Templates: {r.name}"
+            #    )  # we want to ignore meoh, doesn't work the way it actually is
         return residues
 
     # def save_current_names(self, file: str) -> None:
