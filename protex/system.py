@@ -130,7 +130,7 @@ class ProtexTemplates:
         return self.states[resname][self._atom_name]
 
     def has_equivalent_atom(self, resname: str) -> bool:
-        """Checks if a given residue has an equivalent atom defined.
+        """Check if a given residue has an equivalent atom defined.
 
         Parameters
         ----------
@@ -160,7 +160,7 @@ class ProtexTemplates:
         return self.states[resname][self._equivalent_atom]
 
     def get_update_value_for(self, residue_set: frozenset[str], property: str) -> float:
-        """returns the value in the allowed updates dictionary.
+        """Return the value in the allowed updates dictionary.
 
         Parameters
         ----------
@@ -192,7 +192,7 @@ class ProtexTemplates:
     def set_update_value_for(
         self, residue_set: frozenset[str], property: str, value: float
     ):
-        """Updates a value in the allowed updates dictionary.
+        """Update a value in the allowed updates dictionary.
 
         Parameters
         ----------
