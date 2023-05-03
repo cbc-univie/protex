@@ -562,11 +562,12 @@ class StateUpdate:
         state_update.update_trial = from_pickle[1]
         return state_update
 
-    def __init__(self, updateMethod: Update) -> None:
+    def __init__(self, updateMethod: Update, prob_function: str = None) -> None:
         self.updateMethod: Update = updateMethod
         self.ionic_liquid: ProtexSystem = self.updateMethod.ionic_liquid
         self.history: deque = deque(maxlen=10)
         self.update_trial: int = 0
+        self.prob_function = prob_function
 
     def dump(self, fname: str) -> None:
         """Pickle the StateUpdate instance.
@@ -724,6 +725,14 @@ class StateUpdate:
                 dz = boxl - dz
             return np.sqrt(dx * dx + dy * dy + dz * dz)
 
+        def distance_based_probability(r, r_min, r_max, prob):
+            if self.prob_function == None:
+                return prob
+            elif self.prob_function == "linear":
+                return -(prob/(r_max-r_min))*r+prob*r_max/(r_max-r_min)
+            elif self.prob_function == "cosine":
+                return (prob/2)*np.cos(np.pi/(r_max-r_min)*r-np.pi*r_min/(r_max-r_min))+prob/2
+
         # calculate distance matrix between the two molecules
         if use_pbc:
             logger.debug("Using PBC correction for distance calculation")
@@ -759,15 +768,25 @@ class StateUpdate:
                 r_max = self.ionic_liquid.templates.allowed_updates[
                     frozenset([residue1.current_name, residue2.current_name])
                 ]["r_max"]
+                r_min = self.ionic_liquid.templates.allowed_updates[
+                    frozenset([residue1.current_name, residue2.current_name])
+                ]["r_min"]
                 prob = self.ionic_liquid.templates.allowed_updates[
                     frozenset([residue1.current_name, residue2.current_name])
                 ]["prob"]
-                logger.debug(f"{r_max=}, {prob=}")
                 r = distance[candidate_idx1, candidate_idx2]
+                if r < r_min:
+                    dist_prob = prob
+                elif r <= r_max:
+                    dist_prob = distance_based_probability(r, r_min, r_max, prob)
+
+                logger.debug(f"{r=}, {r_min=}, {r_max=}, {prob=}, {dist_prob=}, {self.prob_function=}")
+                print(f"{r=}, {r_min=}, {r_max=}, {prob=}, {dist_prob=}, {self.prob_function=}")
+                
                 # break for loop if no pair can fulfill distance condition
                 if r > self.ionic_liquid.templates.overall_max_distance:
                     break
-                elif r <= r_max and random.random() <= prob:  # random enough?
+                elif r <= r_max and random.random() <= dist_prob:  # random enough?
                     charge_candidate_idx1 = residue1.endstate_charge
                     charge_candidate_idx2 = residue2.endstate_charge
 
