@@ -726,7 +726,7 @@ class StateUpdate:
             return np.sqrt(dx * dx + dy * dy + dz * dz)
 
         def distance_based_probability(r, r_min, r_max, prob):
-            if self.prob_function == None:
+            if self.prob_function is None:
                 return prob
             elif self.prob_function == "linear":
                 return -(prob/(r_max-r_min))*r+prob*r_max/(r_max-r_min)
@@ -782,7 +782,7 @@ class StateUpdate:
 
                 logger.debug(f"{r=}, {r_min=}, {r_max=}, {prob=}, {dist_prob=}, {self.prob_function=}")
                 print(f"{r=}, {r_min=}, {r_max=}, {prob=}, {dist_prob=}, {self.prob_function=}")
-                
+
                 # break for loop if no pair can fulfill distance condition
                 if r > self.ionic_liquid.templates.overall_max_distance:
                     break
