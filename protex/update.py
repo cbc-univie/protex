@@ -772,7 +772,7 @@ class StateUpdate:
                     frozenset([residue1.current_name, residue2.current_name])
                 ]["prob"]
                 r = distance[candidate_idx1, candidate_idx2]
-                if self.prob_function == None:
+                if self.prob_function is None:
                     dist_prob = prob
                 else:
                     r_min = self.ionic_liquid.templates.allowed_updates[
