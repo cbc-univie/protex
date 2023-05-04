@@ -728,9 +728,7 @@ class StateUpdate:
             return np.sqrt(dx * dx + dy * dy + dz * dz)
 
         def distance_based_probability(r, r_min, r_max, prob):
-            if self.prob_function is None:
-                return prob
-            elif self.prob_function == "linear":
+            if self.prob_function == "linear":
                 return -(prob/(r_max-r_min))*r+prob*r_max/(r_max-r_min)
             elif self.prob_function == "cosine":
                 return (prob/2)*np.cos(np.pi/(r_max-r_min)*r-np.pi*r_min/(r_max-r_min))+prob/2
@@ -770,19 +768,22 @@ class StateUpdate:
                 r_max = self.ionic_liquid.templates.allowed_updates[
                     frozenset([residue1.current_name, residue2.current_name])
                 ]["r_max"]
-                r_min = self.ionic_liquid.templates.allowed_updates[
-                    frozenset([residue1.current_name, residue2.current_name])
-                ]["r_min"]
                 prob = self.ionic_liquid.templates.allowed_updates[
                     frozenset([residue1.current_name, residue2.current_name])
                 ]["prob"]
                 r = distance[candidate_idx1, candidate_idx2]
-                if r < r_min:
+                if self.prob_function == None:
                     dist_prob = prob
-                elif r <= r_max:
-                    dist_prob = distance_based_probability(r, r_min, r_max, prob)
                 else:
-                    dist_prob = 0
+                    r_min = self.ionic_liquid.templates.allowed_updates[
+                    frozenset([residue1.current_name, residue2.current_name])
+                    ]["r_min"]
+                    if r < r_min:
+                        dist_prob = prob
+                    elif r <= r_max:
+                        dist_prob = distance_based_probability(r, r_min, r_max, prob)
+                    else:
+                        dist_prob = 0
 
                 logger.debug(f"{r=}, {r_min=}, {r_max=}, {prob=}, {dist_prob=}, {self.prob_function=}")
                 #print(f"{r=}, {r_min=}, {r_max=}, {prob=}, {dist_prob=}, {self.prob_function=}")
