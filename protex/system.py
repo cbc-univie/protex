@@ -160,7 +160,7 @@ class ProtexTemplates:
         return self.states[resname][self._equivalent_atom]
 
     def get_update_value_for(self, residue_set: frozenset[str], property: str) -> float:
-        """Return the value in the allowed updates dictionary.
+        """Returns the value in the allowed updates dictionary.
 
         Parameters
         ----------
