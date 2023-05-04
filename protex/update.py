@@ -774,6 +774,7 @@ class StateUpdate:
                 r = distance[candidate_idx1, candidate_idx2]
                 if self.prob_function is None:
                     dist_prob = prob
+                    logger.debug(f"{r=}, {r_max=}, {prob=}")
                 else:
                     r_min = self.ionic_liquid.templates.allowed_updates[
                     frozenset([residue1.current_name, residue2.current_name])
@@ -784,8 +785,7 @@ class StateUpdate:
                         dist_prob = distance_based_probability(r, r_min, r_max, prob)
                     else:
                         dist_prob = 0
-
-                logger.debug(f"{r=}, {r_min=}, {r_max=}, {prob=}, {dist_prob=}, {self.prob_function=}")
+                    logger.debug(f"{r=}, {r_min=}, {r_max=}, {prob=}, {dist_prob=}, {self.prob_function=}")
                 #print(f"{r=}, {r_min=}, {r_max=}, {prob=}, {dist_prob=}, {self.prob_function=}")
 
                 # break for loop if no pair can fulfill distance condition
