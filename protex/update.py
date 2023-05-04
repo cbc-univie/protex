@@ -208,9 +208,9 @@ class KeepHUpdate(Update):
                 )
 
                 pos_atom = positions_copy[atom_idx]
-                print(f"{pos_atom=}")
+                #print(f"{pos_atom=}")
                 pos_equivalent = positions_copy[equivalent_idx]
-                print(f"{pos_equivalent=}")
+                #print(f"{pos_equivalent=}")
 
                 positions[atom_idx] = pos_equivalent
                 positions[equivalent_idx] = pos_atom
@@ -229,9 +229,9 @@ class KeepHUpdate(Update):
                 #     positions[atom_idx+6] = pos_equivalent_lp12
                 #     positions[equivalent_idx+5] = pos_atom_lp21
                 #     positions[equivalent_idx+6] = pos_atom_lp22
-                print(
-                    f"setting position of {self.ionic_liquid.templates.get_atom_name_for(resi.current_name)} to {positions[atom_idx]} and {self.ionic_liquid.templates.get_equivalent_atom_for(resi.current_name)} to {positions[equivalent_idx]}"
-                )
+                # print(
+                #     f"setting position of {self.ionic_liquid.templates.get_atom_name_for(resi.current_name)} to {positions[atom_idx]} and {self.ionic_liquid.templates.get_equivalent_atom_for(resi.current_name)} to {positions[equivalent_idx]}"
+                # )
 
         # set new H position:
         if "H" in self.ionic_liquid.templates.get_atom_name_for(
@@ -301,9 +301,9 @@ class KeepHUpdate(Update):
         # update position of the once-dummy H on the acceptor - original H line
         positions[idx_accepted_H] = pos_accepted_H
 
-        print(
-            f"donated H: {pos_donated_H}, acceptor atom: {pos_acceptor_atom}, H set to: {pos_accepted_H}"
-        )
+        # print(
+        #     f"donated H: {pos_donated_H}, acceptor atom: {pos_acceptor_atom}, H set to: {pos_accepted_H}"
+        # )
 
         return positions
 
@@ -560,6 +560,7 @@ class StateUpdate:
             from_pickle = pickle.load(inp)  # ensure correct order of arguments
         state_update.history = from_pickle[0]
         state_update.update_trial = from_pickle[1]
+        state_update.prob_function = from_pickle[2]
         return state_update
 
     def __init__(self, updateMethod: Update, prob_function: str = None) -> None:
@@ -580,6 +581,7 @@ class StateUpdate:
         to_pickle = [
             self.history,
             self.update_trial,
+            self.prob_function
         ]  # enusre correct order of arguments
         with open(fname, "wb") as outp:
             pickle.dump(to_pickle, outp, pickle.HIGHEST_PROTOCOL)
@@ -779,9 +781,11 @@ class StateUpdate:
                     dist_prob = prob
                 elif r <= r_max:
                     dist_prob = distance_based_probability(r, r_min, r_max, prob)
+                else:
+                    dist_prob = 0
 
                 logger.debug(f"{r=}, {r_min=}, {r_max=}, {prob=}, {dist_prob=}, {self.prob_function=}")
-                print(f"{r=}, {r_min=}, {r_max=}, {prob=}, {dist_prob=}, {self.prob_function=}")
+                #print(f"{r=}, {r_min=}, {r_max=}, {prob=}, {dist_prob=}, {self.prob_function=}")
                 
                 # break for loop if no pair can fulfill distance condition
                 if r > self.ionic_liquid.templates.overall_max_distance:
