@@ -130,7 +130,7 @@ class ProtexTemplates:
         return self.states[resname][self._atom_name]
 
     def has_equivalent_atom(self, resname: str) -> bool:
-        """Checks if a given residue has an equivalent atom defined.
+        """Check if a given residue has an equivalent atom defined.
 
         Parameters
         ----------
@@ -192,7 +192,7 @@ class ProtexTemplates:
     def set_update_value_for(
         self, residue_set: frozenset[str], property: str, value: float
     ):
-        """Updates a value in the allowed updates dictionary.
+        """Update a value in the allowed updates dictionary.
 
         Parameters
         ----------
@@ -392,34 +392,34 @@ class ProtexSystem:
         for force in self.system.getForces():
             if type(force).__name__ == name:
                 force.updateParametersInContext(self.simulation.context)
+    # deprecated, not needed anymore
+    # def _build_exclusion_list(self, topology):
+    #     pair_12_set = set()
+    #     pair_13_set = set()
+    #     for bond in topology.bonds():
+    #         a1, a2 = bond.atom1, bond.atom2
+    #         if "H" not in a1.name and "H" not in a2.name:
+    #             pair = (
+    #                 min(a1.index, a2.index),
+    #                 max(a1.index, a2.index),
+    #             )
+    #             pair_12_set.add(pair)
+    #     for a in pair_12_set:
+    #         for b in pair_12_set:
+    #             shared = set(a).intersection(set(b))
+    #             if len(shared) == 1:
+    #                 pair = tuple(sorted(set(list(a) + list(b)) - shared))
+    #                 pair_13_set.add(pair)
+    #                 # there were duplicates in pair_13_set, e.g. (1,3) and (3,1), needs to be sorted
 
-    def _build_exclusion_list(self, topology):
-        pair_12_set = set()
-        pair_13_set = set()
-        for bond in topology.bonds():
-            a1, a2 = bond.atom1, bond.atom2
-            if "H" not in a1.name and "H" not in a2.name:
-                pair = (
-                    min(a1.index, a2.index),
-                    max(a1.index, a2.index),
-                )
-                pair_12_set.add(pair)
-        for a in pair_12_set:
-            for b in pair_12_set:
-                shared = set(a).intersection(set(b))
-                if len(shared) == 1:
-                    pair = tuple(sorted(set(list(a) + list(b)) - shared))
-                    pair_13_set.add(pair)
-                    # there were duplicates in pair_13_set, e.g. (1,3) and (3,1), needs to be sorted
-
-        # self.pair_12_list = list(sorted(pair_12_set))
-        # self.pair_13_list = list(sorted(pair_13_set - pair_12_set))
-        # self.pair_12_13_list = self.pair_12_list + self.pair_13_list
-        # change to return the list and set the parameters in the init method?
-        pair_12_list = list(sorted(pair_12_set))
-        pair_13_list = list(sorted(pair_13_set - pair_12_set))
-        pair_12_13_list = pair_12_list + pair_13_list
-        return pair_12_13_list
+    #     # self.pair_12_list = list(sorted(pair_12_set))
+    #     # self.pair_13_list = list(sorted(pair_13_set - pair_12_set))
+    #     # self.pair_12_13_list = self.pair_12_list + self.pair_13_list
+    #     # change to return the list and set the parameters in the init method?
+    #     pair_12_list = list(sorted(pair_12_set))
+    #     pair_13_list = list(sorted(pair_13_set - pair_12_set))
+    #     pair_12_13_list = pair_12_list + pair_13_list
+    #     return pair_12_13_list
 
     def _extract_templates(self, query_name: str) -> defaultdict:
         # returns the forces for the residue name
@@ -432,7 +432,7 @@ class ProtexSystem:
         else:
             sim = self.simulation
 
-        pair_12_13_list_params = self._build_exclusion_list(sim.topology)
+        #pair_12_13_list_params = self._build_exclusion_list(sim.topology)
 
         for residue in sim.topology.residues():
             if query_name == residue.name:
@@ -505,22 +505,29 @@ class ProtexSystem:
                     # Number of these two is not the same -> i did two loops, and called the thole parameters DrudeForceThole.
                     # Not ideal but i could not think of anything better, pay attention to the set and get methods for drudes.
                     if type(force).__name__ == "DrudeForce":
+                        particle_map = {}
                         for drude_id in range(force.getNumParticles()):
                             f = force.getParticleParameters(drude_id)
                             idx1 = f[0]  # drude
                             idx2 = f[1]  # parentatom
                             if idx1 in atom_idxs and idx2 in atom_idxs:
                                 forces_dict[type(force).__name__].append(f)
+                            #store the drude idx as they are in the system
+                            particle_map[drude_id] = idx1
                         # print(self.pair_12_13_list)
-                        assert (
-                            len(pair_12_13_list_params) == force.getNumScreenedPairs()
-                        ), f"{len(pair_12_13_list_params)=}, {force.getNumScreenedPairs()=}"
+                        #assert ( #? not working with tfa, investigate
+                        #    len(pair_12_13_list_params) == force.getNumScreenedPairs()
+                        #), f"{len(pair_12_13_list_params)=}, {force.getNumScreenedPairs()=}"
                         for drude_id in range(force.getNumScreenedPairs()):
                             f = force.getScreenedPairParameters(drude_id)
-                            # idx1 = f[0]
-                            # idx2 = f[1]
-                            parent1, parent2 = pair_12_13_list_params[drude_id]
-                            drude1, drude2 = parent1 + 1, parent2 + 1
+                            idx1 = f[0] # yields the id within this force == drude_id from getNumParticles
+                            idx2 = f[1]
+                            thole = f[2]
+                            #get the drude idxs in the system
+                            drude1 = particle_map[idx1]
+                            drude2 = particle_map[idx2]
+                            #parent1, parent2 = pair_12_13_list_params[drude_id]
+                            #drude1, drude2 = parent1 + 1, parent2 + 1
                             # print(f"thole {idx1=}, {idx2=}")
                             # print(f"{drude_id=}, {f=}")
                             if drude1 in atom_idxs and drude2 in atom_idxs:
@@ -567,7 +574,7 @@ class ProtexSystem:
         is interfered from the provided openMM system object and the protonation site is defined.
         """
         # self._build_exclusion_list()
-        pair_12_13_list = self._build_exclusion_list(self.topology)
+        #pair_12_13_list = self._build_exclusion_list(self.topology)
 
         residues = []
         templates = dict()
@@ -575,23 +582,28 @@ class ProtexSystem:
         # for each residue type get forces
         for r in self.topology.residues():
             name = r.name
-            name_of_paired_ion = self.templates.get_residue_name_for_coupled_state(name)
+            if name in self.templates.names:
+                name_of_paired_ion = self.templates.get_residue_name_for_coupled_state(name)
 
-            ### do something like this, to precess meoh without having a template
-            #### problem: residues for psf are collected this way
-            # if name in self.templates.names:
-            # name_of_paired_ion = self.templates.get_residue_name_for_coupled_state(name)
-            #   if name in templates or name_of_paired_ion in templates:
-            #     continue
+                ### do something like this, to precess meoh without having a template
+                #### problem: residues for psf are collected this way
+                # if name in self.templates.names:
+                # name_of_paired_ion = self.templates.get_residue_name_for_coupled_state(name)
+                #   if name in templates or name_of_paired_ion in templates:
+                #     continue
 
-            # templates[name] = self._extract_templates(name)
-            # templates[name_of_paired_ion] = self._extract_templates(name_of_paired_ion)
+                # templates[name] = self._extract_templates(name)
+                # templates[name_of_paired_ion] = self._extract_templates(name_of_paired_ion)
 
-            if name in templates or name_of_paired_ion in templates:
-                continue
+                if name in templates or name_of_paired_ion in templates:
+                    continue
 
-            templates[name] = self._extract_templates(name)
-            templates[name_of_paired_ion] = self._extract_templates(name_of_paired_ion)
+                templates[name] = self._extract_templates(name)
+                templates[name_of_paired_ion] = self._extract_templates(name_of_paired_ion)
+            else:
+                if name in templates:# or name_of_paired_ion in templates:
+                    continue
+                templates[name] = self._extract_templates(name)
 
         for r in self.topology.residues():
             name = r.name
@@ -614,7 +626,7 @@ class ProtexSystem:
                         self.system,
                         parameters_state1,
                         parameters_state2,
-                        pair_12_13_list,
+                        #pair_12_13_list,
                         (
                             self.templates.has_equivalent_atom(name),
                             self.templates.has_equivalent_atom(name_of_paired_ion),
@@ -626,11 +638,25 @@ class ProtexSystem:
                 ].current_name = (
                     name  # Why, isnt it done in the initializer of Residue?
                 )
-
             else:
-                raise RuntimeError(
-                    "Found resiude not present in Templates: {r.name}"
-                )  # we want to ignore meoh, doesn't work the way it actually is
+                parameters_state1 = templates[name]
+                r = Residue(
+                        r,
+                        None,
+                        self.system,
+                        parameters_state1,
+                        None,
+                        None
+                    )
+                # the residue is not part of any proton transfers,
+                # we still need it in the residue list for the parmed hack...
+                # there we need the current_name attribute, hence give it to the residue
+                #r.current_name = r.name
+                residues.append(r)
+            #else: #if there are residues on purpose not with protex we want to just ignore them
+            #    raise RuntimeError(
+            #        f"Found resiude not present in Templates: {r.name}"
+            #    )  # we want to ignore meoh, doesn't work the way it actually is
         return residues
 
     # def save_current_names(self, file: str) -> None:
@@ -671,7 +697,7 @@ class ProtexSystem:
         parameters: parmed.charmm.CharmmPsfFile,
     ) -> parmed.charmm.CharmmPsfFile:
         """Helper function to adapt the psf."""
-        # print(len(self.residues), len(psf.residues))
+        print(len(self.residues), len(psf.residues))
         assert len(self.residues) == len(psf.residues)
 
         # make a dict with parmed representations of each residue, use it to assign the opposite one if a transfer occured

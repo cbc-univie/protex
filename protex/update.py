@@ -858,45 +858,46 @@ class StateUpdate:
 
         # loop over all residues and add the positions of the atoms that can be updated to the pos_dict
         for residue in self.ionic_liquid.residues:
-            residue.equivalent_atom_pos_in_list = None
-            assert residue.current_name in self.ionic_liquid.templates.names
-            # get the position of the atom (Hydrogen or the possible acceptor)
-            # new idea: just make one list with all positions and then calc distances of everything with everything... -> not so fast, but i need i.e. IM1H-IM1
-            pos_list.append(
-                pos[
-                    residue.get_idx_for_atom_name(
-                        self.ionic_liquid.templates.get_atom_name_for(
-                            residue.current_name
-                        )
-                    )
-                    # this needs the atom idx to be the same for both topologies
-                    # TODO: maybe get rid of this caveat
-                    # maybe some mapping between possible residue states and corresponding atom positions
-                ]
-            )
-            res_list.append(residue)
-
-            if (
-                self.updateMethod.include_equivalent_atom
-                and self.ionic_liquid.templates.has_equivalent_atom(
-                    residue.current_name
-                )
-            ):
+            #assert residue.current_name in self.ionic_liquid.templates.names
+            if residue.current_name in self.ionic_liquid.templates.names:
+                residue.equivalent_atom_pos_in_list = None
+                # get the position of the atom (Hydrogen or the possible acceptor)
+                # new idea: just make one list with all positions and then calc distances of everything with everything... -> not so fast, but i need i.e. IM1H-IM1
                 pos_list.append(
                     pos[
                         residue.get_idx_for_atom_name(
-                            self.ionic_liquid.templates.get_equivalent_atom_for(
+                            self.ionic_liquid.templates.get_atom_name_for(
                                 residue.current_name
                             )
                         )
+                        # this needs the atom idx to be the same for both topologies
+                        # TODO: maybe get rid of this caveat
+                        # maybe some mapping between possible residue states and corresponding atom positions
                     ]
                 )
-                residue.equivalent_atom_pos_in_list = len(
-                    res_list
-                )  # store idx to know which coordinates where used for distance
+                res_list.append(residue)
 
-                res_list.append(
-                    residue
-                )  # add second time the residue to have same length of pos_list and res_list
+                if (
+                    self.updateMethod.include_equivalent_atom
+                    and self.ionic_liquid.templates.has_equivalent_atom(
+                        residue.current_name
+                    )
+                ):
+                    pos_list.append(
+                        pos[
+                            residue.get_idx_for_atom_name(
+                                self.ionic_liquid.templates.get_equivalent_atom_for(
+                                    residue.current_name
+                                )
+                            )
+                        ]
+                    )
+                    residue.equivalent_atom_pos_in_list = len(
+                        res_list
+                    )  # store idx to know which coordinates where used for distance
+
+                    res_list.append(
+                        residue
+                    )  # add second time the residue to have same length of pos_list and res_list
 
         return pos_list, res_list
