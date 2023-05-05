@@ -1,4 +1,4 @@
-﻿protex.residue.Residue
+protex.residue.Residue
 ======================
 
 .. currentmodule:: protex.residue

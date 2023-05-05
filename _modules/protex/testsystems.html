@@ -420,6 +420,64 @@
 
     <span class="k">return</span> <span class="n">simulation</span></div>
 
+<div class="viewcode-block" id="generate_tfa_system"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.testsystems.generate_tfa_system.html#protex.testsystems.generate_tfa_system">[docs]</a><span class="k">def</span> <span class="nf">generate_tfa_system</span><span class="p">(</span>
+    <span class="n">psf_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">crd_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">restart_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">constraints</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">boxl</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">48.0</span><span class="p">,</span>
+    <span class="n">para_files</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">coll_freq</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+    <span class="n">drude_coll_freq</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+    <span class="n">dummy_atom_type</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s2">&quot;DUMH&quot;</span><span class="p">,</span>
+    <span class="n">dummies</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">&quot;IM1&quot;</span><span class="p">,</span> <span class="s2">&quot;H7&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;OAC&quot;</span><span class="p">,</span> <span class="s2">&quot;H&quot;</span><span class="p">)],</span>
+    <span class="n">use_plugin</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">tfa_percent</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Set up a solvated and parametrized system for IM1H/OAC with tfa.&quot;&quot;&quot;</span>
+    <span class="n">base</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">protex</span><span class="o">.</span><span class="n">__path__</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">/forcefield/&quot;</span>
+    <span class="k">if</span> <span class="n">psf_file</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">psf_file</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">base</span><span class="si">}</span><span class="s2">/tfa/tfa_</span><span class="si">{</span><span class="n">tfa_percent</span><span class="si">}</span><span class="s2">.psf&quot;</span>
+    <span class="k">if</span> <span class="n">crd_file</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">crd_file</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">base</span><span class="si">}</span><span class="s2">/tfa/tfa_</span><span class="si">{</span><span class="n">tfa_percent</span><span class="si">}</span><span class="s2">.crd&quot;</span>
+    <span class="k">if</span> <span class="n">para_files</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">PARA_FILES</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s2">&quot;toppar_drude_master_protein_2013f_lj04.str&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;hoac_d.str&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;im1h_d.str&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;im1_d_dummy.str&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;oac_d_dummy.str&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;tfa_d.str&quot;</span>
+        <span class="p">]</span>
+        <span class="n">para_files</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">base</span><span class="si">}</span><span class="s2">/toppar/</span><span class="si">{</span><span class="n">para_files</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">para_files</span> <span class="ow">in</span> <span class="n">PARA_FILES</span><span class="p">]</span>
+
+    <span class="n">psf</span><span class="p">,</span> <span class="n">crd</span><span class="p">,</span> <span class="n">params</span> <span class="o">=</span> <span class="n">load_charmm_files</span><span class="p">(</span>
+        <span class="n">psf_file</span><span class="o">=</span><span class="n">psf_file</span><span class="p">,</span>
+        <span class="n">crd_file</span><span class="o">=</span><span class="n">crd_file</span><span class="p">,</span>
+        <span class="n">para_files</span><span class="o">=</span><span class="n">para_files</span><span class="p">,</span>
+        <span class="n">boxl</span><span class="o">=</span><span class="n">boxl</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">system</span> <span class="o">=</span> <span class="n">setup_system</span><span class="p">(</span>
+        <span class="n">psf</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">constraints</span><span class="o">=</span><span class="n">constraints</span><span class="p">,</span> <span class="n">dummy_atom_type</span><span class="o">=</span><span class="n">dummy_atom_type</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">restart_file</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">restart_file</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">base</span><span class="si">}</span><span class="s2">/tfa/tfa_</span><span class="si">{</span><span class="n">tfa_percent</span><span class="si">}</span><span class="s2">_npt_7.rst&quot;</span>
+
+    <span class="n">simulation</span> <span class="o">=</span> <span class="n">setup_simulation</span><span class="p">(</span>
+        <span class="n">psf</span><span class="p">,</span>
+        <span class="n">crd</span><span class="p">,</span>
+        <span class="n">system</span><span class="p">,</span>
+        <span class="n">restart_file</span><span class="o">=</span><span class="n">restart_file</span><span class="p">,</span>
+        <span class="n">coll_freq</span><span class="o">=</span><span class="n">coll_freq</span><span class="p">,</span>
+        <span class="n">drude_coll_freq</span><span class="o">=</span><span class="n">drude_coll_freq</span><span class="p">,</span>
+        <span class="n">dummies</span><span class="o">=</span><span class="n">dummies</span><span class="p">,</span>
+        <span class="n">use_plugin</span><span class="o">=</span><span class="n">use_plugin</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">simulation</span></div>
+
+
 <span class="c1"># used for faster tests, not for production!</span>
 <div class="viewcode-block" id="generate_small_box"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.testsystems.generate_small_box.html#protex.testsystems.generate_small_box">[docs]</a><span class="k">def</span> <span class="nf">generate_small_box</span><span class="p">(</span>
     <span class="n">psf_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>

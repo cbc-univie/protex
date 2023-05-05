@@ -24,6 +24,7 @@
       generate_single_hpts_meoh_system
       generate_single_im1h_oac_system
       generate_small_box
+      generate_tfa_system
       load_charmm_files
       setup_simulation
       setup_system

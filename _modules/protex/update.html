@@ -909,46 +909,47 @@
 
         <span class="c1"># loop over all residues and add the positions of the atoms that can be updated to the pos_dict</span>
         <span class="k">for</span> <span class="n">residue</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ionic_liquid</span><span class="o">.</span><span class="n">residues</span><span class="p">:</span>
-            <span class="n">residue</span><span class="o">.</span><span class="n">equivalent_atom_pos_in_list</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="k">assert</span> <span class="n">residue</span><span class="o">.</span><span class="n">current_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ionic_liquid</span><span class="o">.</span><span class="n">templates</span><span class="o">.</span><span class="n">names</span>
-            <span class="c1"># get the position of the atom (Hydrogen or the possible acceptor)</span>
-            <span class="c1"># new idea: just make one list with all positions and then calc distances of everything with everything... -&gt; not so fast, but i need i.e. IM1H-IM1</span>
-            <span class="n">pos_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                <span class="n">pos</span><span class="p">[</span>
-                    <span class="n">residue</span><span class="o">.</span><span class="n">get_idx_for_atom_name</span><span class="p">(</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">ionic_liquid</span><span class="o">.</span><span class="n">templates</span><span class="o">.</span><span class="n">get_atom_name_for</span><span class="p">(</span>
-                            <span class="n">residue</span><span class="o">.</span><span class="n">current_name</span>
-                        <span class="p">)</span>
-                    <span class="p">)</span>
-                    <span class="c1"># this needs the atom idx to be the same for both topologies</span>
-                    <span class="c1"># TODO: maybe get rid of this caveat</span>
-                    <span class="c1"># maybe some mapping between possible residue states and corresponding atom positions</span>
-                <span class="p">]</span>
-            <span class="p">)</span>
-            <span class="n">res_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">residue</span><span class="p">)</span>
-
-            <span class="k">if</span> <span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">updateMethod</span><span class="o">.</span><span class="n">include_equivalent_atom</span>
-                <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">ionic_liquid</span><span class="o">.</span><span class="n">templates</span><span class="o">.</span><span class="n">has_equivalent_atom</span><span class="p">(</span>
-                    <span class="n">residue</span><span class="o">.</span><span class="n">current_name</span>
-                <span class="p">)</span>
-            <span class="p">):</span>
+            <span class="c1">#assert residue.current_name in self.ionic_liquid.templates.names</span>
+            <span class="k">if</span> <span class="n">residue</span><span class="o">.</span><span class="n">current_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ionic_liquid</span><span class="o">.</span><span class="n">templates</span><span class="o">.</span><span class="n">names</span><span class="p">:</span>
+                <span class="n">residue</span><span class="o">.</span><span class="n">equivalent_atom_pos_in_list</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="c1"># get the position of the atom (Hydrogen or the possible acceptor)</span>
+                <span class="c1"># new idea: just make one list with all positions and then calc distances of everything with everything... -&gt; not so fast, but i need i.e. IM1H-IM1</span>
                 <span class="n">pos_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
                     <span class="n">pos</span><span class="p">[</span>
                         <span class="n">residue</span><span class="o">.</span><span class="n">get_idx_for_atom_name</span><span class="p">(</span>
-                            <span class="bp">self</span><span class="o">.</span><span class="n">ionic_liquid</span><span class="o">.</span><span class="n">templates</span><span class="o">.</span><span class="n">get_equivalent_atom_for</span><span class="p">(</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">ionic_liquid</span><span class="o">.</span><span class="n">templates</span><span class="o">.</span><span class="n">get_atom_name_for</span><span class="p">(</span>
                                 <span class="n">residue</span><span class="o">.</span><span class="n">current_name</span>
                             <span class="p">)</span>
                         <span class="p">)</span>
+                        <span class="c1"># this needs the atom idx to be the same for both topologies</span>
+                        <span class="c1"># TODO: maybe get rid of this caveat</span>
+                        <span class="c1"># maybe some mapping between possible residue states and corresponding atom positions</span>
                     <span class="p">]</span>
                 <span class="p">)</span>
-                <span class="n">residue</span><span class="o">.</span><span class="n">equivalent_atom_pos_in_list</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span>
-                    <span class="n">res_list</span>
-                <span class="p">)</span>  <span class="c1"># store idx to know which coordinates where used for distance</span>
+                <span class="n">res_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">residue</span><span class="p">)</span>
 
-                <span class="n">res_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                    <span class="n">residue</span>
-                <span class="p">)</span>  <span class="c1"># add second time the residue to have same length of pos_list and res_list</span>
+                <span class="k">if</span> <span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">updateMethod</span><span class="o">.</span><span class="n">include_equivalent_atom</span>
+                    <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">ionic_liquid</span><span class="o">.</span><span class="n">templates</span><span class="o">.</span><span class="n">has_equivalent_atom</span><span class="p">(</span>
+                        <span class="n">residue</span><span class="o">.</span><span class="n">current_name</span>
+                    <span class="p">)</span>
+                <span class="p">):</span>
+                    <span class="n">pos_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="n">pos</span><span class="p">[</span>
+                            <span class="n">residue</span><span class="o">.</span><span class="n">get_idx_for_atom_name</span><span class="p">(</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">ionic_liquid</span><span class="o">.</span><span class="n">templates</span><span class="o">.</span><span class="n">get_equivalent_atom_for</span><span class="p">(</span>
+                                    <span class="n">residue</span><span class="o">.</span><span class="n">current_name</span>
+                                <span class="p">)</span>
+                            <span class="p">)</span>
+                        <span class="p">]</span>
+                    <span class="p">)</span>
+                    <span class="n">residue</span><span class="o">.</span><span class="n">equivalent_atom_pos_in_list</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span>
+                        <span class="n">res_list</span>
+                    <span class="p">)</span>  <span class="c1"># store idx to know which coordinates where used for distance</span>
+
+                    <span class="n">res_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="n">residue</span>
+                    <span class="p">)</span>  <span class="c1"># add second time the residue to have same length of pos_list and res_list</span>
 
         <span class="k">return</span> <span class="n">pos_list</span><span class="p">,</span> <span class="n">res_list</span></div>
 </pre></div>
