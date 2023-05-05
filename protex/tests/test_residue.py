@@ -116,7 +116,7 @@ def test_update_single():
         ],
     }
 
-    pair_12_13_list = ionic_liquid._build_exclusion_list(ionic_liquid.topology)
+    #pair_12_13_list = ionic_liquid._build_exclusion_list(ionic_liquid.topology)
 
     def get_params(force, force_name, atom_idxs, forces_dict):
         params = []
@@ -161,17 +161,22 @@ def test_update_single():
                     forces_dict[force_name].append(f)
 
         elif force_name == "DrudeForce":
+            particle_map = {}
             for drude_id in range(force.getNumParticles()):
                 f = force.getParticleParameters(drude_id)
                 idx1, idx2 = f[0], f[1]
+                particle_map[drude_id] = idx1
                 if idx1 in atom_idxs and idx2 in atom_idxs:
                     params.append(f)
                     forces_dict[force_name].append(f)
             # thole
             for drude_id in range(force.getNumScreenedPairs()):
                 f = force.getScreenedPairParameters(drude_id)
-                parent1, parent2 = pair_12_13_list[drude_id]
-                drude1, drude2 = parent1 + 1, parent2 + 1
+                idx1, idx2 = f[0],f[1]
+                drude1 = particle_map[idx1]
+                drude2 = particle_map[idx2]
+                #parent1, parent2 = pair_12_13_list[drude_id]
+                #drude1, drude2 = parent1 + 1, parent2 + 1
                 if drude1 in atom_idxs and drude2 in atom_idxs:
                     params.append(f)
                     forces_dict[force_name + "Thole"].append(f)
