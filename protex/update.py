@@ -363,9 +363,9 @@ class KeepHUpdate(Update):
         for candidate in candidates:
             candidate1_residue, candidate2_residue = candidate
             print(f"candidate pair {candidates.index(candidate)}")
-            print(
-                f"candidate1 used equivalent atom: {candidate1_residue.used_equivalent_atom}, candidate2 used equivalent atom: {candidate2_residue.used_equivalent_atom}"
-            )
+            # print(
+            #     f"candidate1 used equivalent atom: {candidate1_residue.used_equivalent_atom}, candidate2 used equivalent atom: {candidate2_residue.used_equivalent_atom}"
+            # )
 
             positions = self._reorient_atoms(candidate, positions, positions_copy)
 
