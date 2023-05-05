@@ -23,7 +23,7 @@ dependencies:
 
     # Pip-only installs
   - pip:
-    - git+https://github.com/ParmEd/ParmEd.git
+    # - git+https://github.com/ParmEd/ParmEd.git
     # Doku emojis
     - sphinxemoji
     
