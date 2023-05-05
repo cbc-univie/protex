@@ -13,7 +13,7 @@ dependencies:
   - pyyaml
   
   # Documentation
-  - sphinx
+  - sphinx~=6.2.1 #https://github.com/kivy/kivy/issues/8230, had the same problem
   - sphinx_rtd_theme
 
     # Testing
