@@ -115,12 +115,48 @@ class ProtexTemplates:
             pickle.dump(self, outp, pickle.HIGHEST_PROTOCOL)
 
     def get_atom_name_for(self, resname: str) -> str:
+        """Get the atom name for a specific residue.
+
+        Parameters
+        ----------
+        resname : str
+            The residue name
+
+        Returns
+        -------
+        str
+            The atom name
+        """
         return self.states[resname][self._atom_name]
 
     def has_equivalent_atom(self, resname: str) -> bool:
+        """Check if a given residue has an equivalent atom defined.
+
+        Parameters
+        ----------
+        resname : str
+            The residue name
+
+        Returns
+        -------
+        bool
+            True if this residue has an equivalent atom defined, false otherwise
+        """
         return self._equivalent_atom in self.states[resname]
 
     def get_equivalent_atom_for(self, resname: str) -> str:
+        """Get the name of the equivalent atom for a given residue name.
+
+        Parameters
+        ----------
+        resname : str
+            The residue name
+
+        Returns
+        -------
+        str
+            The atom name
+        """
         return self.states[resname][self._equivalent_atom]
 
     def get_update_value_for(self, residue_set: frozenset[str], property: str) -> float:
@@ -696,23 +732,28 @@ class ProtexSystem:
         # for each residue type get forces
         for r in self.topology.residues():
             name = r.name
-            name_of_paired_ion = self.templates.get_residue_name_for_coupled_state(name)
+            if name in self.templates.names:
+                name_of_paired_ion = self.templates.get_residue_name_for_coupled_state(name)
 
-            ### do something like this, to precess meoh without having a template
-            #### problem: residues for psf are collected this way
-            # if name in self.templates.names:
-            # name_of_paired_ion = self.templates.get_residue_name_for_coupled_state(name)
-            #   if name in templates or name_of_paired_ion in templates:
-            #     continue
+                ### do something like this, to precess meoh without having a template
+                #### problem: residues for psf are collected this way
+                # if name in self.templates.names:
+                # name_of_paired_ion = self.templates.get_residue_name_for_coupled_state(name)
+                #   if name in templates or name_of_paired_ion in templates:
+                #     continue
 
-            # templates[name] = self._extract_templates(name)
-            # templates[name_of_paired_ion] = self._extract_templates(name_of_paired_ion)
+                # templates[name] = self._extract_templates(name)
+                # templates[name_of_paired_ion] = self._extract_templates(name_of_paired_ion)
 
-            if name in templates or name_of_paired_ion in templates:
-                continue
+                if name in templates or name_of_paired_ion in templates:
+                    continue
 
-            templates[name] = self._extract_templates(name)
-            templates[name_of_paired_ion] = self._extract_templates(name_of_paired_ion)
+                templates[name] = self._extract_templates(name)
+                templates[name_of_paired_ion] = self._extract_templates(name_of_paired_ion)
+            else:
+                if name in templates:# or name_of_paired_ion in templates:
+                    continue
+                templates[name] = self._extract_templates(name)
 
         for r in self.topology.residues():
             name = r.name
@@ -763,11 +804,25 @@ class ProtexSystem:
                 ].current_name = (
                     name  # Why, isnt it done in the initializer of Residue?
                 )
-
             else:
-                raise RuntimeError(
-                    "Found resiude not present in Templates: {r.name}"
-                )  # we want to ignore meoh, doesn't work the way it actually is
+                parameters_state1 = templates[name]
+                r = Residue(
+                        r,
+                        None,
+                        self.system,
+                        parameters_state1,
+                        None,
+                        None
+                    )
+                # the residue is not part of any proton transfers,
+                # we still need it in the residue list for the parmed hack...
+                # there we need the current_name attribute, hence give it to the residue
+                #r.current_name = r.name
+                residues.append(r)
+            #else: #if there are residues on purpose not with protex we want to just ignore them
+            #    raise RuntimeError(
+            #        f"Found resiude not present in Templates: {r.name}"
+            #    )  # we want to ignore meoh, doesn't work the way it actually is
         return residues
 
     # def save_current_names(self, file: str) -> None:
@@ -808,7 +863,7 @@ class ProtexSystem:
         parameters: parmed.charmm.CharmmPsfFile,
     ) -> parmed.charmm.CharmmPsfFile:
         """Helper function to adapt the psf."""
-        # print(len(self.residues), len(psf.residues))
+        print(len(self.residues), len(psf.residues))
         assert len(self.residues) == len(psf.residues)
 
         # make a dict with parmed representations of each residue, use it to assign the opposite one if a transfer occured
@@ -957,7 +1012,7 @@ class ProtexSystem:
         new_psf_outfname: str,
         psf_for_parameters: str = None,
     ) -> None:
-        """write a new psf file, which reflects the occured transfer events and changed residues
+        """Write a new psf file, which reflects the occured transfer events and changed residues
         to load the written psf create a new ionic_liquid instance and load the new psf via OpenMM.
 
         Parameters

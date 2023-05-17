@@ -64,6 +64,7 @@ from ..testsystems import (
     generate_im1h_oac_system,
     generate_single_im1h_oac_system,
     generate_small_box,
+    generate_tfa_system,
 )
 from ..update import NaiveMCUpdate, StateUpdate
 
@@ -78,6 +79,18 @@ from ..update import NaiveMCUpdate, StateUpdate
 def test_parmed_hack(tmp_path):
     psf_file = "protex/forcefield/dummy/nonumaniso.psf"
     simulation = generate_im1h_oac_system(psf_file=psf_file)
+    allowed_updates = {}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.165, "prob": 1}
+    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+    ionic_liquid = ProtexSystem(simulation, templates)
+    ionic_liquid.write_psf(
+        psf_file,
+        f"{tmp_path}/test.psf",
+    )
+
+def test_parmed_hack_tfa(tmp_path):
+    psf_file = "protex/forcefield/tfa/tfa_10.psf"
+    simulation = generate_tfa_system(use_plugin=False)
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.165, "prob": 1}
     templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
@@ -151,7 +164,7 @@ def test_write_psf_save_load_single(tmp_path):
 
 
 def test_forces():
-    simulation = generate_single_im1h_oac_system()
+    simulation = generate_single_im1h_oac_system(use_plugin=False)
     system = simulation.system
     topology = simulation.topology
     force_state = defaultdict(list)  # store bond force
@@ -225,7 +238,7 @@ def test_forces():
 
 def test_torsion_forces():
     # simulation = generate_im1h_oac_system()
-    simulation = generate_single_im1h_oac_system()
+    simulation = generate_single_im1h_oac_system(use_plugin=False)
     system = simulation.system
     topology = simulation.topology
     force_state = defaultdict(list)  # store bond force
@@ -379,7 +392,7 @@ def test_torsion_forces():
 
 
 def test_drude_forces():
-    simulation = generate_single_im1h_oac_system()
+    simulation = generate_single_im1h_oac_system(use_plugin=False)
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 2.33}
     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": -2.33}
@@ -394,7 +407,7 @@ def test_drude_forces():
     atom_idxs = defaultdict(list)  # store atom_idxs
     atom_names = defaultdict(list)  # store atom_names
     names = []  # store names
-    pair_12_13_list = ionic_liquid._build_exclusion_list(ionic_liquid.topology)
+    #pair_12_13_list = ionic_liquid._build_exclusion_list(ionic_liquid.topology)
 
     # iterate over residues, select the first residue for HOAC and OAC and save the individual bonded forces
     for ridx, r in enumerate(topology.residues()):
@@ -410,9 +423,11 @@ def test_drude_forces():
             print(f"{r.name=}")
             print("drude")
             print(drude_force.getNumParticles())
+            particle_map = {}
             for drude_id in range(drude_force.getNumParticles()):
                 f = drude_force.getParticleParameters(drude_id)
                 idx1, idx2 = f[0], f[1]
+                particle_map[drude_id] = idx1
                 if idx1 in atom_idxs[r.name] and idx2 in atom_idxs[r.name]:
                     print(f)
                     force_state[r.name].append(f)
@@ -420,8 +435,11 @@ def test_drude_forces():
             print(drude_force.getNumScreenedPairs())
             for drude_id in range(drude_force.getNumScreenedPairs()):
                 f = drude_force.getScreenedPairParameters(drude_id)
-                parent1, parent2 = pair_12_13_list[drude_id]
-                drude1, drude2 = parent1 + 1, parent2 + 1
+                idx1, idx2 = f[0], f[1]
+                drude1 = particle_map[idx1]
+                drude2 = particle_map[idx2]
+                #parent1, parent2 = pair_12_13_list[drude_id]
+                #drude1, drude2 = parent1 + 1, parent2 + 1
                 # print(f"thole {idx1=}, {idx2=}")
                 # print(f"{drude_id=}, {f=}")
                 if drude1 in atom_idxs[r.name] and drude2 in atom_idxs[r.name]:
@@ -440,9 +458,11 @@ def test_drude_forces():
             print(f"{r.name=}")
             print("drude")
             print(drude_force.getNumParticles())
+            particle_map = {}
             for drude_id in range(drude_force.getNumParticles()):
                 f = drude_force.getParticleParameters(drude_id)
                 idx1, idx2 = f[0], f[1]
+                particle_map[drude_id] = idx1
                 if idx1 in atom_idxs[r.name] and idx2 in atom_idxs[r.name]:
                     print(f)
                     force_state[r.name].append(f)
@@ -451,8 +471,11 @@ def test_drude_forces():
             print(drude_force.getNumScreenedPairs())
             for drude_id in range(drude_force.getNumScreenedPairs()):
                 f = drude_force.getScreenedPairParameters(drude_id)
-                parent1, parent2 = pair_12_13_list[drude_id]
-                drude1, drude2 = parent1 + 1, parent2 + 1
+                idx1, idx2 = f[0], f[1]
+                drude1 = particle_map[idx1]
+                drude2 = particle_map[idx2]
+                #parent1, parent2 = pair_12_13_list[drude_id]
+                #drude1, drude2 = parent1 + 1, parent2 + 1
                 # print(f"thole {idx1=}, {idx2=}")
                 # print(f"{drude_id=}, {f=}")
                 if drude1 in atom_idxs[r.name] and drude2 in atom_idxs[r.name]:
@@ -674,16 +697,16 @@ def test_available_platforms():
         "im1_d_dummy.str",
         "oac_d_dummy.str",
     ]
-    base = f"{protex.__path__[0]}/forcefield/small_box"  # NOTE: this points now to the installed files!
+    base = f"{protex.__path__[0]}/forcefield"  # NOTE: this points now to the installed files!
     params = CharmmParameterSet(
         *[f"{base}/toppar/{para_files}" for para_files in PARA_FILES]
     )
 
-    psf = CharmmPsfFile(f"{base}/small_box.psf")
+    psf = CharmmPsfFile(f"{base}/small_box/small_box.psf")
     xtl = 48.0 * angstroms
     psf.setBox(xtl, xtl, xtl)
     # cooridnates can be provieded by CharmmCrdFile, CharmmRstFile or PDBFile classes
-    CharmmCrdFile(f"{base}/small_box.crd")
+    CharmmCrdFile(f"{base}/small_box/small_box.crd")
 
     system = psf.createSystem(
         params,
