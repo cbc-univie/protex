@@ -70,7 +70,18 @@ class ProtexTemplates:
 
     @staticmethod
     def load(fname: str) -> ProtexTemplates:
-        """Create ProtexTemplates from a pickled file."""
+        """Load a pickled ProtexTemplates instance.
+
+        Parameters
+        ----------
+        fname : str
+            The file name
+
+        Returns
+        -------
+        ProtexTemplates
+            An instance of the ProtexTemplates
+        """
         with open(fname, "rb") as inp:
             templates = pickle.load(inp)
         return templates
@@ -93,7 +104,13 @@ class ProtexTemplates:
         self._equivalent_atom: str = "equivalent_atom"
 
     def dump(self, fname: str) -> None:
-        """Pickle ProtexTemplates to file."""
+        """Pickle the current ProtexTemplates object.
+
+        Parameters
+        ----------
+        fname : str
+            The file name of the object
+        """
         with open(fname, "wb") as outp:
             pickle.dump(self, outp, pickle.HIGHEST_PROTOCOL)
 
@@ -107,7 +124,7 @@ class ProtexTemplates:
         return self.states[resname][self._equivalent_atom]
 
     def get_update_value_for(self, residue_set: frozenset[str], property: str) -> float:
-        """Return the value in the allowed updates dictionary.
+        """Returns the value in the allowed updates dictionary.
 
         Parameters
         ----------
@@ -138,7 +155,7 @@ class ProtexTemplates:
 
     def set_update_value_for(
         self, residue_set: frozenset[str], property: str, value: float
-    ) -> None:
+    ):
         """Update a value in the allowed updates dictionary.
 
         Parameters
@@ -266,7 +283,23 @@ class ProtexSystem:
         simulation: openmm.app.simulation.Simulation,
         simulation_for_parameters: openmm.app.simulation.Simulation = None,
     ) -> ProtexSystem:
-        """Create ProtexSystem from a pickled file."""
+        """Load pickled protex system.
+
+        Parameters
+        ----------
+        fname : str
+            The file name to load
+        simulation : openmm.app.simulation.Simulation
+            An already generated OpenMM simulation object, needed to initialize the ProtesSystem instance
+        simulation_for_parameters : openmm.app.simulation.Simulation, optional
+            An OpenMM simulation object, which contains all possible residues
+            needed if the simulation object does not contain all possible residues, by default None
+
+        Returns
+        -------
+        ProtexSystem
+            A new instance of the ProtexSystem
+        """
         with open(fname, "rb") as inp:
             from_pickle = pickle.load(inp)  # ensure correct order of arguments
         protex_system = ProtexSystem(
@@ -303,20 +336,38 @@ class ProtexSystem:
         )  # NOTE: supports only cubic boxes
 
     def dump(self, fname: str) -> None:
-        """Pickle ProtexSystem to file."""
+        """Pickle the current ProtexSystem object.
+
+        Parameters
+        ----------
+        fname : str
+            The file name to store the object
+        """
         to_pickle = [self.templates, self.residues]  # enusre correct order of arguments
         with open(fname, "wb") as outp:
             pickle.dump(to_pickle, outp, pickle.HIGHEST_PROTOCOL)
 
     def get_current_number_of_each_residue_type(self) -> dict[str, int]:
-        """Get a dict with the current number of each residue."""
+        """Get a dictionary with the resname and the current number of residues belonging to that name.
+
+        Returns
+        -------
+        dict[str, int]
+            resname: number of residues
+        """
         current_number_of_each_residue_type: dict[str, int] = defaultdict(int)
         for residue in self.residues:
             current_number_of_each_residue_type[residue.current_name] += 1
         return current_number_of_each_residue_type
 
     def update_context(self, name: str) -> None:
-        """Update the Context for the given force name."""
+        """Update the context for the given force.
+
+        Parameters
+        ----------
+        name : str
+            The name of the force to update
+        """
         for force in self.system.getForces():
             if type(force).__name__ == name:
                 force.updateParametersInContext(self.simulation.context)
@@ -630,7 +681,7 @@ class ProtexSystem:
         is interfered from the provided openMM system object and the protonation site is defined.
         """
         # self._build_exclusion_list()
-        # pair_12_13_list = self._build_exclusion_list(self.topology) -> moved to instance level, in init
+        # pair_12_13_list = self._build_exclusion_list(self.topology)
 
         residues = []
         templates = dict()
