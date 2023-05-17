@@ -360,7 +360,7 @@ class ProtexSystem:
             current_number_of_each_residue_type[residue.current_name] += 1
         return current_number_of_each_residue_type
 
-    def update_context(self, name: str) -> None:
+    def update_context(self, name: str):
         """Update the context for the given force.
 
         Parameters
@@ -406,9 +406,6 @@ class ProtexSystem:
             sim = self.simulation_for_parameters
         else:
             sim = self.simulation
-
-        # attention, different one than the instance variable self.pair_12_13_list,
-        # if not all possible state are present in the current psf
 
         # pair_12_13_list_params = self._build_exclusion_list(sim.topology)
 
@@ -681,7 +678,7 @@ class ProtexSystem:
         is interfered from the provided openMM system object and the protonation site is defined.
         """
         # self._build_exclusion_list()
-        # pair_12_13_list = self._build_exclusion_list(self.topology)
+        #pair_12_13_list = self._build_exclusion_list(self.topology)
 
         residues = []
         templates = dict()
