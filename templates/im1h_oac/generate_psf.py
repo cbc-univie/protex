@@ -1,8 +1,11 @@
 import sys
+
 #pip install git+https://github.com/florianjoerg/cbchelpers.git
 from cbchelpers.parmed_extension import enable_psf_from_scratch
+
 enable_psf_from_scratch()
 from parmed.charmm import CharmmParameterSet, CharmmPsfFile
+
 
 def main():
     para_files = [
