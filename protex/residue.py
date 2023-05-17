@@ -83,7 +83,6 @@ class Residue:
             alternativ_name: alternativ_parameters,
         }
         self.record_charge_state = []
-        # self.canonical_name = canonical_name
         self.record_charge_state.append(self.endstate_charge)  # Not used anywhere?
         self.pair_12_13_list = pair_12_13_exclusion_list
         # self.has_equivalent_atom: bool = has_equivalent_atom
