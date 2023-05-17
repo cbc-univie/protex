@@ -316,7 +316,7 @@ class Residue:
     def _set_DrudeForce_parameters(self, parms) -> None:  # noqa: N802
         parms_pol = deque(parms[0])
         parms_thole = deque(parms[1])
-
+        particle_map = {}
         for force in self.system.getForces():
             if type(force).__name__ == "DrudeForce":
                 fgroup = force.getForceGroup()
@@ -344,6 +344,7 @@ class Residue:
                             aniso12,
                             aniso14,
                         )
+                        #particle_map[drude_idx] = idx1
                 except KeyError:
                     # else:
                     for drude_idx in range(force.getNumParticles()):
@@ -367,6 +368,7 @@ class Residue:
                                 aniso12,
                                 aniso14,
                             )
+                        particle_map[drude_idx] = idx1
                 try:
                     lst = self.force_idxs[fgroup]["DrudeForceThole"]
                     # if self.thole_idxs is not None:  # use the fast way
@@ -379,13 +381,13 @@ class Residue:
                         f = force.getScreenedPairParameters(drude_idx)
                         idx1 = f[0]
                         idx2 = f[1]
-                        parent1, parent2 = self.pair_12_13_list[drude_idx]
-                        drude1, drude2 = parent1 + 1, parent2 + 1
+                        drude1 = particle_map[idx1]
+                        drude2 = particle_map[idx2]
+                        #parent1, parent2 = self.pair_12_13_list[drude_idx]
+                        #drude1, drude2 = parent1 + 1, parent2 + 1
                         if drude1 in self.atom_idxs and drude2 in self.atom_idxs:
                             thole = parms_thole.popleft()
-                            force.setScreenedPairParameters(
-                                drude_idx, idx1, idx2, thole
-                            )
+                            force.setScreenedPairParameters(drude_idx, idx1, idx2, thole)
 
     def _get_NonbondedForce_parameters_at_lambda(  # noqa: N802
         self, lamb: float
