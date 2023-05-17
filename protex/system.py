@@ -737,7 +737,7 @@ class ProtexSystem:
                         self.system,
                         parameters_state1,
                         parameters_state2,
-                        # pair_12_13_list,
+                        #pair_12_13_list,
                         (
                             self.templates.has_equivalent_atom(name),
                             self.templates.has_equivalent_atom(name_of_paired_ion),
