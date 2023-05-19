@@ -362,7 +362,7 @@ class KeepHUpdate(Update):
 
         for candidate in candidates:
             candidate1_residue, candidate2_residue = candidate
-            print(f"candidate pair {candidates.index(candidate)}")
+            # print(f"candidate pair {candidates.index(candidate)}")
             # print(
             #     f"candidate1 used equivalent atom: {candidate1_residue.used_equivalent_atom}, candidate2 used equivalent atom: {candidate2_residue.used_equivalent_atom}"
             # )
@@ -556,9 +556,15 @@ class StateUpdate:
             An instance of StateUpdate
         """
         state_update = StateUpdate(updateMethod)
+        print(f"{state_update.history=}")
         with open(fname, "rb") as inp:
             from_pickle = pickle.load(inp)  # ensure correct order of arguments
         state_update.history = from_pickle[0]
+        print(f"{state_update.history=}")
+        # for i in range(len(state_update.history)):
+        #     for j in range(len(state_update.history[i])):
+        #         for k in state_update.history[i][j]:
+        #             print(f"{k.current_name}:{k.residue.index}")
         state_update.update_trial = from_pickle[1]
         state_update.prob_function = from_pickle[2]
         return state_update
@@ -567,6 +573,7 @@ class StateUpdate:
         self.updateMethod: Update = updateMethod
         self.ionic_liquid: ProtexSystem = self.updateMethod.ionic_liquid
         self.history: deque = deque(maxlen=10)
+        print(f"{self.history=}")
         self.update_trial: int = 0
         self.prob_function = prob_function
 
@@ -649,6 +656,7 @@ class StateUpdate:
             ##############################
             ##############################
             --- Update trial: {self.update_trial} ---
+           {self.history=}
             ##############################
             ##############################
             """
@@ -733,6 +741,10 @@ class StateUpdate:
             elif self.prob_function == "cosine":
                 return (prob/2)*np.cos(np.pi/(r_max-r_min)*r-np.pi*r_min/(r_max-r_min))+prob/2
 
+        def make_set(resi1, resi2):
+            tmp = (f"{resi1.current_name}:{resi1.residue.index}", f"{resi2.current_name}:{resi2.residue.index}")
+            return set(tmp)
+
         # calculate distance matrix between the two molecules
         if use_pbc:
             logger.debug("Using PBC correction for distance calculation")
@@ -775,6 +787,7 @@ class StateUpdate:
                 if self.prob_function is None:
                     dist_prob = prob
                     logger.debug(f"{r=}, {r_max=}, {prob=}")
+                    #print(f"{r=}, {r_max=}, {prob=}")
                 else:
                     r_min = self.ionic_liquid.templates.allowed_updates[
                     frozenset([residue1.current_name, residue2.current_name])
@@ -786,7 +799,7 @@ class StateUpdate:
                     else:
                         dist_prob = 0
                     logger.debug(f"{r=}, {r_min=}, {r_max=}, {prob=}, {dist_prob=}, {self.prob_function=}")
-                #print(f"{r=}, {r_min=}, {r_max=}, {prob=}, {dist_prob=}, {self.prob_function=}")
+                    #print(f"{r=}, {r_min=}, {r_max=}, {prob=}, {dist_prob=}")
 
                 # break for loop if no pair can fulfill distance condition
                 if r > self.ionic_liquid.templates.overall_max_distance:
@@ -813,12 +826,13 @@ class StateUpdate:
                         continue
                     # reject if already in last 10 updates
                     if any(
-                        set(proposed_candidate_pair) in sublist
+                        make_set(residue1, residue2) in sublist
                         for sublist in self.history
                     ):
                         logger.debug(
                             f"{residue1.current_name}:{residue1.residue.id}:{charge_candidate_idx1}-{residue2.current_name}:{residue2.residue.id}:{charge_candidate_idx2} pair rejected, bc in history ..."
                         )
+                        print(f"{residue1.current_name}:{residue1.residue.id}:{charge_candidate_idx1}-{residue2.current_name}:{residue2.residue.id}:{charge_candidate_idx2} pair rejected, bc in history ...")
 
                         continue
                     # accept otherwise
@@ -831,10 +845,12 @@ class StateUpdate:
                         residue2.used_equivalent_atom = True
                     used_residues.append(residue1)
                     used_residues.append(residue2)
-                    proposed_candidate_pair_sets.append(set(proposed_candidate_pair))
+                    proposed_candidate_pair_sets.append(make_set(residue1, residue2))
+                    print(set(proposed_candidate_pair))
                     print(
                         f"{residue1.current_name}:{residue1.residue.id}:{charge_candidate_idx1}-{residue2.current_name}:{residue2.residue.id}:{charge_candidate_idx2} pair accepted ..."
                     )
+                    print(f"{r=}")
                     # residue.index 0-based through whole topology
                     print(
                         f"UpdatePair:{residue1.current_name}:{residue1.residue.index}:{charge_candidate_idx1}:{residue2.current_name}:{residue2.residue.index}:{charge_candidate_idx2}"
