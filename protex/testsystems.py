@@ -115,11 +115,11 @@ def setup_simulation(
     drude_coll_freq: int = 100,
     dummies: list[tuple[str, str]] = [("IM1", "H7"), ("OAC", "H")],
     use_plugin: bool = True,
-    platformname="CUDA",
-    cuda_precision="single"
+    platformname: str="CUDA",
+    cuda_precision: str="single"
 ):
     if use_plugin and platformname != "CUDA":
-            assert "Plugin only available with CUDA"
+        assert "Plugin only available with CUDA"
     if use_plugin:
         # plugin
         # https://github.com/z-gong/openmm-velocityVerlet
