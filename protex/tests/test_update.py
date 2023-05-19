@@ -2413,7 +2413,7 @@ def test_profile_update():
         allowed_updates,
     )
     start = time.time()
-    ionic_liquid = ProtexSystem(simulation, templates)
+    ionic_liquid = ProtexSystem(simulation, templates, fast=True)
     print(
         "ProtexSystem: ", time.time() - start
     )  # 266.66s with new method, 30.789s with old method (still slow, but we want to be there again for now)

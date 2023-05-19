@@ -410,6 +410,8 @@ class KeepHUpdate(Update):
         new_e = state.getPotentialEnergy()
         logger.info(f"Energy before/after state change:{initial_e}/{new_e}")
 
+from profilehooks import profile
+
 
 class NaiveMCUpdate(Update):
     """NaiveMCUpdate Performs naive MC update on molecule pairs in close proximity.
@@ -473,7 +475,7 @@ class NaiveMCUpdate(Update):
         ]  # enusre correct order of arguments
         with open(fname, "wb") as outp:
             pickle.dump(to_pickle, outp, pickle.HIGHEST_PROTOCOL)
-
+    @profile(immediate=True)
     def _update(self, candidates: list[tuple], nr_of_steps: int) -> None:
         logger.info("called _update")
         # get current state
