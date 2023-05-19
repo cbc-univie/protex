@@ -365,7 +365,8 @@ class ProtexSystem:
         #    else self.pair_12_13_list
         #)
         self.fast: bool = fast
-        self.d = self._force_idx_dict()
+        if fast:
+            self._force_idx_dict = self._create_force_idx_dict()
         self.residues: list[Residue] = self._set_initial_states()
         self.boxlength: openmm.Quantity = (
             simulation.context.getState().getPeriodicBoxVectors()[0][0]
@@ -583,29 +584,29 @@ class ProtexSystem:
                     "There are not the same number of forces or a wrong order. Possible Problems: Bond/Angle/... is missing. Urey_Bradley Term is not defined for both states, ...)"
                 )
 
-    def _force_idx_dict(self):
-        d: dict[int[str, dict[str, tuple[int]]]] = {}
+    def _create_force_idx_dict(self):
+        force_idx: dict[int[str, dict[str, tuple[int]]]] = {}
         for force in self.system.getForces():
             fgroup = force.getForceGroup()
-            if fgroup not in d:
-                d[fgroup] = {}
+            if fgroup not in force_idx:
+                force_idx[fgroup] = {}
 
             if type(force).__name__ == "NonbondedForce":
                 # only treat exceptions
-                d[fgroup]["NonbondedForceExceptions"] = {}
+                force_idx[fgroup]["NonbondedForceExceptions"] = {}
                 for exc_idx in range(force.getNumExceptions()):
                     f = force.getExceptionParameters(exc_idx)
                     idx1 = f[0]
                     idx2 = f[1]
-                    d[fgroup]["NonbondedForceExceptions"][(idx1, idx2)] = (
+                    force_idx[fgroup]["NonbondedForceExceptions"][(idx1, idx2)] = (
                         exc_idx,
                         idx1,
                         idx2,
                     )
             if type(force).__name__ == "DrudeForce":
                 particle_map = {}
-                d[fgroup]["DrudeForce"] = {}
-                d[fgroup]["DrudeForceThole"] = {}
+                force_idx[fgroup]["DrudeForce"] = {}
+                force_idx[fgroup]["DrudeForceThole"] = {}
                 for drude_idx in range(force.getNumParticles()):
                     f = force.getParticleParameters(drude_idx)
                     idx1 = f[0]
@@ -613,7 +614,7 @@ class ProtexSystem:
                     idx3 = f[2]
                     idx4 = f[3]
                     idx5 = f[4]
-                    d[fgroup]["DrudeForce"][(idx1, idx2)] = (
+                    force_idx[fgroup]["DrudeForce"][(idx1, idx2)] = (
                         drude_idx,
                         idx1,
                         idx2,
@@ -633,27 +634,27 @@ class ProtexSystem:
                     #)  # Drude comes after parent atom
                     drude1 = particle_map[idx1]
                     drude2 = particle_map[idx2]
-                    d[fgroup]["DrudeForceThole"][(drude1, drude2)] = (
+                    force_idx[fgroup]["DrudeForceThole"][(drude1, drude2)] = (
                         drude_idx,
                         idx1,
                         idx2,
                     )
             if type(force).__name__ == "HarmonicBondForce":
-                d[fgroup]["HarmonicBondForce"] = {}
+                force_idx[fgroup]["HarmonicBondForce"] = {}
                 for bond_idx in range(force.getNumBonds()):
                     f = force.getBondParameters(bond_idx)
                     idx1, idx2 = f[0], f[1]
-                    d[fgroup]["HarmonicBondForce"][(idx1, idx2)] = (
+                    force_idx[fgroup]["HarmonicBondForce"][(idx1, idx2)] = (
                         bond_idx,
                         idx1,
                         idx2,
                     )
             if type(force).__name__ == "HarmonicAngleForce":
-                d[fgroup]["HarmonicAngleForce"] = {}
+                force_idx[fgroup]["HarmonicAngleForce"] = {}
                 for angle_idx in range(force.getNumAngles()):
                     f = force.getAngleParameters(angle_idx)
                     idx1, idx2, idx3 = f[0], f[1], f[2]
-                    d[fgroup]["HarmonicAngleForce"][(idx1, idx2, idx3)] = (
+                    force_idx[fgroup]["HarmonicAngleForce"][(idx1, idx2, idx3)] = (
                         angle_idx,
                         idx1,
                         idx2,
@@ -664,11 +665,11 @@ class ProtexSystem:
                 #     sorted(d[fgroup]["HarmonicAngleForce"].items())
                 # )
             if type(force).__name__ == "PeriodicTorsionForce":
-                d[fgroup]["PeriodicTorsionForce"] = {}
+                force_idx[fgroup]["PeriodicTorsionForce"] = {}
                 for torsion_idx in range(force.getNumTorsions()):
                     f = force.getTorsionParameters(torsion_idx)
                     idx1, idx2, idx3, idx4 = f[0], f[1], f[2], f[3]
-                    d[fgroup]["PeriodicTorsionForce"][(idx1, idx2, idx3, idx4)] = (
+                    force_idx[fgroup]["PeriodicTorsionForce"][(idx1, idx2, idx3, idx4)] = (
                         torsion_idx,
                         idx1,
                         idx2,
@@ -676,11 +677,11 @@ class ProtexSystem:
                         idx4,
                     )
             if type(force).__name__ == "CustomTorsionForce":
-                d[fgroup]["CustomTorsionForce"] = {}
+                force_idx[fgroup]["CustomTorsionForce"] = {}
                 for ctorsion_idx in range(force.getNumTorsions()):
                     f = force.getTorsionParameters(ctorsion_idx)
                     idx1, idx2, idx3, idx4 = f[0], f[1], f[2], f[3]
-                    d[fgroup]["CustomTorsionForce"][(idx1, idx2, idx3, idx4)] = (
+                    force_idx[fgroup]["CustomTorsionForce"][(idx1, idx2, idx3, idx4)] = (
                         ctorsion_idx,
                         idx1,
                         idx2,
@@ -688,7 +689,7 @@ class ProtexSystem:
                         idx4,
                     )
 
-        return d
+        return force_idx
 
     def _get_idxs_for_residue_force(self, atom_idxs, assume_ascending_order=True):
         """
@@ -701,9 +702,9 @@ class ProtexSystem:
         # assume_ascending_order=False #try sort for the list?
         max_idx = max(atom_idxs)
         idxs = {}
-        for fgroup in self.d.keys():
+        for fgroup in self._force_idx_dict.keys():
             idxs[fgroup] = {}
-            for forcename in self.d[fgroup].keys():
+            for forcename in self._force_idx_dict[fgroup].keys():
                 # TODO: hmmm
                 if forcename == "HarmonicAngleForce":
                     assume_ascending_order = False
@@ -711,14 +712,14 @@ class ProtexSystem:
                     assume_ascending_order = True
                 idxs[fgroup][forcename] = []
                 to_delete = []
-                for key, value in self.d[fgroup][forcename].items():
+                for key, value in self._force_idx_dict[fgroup][forcename].items():
                     if assume_ascending_order and any(elem > max_idx for elem in key):
                         break
                     if all(element in atom_idxs for element in key):
                         idxs[fgroup][forcename].append(value)
                         to_delete.append(key)
                 for key in to_delete:
-                    del self.d[fgroup][forcename][key]
+                    del self._force_idx_dict[fgroup][forcename][key]
         return idxs
 
     def _set_initial_states(self) -> list:
