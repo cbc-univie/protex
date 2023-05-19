@@ -358,12 +358,12 @@ class ProtexSystem:
         self.simulation: openmm.app.simulation.Simulation = simulation
         self.templates: ProtexTemplates = templates
         self.simulation_for_parameters = simulation_for_parameters
-        self.pair_12_13_list = self._build_exclusion_list(self.topology)
-        self.pair_12_13_list_params = (
-            self._build_exclusion_list(self.simulation_for_parameters.topology)
-            if self.simulation_for_parameters is not None
-            else self.pair_12_13_list
-        )
+        #self.pair_12_13_list = self._build_exclusion_list(self.topology)
+        #self.pair_12_13_list_params = (
+        #    self._build_exclusion_list(self.simulation_for_parameters.topology)
+        #    if self.simulation_for_parameters is not None
+        #    else self.pair_12_13_list
+        #)
         self.fast: bool = fast
         self.d = self._force_idx_dict()
         self.residues: list[Residue] = self._set_initial_states()
@@ -603,6 +603,7 @@ class ProtexSystem:
                         idx2,
                     )
             if type(force).__name__ == "DrudeForce":
+                particle_map = {}
                 d[fgroup]["DrudeForce"] = {}
                 d[fgroup]["DrudeForceThole"] = {}
                 for drude_idx in range(force.getNumParticles()):
@@ -620,15 +621,18 @@ class ProtexSystem:
                         idx4,
                         idx5,
                     )
+                    particle_map[drude_idx] = idx1
                 for drude_idx in range(force.getNumScreenedPairs()):
                     f = force.getScreenedPairParameters(drude_idx)
                     idx1 = f[0]
                     idx2 = f[1]
-                    parent1, parent2 = self.pair_12_13_list[drude_idx]
-                    drude1, drude2 = (
-                        parent1 + 1,
-                        parent2 + 1,
-                    )  # Drude comes after parent atom
+                    #parent1, parent2 = self.pair_12_13_list[drude_idx]
+                    #drude1, drude2 = (
+                    #    parent1 + 1,
+                    #    parent2 + 1,
+                    #)  # Drude comes after parent atom
+                    drude1 = particle_map[idx1]
+                    drude2 = particle_map[idx2]
                     d[fgroup]["DrudeForceThole"][(drude1, drude2)] = (
                         drude_idx,
                         idx1,

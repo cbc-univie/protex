@@ -1042,10 +1042,10 @@ def test_equivalence_new_old_method(caplog):
 
     def initialize():
         simulation_orig = generate_small_box(
-            CudaPrecision="double"
+            cuda_precision="double"
         )  # use_plugin=False, platform="Reference")
         simulation_new = generate_small_box(
-            CudaPrecision="double"
+            cuda_precision="double"
         )  # use_plugin=False, platform="Reference")
         # get ionic liquid templates
         allowed_updates = {}
@@ -1054,15 +1054,16 @@ def test_equivalence_new_old_method(caplog):
 
         templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
         # wrap system in IonicLiquidSystem
-        ionic_liquid_orig = ProtexSystemOld(simulation_orig, templates)
+        #ionic_liquid_orig = ProtexSystemOld(simulation_orig, templates)
+        ionic_liquid_orig = ProtexSystem(simulation_orig,templates,fast=False)
         ionic_liquid_new = ProtexSystem(simulation_new, templates)
         return ionic_liquid_orig, ionic_liquid_new
 
     simulation_orig = generate_small_box(
-        CudaPrecision="double"
+        cuda_precision="double"
     )  # use_plugin=False, platform="Reference")
     simulation_new = generate_small_box(
-        CudaPrecision="double"
+        cuda_precision="double"
     )  # use_plugin=False, platform="Reference")
     # get ionic liquid templates
     allowed_updates = {}
@@ -1071,7 +1072,8 @@ def test_equivalence_new_old_method(caplog):
 
     templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
     # wrap system in IonicLiquidSystem
-    ionic_liquid_orig = ProtexSystemOld(simulation_orig, templates)
+    #ionic_liquid_orig = ProtexSystemOld(simulation_orig, templates)
+    ionic_liquid_orig = ProtexSystem(simulation_orig,templates,fast=False)
     ionic_liquid_new = ProtexSystem(simulation_new, templates)
 
     residue_nr = 0
