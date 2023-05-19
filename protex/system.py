@@ -13,13 +13,13 @@ try:
 except ImportError:
     import simtk.openmm as openmm
 
-from protex.helpers import CustomPSFFile
+#from protex.helpers import CustomPSFFile
 from protex.residue import Residue
 
 # Use custom write function for now, remove with new parmed version
 # https://github.com/ParmEd/ParmEd/pull/1274
 # as in parmed/formats/__init__.py:
-parmed.Structure.write_psf = CustomPSFFile.write
+#parmed.Structure.write_psf = CustomPSFFile.write
 
 logger = logging.getLogger(__name__)
 
