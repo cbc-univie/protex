@@ -560,11 +560,9 @@ class StateUpdate:
         with open(fname, "rb") as inp:
             from_pickle = pickle.load(inp)  # ensure correct order of arguments
         state_update.history = from_pickle[0]
-        print(f"{state_update.history=}")
-        # for i in range(len(state_update.history)):
-        #     for j in range(len(state_update.history[i])):
-        #         for k in state_update.history[i][j]:
-        #             print(f"{k.current_name}:{k.residue.index}")
+        for i in range(len(state_update.history)):
+            for j in range(len(state_update.history[i])):
+                print(state_update.history[i][j])
         state_update.update_trial = from_pickle[1]
         state_update.prob_function = from_pickle[2]
         return state_update
@@ -744,6 +742,7 @@ class StateUpdate:
         def make_set(resi1, resi2):
             tmp = (f"{resi1.current_name}:{resi1.residue.index}", f"{resi2.current_name}:{resi2.residue.index}")
             return set(tmp)
+            # NOTE: currently index and name used to identify a residue. Change this if it is no longer correct or sufficient (e.g. index changed, other parameters also important for identifying residue)
 
         # calculate distance matrix between the two molecules
         if use_pbc:
@@ -846,7 +845,7 @@ class StateUpdate:
                     used_residues.append(residue1)
                     used_residues.append(residue2)
                     proposed_candidate_pair_sets.append(make_set(residue1, residue2))
-                    print(set(proposed_candidate_pair))
+                    print(make_set(residue1, residue2))
                     print(
                         f"{residue1.current_name}:{residue1.residue.id}:{charge_candidate_idx1}-{residue2.current_name}:{residue2.residue.id}:{charge_candidate_idx2} pair accepted ..."
                     )
