@@ -344,7 +344,7 @@ class ProtexSystem:
         protex_system.residues = from_pickle[1]
         return protex_system
 
-    @profile(immediate=True)
+    # @profile(immediate=True)
     def __init__(
         self,
         simulation: openmm.app.simulation.Simulation,
@@ -352,18 +352,17 @@ class ProtexSystem:
         simulation_for_parameters: openmm.app.simulation.Simulation = None,
         fast: bool = True,
     ) -> None:
-
         self.system: openmm.openmm.System = simulation.system
         self.topology: openmm.app.topology.Topology = simulation.topology
         self.simulation: openmm.app.simulation.Simulation = simulation
         self.templates: ProtexTemplates = templates
         self.simulation_for_parameters = simulation_for_parameters
-        #self.pair_12_13_list = self._build_exclusion_list(self.topology)
-        #self.pair_12_13_list_params = (
+        # self.pair_12_13_list = self._build_exclusion_list(self.topology)
+        # self.pair_12_13_list_params = (
         #    self._build_exclusion_list(self.simulation_for_parameters.topology)
         #    if self.simulation_for_parameters is not None
         #    else self.pair_12_13_list
-        #)
+        # )
         self.fast: bool = fast
         if fast:
             self._force_idx_dict = self._create_force_idx_dict()
@@ -408,6 +407,7 @@ class ProtexSystem:
         for force in self.system.getForces():
             if type(force).__name__ == name:
                 force.updateParametersInContext(self.simulation.context)
+
     # deprecated, not needed anymore
     # def _build_exclusion_list(self, topology):
     #     pair_12_set = set()
@@ -448,7 +448,7 @@ class ProtexSystem:
         else:
             sim = self.simulation
 
-        #pair_12_13_list_params = self._build_exclusion_list(sim.topology)
+        # pair_12_13_list_params = self._build_exclusion_list(sim.topology)
 
         for residue in sim.topology.residues():
             if query_name == residue.name:
@@ -528,22 +528,24 @@ class ProtexSystem:
                             idx2 = f[1]  # parentatom
                             if idx1 in atom_idxs and idx2 in atom_idxs:
                                 forces_dict[type(force).__name__].append(f)
-                            #store the drude idx as they are in the system
+                            # store the drude idx as they are in the system
                             particle_map[drude_id] = idx1
                         # print(self.pair_12_13_list)
-                        #assert ( #? not working with tfa, investigate
+                        # assert ( #? not working with tfa, investigate
                         #    len(pair_12_13_list_params) == force.getNumScreenedPairs()
-                        #), f"{len(pair_12_13_list_params)=}, {force.getNumScreenedPairs()=}"
+                        # ), f"{len(pair_12_13_list_params)=}, {force.getNumScreenedPairs()=}"
                         for drude_id in range(force.getNumScreenedPairs()):
                             f = force.getScreenedPairParameters(drude_id)
-                            idx1 = f[0] # yields the id within this force == drude_id from getNumParticles
+                            idx1 = f[
+                                0
+                            ]  # yields the id within this force == drude_id from getNumParticles
                             idx2 = f[1]
                             thole = f[2]
-                            #get the drude idxs in the system
+                            # get the drude idxs in the system
                             drude1 = particle_map[idx1]
                             drude2 = particle_map[idx2]
-                            #parent1, parent2 = pair_12_13_list_params[drude_id]
-                            #drude1, drude2 = parent1 + 1, parent2 + 1
+                            # parent1, parent2 = pair_12_13_list_params[drude_id]
+                            # drude1, drude2 = parent1 + 1, parent2 + 1
                             # print(f"thole {idx1=}, {idx2=}")
                             # print(f"{drude_id=}, {f=}")
                             if drude1 in atom_idxs and drude2 in atom_idxs:
@@ -570,7 +572,10 @@ class ProtexSystem:
                 logger.critical(len(forces_state1[force_name]))
                 logger.critical(len(forces_state2[force_name]))
 
-                for (b1, b2,) in zip(
+                for (
+                    b1,
+                    b2,
+                ) in zip(
                     forces_state1[force_name],
                     forces_state2[force_name],
                 ):
@@ -586,6 +591,7 @@ class ProtexSystem:
 
     def _create_force_idx_dict(self):
         force_idx: dict[int[str, dict[str, tuple[int]]]] = {}
+        ignore = ["CMMotionRemover", "MonteCarloBarostat"]
         for force in self.system.getForces():
             fgroup = force.getForceGroup()
             if fgroup not in force_idx:
@@ -603,7 +609,7 @@ class ProtexSystem:
                         idx1,
                         idx2,
                     )
-            if type(force).__name__ == "DrudeForce":
+            elif type(force).__name__ == "DrudeForce":
                 particle_map = {}
                 force_idx[fgroup]["DrudeForce"] = {}
                 force_idx[fgroup]["DrudeForceThole"] = {}
@@ -627,11 +633,11 @@ class ProtexSystem:
                     f = force.getScreenedPairParameters(drude_idx)
                     idx1 = f[0]
                     idx2 = f[1]
-                    #parent1, parent2 = self.pair_12_13_list[drude_idx]
-                    #drude1, drude2 = (
+                    # parent1, parent2 = self.pair_12_13_list[drude_idx]
+                    # drude1, drude2 = (
                     #    parent1 + 1,
                     #    parent2 + 1,
-                    #)  # Drude comes after parent atom
+                    # )  # Drude comes after parent atom
                     drude1 = particle_map[idx1]
                     drude2 = particle_map[idx2]
                     force_idx[fgroup]["DrudeForceThole"][(drude1, drude2)] = (
@@ -639,7 +645,7 @@ class ProtexSystem:
                         idx1,
                         idx2,
                     )
-            if type(force).__name__ == "HarmonicBondForce":
+            elif type(force).__name__ == "HarmonicBondForce":
                 force_idx[fgroup]["HarmonicBondForce"] = {}
                 for bond_idx in range(force.getNumBonds()):
                     f = force.getBondParameters(bond_idx)
@@ -649,7 +655,7 @@ class ProtexSystem:
                         idx1,
                         idx2,
                     )
-            if type(force).__name__ == "HarmonicAngleForce":
+            elif type(force).__name__ == "HarmonicAngleForce":
                 force_idx[fgroup]["HarmonicAngleForce"] = {}
                 for angle_idx in range(force.getNumAngles()):
                     f = force.getAngleParameters(angle_idx)
@@ -664,39 +670,49 @@ class ProtexSystem:
                 # d[fgroup]["HarmonicAngleForce"] = dict(
                 #     sorted(d[fgroup]["HarmonicAngleForce"].items())
                 # )
-            if type(force).__name__ == "PeriodicTorsionForce":
+            elif type(force).__name__ == "PeriodicTorsionForce":
                 force_idx[fgroup]["PeriodicTorsionForce"] = {}
                 for torsion_idx in range(force.getNumTorsions()):
                     f = force.getTorsionParameters(torsion_idx)
                     idx1, idx2, idx3, idx4 = f[0], f[1], f[2], f[3]
-                    force_idx[fgroup]["PeriodicTorsionForce"][(idx1, idx2, idx3, idx4)] = (
+                    force_idx[fgroup]["PeriodicTorsionForce"][
+                        (idx1, idx2, idx3, idx4)
+                    ] = (
                         torsion_idx,
                         idx1,
                         idx2,
                         idx3,
                         idx4,
                     )
-            if type(force).__name__ == "CustomTorsionForce":
+            elif type(force).__name__ == "CustomTorsionForce":
                 force_idx[fgroup]["CustomTorsionForce"] = {}
                 for ctorsion_idx in range(force.getNumTorsions()):
                     f = force.getTorsionParameters(ctorsion_idx)
                     idx1, idx2, idx3, idx4 = f[0], f[1], f[2], f[3]
-                    force_idx[fgroup]["CustomTorsionForce"][(idx1, idx2, idx3, idx4)] = (
+                    force_idx[fgroup]["CustomTorsionForce"][
+                        (idx1, idx2, idx3, idx4)
+                    ] = (
                         ctorsion_idx,
                         idx1,
                         idx2,
                         idx3,
                         idx4,
                     )
+            elif type(force).__name__ in ignore:
+                pass
+            else:
+                print(
+                    f"ATTENTION: Force {type(force).__name__} not covered. This may lead to wrong results."
+                )
 
         return force_idx
 
     def _get_idxs_for_residue_force(self, atom_idxs, assume_ascending_order=True):
         """
         Attention: function can only be used once for the whole creation of the residues
-        the entries in self.d get deleted, in order to be faster.
+        the entries in self._force_idx_dict get deleted, in order to be faster.
                 assume_ascending_order is used to break the loop early, but so it is assumed that
-        the indices are all orderd! (speed improvement!)
+        the indices are all ordered! (speed improvement!)
         (It did not work for HarmonicAngleForce -> need to inspect).
         """
         # assume_ascending_order=False #try sort for the list?
@@ -705,8 +721,13 @@ class ProtexSystem:
         for fgroup in self._force_idx_dict.keys():
             idxs[fgroup] = {}
             for forcename in self._force_idx_dict[fgroup].keys():
-                # TODO: hmmm
-                if forcename == "HarmonicAngleForce":
+                # TODO: hmmm, cannot reproduce...
+                if (
+                    forcename == "HarmonicAngleForce"
+                    or forcename == "DrudeForce"  # energy change
+                    or forcename
+                    == "DrudeForceThole"  # non excluded parameters changed??????, was passiert hier?
+                ):
                     assume_ascending_order = False
                 else:
                     assume_ascending_order = True
@@ -729,7 +750,7 @@ class ProtexSystem:
         is interfered from the provided openMM system object and the protonation site is defined.
         """
         # self._build_exclusion_list()
-        #pair_12_13_list = self._build_exclusion_list(self.topology)
+        # pair_12_13_list = self._build_exclusion_list(self.topology)
 
         residues = []
         templates = dict()
@@ -738,7 +759,9 @@ class ProtexSystem:
         for r in self.topology.residues():
             name = r.name
             if name in self.templates.names:
-                name_of_paired_ion = self.templates.get_residue_name_for_coupled_state(name)
+                name_of_paired_ion = self.templates.get_residue_name_for_coupled_state(
+                    name
+                )
 
                 ### do something like this, to precess meoh without having a template
                 #### problem: residues for psf are collected this way
@@ -754,9 +777,11 @@ class ProtexSystem:
                     continue
 
                 templates[name] = self._extract_templates(name)
-                templates[name_of_paired_ion] = self._extract_templates(name_of_paired_ion)
+                templates[name_of_paired_ion] = self._extract_templates(
+                    name_of_paired_ion
+                )
             else:
-                if name in templates:# or name_of_paired_ion in templates:
+                if name in templates:  # or name_of_paired_ion in templates:
                     continue
                 templates[name] = self._extract_templates(name)
 
@@ -783,7 +808,7 @@ class ProtexSystem:
                         self.system,
                         parameters_state1,
                         parameters_state2,
-                        #pair_12_13_list,
+                        # pair_12_13_list,
                         (
                             self.templates.has_equivalent_atom(name),
                             self.templates.has_equivalent_atom(name_of_paired_ion),
@@ -797,7 +822,7 @@ class ProtexSystem:
                         self.system,
                         parameters_state1,
                         parameters_state2,
-                        #pair_12_13_list,
+                        # pair_12_13_list,
                         (
                             self.templates.has_equivalent_atom(name),
                             self.templates.has_equivalent_atom(name_of_paired_ion),
@@ -811,20 +836,13 @@ class ProtexSystem:
                 )
             else:
                 parameters_state1 = templates[name]
-                r = Residue(
-                        r,
-                        None,
-                        self.system,
-                        parameters_state1,
-                        None,
-                        None
-                    )
+                r = Residue(r, None, self.system, parameters_state1, None, None)
                 # the residue is not part of any proton transfers,
                 # we still need it in the residue list for the parmed hack...
                 # there we need the current_name attribute, hence give it to the residue
-                #r.current_name = r.name
+                # r.current_name = r.name
                 residues.append(r)
-            #else: #if there are residues on purpose not with protex we want to just ignore them
+            # else: #if there are residues on purpose not with protex we want to just ignore them
             #    raise RuntimeError(
             #        f"Found resiude not present in Templates: {r.name}"
             #    )  # we want to ignore meoh, doesn't work the way it actually is

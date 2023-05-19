@@ -74,6 +74,88 @@ from ..update import NaiveMCUpdate, StateUpdate
 #############
 @pytest.mark.skipif(
     os.getenv("CI") == "true",
+    reason="No need to run it in CI, just here to debug",
+)
+def test_debug_idx_force_dict():
+    def _get_idxs_for_residue_force(
+        force_idx_dict, atom_idxs, assume_ascending_order=True
+    ):
+        """
+        Attention: function can only be used once for the whole creation of the residues
+        the entries in self.d get deleted, in order to be faster.
+                assume_ascending_order is used to break the loop early, but so it is assumed that
+        the indices are all orderd! (speed improvement!)
+        (It did not work for HarmonicAngleForce -> need to inspect).
+        """
+        # assume_ascending_order=False #try sort for the list?
+        max_idx = max(atom_idxs)
+        idxs = {}
+        for fgroup in force_idx_dict.keys():
+            idxs[fgroup] = {}
+            for forcename in force_idx_dict[fgroup].keys():
+                # TODO: hmmm
+                if forcename == "HarmonicAngleForce":
+                    assume_ascending_order = assume_ascending_order  # False
+                else:
+                    assume_ascending_order = True
+                idxs[fgroup][forcename] = []
+                to_delete = []
+                for key, value in force_idx_dict[fgroup][forcename].items():
+                    if assume_ascending_order and any(elem > max_idx for elem in key):
+                        break
+                    if all(element in atom_idxs for element in key):
+                        idxs[fgroup][forcename].append(value)
+                        to_delete.append(key)
+                for key in to_delete:
+                    del force_idx_dict[fgroup][forcename][key]
+        return idxs
+
+    # simulation = generate_single_im1h_oac_system(use_plugin=False)
+    # simulation = generate_small_box(use_plugin=False)
+    simulation = generate_im1h_oac_system(use_plugin=False)
+    allowed_updates = {}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.165, "prob": 1}
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.165, "prob": 1}
+    allowed_updates[frozenset(["IM1", "IM1H"])] = {"r_max": 0.165, "prob": 1}
+    allowed_updates[frozenset(["OAC", "HOAC"])] = {"r_max": 0.165, "prob": 1}
+    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+    system = ProtexSystem(simulation, templates)
+
+    # import copy
+
+    # force_idx_dict = copy.deepcopy(system._force_idx_dict)
+    # force_idx_dict2 = copy.deepcopy(force_idx_dict)
+    # res_idxs = {}
+    # for residue in system.topology.residues():
+    #     # print(residue.name)
+    #     res_idxs[residue.name] = [atom.index for atom in residue.atoms()]
+    #     # print(res_idxs)
+    #     force_idx_dict2 = copy.deepcopy(force_idx_dict)
+    #     idxs_false = _get_idxs_for_residue_force(
+    #         force_idx_dict2, res_idxs[residue.name], assume_ascending_order=False
+    #     )
+    #     force_idx_dict2 = copy.deepcopy(force_idx_dict)
+    #     idxs_true = _get_idxs_for_residue_force(
+    #         force_idx_dict2, res_idxs[residue.name], assume_ascending_order=True
+    #     )
+    #     # print(f"{idxs_false[1]=}")
+    #     # print(f"{idxs_true[1]=}")
+    #     print(idxs_false == idxs_true)
+    #     for idx_t, idx_f in zip(idxs_true, idxs_false):
+    #         for (n_t, t), (n_f, f) in zip(
+    #             idxs_true[idx_t].items(), idxs_false[idx_f].items()
+    #         ):
+    #             assert n_t == n_f
+    #             # print(n_t)
+    #             print(f"{t=}")
+    #             print(f"{f=}")
+    #             for idx_t, idx_f in zip(t, f):
+    #                 if idx_t != idx_f:
+    #                     print(f"{t=}, {f=}")
+
+
+@pytest.mark.skipif(
+    os.getenv("CI") == "true",
     reason="No need to run it in CI, just here to check when ParmEd support our problem",
 )
 def test_parmed_hack(tmp_path):
@@ -87,6 +169,7 @@ def test_parmed_hack(tmp_path):
         psf_file,
         f"{tmp_path}/test.psf",
     )
+
 
 def test_parmed_hack_tfa(tmp_path):
     psf_file = "protex/forcefield/tfa/tfa_10.psf"
@@ -407,7 +490,7 @@ def test_drude_forces():
     atom_idxs = defaultdict(list)  # store atom_idxs
     atom_names = defaultdict(list)  # store atom_names
     names = []  # store names
-    #pair_12_13_list = ionic_liquid._build_exclusion_list(ionic_liquid.topology)
+    # pair_12_13_list = ionic_liquid._build_exclusion_list(ionic_liquid.topology)
 
     # iterate over residues, select the first residue for HOAC and OAC and save the individual bonded forces
     for ridx, r in enumerate(topology.residues()):
@@ -438,8 +521,8 @@ def test_drude_forces():
                 idx1, idx2 = f[0], f[1]
                 drude1 = particle_map[idx1]
                 drude2 = particle_map[idx2]
-                #parent1, parent2 = pair_12_13_list[drude_id]
-                #drude1, drude2 = parent1 + 1, parent2 + 1
+                # parent1, parent2 = pair_12_13_list[drude_id]
+                # drude1, drude2 = parent1 + 1, parent2 + 1
                 # print(f"thole {idx1=}, {idx2=}")
                 # print(f"{drude_id=}, {f=}")
                 if drude1 in atom_idxs[r.name] and drude2 in atom_idxs[r.name]:
@@ -474,8 +557,8 @@ def test_drude_forces():
                 idx1, idx2 = f[0], f[1]
                 drude1 = particle_map[idx1]
                 drude2 = particle_map[idx2]
-                #parent1, parent2 = pair_12_13_list[drude_id]
-                #drude1, drude2 = parent1 + 1, parent2 + 1
+                # parent1, parent2 = pair_12_13_list[drude_id]
+                # drude1, drude2 = parent1 + 1, parent2 + 1
                 # print(f"thole {idx1=}, {idx2=}")
                 # print(f"{drude_id=}, {f=}")
                 if drude1 in atom_idxs[r.name] and drude2 in atom_idxs[r.name]:
@@ -1041,12 +1124,14 @@ def test_equivalence_new_old_method(caplog):
         return round(state.getPotentialEnergy().value_in_unit(kilojoules_per_mole), 2)
 
     def initialize():
-        simulation_orig = generate_small_box(
-            cuda_precision="double"
-        )  # use_plugin=False, platform="Reference")
-        simulation_new = generate_small_box(
-            cuda_precision="double"
-        )  # use_plugin=False, platform="Reference")
+        # simulation_orig = generate_small_box(
+        #     cuda_precision="double"
+        # )  # use_plugin=False, platform="Reference")
+        # simulation_new = generate_small_box(
+        #     cuda_precision="double"
+        # )  # use_plugin=False, platform="Reference")
+        simulation_orig = generate_small_box(use_plugin=False, platformname="Reference")
+        simulation_new = generate_small_box(use_plugin=False, platformname="Reference")
         # get ionic liquid templates
         allowed_updates = {}
         allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 2.33}
@@ -1054,17 +1139,19 @@ def test_equivalence_new_old_method(caplog):
 
         templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
         # wrap system in IonicLiquidSystem
-        #ionic_liquid_orig = ProtexSystemOld(simulation_orig, templates)
-        ionic_liquid_orig = ProtexSystem(simulation_orig,templates,fast=False)
+        # ionic_liquid_orig = ProtexSystemOld(simulation_orig, templates)
+        ionic_liquid_orig = ProtexSystem(simulation_orig, templates, fast=False)
         ionic_liquid_new = ProtexSystem(simulation_new, templates)
         return ionic_liquid_orig, ionic_liquid_new
 
-    simulation_orig = generate_small_box(
-        cuda_precision="double"
-    )  # use_plugin=False, platform="Reference")
-    simulation_new = generate_small_box(
-        cuda_precision="double"
-    )  # use_plugin=False, platform="Reference")
+    # simulation_orig = generate_small_box(
+    #     cuda_precision="double"
+    # )  # use_plugin=False, platform="Reference")
+    # simulation_new = generate_small_box(
+    #     cuda_precision="double"
+    # )  # use_plugin=False, platform="Reference")
+    simulation_orig = generate_small_box(use_plugin=False, platformname="Reference")
+    simulation_new = generate_small_box(use_plugin=False, platformname="Reference")
     # get ionic liquid templates
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 2.33}
@@ -1072,8 +1159,8 @@ def test_equivalence_new_old_method(caplog):
 
     templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
     # wrap system in IonicLiquidSystem
-    #ionic_liquid_orig = ProtexSystemOld(simulation_orig, templates)
-    ionic_liquid_orig = ProtexSystem(simulation_orig,templates,fast=False)
+    # ionic_liquid_orig = ProtexSystemOld(simulation_orig, templates)
+    ionic_liquid_orig = ProtexSystem(simulation_orig, templates, fast=False)
     ionic_liquid_new = ProtexSystem(simulation_new, templates)
 
     residue_nr = 0
@@ -1116,9 +1203,9 @@ def test_equivalence_new_old_method(caplog):
 
         e_orig = get_energy(ionic_liquid_orig.simulation)
         e_new = get_energy(ionic_liquid_new.simulation)
-        assert e_orig == e_new
         # print_force_contrib(ionic_liquid_orig.simulation)
         # print_force_contrib(ionic_liquid_new.simulation)
+        assert e_orig == e_new
 
         residue_orig.update(force, 1)
         ionic_liquid_orig.update_context(force)
@@ -1128,10 +1215,10 @@ def test_equivalence_new_old_method(caplog):
 
         e_orig = get_energy(ionic_liquid_orig.simulation)
         e_new = get_energy(ionic_liquid_new.simulation)
-        assert e_orig == e_new, f"at force {force}"
-
         print(f"orig after {get_energy(ionic_liquid_orig.simulation)}")
         print(f"new after {get_energy(ionic_liquid_new.simulation)}")
+        assert e_orig == e_new, f"at force {force}"
+
         # print_force_contrib(ionic_liquid_orig.simulation)
         # print_force_contrib(ionic_liquid_new.simulation)
 
