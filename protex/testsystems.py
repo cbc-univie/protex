@@ -297,7 +297,6 @@ def generate_complete_system( #currently not in use
 
 #     return simulation
 
-
 def generate_im1h_oac_system(
     psf_file: str = None,
     crd_file: str = None,
@@ -410,9 +409,125 @@ def generate_tfa_system(
 
     return simulation
 
+def generate_im1h_oac_system(
+    psf_file: str = None,
+    crd_file: str = None,
+    restart_file: str = None,
+    constraints: str = None,
+    boxl: float = 48.0,
+    para_files: list[str] = None,
+    coll_freq: int=10,
+    drude_coll_freq: int=100,
+    dummy_atom_type: str="DUMH",
+    dummies: list[tuple[str,str]] = [("IM1", "H7"), ("OAC", "H")],
+    use_plugin: bool =True,
+    platform="CUDA",
+    CudaPrecision="single",
+):
+    """Set up a solvated and parametrized system for IM1H/OAC."""
+    print(
+        "This function should not be used for production. It uses a small system intended for testing"
+    )
+    if para_files is None:
+        PARA_FILES = [
+            "toppar_drude_master_protein_2013f_lj025.str",
+            "hoac_d.str",
+            "im1h_d.str",
+            "im1_d_dummy.str",
+            "oac_d_dummy.str",
+        ]
+        para_files = [f"{base}/toppar/{para_files}" for para_files in PARA_FILES]
 
+    psf, crd, params = load_charmm_files(
+        psf_file=psf_file,
+        crd_file=crd_file,
+        para_files=para_files,
+        boxl=boxl,
+    )
+    system = setup_system(
+        psf, params, constraints=constraints, dummy_atom_type=dummy_atom_type
+    )
+    if restart_file is None:
+        restart_file = f"{base}/traj/im1h_oac_150_im1_hoac_350_npt_7.rst"
+
+    simulation = setup_simulation(
+        psf,
+        crd,
+        system,
+        restart_file=restart_file,
+        coll_freq=coll_freq,
+        drude_coll_freq=drude_coll_freq,
+        dummies=dummies,
+        use_plugin=use_plugin
+    )
+
+    return simulation
+
+def generate_tfa_system(
+    psf_file: str = None,
+    crd_file: str = None,
+    restart_file: str = None,
+    constraints: str = None,
+    boxl: float = 48.0,
+    para_files: list[str] = None,
+    coll_freq: int=10,
+    drude_coll_freq: int=100,
+    dummy_atom_type: str="DUMH",
+    dummies: list[tuple[str,str]] = [("IM1", "H7"), ("OAC", "H")],
+    use_plugin: bool =True,
+    tfa_percent: int = 10
+):
+    """Set up a solvated and parametrized system for IM1H/OAC with tfa."""
+    base = f"{protex.__path__[0]}/forcefield/"
+    if psf_file is None:
+        psf_file = f"{base}/tfa/tfa_{tfa_percent}.psf"
+    if crd_file is None:
+        crd_file = f"{base}/tfa/tfa_{tfa_percent}.crd"
+    if para_files is None:
+        PARA_FILES = [
+            "toppar_drude_master_protein_2013f_lj04.str",
+            "hoac_d.str",
+            "im1h_d.str",
+            "im1_d_dummy.str",
+            "oac_d_dummy.str",
+            "tfa_d.str"
+        ]
+        para_files = [f"{base}/toppar/{para_files}" for para_files in PARA_FILES]
+
+    psf, crd, params = load_charmm_files(
+        psf_file=psf_file,
+        crd_file=crd_file,
+        para_files=para_files,
+        boxl=boxl,
+    )
+    system = setup_system(
+        psf, params, constraints=constraints, dummy_atom_type=dummy_atom_type
+    )
+
+    if restart_file is None:
+        restart_file = f"{base}/tfa/tfa_{tfa_percent}_npt_7.rst"
+
+    simulation = setup_simulation(
+        psf,
+        crd,
+        system,
+        restart_file=restart_file,
+        coll_freq=coll_freq,
+        drude_coll_freq=drude_coll_freq,
+        dummies=dummies,
+        use_plugin=use_plugin
+    )
+
+    return simulation
+
+
+<<<<<<< HEAD
 # used for faster tests, not for production!
 def generate_small_box(
+=======
+
+def generate_single_im1h_oac_system( #does not have dummies
+>>>>>>> f987f3e52dadfadcc504758b01d6b0eb19835f05
     psf_file: str = None,
     crd_file: str = None,
     restart_file: str = None,
@@ -421,6 +536,7 @@ def generate_small_box(
     para_files: list[str] = None,
     coll_freq: int=10,
     drude_coll_freq: int=100,
+<<<<<<< HEAD
     dummy_atom_type: str="DUMH",
     dummies: list[tuple[str,str]]=[("IM1", "H7"), ("OAC", "H")],
     use_plugin: bool=True,
@@ -443,6 +559,31 @@ def generate_small_box(
             "im1h_d.str",
             "im1_d_dummy.str",
             "oac_d_dummy.str",
+=======
+    dummy_atom_type: str=None, #"DUMH",
+    dummies: list[tuple[str,str]] = None, #[("IM1", "H7"), ("OAC", "H")]
+    use_plugin: bool=True,
+    ):
+    """Set up a system with 1 IM1H, 1OAC, 1IM1 and 1 HOAC.
+
+    Was for testing the deformation of the imidazole ring -> solved by adding the nonbonded exception to the updates.
+    """
+    print(
+        "This function should not be used for production. It uses a small system intended for testing"
+    )
+    base = f"{protex.__path__[0]}/forcefield/single_pairs"
+    if psf_file is None:
+        psf_file = f"{base}/im1h_oac_im1_hoac_1_secondtry.psf"
+    if crd_file is None:
+        crd_file = f"{base}/im1h_oac_im1_hoac_1_secondtry.crd"
+    if para_files is None:
+        PARA_FILES = [
+            "toppar_drude_master_protein_2013f_lj02.str",
+            "hoac_d.str",
+            "im1h_d_fm_lj_chelpg.str",
+            "im1_d_fm_lj_chelpg_withlp.str",
+            "oac_d_lj.str",
+>>>>>>> f987f3e52dadfadcc504758b01d6b0eb19835f05
         ]
         para_files = [f"{base}/toppar/{para_files}" for para_files in PARA_FILES]
 
@@ -455,6 +596,7 @@ def generate_small_box(
     system = setup_system(
         psf, params, constraints=constraints, dummy_atom_type=dummy_atom_type
     )
+<<<<<<< HEAD
 
     simulation = setup_simulation(
         psf,
@@ -739,6 +881,8 @@ def generate_hpts_meoh_lj04_system(
     system = setup_system(
         psf, params, constraints=constraints, dummy_atom_type=dummy_atom_type
     )
+=======
+>>>>>>> f987f3e52dadfadcc504758b01d6b0eb19835f05
 
     simulation = setup_simulation(
         psf,
@@ -752,6 +896,264 @@ def generate_hpts_meoh_lj04_system(
     )
 
     return simulation
+
+def generate_im1h_oac_dummy_system(
+    psf_file: str = None,
+    crd_file: str = None,
+    restart_file: str = None,
+    constraints: str = None,
+    boxl: float = 48.0,
+    para_files: list[str] = None,
+    coll_freq=10,
+    drude_coll_freq=100,
+<<<<<<< HEAD
+    dummy_atom_type="DUMH",
+    dummies: list[tuple[str,str]] = [("IM1", "H7"), ("OAC", "H"), ("HPTS", "H7"), ("MEOH", "HO2")],
+    use_plugin=True,
+):
+    """Set up a solvated and parametrized system for IM1H/OAC."""
+    print(
+        "This function should not be used for production. It uses a small system intended for testing"
+    )
+    base = f"{protex.__path__[0]}/forcefield/"
+    if psf_file is None:
+        psf_file = f"{base}/hpts_single/hpts_single.psf"
+    if crd_file is None:
+        crd_file = f"{base}/hpts_single/hpts_single.crd"
+    if para_files is None:
+        PARA_FILES = [
+            "toppar_drude_master_protein_2013f_lj025_modhpts.str",
+            "hoac_d.str",
+            "im1h_d.str",
+            "im1_dummy_d.str",
+            "oac_dummy_d.str",
+            "hpts_dummy_d_chelpg.str",
+            "hptsh_d_chelpg.str",
+            "meoh_dummy.str",
+            "meoh2_unscaled.str",
+=======
+    dummy_atom_type: str="DUMH",
+    dummies: list[tuple[str,str]]=[("IM1", "H7"), ("OAC", "H")],
+    use_plugin: bool=True,
+):
+    """Set up a solvated and parametrized system for IM1H/OAC."""
+    base = f"{protex.__path__[0]}/forcefield"
+    if psf_file is None:
+        psf_file = f"{base}/dummy/im1h_oac_im1_hoac_1.psf"
+    if crd_file is None:
+        crd_file = f"{base}/dummy/im1h_oac_im1_hoac_1.crd"
+    if para_files is None:
+        PARA_FILES = [
+            "toppar_drude_master_protein_2013f_lj025.str",
+            "hoac_d.str",
+            "im1h_d.str",
+            "im1_d_dummy.str",
+            "oac_d_dummy.str",
+>>>>>>> f987f3e52dadfadcc504758b01d6b0eb19835f05
+        ]
+        para_files = [f"{base}/toppar/{para_files}" for para_files in PARA_FILES]
+
+    psf, crd, params = load_charmm_files(
+        psf_file=psf_file,
+        crd_file=crd_file,
+        para_files=para_files,
+        boxl=boxl,
+    )
+    system = setup_system(
+        psf, params, constraints=constraints, dummy_atom_type=dummy_atom_type
+    )
+
+    simulation = setup_simulation(
+        psf,
+        crd,
+        system,
+        restart_file=restart_file,
+        coll_freq=coll_freq,
+        drude_coll_freq=drude_coll_freq,
+        dummies=dummies,
+        use_plugin=use_plugin
+    )
+<<<<<<< HEAD
+
+    return simulation
+
+=======
+
+    return simulation
+
+### new generate
+def generate_hpts_system( #not in use? -> delete?
+    psf_file: str = None,
+    crd_file: str = None,
+    restart_file: str = None,
+    constraints: str = None,
+    boxl: float = 48.0,
+    para_files: list[str] = None,
+    coll_freq: int=10,
+    drude_coll_freq: int=100,
+    dummy_atom_type: str="DUMH",
+    dummies: list[tuple[str,str]] = [("IM1", "H7"), ("OAC", "H"), ("HPTS", "H7")],
+    use_plugin: bool=True,
+):
+    """Set up a solvated and parametrized system for IM1H/OAC/HPTS."""
+    base = f"{protex.__path__[0]}/forcefield/"
+    if psf_file is None:
+        psf_file = f"{base}/hpts.psf"
+    if crd_file is None:
+        crd_file = f"{base}/hpts.crd"
+    if para_files is None:
+        PARA_FILES = [
+            "toppar_drude_master_protein_2013f_lj025_modhpts.str",
+            "hoac_d.str",
+            "im1h_d.str",
+            "im1_d.str",
+            "oac_d.str",
+            "hpts_d.str",
+            "hptsh_d.str",
+        ]
+        para_files = [f"{base}/toppar/{para_files}" for para_files in PARA_FILES]
+
+    psf, crd, params = load_charmm_files(
+        psf_file=psf_file,
+        crd_file=crd_file,
+        para_files=para_files,
+        boxl=boxl,
+    )
+    system = setup_system(
+        psf, params, constraints=constraints, dummy_atom_type=dummy_atom_type
+    )
+
+    if restart_file is None:
+        base = f"{protex.__path__[0]}/forcefield"
+        restart_file = f"{base}/traj/hpts_npt_7.rst"
+
+    simulation = setup_simulation(
+        psf,
+        crd,
+        system,
+        restart_file=restart_file,
+        coll_freq=coll_freq,
+        drude_coll_freq=drude_coll_freq,
+        dummies=dummies,
+        use_plugin=use_plugin
+    )
+
+    return simulation
+
+
+def generate_hpts_meoh_system(
+    psf_file: str = None,
+    crd_file: str = None,
+    restart_file: str = None,
+    constraints: str = None,
+    boxl: float = 70.0,
+    para_files: list[str] = None,
+    coll_freq: int =10,
+    drude_coll_freq: int =100,
+    dummy_atom_type: str="DUMH",
+    dummies: list[tuple[str,str]] = [("IM1", "H7"), ("OAC", "H"), ("HPTS", "H7"), ("MEOH", "HO2")],
+    use_plugin: bool=True,
+):
+    """Set up a solvated and parametrized system for IM1H/OAC/HPTS/MEOH."""
+    base = f"{protex.__path__[0]}/forcefield/"
+    if psf_file is None:
+        psf_file = f"{base}/hpts.psf"
+    if crd_file is None:
+        crd_file = f"{base}/hpts.crd"
+    if para_files is None:
+        PARA_FILES = [
+            "toppar_drude_master_protein_2013f_lj025_modhpts_chelpg.str",
+            "hoac_d.str",
+            "im1h_d.str",
+            "im1_dummy_d.str",
+            "oac_dummy_d.str",
+            "hpts_dummy_d_chelpg.str",
+            "hptsh_d_chelpg.str",
+            "meoh_dummy.str",
+            "meoh2_unscaled.str",
+        ]
+        para_files = [f"{base}/toppar/{para_files}" for para_files in PARA_FILES]
+
+    psf, crd, params = load_charmm_files(
+        psf_file=psf_file,
+        crd_file=crd_file,
+        para_files=para_files,
+        boxl=boxl,
+    )
+    system = setup_system(
+        psf, params, constraints=constraints, dummy_atom_type=dummy_atom_type
+    )
+
+    simulation = setup_simulation(
+        psf,
+        crd,
+        system,
+        restart_file=restart_file,
+        coll_freq=coll_freq,
+        drude_coll_freq=drude_coll_freq,
+        dummies=dummies,
+        use_plugin=use_plugin
+    )
+
+    return simulation
+
+
+def generate_hpts_meoh_lj04_system(
+    psf_file: str = None,
+    crd_file: str = None,
+    restart_file: str = None,
+    constraints: str = None,
+    boxl: float = 70.0,
+    para_files: list[str] = None,
+    coll_freq=10,
+    drude_coll_freq=100,
+    dummy_atom_type: str="DUMH",
+    dummies: list[tuple[str,str]] = [("IM1", "H7"), ("OAC", "H"), ("HPTS", "H7"), ("MEOH", "HO2")],
+    use_plugin: bool=True,
+):
+    """Set up a solvated and parametrized system for IM1H/OAC/HPTS/MEOH."""
+    base = f"{protex.__path__[0]}/forcefield/"
+    if psf_file is None:
+        psf_file = f"{base}/hpts.psf"
+    if crd_file is None:
+        crd_file = f"{base}/hpts.crd"
+    if para_files is None:
+        PARA_FILES = [
+            "toppar_drude_master_protein_2013f_lj04_modhpts_chelpg.str",
+            "hoac_d.str",
+            "im1h_d.str",
+            "im1_dummy_d.str",
+            "oac_dummy_d.str",
+            "hpts_dummy_d_chelpg.str",
+            "hptsh_d_chelpg.str",
+            "meoh_dummy.str",
+            "meoh2_unscaled.str",
+        ]
+        para_files = [f"{base}/toppar/{para_files}" for para_files in PARA_FILES]
+
+    psf, crd, params = load_charmm_files(
+        psf_file=psf_file,
+        crd_file=crd_file,
+        para_files=para_files,
+        boxl=boxl,
+    )
+    system = setup_system(
+        psf, params, constraints=constraints, dummy_atom_type=dummy_atom_type
+    )
+
+    simulation = setup_simulation(
+        psf,
+        crd,
+        system,
+        restart_file=restart_file,
+        coll_freq=coll_freq,
+        drude_coll_freq=drude_coll_freq,
+        dummies=dummies,
+        use_plugin=use_plugin
+    )
+
+    return simulation
+
 
 # used for faster tests, not for production!
 def generate_single_hpts_meoh_system(
@@ -812,7 +1214,7 @@ def generate_single_hpts_meoh_system(
     )
 
     return simulation
-
+>>>>>>> f987f3e52dadfadcc504758b01d6b0eb19835f05
 
 
 

@@ -573,7 +573,7 @@ def test_drude_forces():
     atom_names = defaultdict(list)  # store atom_names
     names = []  # store names
 
-    pair_12_13_list = ionic_liquid._build_exclusion_list(ionic_liquid.topology)
+    #pair_12_13_list = ionic_liquid._build_exclusion_list(ionic_liquid.topology)
 
     # iterate over residues, select the first residue for HOAC and OAC and save the individual bonded forces
     for ridx, r in enumerate(topology.residues()):
@@ -589,9 +589,11 @@ def test_drude_forces():
             print(f"{r.name=}")
             print("drude")
             print(drude_force.getNumParticles())
+            particle_map = {}
             for drude_id in range(drude_force.getNumParticles()):
                 f = drude_force.getParticleParameters(drude_id)
                 idx1, idx2 = f[0], f[1]
+                particle_map[drude_id] = idx1
                 if idx1 in atom_idxs[r.name] and idx2 in atom_idxs[r.name]:
                     print(f)
                     force_state[r.name].append(f)
@@ -600,8 +602,11 @@ def test_drude_forces():
             print(drude_force.getNumScreenedPairs())
             for drude_id in range(drude_force.getNumScreenedPairs()):
                 f = drude_force.getScreenedPairParameters(drude_id)
-                parent1, parent2 = pair_12_13_list[drude_id]
-                drude1, drude2 = parent1 + 1, parent2 + 1
+                idx1, idx2 = f[0],f[1]
+                drude1 = particle_map[idx1]
+                drude2 = particle_map[idx2]
+                #parent1, parent2 = pair_12_13_list[drude_id]
+                #drude1, drude2 = parent1 + 1, parent2 + 1
                 # print(f"thole {idx1=}, {idx2=}")
                 # print(f"{drude_id=}, {f=}")
                 if drude1 in atom_idxs[r.name] and drude2 in atom_idxs[r.name]:
@@ -620,9 +625,11 @@ def test_drude_forces():
             print(f"{r.name=}")
             print("drude")
             print(drude_force.getNumParticles())
+            particle_map = {}
             for drude_id in range(drude_force.getNumParticles()):
                 f = drude_force.getParticleParameters(drude_id)
                 idx1, idx2 = f[0], f[1]
+                particle_map[drude_id] = idx1
                 if idx1 in atom_idxs[r.name] and idx2 in atom_idxs[r.name]:
                     print(f)
                     force_state[r.name].append(f)
@@ -631,8 +638,11 @@ def test_drude_forces():
             print(drude_force.getNumScreenedPairs())
             for drude_id in range(drude_force.getNumScreenedPairs()):
                 f = drude_force.getScreenedPairParameters(drude_id)
-                parent1, parent2 = pair_12_13_list[drude_id]
-                drude1, drude2 = parent1 + 1, parent2 + 1
+                idx1, idx2 = f[0],f[1]
+                drude1 = particle_map[idx1]
+                drude2 = particle_map[idx2]
+                #parent1, parent2 = pair_12_13_list[drude_id]
+                #drude1, drude2 = parent1 + 1, parent2 + 1
                 # print(f"thole {idx1=}, {idx2=}")
                 # print(f"{drude_id=}, {f=}")
                 if drude1 in atom_idxs[r.name] and drude2 in atom_idxs[r.name]:
@@ -1259,7 +1269,7 @@ def test_count_forces():
     reason="Will fail sporadicaly.",
 )
 def test_update_write_psf(tmp_path):
-    #psf_for_parameters = f"{protex.__path__[0]}/forcefield/hpts_single/hpts_single.psf"
+    # psf_for_parameters = f"{protex.__path__[0]}/forcefield/hpts_single/hpts_single.psf"
     psf_for_parameters = f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
     psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
     crd_for_parameters = f"{protex.__path__[0]}/forcefield/crd_for_parameters.crd"

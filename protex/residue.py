@@ -24,13 +24,11 @@ class Residue:
         The parameters for the residue
     alternativ_parameters: dict[list]
         The parameters for the alternativ (protonated/deprotonated) state
-    canonical_name: str
-        A general name for both states (protonated/deprotonated)
     pair_12_13_exclusion_list: list
         1-2 and 1-3 exclusions in the system
-    equivalent_atoms: tuple
-        if current name and alternative name have equivalent atoms
     force_idxs:
+    has_equivalent_atoms:  tuple[bool,bool]
+        if original name and alternative name have equivalent atoms
 
     Attributes
     ----------
@@ -47,14 +45,13 @@ class Residue:
     parameters: dict[str: dict[list]]
         Dictionary containnig the parameters for ``original_name`` and ``alternativ_name``
     record_charge_state: list
+        deprecated 1.1?
         Records the charge state of that residue
-    canonical_name: str
-        A general name for both states (protonated/deprotonated)
     system: openmm.openmm.System
         The system generated with openMM, where all residues are in
     pair_12_13_list: list
          1-2 and 1-3 exclusions in the system
-    has_equivalent_atoms: tuple(bool)
+    equivalent_atoms: dict[str, bool]
         if orignal_name and alternative name have equivalent atoms
     force_idxs:
     """
@@ -66,9 +63,7 @@ class Residue:
         system,
         inital_parameters,
         alternativ_parameters,
-        # canonical_name,
-        pair_12_13_exclusion_list,
-        # has_equivalent_atom,
+        #pair_12_13_exclusion_list,
         has_equivalent_atoms,
         force_idxs=dict(),
     ) -> None:
@@ -83,14 +78,13 @@ class Residue:
             alternativ_name: alternativ_parameters,
         }
         self.record_charge_state = []
-        # self.canonical_name = canonical_name
         self.record_charge_state.append(self.endstate_charge)  # Not used anywhere?
-        self.pair_12_13_list = pair_12_13_exclusion_list
-        # self.has_equivalent_atom: bool = has_equivalent_atom
-        self.equivalent_atoms: dict[str, bool] = {
-            self.original_name: has_equivalent_atoms[0],
-            self.alternativ_name: has_equivalent_atoms[1],
-        }
+        #self.pair_12_13_list = pair_12_13_exclusion_list
+        if has_equivalent_atoms is not None:
+            self.equivalent_atoms: dict[str, bool] = {
+                self.original_name: has_equivalent_atoms[0],
+                self.alternativ_name: has_equivalent_atoms[1],
+            }
         self.equivalent_atom_pos_in_list: int = None
         self.used_equivalent_atom: bool = False
         self.force_idxs = force_idxs
@@ -103,6 +97,11 @@ class Residue:
         """Determines if the current residue has an equivalent atom defined.
 
         It depends i.e if the residue is currently OAC (-> two equivalent O's) or HOAC (no equivlent O's).
+
+        Returns
+        -------
+        bool
+            True if this residue currently has an equivalent atom, else otherwise
         """
         return self.equivalent_atoms[self.current_name]
 
@@ -113,6 +112,7 @@ class Residue:
         Returns
         -------
         str
+            The alternative name
         """
         for name in self.parameters.keys():
             if name != self.current_name:
@@ -127,8 +127,14 @@ class Residue:
 
         Parameters
         ----------
-        force_name: Name of the force to update
-        lamb: lambda state at which to get corresponding values (between 0 and 1)
+        force_name: str
+            Name of the force to update
+        lamb: float
+            lambda state at which to get corresponding values (between 0 and 1)
+
+        Returns
+        -------
+        None
         """
         if force_name == "NonbondedForce":
             parms = self._get_NonbondedForce_parameters_at_lambda(lamb)
@@ -316,7 +322,7 @@ class Residue:
     def _set_DrudeForce_parameters(self, parms) -> None:  # noqa: N802
         parms_pol = deque(parms[0])
         parms_thole = deque(parms[1])
-
+        particle_map = {}
         for force in self.system.getForces():
             if type(force).__name__ == "DrudeForce":
                 fgroup = force.getForceGroup()
@@ -344,6 +350,7 @@ class Residue:
                             aniso12,
                             aniso14,
                         )
+                        #particle_map[drude_idx] = idx1
                 except KeyError:
                     # else:
                     for drude_idx in range(force.getNumParticles()):
@@ -367,6 +374,7 @@ class Residue:
                                 aniso12,
                                 aniso14,
                             )
+                        particle_map[drude_idx] = idx1
                 try:
                     lst = self.force_idxs[fgroup]["DrudeForceThole"]
                     # if self.thole_idxs is not None:  # use the fast way
@@ -379,13 +387,13 @@ class Residue:
                         f = force.getScreenedPairParameters(drude_idx)
                         idx1 = f[0]
                         idx2 = f[1]
-                        parent1, parent2 = self.pair_12_13_list[drude_idx]
-                        drude1, drude2 = parent1 + 1, parent2 + 1
+                        drude1 = particle_map[idx1]
+                        drude2 = particle_map[idx2]
+                        #parent1, parent2 = self.pair_12_13_list[drude_idx]
+                        #drude1, drude2 = parent1 + 1, parent2 + 1
                         if drude1 in self.atom_idxs and drude2 in self.atom_idxs:
                             thole = parms_thole.popleft()
-                            force.setScreenedPairParameters(
-                                drude_idx, idx1, idx2, thole
-                            )
+                            force.setScreenedPairParameters(drude_idx, idx1, idx2, thole)
 
     def _get_NonbondedForce_parameters_at_lambda(  # noqa: N802
         self, lamb: float

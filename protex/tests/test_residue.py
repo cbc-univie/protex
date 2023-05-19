@@ -58,7 +58,6 @@ from ..testsystems import (
     OAC_HOAC,
     generate_im1h_oac_dummy_system,
     generate_im1h_oac_system,
-    generate_im1h_oac_system_clap,
     generate_single_im1h_oac_system,
     generate_small_box,
 )
@@ -73,7 +72,7 @@ def test_update_single():
     """Test the residue update function and therefore all get and set methods if they work
     check if the parameters before and after have changed.
     """
-    simulation = generate_single_im1h_oac_system()
+    simulation = generate_single_im1h_oac_system(use_plugin=False)
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
@@ -117,7 +116,7 @@ def test_update_single():
     #     ],
     # }
 
-    pair_12_13_list = ionic_liquid._build_exclusion_list(ionic_liquid.topology)
+    #pair_12_13_list = ionic_liquid._build_exclusion_list(ionic_liquid.topology)
 
     def get_params(force, force_name, atom_idxs, forces_dict):
         params = []
@@ -162,17 +161,22 @@ def test_update_single():
                     forces_dict[force_name].append(f)
 
         elif force_name == "DrudeForce":
+            particle_map = {}
             for drude_id in range(force.getNumParticles()):
                 f = force.getParticleParameters(drude_id)
                 idx1, idx2 = f[0], f[1]
+                particle_map[drude_id] = idx1
                 if idx1 in atom_idxs and idx2 in atom_idxs:
                     params.append(f)
                     forces_dict[force_name].append(f)
             # thole
             for drude_id in range(force.getNumScreenedPairs()):
                 f = force.getScreenedPairParameters(drude_id)
-                parent1, parent2 = pair_12_13_list[drude_id]
-                drude1, drude2 = parent1 + 1, parent2 + 1
+                idx1, idx2 = f[0],f[1]
+                drude1 = particle_map[idx1]
+                drude2 = particle_map[idx2]
+                #parent1, parent2 = pair_12_13_list[drude_id]
+                #drude1, drude2 = parent1 + 1, parent2 + 1
                 if drude1 in atom_idxs and drude2 in atom_idxs:
                     params.append(f)
                     forces_dict[force_name + "Thole"].append(f)
@@ -244,7 +248,7 @@ def test_update_single():
 
 
 def test_residues():
-    simulation = generate_single_im1h_oac_system()
+    simulation = generate_single_im1h_oac_system(use_plugin=False)
     topology = simulation.topology
     for idx, r in enumerate(topology.residues()):
         if r.name == "IM1H":  # and idx == 0:
@@ -379,7 +383,7 @@ def test_residues():
 def test_single_harmonic_force(caplog):
     caplog.set_level(logging.DEBUG)
 
-    sim0 = generate_single_im1h_oac_system()
+    sim0 = generate_single_im1h_oac_system(use_plugin=False)
     allowed_updates = {}
     # allowed updates according to simple protonation scheme
     allowed_updates[frozenset(["IM1H", "OAC"])] = {

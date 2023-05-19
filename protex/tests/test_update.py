@@ -988,6 +988,84 @@ def test_dry_updates(caplog):
         pars.append(state_update.get_charges())
 
 
+def test_equivalence_pair1213_thole(tmp_path):
+    def build_pair_12_13_list(topology):
+        pair_12_set = set()
+        pair_13_set = set()
+        for bond in topology.bonds():
+            a1, a2 = bond.atom1, bond.atom2
+            if "H" not in a1.name and "H" not in a2.name:
+                pair = (
+                    min(a1.index, a2.index),
+                    max(a1.index, a2.index),
+                )
+                pair_12_set.add(pair)
+        for a in pair_12_set:
+            for b in pair_12_set:
+                shared = set(a).intersection(set(b))
+                if len(shared) == 1:
+                    pair = tuple(sorted(set(list(a) + list(b)) - shared))
+                    pair_13_set.add(pair)
+                    # there were duplicates in pair_13_set, e.g. (1,3) and (3,1), needs to be sorted
+
+        # self.pair_12_list = list(sorted(pair_12_set))
+        # self.pair_13_list = list(sorted(pair_13_set - pair_12_set))
+        # self.pair_12_13_list = self.pair_12_list + self.pair_13_list
+        # change to return the list and set the parameters in the init method?
+        pair_12_list = list(sorted(pair_12_set))
+        pair_13_list = list(sorted(pair_13_set - pair_12_set))
+        pair_12_13_list = pair_12_list + pair_13_list
+        return pair_12_13_list
+    simulation = generate_small_box(use_plugin=False)
+    allowed_updates = {}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
+    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+    ionic_liquid = ProtexSystem(simulation, templates)
+    pair_12_13_list = build_pair_12_13_list(ionic_liquid.topology)
+
+    idx1 = 1
+    thole_before_list = []
+    thole_before_list_pm = []
+    for force in ionic_liquid.system.getForces():
+        if type(force).__name__ == "DrudeForce":
+            particle_map = {}
+            for drude_id in range(force.getNumParticles()):
+                f = force.getParticleParameters(drude_id)
+                idx11 = f[0]  # drude
+                #idx22 = f[1]  # parentatom
+                particle_map[drude_id] = idx11
+            assert (
+                len(pair_12_13_list)
+                == force.getNumScreenedPairs()
+            )
+            for drude_id in range(force.getNumScreenedPairs()):
+                f = force.getScreenedPairParameters(drude_id)
+                idx11 = f[0]
+                idx22 = f[1]
+                drude1pm = particle_map[idx11]
+                drude2pm = particle_map[idx22]
+                parent1, parent2 = pair_12_13_list[drude_id]
+                drude1, drude2 = parent1 + 1, parent2 + 1
+                #d = (drude1, drude2)
+                #dpm = (drude1pm,drude2pm)
+                #print(f"{d=}, {dpm=}")
+                assert drude1 == drude1pm
+                assert drude2 == drude2pm
+                if (
+                    drude1 in ionic_liquid.residues[idx1].atom_idxs
+                    and drude2 in ionic_liquid.residues[idx1].atom_idxs
+                ):
+                    thole_before_list.append(f)
+                if (
+                    drude1pm in ionic_liquid.residues[idx1].atom_idxs
+                    and drude2pm in ionic_liquid.residues[idx1].atom_idxs
+                ):
+                    thole_before_list_pm.append(f)
+    for thole, tholepm in zip(thole_before_list, thole_before_list_pm):
+        assert thole == tholepm
+        #print(f"{thole=}, {tholepm=}")
+
 @pytest.mark.skipif(
     os.getenv("CI") == "true",
     reason="Will fail sporadicaly.",
@@ -1070,25 +1148,25 @@ def test_parameters_after_update(tmp_path):
 
         #### Drude before ####
         if type(force).__name__ == "DrudeForce":
+            particle_map = {}
             for drude_id in range(force.getNumParticles()):
                 f = force.getParticleParameters(drude_id)
                 idx11 = f[0]  # drude
                 idx22 = f[1]  # parentatom
+                particle_map[drude_id] = idx11
                 if (
                     idx11 in ionic_liquid.residues[idx1].atom_idxs
                     and idx22 in ionic_liquid.residues[idx1].atom_idxs
                 ):
                     drude_before_list.append(f)
-            assert (
-                len(ionic_liquid.residues[idx1].pair_12_13_list)
-                == force.getNumScreenedPairs()
-            )
             for drude_id in range(force.getNumScreenedPairs()):
                 f = force.getScreenedPairParameters(drude_id)
-                # idx1 = f[0]
-                # idx2 = f[1]
-                parent1, parent2 = ionic_liquid.residues[idx1].pair_12_13_list[drude_id]
-                drude1, drude2 = parent1 + 1, parent2 + 1
+                idx11 = f[0]
+                idx22 = f[1]
+                drude1 = particle_map[idx11]
+                drude2 = particle_map[idx22]
+                #parent1, parent2 = ionic_liquid.residues[idx1].pair_12_13_list[drude_id]
+                #drude1, drude2 = parent1 + 1, parent2 + 1
                 if (
                     drude1 in ionic_liquid.residues[idx1].atom_idxs
                     and drude2 in ionic_liquid.residues[idx1].atom_idxs
@@ -1128,25 +1206,25 @@ def test_parameters_after_update(tmp_path):
 
         #### Drude after ####
         if type(force).__name__ == "DrudeForce":
+            particle_map = {}
             for drude_id in range(force.getNumParticles()):
                 f = force.getParticleParameters(drude_id)
                 idx11 = f[0]  # drude
                 idx22 = f[1]  # parentatom
+                particle_map[drude_id] = idx11
                 if (
                     idx11 in ionic_liquid.residues[idx1].atom_idxs
                     and idx22 in ionic_liquid.residues[idx1].atom_idxs
                 ):
                     drude_after_list.append(f)
-            assert (
-                len(ionic_liquid.residues[idx1].pair_12_13_list)
-                == force.getNumScreenedPairs()
-            )
             for drude_id in range(force.getNumScreenedPairs()):
                 f = force.getScreenedPairParameters(drude_id)
-                # idx1 = f[0]
-                # idx2 = f[1]
-                parent1, parent2 = ionic_liquid.residues[idx1].pair_12_13_list[drude_id]
-                drude1, drude2 = parent1 + 1, parent2 + 1
+                idx11 = f[0]
+                idx22 = f[1]
+                drude1 = particle_map[idx11]
+                drude2 = particle_map[idx22]
+                #parent1, parent2 = ionic_liquid.residues[idx1].pair_12_13_list[drude_id]
+                #drude1, drude2 = parent1 + 1, parent2 + 1
                 if (
                     drude1 in ionic_liquid.residues[idx1].atom_idxs
                     and drude2 in ionic_liquid.residues[idx1].atom_idxs
@@ -1417,7 +1495,7 @@ def test_single_im1h_oac():
 
 
 def test_force_selection():
-    simulation = generate_single_im1h_oac_system()
+    simulation = generate_single_im1h_oac_system(use_plugin=False)
     allowed_updates = {}
     # allowed updates according to simple protonation scheme
     allowed_updates[frozenset(["IM1H", "OAC"])] = {
@@ -2015,7 +2093,7 @@ def test_ubforce_update(caplog):
             state = simulation.context.getState(getEnergy=True, groups={group})
             print(f.getName(), state.getPotentialEnergy())
 
-    sim0 = generate_single_im1h_oac_system()
+    sim0 = generate_single_im1h_oac_system(use_plugin=False)
     allowed_updates = {}
     # allowed updates according to simple protonation scheme
     allowed_updates[frozenset(["IM1H", "OAC"])] = {
