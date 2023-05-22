@@ -609,27 +609,17 @@ class ProtexSystem:
             fgroup = force.getForceGroup()
             if type(force).__name__ == "NonbondedForce":
                 # only treat exceptions
-                # force_idx[fgroup]["NonbondedForceExceptions"] = {}
                 for exc_idx in range(force.getNumExceptions()):
                     f = force.getExceptionParameters(exc_idx)
                     idx1, idx2 = f[0], f[1]
                     value = (exc_idx, idx1, idx2)
                     maxi = max(idx1, idx2)
                     self._add_force(fgroup, "NonbondedForceExceptions", maxi, value)
-                    # force_idx[fgroup]["NonbondedForceExceptions"][(idx1, idx2)] = (
-                    #     exc_idx,
-                    #     idx1,
-                    #     idx2,
-                    # )
             elif type(force).__name__ == "DrudeForce":
                 particle_map = {}
                 for drude_idx in range(force.getNumParticles()):
                     f = force.getParticleParameters(drude_idx)
-                    idx1 = f[0]
-                    idx2 = f[1]
-                    idx3 = f[2]
-                    idx4 = f[3]
-                    idx5 = f[4]
+                    idx1, idx2,idx3,idx4,idx5 = f[0],f[1],f[2],f[3],f[4]
                     value = (drude_idx, idx1, idx2, idx3, idx4, idx5)
                     maxi = max(
                         idx1, idx2
