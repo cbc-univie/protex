@@ -172,7 +172,8 @@ def setup_simulation(
             platform=platform,
             platformProperties=prop,
         )
-    except OpenMMException:
+    except OpenMMException as e:
+        print(e)
         platform = Platform.getPlatformByName("CPU")
         prop = dict()
         simulation = Simulation(
@@ -182,7 +183,7 @@ def setup_simulation(
             platform=platform,
             platformProperties=prop,
         )
-
+    print(f"Using platform: {platform.getName()}")
     simulation.context.setPositions(crd.positions)
     # Try with positions from equilibrated system:
     if restart_file is not None and os.path.exists(restart_file):

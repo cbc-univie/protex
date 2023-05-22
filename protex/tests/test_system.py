@@ -1137,14 +1137,14 @@ def test_equivalence_new_old_method(caplog, tmp_path):
         print(f"Written {name}.")
 
     def initialize():
-        # simulation_orig = generate_small_box(
-        #     cuda_precision="double"
-        # )  # use_plugin=False, platform="Reference")
-        # simulation_new = generate_small_box(
-        #     cuda_precision="double"
-        # )  # use_plugin=False, platform="Reference")
-        simulation_orig = generate_small_box(use_plugin=False, platformname="Reference")
-        simulation_new = generate_small_box(use_plugin=False, platformname="Reference")
+        simulation_orig = generate_small_box(
+            cuda_precision="double"
+        )  # use_plugin=False, platform="Reference")
+        simulation_new = generate_small_box(
+            cuda_precision="double"
+        )  # use_plugin=False, platform="Reference")
+        # simulation_orig = generate_small_box(use_plugin=False, platformname="Reference")
+        # simulation_new = generate_small_box(use_plugin=False, platformname="Reference")
         # simulation_orig = generate_im1h_oac_system(
         #     use_plugin=False, platformname="Reference"
         # )
