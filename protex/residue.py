@@ -63,7 +63,7 @@ class Residue:
         system,
         inital_parameters,
         alternativ_parameters,
-        #pair_12_13_exclusion_list,
+        # pair_12_13_exclusion_list,
         has_equivalent_atoms,
         force_idxs=dict(),
     ) -> None:
@@ -79,7 +79,7 @@ class Residue:
         }
         self.record_charge_state = []
         self.record_charge_state.append(self.endstate_charge)  # Not used anywhere?
-        #self.pair_12_13_list = pair_12_13_exclusion_list
+        # self.pair_12_13_list = pair_12_13_exclusion_list
         if has_equivalent_atoms is not None:
             self.equivalent_atoms: dict[str, bool] = {
                 self.original_name: has_equivalent_atoms[0],
@@ -170,6 +170,7 @@ class Residue:
                     force.setParticleParameters(idx, charge, sigma, epsilon)
                 try:
                     lst = self.force_idxs[fgroup]["NonbondedForceExceptions"]
+                    print("In the fast way")
                     # if self.nbond_exception_idxs is not None:  # use the fast way
                     for exc_idx, idx1, idx2 in lst:  # self.nbond_exception_idxs:
                         chargeprod, sigma, epsilon = parms_exceptions.popleft()
@@ -177,6 +178,7 @@ class Residue:
                             exc_idx, idx1, idx2, chargeprod, sigma, epsilon
                         )
                 except KeyError:
+                    print("Ups da sollte ich nicht zu oft sein")
                     # else:  # use the old slow way
                     for exc_idx in range(force.getNumExceptions()):
                         f = force.getExceptionParameters(exc_idx)
@@ -283,7 +285,6 @@ class Residue:
         parms = deque(parms)
 
         for force in self.system.getForces():
-
             if type(force).__name__ == "CustomTorsionForce":
                 fgroup = force.getForceGroup()
                 try:
@@ -350,7 +351,7 @@ class Residue:
                             aniso12,
                             aniso14,
                         )
-                        #particle_map[drude_idx] = idx1
+                        # particle_map[drude_idx] = idx1
                 except KeyError:
                     # else:
                     for drude_idx in range(force.getNumParticles()):
@@ -389,11 +390,13 @@ class Residue:
                         idx2 = f[1]
                         drude1 = particle_map[idx1]
                         drude2 = particle_map[idx2]
-                        #parent1, parent2 = self.pair_12_13_list[drude_idx]
-                        #drude1, drude2 = parent1 + 1, parent2 + 1
+                        # parent1, parent2 = self.pair_12_13_list[drude_idx]
+                        # drude1, drude2 = parent1 + 1, parent2 + 1
                         if drude1 in self.atom_idxs and drude2 in self.atom_idxs:
                             thole = parms_thole.popleft()
-                            force.setScreenedPairParameters(drude_idx, idx1, idx2, thole)
+                            force.setScreenedPairParameters(
+                                drude_idx, idx1, idx2, thole
+                            )
 
     def _get_NonbondedForce_parameters_at_lambda(  # noqa: N802
         self, lamb: float
