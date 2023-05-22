@@ -3,7 +3,7 @@ from __future__ import annotations
 import itertools
 import logging
 import pickle
-from collections import ChainMap, defaultdict, OrderedDict
+from collections import ChainMap, OrderedDict, defaultdict
 
 import parmed
 import yaml
