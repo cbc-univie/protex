@@ -2401,9 +2401,9 @@ def test_profile_update():
 
     start_tot = time.time()
 
-    simulation = generate_im1h_oac_system(use_plugin=False)
+    simulation = generate_im1h_oac_system(use_plugin=False)#, platformname="CPU")
     # simulation = generate_single_im1h_oac_system(use_plugin=False)
-    # simulation = generate_small_box(use_plugin=False)
+    #simulation = generate_small_box(use_plugin=False, platformname="Reference")
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
@@ -2414,7 +2414,7 @@ def test_profile_update():
         allowed_updates,
     )
     start = time.time()
-    ionic_liquid = ProtexSystem(simulation, templates, fast=False)
+    ionic_liquid = ProtexSystem(simulation, templates, fast=True)
     print(
         "ProtexSystem: ", time.time() - start
     )  # 266.66s with new method, 30.789s with old method (still slow, but we want to be there again for now)
