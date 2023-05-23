@@ -411,7 +411,7 @@ class KeepHUpdate(Update):
         logger.info(f"Energy before/after state change:{initial_e}/{new_e}")
 
 
-from profilehooks import profile
+#from profilehooks import profile
 
 
 class NaiveMCUpdate(Update):

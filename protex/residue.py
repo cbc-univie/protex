@@ -165,7 +165,6 @@ class Residue:
                     force.setParticleParameters(idx, charge, sigma, epsilon)
                 try:
                     lst = self.force_idxs[fgroup]["NonbondedForceExceptions"]
-                    print("In the fast way")
                     # if self.nbond_exception_idxs is not None:  # use the fast way
                     for exc_idx, idx1, idx2 in lst:  # self.nbond_exception_idxs:
                         chargeprod, sigma, epsilon = parms_exceptions.popleft()
@@ -173,7 +172,6 @@ class Residue:
                             exc_idx, idx1, idx2, chargeprod, sigma, epsilon
                         )
                 except KeyError:
-                    print("Ups da sollte ich nicht zu oft sein")
                     # else:  # use the old slow way
                     for exc_idx in range(force.getNumExceptions()):
                         f = force.getExceptionParameters(exc_idx)

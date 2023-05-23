@@ -292,7 +292,7 @@ class ProtexTemplates:
         return self.states[name]["charge"]
 
 
-from profilehooks import profile, timecall
+#from profilehooks import profile, timecall
 
 
 class ProtexSystem:
@@ -344,7 +344,7 @@ class ProtexSystem:
         protex_system.residues = from_pickle[1]
         return protex_system
 
-    @profile(immediate=True)
+    #@profile(immediate=True)
     def __init__(
         self,
         simulation: openmm.app.simulation.Simulation,
