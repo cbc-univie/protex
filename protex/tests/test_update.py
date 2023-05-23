@@ -2414,7 +2414,7 @@ def test_profile_update():
         allowed_updates,
     )
     start = time.time()
-    ionic_liquid = ProtexSystem(simulation, templates, fast=True)
+    ionic_liquid = ProtexSystem(simulation, templates, fast=False)
     print(
         "ProtexSystem: ", time.time() - start
     )  # 266.66s with new method, 30.789s with old method (still slow, but we want to be there again for now)
@@ -2422,8 +2422,10 @@ def test_profile_update():
     update = NaiveMCUpdate(ionic_liquid, all_forces=True)
     # update._update = types.MethodType(_update_decorated, update)
     state_update = StateUpdate(update)
+    time_before_update = time.time()
     state_update.update(2)
-
+    print("Time for update: ", time.time() - time_before_update)
+    #282 updates: fast: 30s (tot:45s), slow: 437s(>7min) (tot:443s) speedup x14
     print("Total time: ", time.time() - start_tot)
     # new method: 40.47 s
     # old method: 53.17 s
