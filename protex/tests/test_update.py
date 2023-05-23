@@ -1016,6 +1016,7 @@ def test_equivalence_pair1213_thole(tmp_path):
         pair_13_list = list(sorted(pair_13_set - pair_12_set))
         pair_12_13_list = pair_12_list + pair_13_list
         return pair_12_13_list
+
     simulation = generate_small_box(use_plugin=False)
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
@@ -1033,12 +1034,9 @@ def test_equivalence_pair1213_thole(tmp_path):
             for drude_id in range(force.getNumParticles()):
                 f = force.getParticleParameters(drude_id)
                 idx11 = f[0]  # drude
-                #idx22 = f[1]  # parentatom
+                # idx22 = f[1]  # parentatom
                 particle_map[drude_id] = idx11
-            assert (
-                len(pair_12_13_list)
-                == force.getNumScreenedPairs()
-            )
+            assert len(pair_12_13_list) == force.getNumScreenedPairs()
             for drude_id in range(force.getNumScreenedPairs()):
                 f = force.getScreenedPairParameters(drude_id)
                 idx11 = f[0]
@@ -1047,9 +1045,9 @@ def test_equivalence_pair1213_thole(tmp_path):
                 drude2pm = particle_map[idx22]
                 parent1, parent2 = pair_12_13_list[drude_id]
                 drude1, drude2 = parent1 + 1, parent2 + 1
-                #d = (drude1, drude2)
-                #dpm = (drude1pm,drude2pm)
-                #print(f"{d=}, {dpm=}")
+                # d = (drude1, drude2)
+                # dpm = (drude1pm,drude2pm)
+                # print(f"{d=}, {dpm=}")
                 assert drude1 == drude1pm
                 assert drude2 == drude2pm
                 if (
@@ -1064,7 +1062,8 @@ def test_equivalence_pair1213_thole(tmp_path):
                     thole_before_list_pm.append(f)
     for thole, tholepm in zip(thole_before_list, thole_before_list_pm):
         assert thole == tholepm
-        #print(f"{thole=}, {tholepm=}")
+        # print(f"{thole=}, {tholepm=}")
+
 
 @pytest.mark.skipif(
     os.getenv("CI") == "true",
@@ -1165,8 +1164,8 @@ def test_parameters_after_update(tmp_path):
                 idx22 = f[1]
                 drude1 = particle_map[idx11]
                 drude2 = particle_map[idx22]
-                #parent1, parent2 = ionic_liquid.residues[idx1].pair_12_13_list[drude_id]
-                #drude1, drude2 = parent1 + 1, parent2 + 1
+                # parent1, parent2 = ionic_liquid.residues[idx1].pair_12_13_list[drude_id]
+                # drude1, drude2 = parent1 + 1, parent2 + 1
                 if (
                     drude1 in ionic_liquid.residues[idx1].atom_idxs
                     and drude2 in ionic_liquid.residues[idx1].atom_idxs
@@ -1223,8 +1222,8 @@ def test_parameters_after_update(tmp_path):
                 idx22 = f[1]
                 drude1 = particle_map[idx11]
                 drude2 = particle_map[idx22]
-                #parent1, parent2 = ionic_liquid.residues[idx1].pair_12_13_list[drude_id]
-                #drude1, drude2 = parent1 + 1, parent2 + 1
+                # parent1, parent2 = ionic_liquid.residues[idx1].pair_12_13_list[drude_id]
+                # drude1, drude2 = parent1 + 1, parent2 + 1
                 if (
                     drude1 in ionic_liquid.residues[idx1].atom_idxs
                     and drude2 in ionic_liquid.residues[idx1].atom_idxs
@@ -2402,7 +2401,9 @@ def test_profile_update():
 
     start_tot = time.time()
 
-    simulation = generate_im1h_oac_system()
+    simulation = generate_im1h_oac_system(use_plugin=False)#, platformname="CPU")
+    # simulation = generate_single_im1h_oac_system(use_plugin=False)
+    #simulation = generate_small_box(use_plugin=False, platformname="Reference")
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}

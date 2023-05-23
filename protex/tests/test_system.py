@@ -11,7 +11,13 @@ import protex
 
 try:  # Syntax changed in OpenMM 7.6
     import openmm as mm
-    from openmm import Context, DrudeNoseHooverIntegrator, OpenMMException, Platform
+    from openmm import (
+        Context,
+        DrudeNoseHooverIntegrator,
+        OpenMMException,
+        Platform,
+        XmlSerializer,
+    )
     from openmm.app import (
         PME,
         CharmmCrdFile,
@@ -36,6 +42,7 @@ except ImportError:
         DrudeNoseHooverIntegrator,
         OpenMMException,
         Platform,
+        XmlSerializer,
     )
     from simtk.openmm.app import (
         PME,
@@ -1110,7 +1117,7 @@ class ProtexSystemOld(ProtexSystem):
     os.getenv("CI") == "true",
     reason="Will fail sporadicaly.",
 )
-def test_equivalence_new_old_method(caplog):
+def test_equivalence_new_old_method(caplog, tmp_path):
     caplog.set_level(logging.CRITICAL)
 
     def print_force_contrib(simulation):
@@ -1123,19 +1130,37 @@ def test_equivalence_new_old_method(caplog):
         state = sim.context.getState(getEnergy=True)
         return round(state.getPotentialEnergy().value_in_unit(kilojoules_per_mole), 2)
 
+    def write_xml(sim, name="system.xml"):
+        system = sim.system
+        with open(name, "w") as output:
+            output.write(XmlSerializer.serialize(system))
+        print(f"Written {name}.")
+
     def initialize():
-        # simulation_orig = generate_small_box(
-        #     cuda_precision="double"
-        # )  # use_plugin=False, platform="Reference")
-        # simulation_new = generate_small_box(
-        #     cuda_precision="double"
-        # )  # use_plugin=False, platform="Reference")
-        simulation_orig = generate_small_box(use_plugin=False, platformname="Reference")
-        simulation_new = generate_small_box(use_plugin=False, platformname="Reference")
+        simulation_orig = generate_small_box(
+            cuda_precision="double"
+        )  # use_plugin=False, platform="Reference")
+        simulation_new = generate_small_box(
+            cuda_precision="double"
+        )  # use_plugin=False, platform="Reference")
+        # simulation_orig = generate_small_box(use_plugin=False, platformname="Reference")
+        # simulation_new = generate_small_box(use_plugin=False, platformname="Reference")
+        # simulation_orig = generate_im1h_oac_system(
+        #     use_plugin=False, platformname="Reference"
+        # )
+        # simulation_new = generate_im1h_oac_system(
+        #     use_plugin=False, platformname="Reference"
+        # )
+        # simulation_orig = generate_single_im1h_oac_system(
+        #     use_plugin=False, platformname="Reference"
+        # )
+        # simulation_new = generate_single_im1h_oac_system(
+        #     use_plugin=False, platformname="Reference"
+        # )
         # get ionic liquid templates
         allowed_updates = {}
-        allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 2.33}
-        allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": -2.33}
+        allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
+        allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
 
         templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
         # wrap system in IonicLiquidSystem
@@ -1144,24 +1169,7 @@ def test_equivalence_new_old_method(caplog):
         ionic_liquid_new = ProtexSystem(simulation_new, templates)
         return ionic_liquid_orig, ionic_liquid_new
 
-    # simulation_orig = generate_small_box(
-    #     cuda_precision="double"
-    # )  # use_plugin=False, platform="Reference")
-    # simulation_new = generate_small_box(
-    #     cuda_precision="double"
-    # )  # use_plugin=False, platform="Reference")
-    simulation_orig = generate_small_box(use_plugin=False, platformname="Reference")
-    simulation_new = generate_small_box(use_plugin=False, platformname="Reference")
-    # get ionic liquid templates
-    allowed_updates = {}
-    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 2.33}
-    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": -2.33}
-
-    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
-    # wrap system in IonicLiquidSystem
-    # ionic_liquid_orig = ProtexSystemOld(simulation_orig, templates)
-    ionic_liquid_orig = ProtexSystem(simulation_orig, templates, fast=False)
-    ionic_liquid_new = ProtexSystem(simulation_new, templates)
+    ionic_liquid_orig, ionic_liquid_new = initialize()
 
     residue_nr = 0
     residue_orig = ionic_liquid_orig.residues[residue_nr]
@@ -1185,6 +1193,14 @@ def test_equivalence_new_old_method(caplog):
     for force in forces:
         print(f"At force {force}")
         ionic_liquid_orig, ionic_liquid_new = initialize()
+        nb_force = [
+            force
+            for force in ionic_liquid_orig.system.getForces()
+            if isinstance(force, mm.NonbondedForce)
+        ][0]
+        write_xml(ionic_liquid_orig, f"{tmp_path}/orig_before_{force}.xml")
+        write_xml(ionic_liquid_new, f"{tmp_path}/new_before_{force}.xml")
+        # Select specific residue for the updates
         residue_nr = 0
         residue_orig = ionic_liquid_orig.residues[residue_nr]
         residue_new = ionic_liquid_new.residues[residue_nr]
@@ -1194,17 +1210,21 @@ def test_equivalence_new_old_method(caplog):
         e_orig_before = get_energy(ionic_liquid_orig.simulation)
         e_new_before = get_energy(ionic_liquid_new.simulation)
         assert e_orig_before == e_new_before
-
+        print(nb_force.getNumExceptions())
         residue_orig.update(force, 0)
+        print(nb_force.getNumExceptions())
         ionic_liquid_orig.update_context(force)
 
         residue_new.update(force, 0)
         ionic_liquid_new.update_context(force)
 
+        # nothing happend so far:
         e_orig = get_energy(ionic_liquid_orig.simulation)
         e_new = get_energy(ionic_liquid_new.simulation)
         # print_force_contrib(ionic_liquid_orig.simulation)
         # print_force_contrib(ionic_liquid_new.simulation)
+        write_xml(ionic_liquid_orig, f"{tmp_path}/orig_before2_{force}.xml")
+        write_xml(ionic_liquid_new, f"{tmp_path}/new_before2_{force}.xml")
         assert e_orig == e_new
 
         residue_orig.update(force, 1)
@@ -1217,6 +1237,8 @@ def test_equivalence_new_old_method(caplog):
         e_new = get_energy(ionic_liquid_new.simulation)
         print(f"orig after {get_energy(ionic_liquid_orig.simulation)}")
         print(f"new after {get_energy(ionic_liquid_new.simulation)}")
+        write_xml(ionic_liquid_orig, f"{tmp_path}/orig_after_{force}.xml")
+        write_xml(ionic_liquid_new, f"{tmp_path}/new_after_{force}.xml")
         assert e_orig == e_new, f"at force {force}"
 
         # print_force_contrib(ionic_liquid_orig.simulation)
