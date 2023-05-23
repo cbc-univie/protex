@@ -1,4 +1,5 @@
 import os
+import warnings
 
 import protex
 
@@ -71,9 +72,9 @@ def setup_system(psf: CharmmPsfFile, params: CharmmParameterSet, constraints=Non
             f"Changing atom type {dummy_atom_type} temporarily to not zero for dummy things"
         )
         params.atom_types_str[dummy_atom_type].set_lj_params(
-            -0.00001,
+            -0.01, #-0.00001,
             params.atom_types_str[dummy_atom_type].rmin,
-            -0.00001,
+            -0.01, #-0.00001,
             params.atom_types_str[dummy_atom_type].rmin_14,
         )
     if constraints is None:
@@ -114,8 +115,12 @@ def setup_simulation(
     coll_freq: int = 10,
     drude_coll_freq: int = 100,
     dummies: list[tuple[str, str]] = [("IM1", "H7"), ("OAC", "H")],
-    use_plugin: bool = True
+    use_plugin: bool = True,
+    platformname: str = "CUDA",
+    cuda_precision: str = "single"
 ):
+    if use_plugin and platformname != "CUDA":
+        assert "Plugin only available with CUDA"
     if use_plugin:
         # plugin
         # https://github.com/z-gong/openmm-velocityVerlet
@@ -146,8 +151,12 @@ def setup_simulation(
     # )  # tested with 20, 40, 80, 100, 120, 140, 160: 20,40 bad; 80 - 120 good; 140, 160 crashed
     integrator.setMaxDrudeDistance(0.25 * angstroms)
     try:
-        platform = Platform.getPlatformByName("CUDA")
-        prop = dict(CudaPrecision="single")  # default is single
+        platform = Platform.getPlatformByName(platformname)
+        if platformname == "CUDA":
+            prop = dict(CudaPrecision=cuda_precision)  # default is single
+            print(f"Using precision {cuda_precision}")
+        else:
+            prop = dict()
         # prop = dict(CudaPrecision="double")
         # Moved creating the simulation object inside the try...except block, because i.e.
         # Error loading CUDA module: CUDA_ERROR_INVALID_PTX (218)
@@ -169,7 +178,7 @@ def setup_simulation(
             platform=platform,
             platformProperties=prop,
         )
-
+    print(f"Using platform: {platform.getName()}")
     simulation.context.setPositions(crd.positions)
     # Try with positions from equilibrated system:
     if restart_file is not None and os.path.exists(restart_file):
@@ -182,6 +191,8 @@ def setup_simulation(
         simulation.context.computeVirtualSites()
         simulation.context.setVelocitiesToTemperature(300 * kelvin)
     if dummies is not None:
+        if platform.getName() != "CUDA":
+            warnings.warn("You might run into an OpenMMException telling you:\nupdateParametersInContext: The set of non-excluded exceptions has changed\nI think most probably the problem lies in the fact that we assign 0 to the chargProd and epsilon in the nonbondedForce exception Parameters.\nThe problem did not occur on the CUDA platform. (At least until now...)", UserWarning)
         # set nonbonded parameters including dummy zero again.
         # had to be  zero durin creating becuase of:
         # openmm.OpenMMException: updateParametersInContext: The set of non-excluded exceptions has changed
@@ -201,7 +212,12 @@ def setup_simulation(
             chargeProd, sigma, epsilon = f[2:]
             if idx1 in dummy_atoms or idx2 in dummy_atoms:
                 nonbonded_force.setExceptionParameters(exc_id, idx1, idx2, 0.0, sigma, 0.0)
-
+        # try:
+        #      # next line does not work for Reference and CPU, CUDA seems to be no problem. Why?
+        #     #nonbonded_force.updateParametersInContext(simulation.context)
+        #     simulation.context.reinitialize(preserveState=True)
+        # except OpenMMException as e:
+        #     print(f"Error platoform {platform.getName()}:",e)
     return simulation
 
 def generate_complete_system( #currently not in use
@@ -416,6 +432,8 @@ def generate_small_box(
     dummy_atom_type: str="DUMH",
     dummies: list[tuple[str,str]]=[("IM1", "H7"), ("OAC", "H")],
     use_plugin: bool=True,
+    platformname="CUDA",
+    cuda_precision="single"
 ):
     """Set up a solvated and parametrized system for IM1H/OAC."""
     print(
@@ -454,7 +472,9 @@ def generate_small_box(
         coll_freq=coll_freq,
         drude_coll_freq=drude_coll_freq,
         dummies=dummies,
-        use_plugin=use_plugin
+        use_plugin=use_plugin,
+        platformname=platformname,
+        cuda_precision=cuda_precision
     )
 
     return simulation

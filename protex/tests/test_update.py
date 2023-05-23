@@ -6,7 +6,12 @@ import pytest
 from scipy.spatial import distance_matrix
 
 try:
-    from openmm import DrudeNoseHooverIntegrator, Platform, XmlSerializer
+    from openmm import (
+        DrudeNoseHooverIntegrator,
+        OpenMMException,
+        Platform,
+        XmlSerializer,
+    )
     from openmm.app import DCDReporter, StateDataReporter
     from openmm.unit import angstroms, kelvin, nanometers, picoseconds
 except ImportError:
@@ -2379,3 +2384,52 @@ def test_save_load_updates(caplog, tmp_path):
     state_update = StateUpdate.load(f"{tmp_path}/stateupdate.pkl", update)
     assert update.all_forces is False
     assert state_update.update_trial == 100
+
+def test_platforms_with_dummy(tmp_path):
+    def initialize(platform):
+        simulation = generate_small_box(use_plugin=False, platformname=platform)
+        # get ionic liquid templates
+        allowed_updates = {}
+        allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
+        allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
+
+        templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+        # wrap system in IonicLiquidSystem
+        ionic_liquid = ProtexSystem(simulation, templates)
+        return ionic_liquid
+
+    forces = [
+        #"HarmonicBondForce",
+        #"HarmonicAngleForce",
+        #"PeriodicTorsionForce",
+        #"CustomTorsionForce",
+        #"DrudeForce",
+        "NonbondedForce",
+    ]
+    platforms = ["CUDA", "Reference", "CPU"] #not available:, "OpenCL"]
+
+    for force in forces:
+        print(f"At force {force}")
+        for platform in platforms:
+            print(f"***Using platform {platform}***")
+            ionic_liquid = initialize(platform)
+            # nb_force = [
+            #     force
+            #     for force in ionic_liquid_orig.system.getForces()
+            #     if isinstance(force, mm.NonbondedForce)
+            # ][0]
+            # Select specific residue for the updates
+            residue_nr = 0
+            residue = ionic_liquid.residues[residue_nr]
+            try:
+                residue.update(force, 0)
+                ionic_liquid.update_context(force)
+            except OpenMMException as e:
+                print(f"Error1 on platform {platform}")
+                print(e)
+            try:
+                residue.update(force, 1)
+                ionic_liquid.update_context(force)
+            except OpenMMException as e:
+                print(f"Error2 on platform {platform}")
+                print(e)
