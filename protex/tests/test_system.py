@@ -665,6 +665,20 @@ def test_create_IonicLiquid():
     # assert count["HOAC"] == 35
 
 
+def test_ProtexException():
+    simulation = generate_single_im1h_oac_system(use_plugin=False)
+    allowed_updates = {}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 2.33}
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": -2.33}
+
+    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+    # we do not cover the forces
+    ProtexSystem.IGNORED_FORCES = []
+    # print(ProtexSystem.IGNORED_FORCES)
+    with pytest.raises(protex.ProtexException):
+        ProtexSystem(simulation, templates)
+
+
 def test_save_load_allowedupdates(tmp_path):
     simulation = generate_small_box(use_plugin=False)
     allowed_updates = {}
