@@ -3,8 +3,8 @@ from __future__ import annotations
 import itertools
 import logging
 import pickle
-from collections import ChainMap, defaultdict
 import warnings
+from collections import ChainMap, defaultdict
 
 import parmed
 import yaml
@@ -15,8 +15,8 @@ except ImportError:
     from simtk import openmm
 
 # from protex.helpers import ProtexException  # , CustomPSFFile
-from protex.residue import Residue
 from protex import ProtexException
+from protex.residue import Residue
 
 # Use custom write function for now, remove with new parmed version
 # https://github.com/ParmEd/ParmEd/pull/1274
