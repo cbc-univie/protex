@@ -4,6 +4,7 @@ import itertools
 import logging
 import pickle
 from collections import ChainMap, defaultdict
+import warnings
 
 import parmed
 import yaml
@@ -13,8 +14,9 @@ try:
 except ImportError:
     from simtk import openmm
 
-# from protex.helpers import CustomPSFFile
+# from protex.helpers import ProtexException  # , CustomPSFFile
 from protex.residue import Residue
+from protex import ProtexException
 
 # Use custom write function for now, remove with new parmed version
 # https://github.com/ParmEd/ParmEd/pull/1274
@@ -310,6 +312,41 @@ class ProtexSystem:
 
     """
 
+    IGNORED_FORCES = ["CMMotionRemover", "MonteCarloBarostat"]
+    ######################
+    # To include a new force to the covered forces, you need to add them to the following places:
+    # ProtexSystem._extract_templates
+    # ProtexSystem._create_force_idx_dict
+    # Residue.update (and add the correspoding get and set methods!)
+    # Update.allowed_forces #probably to the part where all_forces is True
+    #####################
+    COVERED_FORCES = [
+        "NonbondedForce",
+        "HarmonicBondForce",
+        "HarmonicAngleForce",
+        "PeriodicTorsionForce",
+        "CustomTorsionForce",
+        "DrudeForce",
+    ]
+    # until now it was there but empty, but who knows for later
+    # add force here to ignore them, but raise a warning, because they might be important in the future
+    UNCOVERED_FORCES = ["CMAPTorsionForce"]
+
+    @classmethod
+    def force_is_valid(cls, name: str) -> bool:
+        """Check if the given force name is covered."""
+        if name in cls.COVERED_FORCES or name in cls.IGNORED_FORCES:
+            return True
+        elif name in cls.UNCOVERED_FORCES:
+            warnings.warn(
+                f"{name} is not processed by protex. Until now this was not a problem. But you should double check with your system, if this force is used."
+            )
+            return True
+        else:
+            raise ProtexException(
+                f"{name} is not yet covered in Protex. Please write an issue on Github."
+            )
+
     @staticmethod
     def load(
         fname: str,
@@ -415,88 +452,85 @@ class ProtexSystem:
                 logger.debug(atom_names)
 
                 for force in sim.system.getForces():
-                    # print(type(force).__name__)
-                    if type(force).__name__ == "NonbondedForce":
-                        forces_dict[type(force).__name__] = [
-                            force.getParticleParameters(idx) for idx in atom_idxs
-                        ]
-                        # Also add exceptions
-                        for exc_id in range(force.getNumExceptions()):
-                            f = force.getExceptionParameters(exc_id)
-                            idx1 = f[0]
-                            idx2 = f[1]
-                            if idx1 in atom_idxs and idx2 in atom_idxs:
-                                forces_dict[type(force).__name__ + "Exceptions"].append(
-                                    f
-                                )
+                    forcename = type(force).__name__
+                    if self.force_is_valid(forcename):
+                        # process force
+                        if forcename == "NonbondedForce":
+                            forces_dict[forcename] = [
+                                force.getParticleParameters(idx) for idx in atom_idxs
+                            ]
+                            # Also add exceptions
+                            for exc_id in range(force.getNumExceptions()):
+                                f = force.getExceptionParameters(exc_id)
+                                idx1 = f[0]
+                                idx2 = f[1]
+                                if idx1 in atom_idxs and idx2 in atom_idxs:
+                                    forces_dict[forcename + "Exceptions"].append(f)
 
-                    if type(force).__name__ == "HarmonicBondForce":
-                        for bond_id in range(force.getNumBonds()):
-                            f = force.getBondParameters(bond_id)
-                            idx1 = f[0]
-                            idx2 = f[1]
-                            if idx1 in atom_idxs and idx2 in atom_idxs:
-                                forces_dict[type(force).__name__].append(f)
+                        elif forcename == "HarmonicBondForce":
+                            for bond_id in range(force.getNumBonds()):
+                                f = force.getBondParameters(bond_id)
+                                idx1 = f[0]
+                                idx2 = f[1]
+                                if idx1 in atom_idxs and idx2 in atom_idxs:
+                                    forces_dict[forcename].append(f)
 
-                    if type(force).__name__ == "HarmonicAngleForce":
-                        for angle_id in range(force.getNumAngles()):
-                            f = force.getAngleParameters(angle_id)
-                            if (
-                                f[0] in atom_idxs
-                                and f[1] in atom_idxs
-                                and f[2] in atom_idxs
-                            ):
-                                forces_dict[type(force).__name__].append(f)
+                        elif forcename == "HarmonicAngleForce":
+                            for angle_id in range(force.getNumAngles()):
+                                f = force.getAngleParameters(angle_id)
+                                if (
+                                    f[0] in atom_idxs
+                                    and f[1] in atom_idxs
+                                    and f[2] in atom_idxs
+                                ):
+                                    forces_dict[forcename].append(f)
 
-                    if type(force).__name__ == "PeriodicTorsionForce":
-                        for torsion_id in range(force.getNumTorsions()):
-                            f = force.getTorsionParameters(torsion_id)
-                            if (
-                                f[0] in atom_idxs
-                                and f[1] in atom_idxs
-                                and f[2] in atom_idxs
-                                and f[3] in atom_idxs
-                            ):
-                                forces_dict[type(force).__name__].append(f)
+                        elif forcename == "PeriodicTorsionForce":
+                            for torsion_id in range(force.getNumTorsions()):
+                                f = force.getTorsionParameters(torsion_id)
+                                if (
+                                    f[0] in atom_idxs
+                                    and f[1] in atom_idxs
+                                    and f[2] in atom_idxs
+                                    and f[3] in atom_idxs
+                                ):
+                                    forces_dict[forcename].append(f)
 
-                    if type(force).__name__ == "CustomTorsionForce":
-                        for torsion_id in range(force.getNumTorsions()):
-                            f = force.getTorsionParameters(torsion_id)
+                        elif forcename == "CustomTorsionForce":
+                            for torsion_id in range(force.getNumTorsions()):
+                                f = force.getTorsionParameters(torsion_id)
 
-                            if (
-                                f[0] in atom_idxs
-                                and f[1] in atom_idxs
-                                and f[2] in atom_idxs
-                                and f[3] in atom_idxs
-                            ):
-                                forces_dict[type(force).__name__].append(f)
+                                if (
+                                    f[0] in atom_idxs
+                                    and f[1] in atom_idxs
+                                    and f[2] in atom_idxs
+                                    and f[3] in atom_idxs
+                                ):
+                                    forces_dict[forcename].append(f)
 
-                    if type(force).__name__ == "CMAPTorsionForce":
-                        pass
-
-                    # DrudeForce stores charge and polarizability in ParticleParameters and Thole values in ScreenedPairParameters
-                    # Number of these two is not the same -> i did two loops, and called the thole parameters DrudeForceThole.
-                    # Not ideal but i could not think of anything better, pay attention to the set and get methods for drudes.
-                    if type(force).__name__ == "DrudeForce":
-                        particle_map = {}
-                        for drude_id in range(force.getNumParticles()):
-                            f = force.getParticleParameters(drude_id)
-                            idx1 = f[0]  # drude
-                            idx2 = f[1]  # parentatom
-                            if idx1 in atom_idxs and idx2 in atom_idxs:
-                                forces_dict[type(force).__name__].append(f)
-                            # store the drude idx as they are in the system
-                            particle_map[drude_id] = idx1
-                        for drude_id in range(force.getNumScreenedPairs()):
-                            f = force.getScreenedPairParameters(drude_id)
-                            # yields the id within this force == drude_id from getNumParticles
-                            idx1 = f[0]
-                            idx2 = f[1]
-                            # get the drude idxs in the system
-                            drude1 = particle_map[idx1]
-                            drude2 = particle_map[idx2]
-                            if drude1 in atom_idxs and drude2 in atom_idxs:
-                                forces_dict[type(force).__name__ + "Thole"].append(f)
+                        # DrudeForce stores charge and polarizability in ParticleParameters and Thole values in ScreenedPairParameters
+                        # Number of these two is not the same -> i did two loops, and called the thole parameters DrudeForceThole.
+                        # Not ideal but i could not think of anything better, pay attention to the set and get methods for drudes.
+                        elif forcename == "DrudeForce":
+                            particle_map = {}
+                            for drude_id in range(force.getNumParticles()):
+                                f = force.getParticleParameters(drude_id)
+                                idx1 = f[0]  # drude
+                                idx2 = f[1]  # parentatom
+                                if idx1 in atom_idxs and idx2 in atom_idxs:
+                                    forces_dict[forcename].append(f)
+                                # store the drude idx as they are in the system
+                                particle_map[drude_id] = idx1
+                            for drude_id in range(force.getNumScreenedPairs()):
+                                f = force.getScreenedPairParameters(drude_id)
+                                # yields the id within this force == drude_id from getNumParticles
+                                idx1 = f[0]
+                                idx2 = f[1]
+                                # get the drude idxs in the system
+                                drude1 = particle_map[idx1]
+                                drude2 = particle_map[idx2]
+                                if drude1 in atom_idxs and drude2 in atom_idxs:
+                                    forces_dict[forcename + "Thole"].append(f)
                 break  # do this only for the relevant residue once
         else:
             raise RuntimeError("residue not found")
@@ -569,70 +603,65 @@ class ProtexSystem:
         It is used to specify which force belong to which residue.
         It filles the self.per_residue_forces variable.
         """
-        ignore = ["CMMotionRemover", "MonteCarloBarostat"]
         for force in self.system.getForces():
-            fgroup = force.getForceGroup()
-            if type(force).__name__ == "NonbondedForce":
-                # only treat exceptions
-                for exc_idx in range(force.getNumExceptions()):
-                    f = force.getExceptionParameters(exc_idx)
-                    idx1, idx2 = f[0], f[1]
-                    value = (exc_idx, idx1, idx2)
-                    maxi = max(idx1, idx2)
-                    self._add_force(fgroup, "NonbondedForceExceptions", maxi, value)
-            elif type(force).__name__ == "DrudeForce":
-                particle_map = {}
-                for drude_idx in range(force.getNumParticles()):
-                    f = force.getParticleParameters(drude_idx)
-                    idx1, idx2, idx3, idx4, idx5 = f[0], f[1], f[2], f[3], f[4]
-                    value = (drude_idx, idx1, idx2, idx3, idx4, idx5)
-                    maxi = max(
-                        idx1, idx2
-                    )  # drude and parent is enough, we do not need the anisotropy stuff for this here
-                    self._add_force(fgroup, "DrudeForce", maxi, value)
-                    particle_map[drude_idx] = idx1
-                for drude_idx in range(force.getNumScreenedPairs()):
-                    f = force.getScreenedPairParameters(drude_idx)
-                    idx1, idx2 = f[0], f[1]
-                    drude1 = particle_map[idx1]
-                    drude2 = particle_map[idx2]
-                    value = (drude_idx, idx1, idx2)
-                    maxi = max(drude1, drude2)
-                    self._add_force(fgroup, "DrudeForceThole", maxi, value)
-            elif type(force).__name__ == "HarmonicBondForce":
-                for bond_idx in range(force.getNumBonds()):
-                    f = force.getBondParameters(bond_idx)
-                    idx1, idx2 = f[0], f[1]
-                    value = (bond_idx, idx1, idx2)
-                    maxi = max(idx1, idx2)
-                    self._add_force(fgroup, "HarmonicBondForce", maxi, value)
-            elif type(force).__name__ == "HarmonicAngleForce":
-                for angle_idx in range(force.getNumAngles()):
-                    f = force.getAngleParameters(angle_idx)
-                    idx1, idx2, idx3 = f[0], f[1], f[2]
-                    value = (angle_idx, idx1, idx2, idx3)
-                    maxi = max(idx1, idx2, idx3)
-                    self._add_force(fgroup, "HarmonicAngleForce", maxi, value)
-            elif type(force).__name__ == "PeriodicTorsionForce":
-                for torsion_idx in range(force.getNumTorsions()):
-                    f = force.getTorsionParameters(torsion_idx)
-                    idx1, idx2, idx3, idx4 = f[0], f[1], f[2], f[3]
-                    value = (torsion_idx, idx1, idx2, idx3, idx4)
-                    maxi = max(idx1, idx2, idx3, idx4)
-                    self._add_force(fgroup, "PeriodicTorsionForce", maxi, value)
-            elif type(force).__name__ == "CustomTorsionForce":
-                for ctorsion_idx in range(force.getNumTorsions()):
-                    f = force.getTorsionParameters(ctorsion_idx)
-                    idx1, idx2, idx3, idx4 = f[0], f[1], f[2], f[3]
-                    value = (ctorsion_idx, idx1, idx2, idx3, idx4)
-                    maxi = max(idx1, idx2, idx3, idx4)
-                    self._add_force(fgroup, "CustomTorsionForce", maxi, value)
-            elif type(force).__name__ in ignore:
-                pass
-            else:
-                print(
-                    f"ATTENTION: Force {type(force).__name__} not covered. This may lead to wrong results."
-                )
+            forcename = type(force).__name__
+            if self.force_is_valid(forcename):
+                fgroup = force.getForceGroup()
+                if forcename == "NonbondedForce":
+                    # only treat exceptions
+                    for exc_idx in range(force.getNumExceptions()):
+                        f = force.getExceptionParameters(exc_idx)
+                        idx1, idx2 = f[0], f[1]
+                        value = (exc_idx, idx1, idx2)
+                        maxi = max(idx1, idx2)
+                        self._add_force(fgroup, "NonbondedForceExceptions", maxi, value)
+                elif forcename == "DrudeForce":
+                    particle_map = {}
+                    for drude_idx in range(force.getNumParticles()):
+                        f = force.getParticleParameters(drude_idx)
+                        idx1, idx2, idx3, idx4, idx5 = f[0], f[1], f[2], f[3], f[4]
+                        value = (drude_idx, idx1, idx2, idx3, idx4, idx5)
+                        maxi = max(
+                            idx1, idx2
+                        )  # drude and parent is enough, we do not need the anisotropy stuff for this here
+                        self._add_force(fgroup, "DrudeForce", maxi, value)
+                        particle_map[drude_idx] = idx1
+                    for drude_idx in range(force.getNumScreenedPairs()):
+                        f = force.getScreenedPairParameters(drude_idx)
+                        idx1, idx2 = f[0], f[1]
+                        drude1 = particle_map[idx1]
+                        drude2 = particle_map[idx2]
+                        value = (drude_idx, idx1, idx2)
+                        maxi = max(drude1, drude2)
+                        self._add_force(fgroup, "DrudeForceThole", maxi, value)
+                elif forcename == "HarmonicBondForce":
+                    for bond_idx in range(force.getNumBonds()):
+                        f = force.getBondParameters(bond_idx)
+                        idx1, idx2 = f[0], f[1]
+                        value = (bond_idx, idx1, idx2)
+                        maxi = max(idx1, idx2)
+                        self._add_force(fgroup, "HarmonicBondForce", maxi, value)
+                elif forcename == "HarmonicAngleForce":
+                    for angle_idx in range(force.getNumAngles()):
+                        f = force.getAngleParameters(angle_idx)
+                        idx1, idx2, idx3 = f[0], f[1], f[2]
+                        value = (angle_idx, idx1, idx2, idx3)
+                        maxi = max(idx1, idx2, idx3)
+                        self._add_force(fgroup, "HarmonicAngleForce", maxi, value)
+                elif forcename == "PeriodicTorsionForce":
+                    for torsion_idx in range(force.getNumTorsions()):
+                        f = force.getTorsionParameters(torsion_idx)
+                        idx1, idx2, idx3, idx4 = f[0], f[1], f[2], f[3]
+                        value = (torsion_idx, idx1, idx2, idx3, idx4)
+                        maxi = max(idx1, idx2, idx3, idx4)
+                        self._add_force(fgroup, "PeriodicTorsionForce", maxi, value)
+                elif forcename == "CustomTorsionForce":
+                    for ctorsion_idx in range(force.getNumTorsions()):
+                        f = force.getTorsionParameters(ctorsion_idx)
+                        idx1, idx2, idx3, idx4 = f[0], f[1], f[2], f[3]
+                        value = (ctorsion_idx, idx1, idx2, idx3, idx4)
+                        maxi = max(idx1, idx2, idx3, idx4)
+                        self._add_force(fgroup, "CustomTorsionForce", maxi, value)
 
     def _fill_residue_templates(self, name):
         if name in self.templates.names:
