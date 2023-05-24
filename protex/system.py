@@ -353,12 +353,6 @@ class ProtexSystem:
         self.simulation: openmm.app.simulation.Simulation = simulation
         self.templates: ProtexTemplates = templates
         self.simulation_for_parameters = simulation_for_parameters
-        # self.pair_12_13_list = self._build_exclusion_list(self.topology)
-        # self.pair_12_13_list_params = (
-        #    self._build_exclusion_list(self.simulation_for_parameters.topology)
-        #    if self.simulation_for_parameters is not None
-        #    else self.pair_12_13_list
-        # )
         self.fast: bool = fast
         self.residues: list[Residue] = self._set_initial_states()
         self.boxlength: openmm.Quantity = (
@@ -402,35 +396,6 @@ class ProtexSystem:
             if type(force).__name__ == name:
                 force.updateParametersInContext(self.simulation.context)
 
-    # deprecated, not needed anymore
-    # def _build_exclusion_list(self, topology):
-    #     pair_12_set = set()
-    #     pair_13_set = set()
-    #     for bond in topology.bonds():
-    #         a1, a2 = bond.atom1, bond.atom2
-    #         if "H" not in a1.name and "H" not in a2.name:
-    #             pair = (
-    #                 min(a1.index, a2.index),
-    #                 max(a1.index, a2.index),
-    #             )
-    #             pair_12_set.add(pair)
-    #     for a in pair_12_set:
-    #         for b in pair_12_set:
-    #             shared = set(a).intersection(set(b))
-    #             if len(shared) == 1:
-    #                 pair = tuple(sorted(set(list(a) + list(b)) - shared))
-    #                 pair_13_set.add(pair)
-    #                 # there were duplicates in pair_13_set, e.g. (1,3) and (3,1), needs to be sorted
-
-    #     # self.pair_12_list = list(sorted(pair_12_set))
-    #     # self.pair_13_list = list(sorted(pair_13_set - pair_12_set))
-    #     # self.pair_12_13_list = self.pair_12_list + self.pair_13_list
-    #     # change to return the list and set the parameters in the init method?
-    #     pair_12_list = list(sorted(pair_12_set))
-    #     pair_13_list = list(sorted(pair_13_set - pair_12_set))
-    #     pair_12_13_list = pair_12_list + pair_13_list
-    #     return pair_12_13_list
-
     def _extract_templates(self, query_name: str) -> defaultdict:
         # returns the forces for the residue name
         forces_dict = defaultdict(list)
@@ -441,8 +406,6 @@ class ProtexSystem:
             sim = self.simulation_for_parameters
         else:
             sim = self.simulation
-
-        # pair_12_13_list_params = self._build_exclusion_list(sim.topology)
 
         for residue in sim.topology.residues():
             if query_name == residue.name:
@@ -524,27 +487,15 @@ class ProtexSystem:
                                 forces_dict[type(force).__name__].append(f)
                             # store the drude idx as they are in the system
                             particle_map[drude_id] = idx1
-                        # print(self.pair_12_13_list)
-                        # assert ( #? not working with tfa, investigate
-                        #    len(pair_12_13_list_params) == force.getNumScreenedPairs()
-                        # ), f"{len(pair_12_13_list_params)=}, {force.getNumScreenedPairs()=}"
                         for drude_id in range(force.getNumScreenedPairs()):
                             f = force.getScreenedPairParameters(drude_id)
-                            idx1 = f[
-                                0
-                            ]  # yields the id within this force == drude_id from getNumParticles
+                            # yields the id within this force == drude_id from getNumParticles
+                            idx1 = f[0]
                             idx2 = f[1]
-                            thole = f[2]
                             # get the drude idxs in the system
                             drude1 = particle_map[idx1]
                             drude2 = particle_map[idx2]
-                            # parent1, parent2 = pair_12_13_list_params[drude_id]
-                            # drude1, drude2 = parent1 + 1, parent2 + 1
-                            # print(f"thole {idx1=}, {idx2=}")
-                            # print(f"{drude_id=}, {f=}")
                             if drude1 in atom_idxs and drude2 in atom_idxs:
-                                # print(f"Thole {query_name=}")
-                                # print(f"{drude1=}, {drude2=}")
                                 forces_dict[type(force).__name__ + "Thole"].append(f)
                 break  # do this only for the relevant residue once
         else:
@@ -706,9 +657,6 @@ class ProtexSystem:
         For each ionic liquid residue in the system the protonation state
         is interfered from the provided openMM system object and the protonation site is defined.
         """
-        # self._build_exclusion_list()
-        # pair_12_13_list = self._build_exclusion_list(self.topology)
-
         residues = []
         self.residue_templates = dict()
         # this will become a dict of the form:
@@ -750,7 +698,6 @@ class ProtexSystem:
                         self.system,
                         parameters_state1,
                         parameters_state2,
-                        # pair_12_13_list,
                         (
                             self.templates.has_equivalent_atom(name),
                             self.templates.has_equivalent_atom(name_of_paired_ion),
@@ -764,7 +711,6 @@ class ProtexSystem:
                         self.system,
                         parameters_state1,
                         parameters_state2,
-                        # pair_12_13_list,
                         (
                             self.templates.has_equivalent_atom(name),
                             self.templates.has_equivalent_atom(name_of_paired_ion),

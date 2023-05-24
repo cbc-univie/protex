@@ -19,8 +19,6 @@ class Residue:
         The parameters for the residue
     alternativ_parameters: dict[list]
         The parameters for the alternativ (protonated/deprotonated) state
-    pair_12_13_exclusion_list: list
-        1-2 and 1-3 exclusions in the system
     force_idxs:
     has_equivalent_atoms:  tuple[bool,bool]
         if original name and alternative name have equivalent atoms
@@ -44,8 +42,6 @@ class Residue:
         Records the charge state of that residue
     system: openmm.openmm.System
         The system generated with openMM, where all residues are in
-    pair_12_13_list: list
-         1-2 and 1-3 exclusions in the system
     equivalent_atoms: dict[str, bool]
         if orignal_name and alternative name have equivalent atoms
     force_idxs:
@@ -58,7 +54,6 @@ class Residue:
         system,
         inital_parameters,
         alternativ_parameters,
-        # pair_12_13_exclusion_list,
         has_equivalent_atoms,
         force_idxs=dict(),
     ) -> None:
@@ -74,7 +69,6 @@ class Residue:
         }
         self.record_charge_state = []
         self.record_charge_state.append(self.endstate_charge)  # Not used anywhere?
-        # self.pair_12_13_list = pair_12_13_exclusion_list
         if has_equivalent_atoms is not None:
             self.equivalent_atoms: dict[str, bool] = {
                 self.original_name: has_equivalent_atoms[0],
