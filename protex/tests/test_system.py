@@ -1047,84 +1047,12 @@ def test_dummy(tmp_path):
     # )
 
 
-from protex.residue import Residue
-
-
-class ProtexSystemOld(ProtexSystem):
-    def _set_initial_states(self) -> list:
-        """set_initial_states.
-
-        For each ionic liquid residue in the system the protonation state
-        is interfered from the provided openMM system object and the protonation site is defined.
-        """
-        residues = []
-        templates = dict()
-
-        # for each residue type get forces
-        for r in self.topology.residues():
-            name = r.name
-            name_of_paired_ion = self.templates.get_residue_name_for_coupled_state(name)
-
-            if name in templates or name_of_paired_ion in templates:
-                continue
-
-            templates[name] = self._extract_templates(name)
-            templates[name_of_paired_ion] = self._extract_templates(name_of_paired_ion)
-
-        for r in self.topology.residues():
-            name = r.name
-            if name in self.templates.names:
-                name_of_paired_ion = self.templates.get_residue_name_for_coupled_state(
-                    name
-                )
-
-                parameters_state1 = templates[name]
-                parameters_state2 = templates[name_of_paired_ion]
-                # check that we have the same number of parameters
-                self._check_nr_of_forces(
-                    parameters_state1, parameters_state2, name, name_of_paired_ion
-                )
-                atom_idxs = [
-                    atom.index for atom in r.atoms()
-                ]  # also give them to initilaizer, not inside residue?
-
-                residues.append(
-                    Residue(
-                        r,
-                        name_of_paired_ion,
-                        self.system,
-                        parameters_state1,
-                        parameters_state2,
-                        self.pair_12_13_list,
-                        (
-                            self.templates.has_equivalent_atom(name),
-                            self.templates.has_equivalent_atom(name_of_paired_ion),
-                        ),
-                    )
-                )
-                residues[
-                    -1
-                ].current_name = (
-                    name  # Why, isnt it done in the initializer of Residue?
-                )
-
-            else:
-                raise RuntimeError("Found resiude not present in Templates: {r.name}")
-        return residues
-
-
 @pytest.mark.skipif(
     os.getenv("CI") == "true",
     reason="Will fail sporadicaly.",
 )
 def test_equivalence_new_old_method(caplog, tmp_path):
     caplog.set_level(logging.CRITICAL)
-
-    def print_force_contrib(simulation):
-        for i, f in enumerate(simulation.system.getForces()):
-            group = f.getForceGroup()
-            state = simulation.context.getState(getEnergy=True, groups={group})
-            print(f.getName(), state.getPotentialEnergy())
 
     def get_energy(sim):
         state = sim.context.getState(getEnergy=True)
@@ -1143,19 +1071,17 @@ def test_equivalence_new_old_method(caplog, tmp_path):
         simulation_new = generate_small_box(
             cuda_precision="double"
         )  # use_plugin=False, platform="Reference")
-        # simulation_orig = generate_small_box(use_plugin=False, platformname="Reference")
-        # simulation_new = generate_small_box(use_plugin=False, platformname="Reference")
         # simulation_orig = generate_im1h_oac_system(
-        #     use_plugin=False, platformname="Reference"
+        #     use_plugin=False
         # )
         # simulation_new = generate_im1h_oac_system(
-        #     use_plugin=False, platformname="Reference"
+        #     use_plugin=False
         # )
         # simulation_orig = generate_single_im1h_oac_system(
-        #     use_plugin=False, platformname="Reference"
+        #     use_plugin=False
         # )
         # simulation_new = generate_single_im1h_oac_system(
-        #     use_plugin=False, platformname="Reference"
+        #     use_plugin=False
         # )
         # get ionic liquid templates
         allowed_updates = {}
@@ -1164,7 +1090,6 @@ def test_equivalence_new_old_method(caplog, tmp_path):
 
         templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
         # wrap system in IonicLiquidSystem
-        # ionic_liquid_orig = ProtexSystemOld(simulation_orig, templates)
         ionic_liquid_orig = ProtexSystem(simulation_orig, templates, fast=False)
         ionic_liquid_new = ProtexSystem(simulation_new, templates)
         return ionic_liquid_orig, ionic_liquid_new
@@ -1221,8 +1146,6 @@ def test_equivalence_new_old_method(caplog, tmp_path):
         # nothing happend so far:
         e_orig = get_energy(ionic_liquid_orig.simulation)
         e_new = get_energy(ionic_liquid_new.simulation)
-        # print_force_contrib(ionic_liquid_orig.simulation)
-        # print_force_contrib(ionic_liquid_new.simulation)
         write_xml(ionic_liquid_orig, f"{tmp_path}/orig_before2_{force}.xml")
         write_xml(ionic_liquid_new, f"{tmp_path}/new_before2_{force}.xml")
         assert e_orig == e_new
@@ -1240,9 +1163,6 @@ def test_equivalence_new_old_method(caplog, tmp_path):
         write_xml(ionic_liquid_orig, f"{tmp_path}/orig_after_{force}.xml")
         write_xml(ionic_liquid_new, f"{tmp_path}/new_after_{force}.xml")
         assert e_orig == e_new, f"at force {force}"
-
-        # print_force_contrib(ionic_liquid_orig.simulation)
-        # print_force_contrib(ionic_liquid_new.simulation)
 
     for force_orig, force_new in zip(
         ionic_liquid_orig.system.getForces(), ionic_liquid_new.system.getForces()
