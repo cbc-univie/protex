@@ -163,16 +163,14 @@ class Residue:
                 for parms_nonbonded, idx in zip(parms_nonb, self.atom_idxs):
                     charge, sigma, epsilon = parms_nonbonded
                     force.setParticleParameters(idx, charge, sigma, epsilon)
-                try:
+                try:  # use the fast way
                     lst = self.force_idxs[fgroup]["NonbondedForceExceptions"]
-                    # if self.nbond_exception_idxs is not None:  # use the fast way
-                    for exc_idx, idx1, idx2 in lst:  # self.nbond_exception_idxs:
+                    for exc_idx, idx1, idx2 in lst:
                         chargeprod, sigma, epsilon = parms_exceptions.popleft()
                         force.setExceptionParameters(
                             exc_idx, idx1, idx2, chargeprod, sigma, epsilon
                         )
-                except KeyError:
-                    # else:  # use the old slow way
+                except KeyError:  # use the old slow way
                     for exc_idx in range(force.getNumExceptions()):
                         f = force.getExceptionParameters(exc_idx)
                         idx1 = f[0]
@@ -188,18 +186,15 @@ class Residue:
         for force in self.system.getForces():
             fgroup = force.getForceGroup()
             if type(force).__name__ == "HarmonicBondForce":
-                try:
+                try:  # use the fast way
                     lst = self.force_idxs[fgroup]["HarmonicBondForce"]
-                    # if self.bond_idxs is not None:  # use the fast way
-                    for bond_idx, idx1, idx2 in lst:  # self.bond_idxs[harmbond_ctr]:
+                    for bond_idx, idx1, idx2 in lst:
                         r, k = parms.popleft()
                         force.setBondParameters(bond_idx, idx1, idx2, r, k)
                 except KeyError:
-                    # else:
                     for bond_idx in range(force.getNumBonds()):
                         f = force.getBondParameters(bond_idx)
-                        idx1 = f[0]
-                        idx2 = f[1]
+                        idx1, idx2 = f[0], f[1]
                         if idx1 in self.atom_idxs and idx2 in self.atom_idxs:
                             r, k = parms.popleft()
                             force.setBondParameters(bond_idx, idx1, idx2, r, k)
@@ -212,17 +207,14 @@ class Residue:
                 fgroup = force.getForceGroup()
                 try:
                     lst = self.force_idxs[fgroup]["HarmonicAngleForce"]
-                    # if self.angle_idxs is not None:  # use the fast way
-                    for angle_idx, idx1, idx2, idx3 in lst:  # self.angle_idxs:
+                    for angle_idx, idx1, idx2, idx3 in lst:
                         thetha, k = parms.popleft()
                         force.setAngleParameters(angle_idx, idx1, idx2, idx3, thetha, k)
                 except KeyError:
                     # else:
                     for angle_idx in range(force.getNumAngles()):
                         f = force.getAngleParameters(angle_idx)
-                        idx1 = f[0]
-                        idx2 = f[1]
-                        idx3 = f[2]
+                        idx1, idx2, idx3 = f[0], f[1], f[2]
                         if (
                             idx1 in self.atom_idxs
                             and idx2 in self.atom_idxs
@@ -241,26 +233,21 @@ class Residue:
                 fgroup = force.getForceGroup()
                 try:
                     lst = self.force_idxs[fgroup]["PeriodicTorsionForce"]
-                    # if self.torsion_idxs is not None:
                     for (
                         torsion_idx,
                         idx1,
                         idx2,
                         idx3,
                         idx4,
-                    ) in lst:  # self.torsion_idxs:
+                    ) in lst:
                         per, phase, k = parms.popleft()
                         force.setTorsionParameters(
                             torsion_idx, idx1, idx2, idx3, idx4, per, phase, k
                         )
                 except KeyError:
-                    # else:
                     for torsion_idx in range(force.getNumTorsions()):
                         f = force.getTorsionParameters(torsion_idx)
-                        idx1 = f[0]
-                        idx2 = f[1]
-                        idx3 = f[2]
-                        idx4 = f[3]
+                        idx1, idx2, idx3, idx4 = f[0], f[1], f[2], f[3]
                         if (
                             idx1 in self.atom_idxs
                             and idx2 in self.atom_idxs
@@ -280,26 +267,21 @@ class Residue:
                 fgroup = force.getForceGroup()
                 try:
                     lst = self.force_idxs[fgroup]["CustomTorsionForce"]
-                    # if self.custom_torsion_idxs is not None:
                     for (
                         ctorsion_idx,
                         idx1,
                         idx2,
                         idx3,
                         idx4,
-                    ) in lst:  # self.custom_torsion_idxs:
+                    ) in lst:
                         k, psi0 = parms.popleft()  # tuple with (k,psi0)
                         force.setTorsionParameters(
                             ctorsion_idx, idx1, idx2, idx3, idx4, (k, psi0)
                         )
                 except KeyError:
-                    # else:
                     for torsion_idx in range(force.getNumTorsions()):
                         f = force.getTorsionParameters(torsion_idx)
-                        idx1 = f[0]
-                        idx2 = f[1]
-                        idx3 = f[2]
-                        idx4 = f[3]
+                        idx1, idx2, idx3, idx4 = f[0], f[1], f[2], f[3]
                         if (
                             idx1 in self.atom_idxs
                             and idx2 in self.atom_idxs
@@ -320,7 +302,6 @@ class Residue:
                 fgroup = force.getForceGroup()
                 try:
                     lst = self.force_idxs[fgroup]["DrudeForce"]
-                    # if self.drude_idxs is not None:  # use the fast way
                     for (
                         drude_idx,
                         idx1,
@@ -328,7 +309,7 @@ class Residue:
                         idx3,
                         idx4,
                         idx5,
-                    ) in lst:  # self.drude_idxs:
+                    ) in lst:
                         charge, pol, aniso12, aniso14 = parms_pol.popleft()
                         force.setParticleParameters(
                             drude_idx,
@@ -342,16 +323,10 @@ class Residue:
                             aniso12,
                             aniso14,
                         )
-                        # particle_map[drude_idx] = idx1
                 except KeyError:
-                    # else:
                     for drude_idx in range(force.getNumParticles()):
                         f = force.getParticleParameters(drude_idx)
-                        idx1 = f[0]
-                        idx2 = f[1]
-                        idx3 = f[2]
-                        idx4 = f[3]
-                        idx5 = f[4]
+                        idx1, idx2, idx3, idx4, idx5 = f[0], f[1], f[2], f[3], f[4]
                         if idx1 in self.atom_idxs and idx2 in self.atom_idxs:
                             charge, pol, aniso12, aniso14 = parms_pol.popleft()
                             force.setParticleParameters(
@@ -369,18 +344,14 @@ class Residue:
                         particle_map[drude_idx] = idx1
                 try:
                     lst = self.force_idxs[fgroup]["DrudeForceThole"]
-                    # if self.thole_idxs is not None:  # use the fast way
-                    for thole_idx, idx1, idx2 in lst:  # self.thole_idxs:
+                    for thole_idx, idx1, idx2 in lst:
                         thole = parms_thole.popleft()
                         force.setScreenedPairParameters(thole_idx, idx1, idx2, thole)
                 except KeyError:
-                    # else:
                     for drude_idx in range(force.getNumScreenedPairs()):
                         f = force.getScreenedPairParameters(drude_idx)
-                        idx1 = f[0]
-                        idx2 = f[1]
-                        drude1 = particle_map[idx1]
-                        drude2 = particle_map[idx2]
+                        idx1, idx2 = f[0], f[1]
+                        drude1, drude2 = particle_map[idx1], particle_map[idx2]
                         # parent1, parent2 = self.pair_12_13_list[drude_idx]
                         # drude1, drude2 = parent1 + 1, parent2 + 1
                         if drude1 in self.atom_idxs and drude2 in self.atom_idxs:
