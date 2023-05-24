@@ -430,12 +430,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">simulation</span><span class="p">:</span> <span class="n">openmm</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">Simulation</span> <span class="o">=</span> <span class="n">simulation</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">templates</span><span class="p">:</span> <span class="n">ProtexTemplates</span> <span class="o">=</span> <span class="n">templates</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">simulation_for_parameters</span> <span class="o">=</span> <span class="n">simulation_for_parameters</span>
-        <span class="c1"># self.pair_12_13_list = self._build_exclusion_list(self.topology)</span>
-        <span class="c1"># self.pair_12_13_list_params = (</span>
-        <span class="c1">#    self._build_exclusion_list(self.simulation_for_parameters.topology)</span>
-        <span class="c1">#    if self.simulation_for_parameters is not None</span>
-        <span class="c1">#    else self.pair_12_13_list</span>
-        <span class="c1"># )</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fast</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">fast</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">residues</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Residue</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set_initial_states</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">boxlength</span><span class="p">:</span> <span class="n">openmm</span><span class="o">.</span><span class="n">Quantity</span> <span class="o">=</span> <span class="p">(</span>
@@ -479,35 +473,6 @@
             <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">force</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="n">name</span><span class="p">:</span>
                 <span class="n">force</span><span class="o">.</span><span class="n">updateParametersInContext</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">context</span><span class="p">)</span></div>
 
-    <span class="c1"># deprecated, not needed anymore</span>
-    <span class="c1"># def _build_exclusion_list(self, topology):</span>
-    <span class="c1">#     pair_12_set = set()</span>
-    <span class="c1">#     pair_13_set = set()</span>
-    <span class="c1">#     for bond in topology.bonds():</span>
-    <span class="c1">#         a1, a2 = bond.atom1, bond.atom2</span>
-    <span class="c1">#         if &quot;H&quot; not in a1.name and &quot;H&quot; not in a2.name:</span>
-    <span class="c1">#             pair = (</span>
-    <span class="c1">#                 min(a1.index, a2.index),</span>
-    <span class="c1">#                 max(a1.index, a2.index),</span>
-    <span class="c1">#             )</span>
-    <span class="c1">#             pair_12_set.add(pair)</span>
-    <span class="c1">#     for a in pair_12_set:</span>
-    <span class="c1">#         for b in pair_12_set:</span>
-    <span class="c1">#             shared = set(a).intersection(set(b))</span>
-    <span class="c1">#             if len(shared) == 1:</span>
-    <span class="c1">#                 pair = tuple(sorted(set(list(a) + list(b)) - shared))</span>
-    <span class="c1">#                 pair_13_set.add(pair)</span>
-    <span class="c1">#                 # there were duplicates in pair_13_set, e.g. (1,3) and (3,1), needs to be sorted</span>
-
-    <span class="c1">#     # self.pair_12_list = list(sorted(pair_12_set))</span>
-    <span class="c1">#     # self.pair_13_list = list(sorted(pair_13_set - pair_12_set))</span>
-    <span class="c1">#     # self.pair_12_13_list = self.pair_12_list + self.pair_13_list</span>
-    <span class="c1">#     # change to return the list and set the parameters in the init method?</span>
-    <span class="c1">#     pair_12_list = list(sorted(pair_12_set))</span>
-    <span class="c1">#     pair_13_list = list(sorted(pair_13_set - pair_12_set))</span>
-    <span class="c1">#     pair_12_13_list = pair_12_list + pair_13_list</span>
-    <span class="c1">#     return pair_12_13_list</span>
-
     <span class="k">def</span> <span class="nf">_extract_templates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">defaultdict</span><span class="p">:</span>
         <span class="c1"># returns the forces for the residue name</span>
         <span class="n">forces_dict</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
@@ -518,8 +483,6 @@
             <span class="n">sim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">simulation_for_parameters</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">sim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">simulation</span>
-
-        <span class="c1"># pair_12_13_list_params = self._build_exclusion_list(sim.topology)</span>
 
         <span class="k">for</span> <span class="n">residue</span> <span class="ow">in</span> <span class="n">sim</span><span class="o">.</span><span class="n">topology</span><span class="o">.</span><span class="n">residues</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">query_name</span> <span class="o">==</span> <span class="n">residue</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
@@ -601,27 +564,15 @@
                                 <span class="n">forces_dict</span><span class="p">[</span><span class="nb">type</span><span class="p">(</span><span class="n">force</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
                             <span class="c1"># store the drude idx as they are in the system</span>
                             <span class="n">particle_map</span><span class="p">[</span><span class="n">drude_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">idx1</span>
-                        <span class="c1"># print(self.pair_12_13_list)</span>
-                        <span class="c1"># assert ( #? not working with tfa, investigate</span>
-                        <span class="c1">#    len(pair_12_13_list_params) == force.getNumScreenedPairs()</span>
-                        <span class="c1"># ), f&quot;{len(pair_12_13_list_params)=}, {force.getNumScreenedPairs()=}&quot;</span>
                         <span class="k">for</span> <span class="n">drude_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">force</span><span class="o">.</span><span class="n">getNumScreenedPairs</span><span class="p">()):</span>
                             <span class="n">f</span> <span class="o">=</span> <span class="n">force</span><span class="o">.</span><span class="n">getScreenedPairParameters</span><span class="p">(</span><span class="n">drude_id</span><span class="p">)</span>
-                            <span class="n">idx1</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span>
-                                <span class="mi">0</span>
-                            <span class="p">]</span>  <span class="c1"># yields the id within this force == drude_id from getNumParticles</span>
+                            <span class="c1"># yields the id within this force == drude_id from getNumParticles</span>
+                            <span class="n">idx1</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
                             <span class="n">idx2</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-                            <span class="n">thole</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
                             <span class="c1"># get the drude idxs in the system</span>
                             <span class="n">drude1</span> <span class="o">=</span> <span class="n">particle_map</span><span class="p">[</span><span class="n">idx1</span><span class="p">]</span>
                             <span class="n">drude2</span> <span class="o">=</span> <span class="n">particle_map</span><span class="p">[</span><span class="n">idx2</span><span class="p">]</span>
-                            <span class="c1"># parent1, parent2 = pair_12_13_list_params[drude_id]</span>
-                            <span class="c1"># drude1, drude2 = parent1 + 1, parent2 + 1</span>
-                            <span class="c1"># print(f&quot;thole {idx1=}, {idx2=}&quot;)</span>
-                            <span class="c1"># print(f&quot;{drude_id=}, {f=}&quot;)</span>
                             <span class="k">if</span> <span class="n">drude1</span> <span class="ow">in</span> <span class="n">atom_idxs</span> <span class="ow">and</span> <span class="n">drude2</span> <span class="ow">in</span> <span class="n">atom_idxs</span><span class="p">:</span>
-                                <span class="c1"># print(f&quot;Thole {query_name=}&quot;)</span>
-                                <span class="c1"># print(f&quot;{drude1=}, {drude2=}&quot;)</span>
                                 <span class="n">forces_dict</span><span class="p">[</span><span class="nb">type</span><span class="p">(</span><span class="n">force</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">+</span> <span class="s2">&quot;Thole&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
                 <span class="k">break</span>  <span class="c1"># do this only for the relevant residue once</span>
         <span class="k">else</span><span class="p">:</span>
@@ -783,9 +734,6 @@
 <span class="sd">        For each ionic liquid residue in the system the protonation state</span>
 <span class="sd">        is interfered from the provided openMM system object and the protonation site is defined.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># self._build_exclusion_list()</span>
-        <span class="c1"># pair_12_13_list = self._build_exclusion_list(self.topology)</span>
-
         <span class="n">residues</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">residue_templates</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
         <span class="c1"># this will become a dict of the form:</span>
@@ -827,7 +775,6 @@
                         <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="p">,</span>
                         <span class="n">parameters_state1</span><span class="p">,</span>
                         <span class="n">parameters_state2</span><span class="p">,</span>
-                        <span class="c1"># pair_12_13_list,</span>
                         <span class="p">(</span>
                             <span class="bp">self</span><span class="o">.</span><span class="n">templates</span><span class="o">.</span><span class="n">has_equivalent_atom</span><span class="p">(</span><span class="n">name</span><span class="p">),</span>
                             <span class="bp">self</span><span class="o">.</span><span class="n">templates</span><span class="o">.</span><span class="n">has_equivalent_atom</span><span class="p">(</span><span class="n">name_of_paired_ion</span><span class="p">),</span>
@@ -841,7 +788,6 @@
                         <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="p">,</span>
                         <span class="n">parameters_state1</span><span class="p">,</span>
                         <span class="n">parameters_state2</span><span class="p">,</span>
-                        <span class="c1"># pair_12_13_list,</span>
                         <span class="p">(</span>
                             <span class="bp">self</span><span class="o">.</span><span class="n">templates</span><span class="o">.</span><span class="n">has_equivalent_atom</span><span class="p">(</span><span class="n">name</span><span class="p">),</span>
                             <span class="bp">self</span><span class="o">.</span><span class="n">templates</span><span class="o">.</span><span class="n">has_equivalent_atom</span><span class="p">(</span><span class="n">name_of_paired_ion</span><span class="p">),</span>
