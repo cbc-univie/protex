@@ -21,6 +21,7 @@ class Residue:
         The parameters for the alternativ (protonated/deprotonated) state
     pair_12_13_exclusion_list: list
         1-2 and 1-3 exclusions in the system
+    force_idxs:
     has_equivalent_atoms:  tuple[bool,bool]
         if original name and alternative name have equivalent atoms
 
@@ -47,6 +48,7 @@ class Residue:
          1-2 and 1-3 exclusions in the system
     equivalent_atoms: dict[str, bool]
         if orignal_name and alternative name have equivalent atoms
+    force_idxs:
     """
 
     def __init__(
@@ -56,12 +58,14 @@ class Residue:
         system,
         inital_parameters,
         alternativ_parameters,
-        #pair_12_13_exclusion_list,
+        # pair_12_13_exclusion_list,
         has_equivalent_atoms,
+        force_idxs=dict(),
     ) -> None:
         self.residue = residue
         self.original_name = residue.name
         self.current_name = self.original_name
+        self.system = system
         self.atom_idxs = [atom.index for atom in residue.atoms()]
         self.atom_names = [atom.name for atom in residue.atoms()]
         self.parameters = {
@@ -69,9 +73,8 @@ class Residue:
             alternativ_name: alternativ_parameters,
         }
         self.record_charge_state = []
-        self.system = system
         self.record_charge_state.append(self.endstate_charge)  # Not used anywhere?
-        #self.pair_12_13_list = pair_12_13_exclusion_list
+        # self.pair_12_13_list = pair_12_13_exclusion_list
         if has_equivalent_atoms is not None:
             self.equivalent_atoms: dict[str, bool] = {
                 self.original_name: has_equivalent_atoms[0],
@@ -79,8 +82,9 @@ class Residue:
             }
         self.equivalent_atom_pos_in_list: int = None
         self.used_equivalent_atom: bool = False
+        self.force_idxs = force_idxs
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"Residue {self.current_name}, {self.residue}"
 
     @property
@@ -146,115 +150,166 @@ class Residue:
             parms = self._get_DrudeForce_parameters_at_lambda(lamb)
             self._set_DrudeForce_parameters(parms)
         else:
-            raise RuntimeWarning("Force name {force_name=} is not covered, no updates will happen on this one!")
+            raise RuntimeWarning(
+                "Force name {force_name=} is not covered, no updates will happen on this one!"
+            )
 
-    def _set_NonbondedForce_parameters(self, parms):
+    def _set_NonbondedForce_parameters(self, parms) -> None:  # noqa: N802
         parms_nonb = deque(parms[0])
         parms_exceptions = deque(parms[1])
         for force in self.system.getForces():
+            fgroup = force.getForceGroup()
             if type(force).__name__ == "NonbondedForce":
                 for parms_nonbonded, idx in zip(parms_nonb, self.atom_idxs):
                     charge, sigma, epsilon = parms_nonbonded
                     force.setParticleParameters(idx, charge, sigma, epsilon)
-
-                for exc_idx in range(force.getNumExceptions()):
-                    f = force.getExceptionParameters(exc_idx)
-                    idx1 = f[0]
-                    idx2 = f[1]
-                    if idx1 in self.atom_idxs and idx2 in self.atom_idxs:
+                try:  # use the fast way
+                    lst = self.force_idxs[fgroup]["NonbondedForceExceptions"]
+                    for exc_idx, idx1, idx2 in lst:
                         chargeprod, sigma, epsilon = parms_exceptions.popleft()
                         force.setExceptionParameters(
                             exc_idx, idx1, idx2, chargeprod, sigma, epsilon
                         )
+                except KeyError:  # use the old slow way
+                    for exc_idx in range(force.getNumExceptions()):
+                        f = force.getExceptionParameters(exc_idx)
+                        idx1 = f[0]
+                        idx2 = f[1]
+                        if idx1 in self.atom_idxs and idx2 in self.atom_idxs:
+                            chargeprod, sigma, epsilon = parms_exceptions.popleft()
+                            force.setExceptionParameters(
+                                exc_idx, idx1, idx2, chargeprod, sigma, epsilon
+                            )
 
-    def _set_HarmonicBondForce_parameters(self, parms):
+    def _set_HarmonicBondForce_parameters(self, parms) -> None:  # noqa: N802
         parms = deque(parms)
         for force in self.system.getForces():
+            fgroup = force.getForceGroup()
             if type(force).__name__ == "HarmonicBondForce":
-                for bond_idx in range(force.getNumBonds()):
-                    f = force.getBondParameters(bond_idx)
-                    idx1 = f[0]
-                    idx2 = f[1]
-                    if idx1 in self.atom_idxs and idx2 in self.atom_idxs:
+                try:  # use the fast way
+                    lst = self.force_idxs[fgroup]["HarmonicBondForce"]
+                    for bond_idx, idx1, idx2 in lst:
                         r, k = parms.popleft()
                         force.setBondParameters(bond_idx, idx1, idx2, r, k)
+                except KeyError:
+                    for bond_idx in range(force.getNumBonds()):
+                        f = force.getBondParameters(bond_idx)
+                        idx1, idx2 = f[0], f[1]
+                        if idx1 in self.atom_idxs and idx2 in self.atom_idxs:
+                            r, k = parms.popleft()
+                            force.setBondParameters(bond_idx, idx1, idx2, r, k)
 
-    def _set_HarmonicAngleForce_parameters(self, parms):
+    def _set_HarmonicAngleForce_parameters(self, parms) -> None:  # noqa: N802
         parms = deque(parms)
 
         for force in self.system.getForces():
             if type(force).__name__ == "HarmonicAngleForce":
-                for angle_idx in range(force.getNumAngles()):
-                    f = force.getAngleParameters(angle_idx)
-                    idx1 = f[0]
-                    idx2 = f[1]
-                    idx3 = f[2]
-                    if (
-                        idx1 in self.atom_idxs
-                        and idx2 in self.atom_idxs
-                        and idx3 in self.atom_idxs
-                    ):
+                fgroup = force.getForceGroup()
+                try:
+                    lst = self.force_idxs[fgroup]["HarmonicAngleForce"]
+                    for angle_idx, idx1, idx2, idx3 in lst:
                         thetha, k = parms.popleft()
                         force.setAngleParameters(angle_idx, idx1, idx2, idx3, thetha, k)
+                except KeyError:
+                    # else:
+                    for angle_idx in range(force.getNumAngles()):
+                        f = force.getAngleParameters(angle_idx)
+                        idx1, idx2, idx3 = f[0], f[1], f[2]
+                        if (
+                            idx1 in self.atom_idxs
+                            and idx2 in self.atom_idxs
+                            and idx3 in self.atom_idxs
+                        ):
+                            thetha, k = parms.popleft()
+                            force.setAngleParameters(
+                                angle_idx, idx1, idx2, idx3, thetha, k
+                            )
 
-    def _set_PeriodicTorsionForce_parameters(self, parms):
+    def _set_PeriodicTorsionForce_parameters(self, parms) -> None:  # noqa: N802
         parms = deque(parms)
 
         for force in self.system.getForces():
             if type(force).__name__ == "PeriodicTorsionForce":
-                for torsion_idx in range(force.getNumTorsions()):
-                    f = force.getTorsionParameters(torsion_idx)
-                    idx1 = f[0]
-                    idx2 = f[1]
-                    idx3 = f[2]
-                    idx4 = f[3]
-                    if (
-                        idx1 in self.atom_idxs
-                        and idx2 in self.atom_idxs
-                        and idx3 in self.atom_idxs
-                        and idx4 in self.atom_idxs
-                    ):
+                fgroup = force.getForceGroup()
+                try:
+                    lst = self.force_idxs[fgroup]["PeriodicTorsionForce"]
+                    for (
+                        torsion_idx,
+                        idx1,
+                        idx2,
+                        idx3,
+                        idx4,
+                    ) in lst:
                         per, phase, k = parms.popleft()
                         force.setTorsionParameters(
                             torsion_idx, idx1, idx2, idx3, idx4, per, phase, k
                         )
+                except KeyError:
+                    for torsion_idx in range(force.getNumTorsions()):
+                        f = force.getTorsionParameters(torsion_idx)
+                        idx1, idx2, idx3, idx4 = f[0], f[1], f[2], f[3]
+                        if (
+                            idx1 in self.atom_idxs
+                            and idx2 in self.atom_idxs
+                            and idx3 in self.atom_idxs
+                            and idx4 in self.atom_idxs
+                        ):
+                            per, phase, k = parms.popleft()
+                            force.setTorsionParameters(
+                                torsion_idx, idx1, idx2, idx3, idx4, per, phase, k
+                            )
 
-    def _set_CustomTorsionForce_parameters(self, parms):
+    def _set_CustomTorsionForce_parameters(self, parms) -> None:  # noqa: N802
         parms = deque(parms)
 
         for force in self.system.getForces():
             if type(force).__name__ == "CustomTorsionForce":
-                for torsion_idx in range(force.getNumTorsions()):
-                    f = force.getTorsionParameters(torsion_idx)
-                    idx1 = f[0]
-                    idx2 = f[1]
-                    idx3 = f[2]
-                    idx4 = f[3]
-                    if (
-                        idx1 in self.atom_idxs
-                        and idx2 in self.atom_idxs
-                        and idx3 in self.atom_idxs
-                        and idx4 in self.atom_idxs
-                    ):
+                fgroup = force.getForceGroup()
+                try:
+                    lst = self.force_idxs[fgroup]["CustomTorsionForce"]
+                    for (
+                        ctorsion_idx,
+                        idx1,
+                        idx2,
+                        idx3,
+                        idx4,
+                    ) in lst:
                         k, psi0 = parms.popleft()  # tuple with (k,psi0)
                         force.setTorsionParameters(
-                            torsion_idx, idx1, idx2, idx3, idx4, (k, psi0)
+                            ctorsion_idx, idx1, idx2, idx3, idx4, (k, psi0)
                         )
+                except KeyError:
+                    for torsion_idx in range(force.getNumTorsions()):
+                        f = force.getTorsionParameters(torsion_idx)
+                        idx1, idx2, idx3, idx4 = f[0], f[1], f[2], f[3]
+                        if (
+                            idx1 in self.atom_idxs
+                            and idx2 in self.atom_idxs
+                            and idx3 in self.atom_idxs
+                            and idx4 in self.atom_idxs
+                        ):
+                            k, psi0 = parms.popleft()  # tuple with (k,psi0)
+                            force.setTorsionParameters(
+                                torsion_idx, idx1, idx2, idx3, idx4, (k, psi0)
+                            )
 
-    def _set_DrudeForce_parameters(self, parms):
+    def _set_DrudeForce_parameters(self, parms) -> None:  # noqa: N802
         parms_pol = deque(parms[0])
         parms_thole = deque(parms[1])
         particle_map = {}
         for force in self.system.getForces():
             if type(force).__name__ == "DrudeForce":
-                for drude_idx in range(force.getNumParticles()):
-                    f = force.getParticleParameters(drude_idx)
-                    idx1 = f[0]
-                    idx2 = f[1]
-                    idx3 = f[2]
-                    idx4 = f[3]
-                    idx5 = f[4]
-                    if idx1 in self.atom_idxs and idx2 in self.atom_idxs:
+                fgroup = force.getForceGroup()
+                try:
+                    lst = self.force_idxs[fgroup]["DrudeForce"]
+                    for (
+                        drude_idx,
+                        idx1,
+                        idx2,
+                        idx3,
+                        idx4,
+                        idx5,
+                    ) in lst:
                         charge, pol, aniso12, aniso14 = parms_pol.popleft()
                         force.setParticleParameters(
                             drude_idx,
@@ -268,20 +323,46 @@ class Residue:
                             aniso12,
                             aniso14,
                         )
-                    particle_map[drude_idx] = idx1
-                for drude_idx in range(force.getNumScreenedPairs()):
-                    f = force.getScreenedPairParameters(drude_idx)
-                    idx1 = f[0]
-                    idx2 = f[1]
-                    drude1 = particle_map[idx1]
-                    drude2 = particle_map[idx2]
-                    #parent1, parent2 = self.pair_12_13_list[drude_idx]
-                    #drude1, drude2 = parent1 + 1, parent2 + 1
-                    if drude1 in self.atom_idxs and drude2 in self.atom_idxs:
+                except KeyError:
+                    for drude_idx in range(force.getNumParticles()):
+                        f = force.getParticleParameters(drude_idx)
+                        idx1, idx2, idx3, idx4, idx5 = f[0], f[1], f[2], f[3], f[4]
+                        if idx1 in self.atom_idxs and idx2 in self.atom_idxs:
+                            charge, pol, aniso12, aniso14 = parms_pol.popleft()
+                            force.setParticleParameters(
+                                drude_idx,
+                                idx1,
+                                idx2,
+                                idx3,
+                                idx4,
+                                idx5,
+                                charge,
+                                pol,
+                                aniso12,
+                                aniso14,
+                            )
+                        particle_map[drude_idx] = idx1
+                try:
+                    lst = self.force_idxs[fgroup]["DrudeForceThole"]
+                    for thole_idx, idx1, idx2 in lst:
                         thole = parms_thole.popleft()
-                        force.setScreenedPairParameters(drude_idx, idx1, idx2, thole)
+                        force.setScreenedPairParameters(thole_idx, idx1, idx2, thole)
+                except KeyError:
+                    for drude_idx in range(force.getNumScreenedPairs()):
+                        f = force.getScreenedPairParameters(drude_idx)
+                        idx1, idx2 = f[0], f[1]
+                        drude1, drude2 = particle_map[idx1], particle_map[idx2]
+                        # parent1, parent2 = self.pair_12_13_list[drude_idx]
+                        # drude1, drude2 = parent1 + 1, parent2 + 1
+                        if drude1 in self.atom_idxs and drude2 in self.atom_idxs:
+                            thole = parms_thole.popleft()
+                            force.setScreenedPairParameters(
+                                drude_idx, idx1, idx2, thole
+                            )
 
-    def _get_NonbondedForce_parameters_at_lambda(self, lamb: float) -> list[list[int]]:
+    def _get_NonbondedForce_parameters_at_lambda(  # noqa: N802
+        self, lamb: float
+    ) -> list[list[int]]:
         # returns interpolated sorted nonbonded Forces.
         assert lamb >= 0 and lamb <= 1
         current_name = self.current_name
@@ -324,9 +405,10 @@ class Residue:
         for old_idx, old_parm in enumerate(self.parameters[current_name][force_name]):
             idx1, idx2 = old_parm[0], old_parm[1]
             for new_idx, new_parm in enumerate(self.parameters[new_name][force_name]):
-                if {
-                    new_parm[0] - new_parms_offset, new_parm[1] - new_parms_offset
-                } == {idx1 - old_parms_offset, idx2 - old_parms_offset}:
+                if {new_parm[0] - new_parms_offset, new_parm[1] - new_parms_offset} == {
+                    idx1 - old_parms_offset,
+                    idx2 - old_parms_offset,
+                }:
                     if old_idx != new_idx:
                         raise RuntimeError(
                             "Odering of Nonbonded Exception parameters is different between the two topologies."
@@ -373,7 +455,7 @@ class Residue:
             )
         )
 
-    def _get_HarmonicBondForce_parameters_at_lambda(self, lamb):
+    def _get_HarmonicBondForce_parameters_at_lambda(self, lamb):  # noqa: N802
         # returns nonbonded Forces ordered.
         assert lamb >= 0 and lamb <= 1
         # get the names of new and current state
@@ -394,9 +476,10 @@ class Residue:
         for old_idx, old_parm in enumerate(self.parameters[old_name][force_name]):
             idx1, idx2 = old_parm[0], old_parm[1]
             for new_idx, new_parm in enumerate(self.parameters[new_name][force_name]):
-                if {
-                    new_parm[0] - new_parms_offset, new_parm[1] - new_parms_offset
-                } == {idx1 - old_parms_offset, idx2 - old_parms_offset}:
+                if {new_parm[0] - new_parms_offset, new_parm[1] - new_parms_offset} == {
+                    idx1 - old_parms_offset,
+                    idx2 - old_parms_offset,
+                }:
                     if old_idx != new_idx:
                         raise RuntimeError(
                             "Odering of bond parameters is different between the two topologies.\n"
@@ -421,7 +504,7 @@ class Residue:
 
         return parm_interpolated
 
-    def _get_HarmonicAngleForce_parameters_at_lambda(self, lamb):
+    def _get_HarmonicAngleForce_parameters_at_lambda(self, lamb):  # noqa: N802
         # returns HarmonicAngleForce Forces ordered.
         assert lamb >= 0 and lamb <= 1
         # get the names of new and current state
@@ -440,13 +523,13 @@ class Residue:
             idx1, idx2, idx3 = old_parm[0], old_parm[1], old_parm[2]
             for new_idx, new_parm in enumerate(self.parameters[new_name][force_name]):
                 if {
-                        new_parm[0] - new_parms_offset,
-                        new_parm[1] - new_parms_offset,
-                        new_parm[2] - new_parms_offset,
+                    new_parm[0] - new_parms_offset,
+                    new_parm[1] - new_parms_offset,
+                    new_parm[2] - new_parms_offset,
                 } == {
-                        idx1 - old_parms_offset,
-                        idx2 - old_parms_offset,
-                        idx3 - old_parms_offset,
+                    idx1 - old_parms_offset,
+                    idx2 - old_parms_offset,
+                    idx3 - old_parms_offset,
                 }:
                     if old_idx != new_idx:
                         raise RuntimeError(
@@ -470,7 +553,7 @@ class Residue:
 
         return parm_interpolated
 
-    def _get_PeriodicTorsionForce_parameters_at_lambda(self, lamb):
+    def _get_PeriodicTorsionForce_parameters_at_lambda(self, lamb):  # noqa: N802
         # returns PeriodicTorsionForce Forces ordered.
         assert lamb >= 0 and lamb <= 1
         # get the names of new and current state
@@ -518,10 +601,10 @@ class Residue:
                     self.parameters[new_name][force_name]
                 ):
                     if {
-                            new_parm[0] - new_parms_offset,
-                            new_parm[1] - new_parms_offset,
-                            new_parm[2] - new_parms_offset,
-                            new_parm[3] - new_parms_offset,
+                        new_parm[0] - new_parms_offset,
+                        new_parm[1] - new_parms_offset,
+                        new_parm[2] - new_parms_offset,
+                        new_parm[3] - new_parms_offset,
                     } == {idx1, idx2, idx3, idx4}:
                         if old_idx != new_idx:
                             raise RuntimeError(
@@ -539,11 +622,11 @@ class Residue:
                     self.parameters[new_name][force_name]
                 ):
                     if {
-                            new_parm[0] - new_parms_offset,
-                            new_parm[1] - new_parms_offset,
-                            new_parm[2] - new_parms_offset,
-                            new_parm[3] - new_parms_offset,
-                            new_parm[4],
+                        new_parm[0] - new_parms_offset,
+                        new_parm[1] - new_parms_offset,
+                        new_parm[2] - new_parms_offset,
+                        new_parm[3] - new_parms_offset,
+                        new_parm[4],
                     } == {idx1, idx2, idx3, idx4, idx5}:
                         if old_idx != new_idx:
                             raise RuntimeError(
@@ -571,7 +654,7 @@ class Residue:
 
         return parm_interpolated
 
-    def _get_CustomTorsionForce_parameters_at_lambda(self, lamb):
+    def _get_CustomTorsionForce_parameters_at_lambda(self, lamb):  # noqa: N802
         # returns CustomTorsionForce Forces (=impropers) ordered.
         assert lamb >= 0 and lamb <= 1
         # get the names of new and current state
@@ -590,15 +673,15 @@ class Residue:
             idx1, idx2, idx3, idx4 = old_parm[0], old_parm[1], old_parm[2], old_parm[3]
             for new_idx, new_parm in enumerate(self.parameters[new_name][force_name]):
                 if {
-                        new_parm[0] - new_parms_offset,
-                        new_parm[1] - new_parms_offset,
-                        new_parm[2] - new_parms_offset,
-                        new_parm[3] - new_parms_offset,
+                    new_parm[0] - new_parms_offset,
+                    new_parm[1] - new_parms_offset,
+                    new_parm[2] - new_parms_offset,
+                    new_parm[3] - new_parms_offset,
                 } == {
-                        idx1 - old_parms_offset,
-                        idx2 - old_parms_offset,
-                        idx3 - old_parms_offset,
-                        idx4 - old_parms_offset,
+                    idx1 - old_parms_offset,
+                    idx2 - old_parms_offset,
+                    idx3 - old_parms_offset,
+                    idx4 - old_parms_offset,
                 }:
                     if old_idx != new_idx:
                         raise RuntimeError(
@@ -625,7 +708,7 @@ class Residue:
 
         return parm_interpolated
 
-    def _get_DrudeForce_parameters_at_lambda(self, lamb):
+    def _get_DrudeForce_parameters_at_lambda(self, lamb):  # noqa: N802
         # Split in two parts, one for charge and polarizability one for thole
         # returns a list with the two, different than the other get methods!
         # returns Drude Forces ordered.
@@ -644,9 +727,10 @@ class Residue:
         for old_idx, old_parm in enumerate(self.parameters[old_name][force_name]):
             idx1, idx2 = old_parm[0], old_parm[1]
             for new_idx, new_parm in enumerate(self.parameters[new_name][force_name]):
-                if {
-                    new_parm[0] - new_parms_offset, new_parm[1] - new_parms_offset
-                } == {idx1 - old_parms_offset, idx2 - old_parms_offset}:
+                if {new_parm[0] - new_parms_offset, new_parm[1] - new_parms_offset} == {
+                    idx1 - old_parms_offset,
+                    idx2 - old_parms_offset,
+                }:
                     if old_idx != new_idx:
                         raise RuntimeError(
                             "Odering of bond parameters is different between the two topologies."
@@ -690,9 +774,10 @@ class Residue:
         for old_idx, old_parm in enumerate(self.parameters[old_name][force_name]):
             idx1, idx2 = old_parm[0], old_parm[1]
             for new_idx, new_parm in enumerate(self.parameters[new_name][force_name]):
-                if {
-                    new_parm[0] - new_parms_offset, new_parm[1] - new_parms_offset
-                } == {idx1 - old_parms_offset, idx2 - old_parms_offset}:
+                if {new_parm[0] - new_parms_offset, new_parm[1] - new_parms_offset} == {
+                    idx1 - old_parms_offset,
+                    idx2 - old_parms_offset,
+                }:
                     if old_idx != new_idx:
                         raise RuntimeError(
                             "Odering of bond parameters is different between the two topologies."
@@ -718,10 +803,9 @@ class Residue:
         for idx, atom_name in zip(self.atom_idxs, self.atom_names):
             if query_atom_name == atom_name:
                 return idx
-        else:
-            raise RuntimeError(
-                f"Atom name '{query_atom_name}' not in atom names of residue '{self.current_name}'."
-            )
+        raise RuntimeError(
+            f"Atom name '{query_atom_name}' not in atom names of residue '{self.current_name}'."
+        )
 
     @property
     def endstate_charge(self) -> int:

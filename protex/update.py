@@ -237,7 +237,10 @@ class KeepHUpdate(Update):
         if "H" in self.ionic_liquid.templates.get_atom_name_for(
             candidate1_residue.current_name
         ) or (
-            self.ionic_liquid.templates.has_equivalent_atom(candidate1_residue.current_name) is True
+            self.ionic_liquid.templates.has_equivalent_atom(
+                candidate1_residue.current_name
+            )
+            is True
             and "H"
             in self.ionic_liquid.templates.get_equivalent_atom_for(
                 candidate1_residue.current_name
@@ -583,7 +586,7 @@ class StateUpdate:
         with open(fname, "wb") as outp:
             pickle.dump(to_pickle, outp, pickle.HIGHEST_PROTOCOL)
 
-    def write_charges(self, filename: str) -> None: #deprecated?
+    def write_charges(self, filename: str) -> None:  # deprecated?
         """Write current charges to a file.
 
         Parameters
@@ -598,8 +601,9 @@ class StateUpdate:
                 f.write(
                     f"{atom.residue.name:>4}:{int(atom.id): 4}:{int(atom.residue.id): 4}:{atom.name:>4}:{charge}\n"
                 )
-    #instead of these to functions use the ChargeReporter probably
-    def get_charges(self) -> list: #deprecated?
+
+    # instead of these to functions use the ChargeReporter probably
+    def get_charges(self) -> list:  # deprecated?
         """_summary_.
 
         Returns
@@ -623,7 +627,7 @@ class StateUpdate:
                 return par
         raise RuntimeError("Something went wrong. There was no NonbondedForce")
 
-    #redundant with ProtexSystem.get_current_number_of_each_residue_type
+    # redundant with ProtexSystem.get_current_number_of_each_residue_type
     def get_num_residues(self) -> dict:
         """Deprecated 1.1."""
         res_dict = {
@@ -834,7 +838,7 @@ class StateUpdate:
 
         # loop over all residues and add the positions of the atoms that can be updated to the pos_dict
         for residue in self.ionic_liquid.residues:
-            #assert residue.current_name in self.ionic_liquid.templates.names
+            # assert residue.current_name in self.ionic_liquid.templates.names
             if residue.current_name in self.ionic_liquid.templates.names:
                 residue.equivalent_atom_pos_in_list = None
                 # get the position of the atom (Hydrogen or the possible acceptor)

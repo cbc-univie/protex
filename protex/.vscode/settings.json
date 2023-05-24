@@ -1,9 +1,0 @@
-{
-    "python.testing.pytestArgs": [
-        "tests"
-    ],
-    "python.testing.unittestEnabled": false,
-    "python.testing.nosetestsEnabled": false,
-    "python.testing.pytestEnabled": true,
-    "python.pythonPath": "/home/florian/miniconda2/envs/openmm_10.1/bin/python"
-}
