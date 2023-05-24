@@ -12,6 +12,8 @@
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/doctools.js"></script>
         <script src="../../_static/sphinx_highlight.js"></script>
@@ -93,7 +95,7 @@
 <h1>protex.residue.Residue<a class="headerlink" href="#protex-residue-residue" title="Permalink to this heading"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="protex.residue.Residue">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">protex.residue.</span></span><span class="sig-name descname"><span class="pre">Residue</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">residue</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alternativ_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">system</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inital_parameters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alternativ_parameters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">has_equivalent_atoms</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/protex/residue.html#Residue"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#protex.residue.Residue" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">protex.residue.</span></span><span class="sig-name descname"><span class="pre">Residue</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">residue</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alternativ_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">system</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inital_parameters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alternativ_parameters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">has_equivalent_atoms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_idxs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/protex/residue.html#Residue"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#protex.residue.Residue" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Residue extends the OpenMM Residue Class by important features needed for the proton transfer.</p>
 <dl class="field-list simple">
@@ -105,6 +107,7 @@
 <li><p><strong>initial_parameters</strong> (<em>dict[list]</em>) – The parameters for the residue</p></li>
 <li><p><strong>alternativ_parameters</strong> (<em>dict[list]</em>) – The parameters for the alternativ (protonated/deprotonated) state</p></li>
 <li><p><strong>pair_12_13_exclusion_list</strong> (<em>list</em>) – 1-2 and 1-3 exclusions in the system</p></li>
+<li><p><strong>force_idxs</strong></p></li>
 <li><p><strong>has_equivalent_atoms</strong> (<em>tuple[bool,bool]</em>) – if original name and alternative name have equivalent atoms</p></li>
 </ul>
 </dd>
@@ -121,6 +124,7 @@ Records the charge state of that residue</p></li>
 <li><p><strong>system</strong> (<em>openmm.openmm.System</em>) – The system generated with openMM, where all residues are in</p></li>
 <li><p><strong>pair_12_13_list</strong> (<em>list</em>) – 1-2 and 1-3 exclusions in the system</p></li>
 <li><p><strong>equivalent_atoms</strong> (<em>dict</em><em>[</em><em>str</em><em>, </em><em>bool</em><em>]</em>) – if orignal_name and alternative name have equivalent atoms</p></li>
+<li><p><strong>force_idxs</strong> – </p></li>
 </ul>
 </dd>
 </dl>

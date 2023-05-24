@@ -11,6 +11,8 @@
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/doctools.js"></script>
         <script src="../../_static/sphinx_highlight.js"></script>
@@ -86,15 +88,15 @@
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">openmm</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-    <span class="kn">import</span> <span class="nn">simtk.openmm</span> <span class="k">as</span> <span class="nn">openmm</span>
+    <span class="kn">from</span> <span class="nn">simtk</span> <span class="kn">import</span> <span class="n">openmm</span>
 
-<span class="c1">#from protex.helpers import CustomPSFFile</span>
+<span class="c1"># from protex.helpers import CustomPSFFile</span>
 <span class="kn">from</span> <span class="nn">protex.residue</span> <span class="kn">import</span> <span class="n">Residue</span>
 
 <span class="c1"># Use custom write function for now, remove with new parmed version</span>
 <span class="c1"># https://github.com/ParmEd/ParmEd/pull/1274</span>
 <span class="c1"># as in parmed/formats/__init__.py:</span>
-<span class="c1">#parmed.Structure.write_psf = CustomPSFFile.write</span>
+<span class="c1"># parmed.Structure.write_psf = CustomPSFFile.write</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -315,7 +317,7 @@
     <span class="c1">#         if name in state:</span>
     <span class="c1">#             return self.states[name][&quot;canonical_name&quot;]</span>
 
-<div class="viewcode-block" id="ProtexTemplates.get_residue_name_for_coupled_state"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.ProtexTemplates.html#protex.system.ProtexTemplates.get_residue_name_for_coupled_state">[docs]</a>    <span class="k">def</span> <span class="nf">get_residue_name_for_coupled_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<div class="viewcode-block" id="ProtexTemplates.get_residue_name_for_coupled_state"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.ProtexTemplates.html#protex.system.ProtexTemplates.get_residue_name_for_coupled_state">[docs]</a>    <span class="k">def</span> <span class="nf">get_residue_name_for_coupled_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;get_residue_name_of_paired_ion returns the paired residue name given a reisue name.</span>
 
 <span class="sd">        Parameters</span>
@@ -341,11 +343,10 @@
                     <span class="k">return</span> <span class="n">state_2</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">return</span> <span class="n">state_1</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;something went wrong&quot;</span><span class="p">)</span></div>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;something went wrong&quot;</span><span class="p">)</span></div>
 
     <span class="c1"># Not used</span>
-<div class="viewcode-block" id="ProtexTemplates.get_charge_template_for"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.ProtexTemplates.html#protex.system.ProtexTemplates.get_charge_template_for">[docs]</a>    <span class="k">def</span> <span class="nf">get_charge_template_for</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<div class="viewcode-block" id="ProtexTemplates.get_charge_template_for"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.ProtexTemplates.html#protex.system.ProtexTemplates.get_charge_template_for">[docs]</a>    <span class="k">def</span> <span class="nf">get_charge_template_for</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;get_charge_template_for returns the charge template for a residue.</span>
 
 <span class="sd">        Parameters</span>
@@ -369,8 +370,7 @@
 
 
 <div class="viewcode-block" id="ProtexSystem"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.system.ProtexSystem.html#protex.system.ProtexSystem">[docs]</a><span class="k">class</span> <span class="nc">ProtexSystem</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;This class defines the full system, performs the MD steps and offers an</span>
-<span class="sd">    interface for protonation state updates.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Defines the full system, performs the MD steps and offers an interface for protonation state updates.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -381,6 +381,9 @@
 <span class="sd">    simulation_for_parameters:</span>
 <span class="sd">        another OpenMM simulation object, set up with a psf that contains all possible forms (protonated and deprotonated) of all species,</span>
 <span class="sd">        needed for finding the parameters of the other form during an update</span>
+<span class="sd">    fast:</span>
+<span class="sd">        If True indices list for all forces for each residue will be made once at initilaizaiton of ProtexSystem, and then used for finding the indices during an update.</span>
+<span class="sd">        If False, the whole forces.getNumExceptions and similar calls will be used for each update and each residue, which is way slower</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -420,12 +423,20 @@
         <span class="n">simulation</span><span class="p">:</span> <span class="n">openmm</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">Simulation</span><span class="p">,</span>
         <span class="n">templates</span><span class="p">:</span> <span class="n">ProtexTemplates</span><span class="p">,</span>
         <span class="n">simulation_for_parameters</span><span class="p">:</span> <span class="n">openmm</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">Simulation</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">fast</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="p">:</span> <span class="n">openmm</span><span class="o">.</span><span class="n">openmm</span><span class="o">.</span><span class="n">System</span> <span class="o">=</span> <span class="n">simulation</span><span class="o">.</span><span class="n">system</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">topology</span><span class="p">:</span> <span class="n">openmm</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">topology</span><span class="o">.</span><span class="n">Topology</span> <span class="o">=</span> <span class="n">simulation</span><span class="o">.</span><span class="n">topology</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">simulation</span><span class="p">:</span> <span class="n">openmm</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">Simulation</span> <span class="o">=</span> <span class="n">simulation</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">templates</span><span class="p">:</span> <span class="n">ProtexTemplates</span> <span class="o">=</span> <span class="n">templates</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">simulation_for_parameters</span> <span class="o">=</span> <span class="n">simulation_for_parameters</span>
+        <span class="c1"># self.pair_12_13_list = self._build_exclusion_list(self.topology)</span>
+        <span class="c1"># self.pair_12_13_list_params = (</span>
+        <span class="c1">#    self._build_exclusion_list(self.simulation_for_parameters.topology)</span>
+        <span class="c1">#    if self.simulation_for_parameters is not None</span>
+        <span class="c1">#    else self.pair_12_13_list</span>
+        <span class="c1"># )</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fast</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">fast</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">residues</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Residue</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_set_initial_states</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">boxlength</span><span class="p">:</span> <span class="n">openmm</span><span class="o">.</span><span class="n">Quantity</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">simulation</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">getState</span><span class="p">()</span><span class="o">.</span><span class="n">getPeriodicBoxVectors</span><span class="p">()[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
@@ -467,6 +478,7 @@
         <span class="k">for</span> <span class="n">force</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">getForces</span><span class="p">():</span>
             <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">force</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="n">name</span><span class="p">:</span>
                 <span class="n">force</span><span class="o">.</span><span class="n">updateParametersInContext</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">context</span><span class="p">)</span></div>
+
     <span class="c1"># deprecated, not needed anymore</span>
     <span class="c1"># def _build_exclusion_list(self, topology):</span>
     <span class="c1">#     pair_12_set = set()</span>
@@ -507,7 +519,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">sim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">simulation</span>
 
-        <span class="c1">#pair_12_13_list_params = self._build_exclusion_list(sim.topology)</span>
+        <span class="c1"># pair_12_13_list_params = self._build_exclusion_list(sim.topology)</span>
 
         <span class="k">for</span> <span class="n">residue</span> <span class="ow">in</span> <span class="n">sim</span><span class="o">.</span><span class="n">topology</span><span class="o">.</span><span class="n">residues</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">query_name</span> <span class="o">==</span> <span class="n">residue</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
@@ -587,35 +599,39 @@
                             <span class="n">idx2</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>  <span class="c1"># parentatom</span>
                             <span class="k">if</span> <span class="n">idx1</span> <span class="ow">in</span> <span class="n">atom_idxs</span> <span class="ow">and</span> <span class="n">idx2</span> <span class="ow">in</span> <span class="n">atom_idxs</span><span class="p">:</span>
                                 <span class="n">forces_dict</span><span class="p">[</span><span class="nb">type</span><span class="p">(</span><span class="n">force</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
-                            <span class="c1">#store the drude idx as they are in the system</span>
+                            <span class="c1"># store the drude idx as they are in the system</span>
                             <span class="n">particle_map</span><span class="p">[</span><span class="n">drude_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">idx1</span>
                         <span class="c1"># print(self.pair_12_13_list)</span>
-                        <span class="c1">#assert ( #? not working with tfa, investigate</span>
+                        <span class="c1"># assert ( #? not working with tfa, investigate</span>
                         <span class="c1">#    len(pair_12_13_list_params) == force.getNumScreenedPairs()</span>
-                        <span class="c1">#), f&quot;{len(pair_12_13_list_params)=}, {force.getNumScreenedPairs()=}&quot;</span>
+                        <span class="c1"># ), f&quot;{len(pair_12_13_list_params)=}, {force.getNumScreenedPairs()=}&quot;</span>
                         <span class="k">for</span> <span class="n">drude_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">force</span><span class="o">.</span><span class="n">getNumScreenedPairs</span><span class="p">()):</span>
                             <span class="n">f</span> <span class="o">=</span> <span class="n">force</span><span class="o">.</span><span class="n">getScreenedPairParameters</span><span class="p">(</span><span class="n">drude_id</span><span class="p">)</span>
-                            <span class="n">idx1</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="c1"># yields the id within this force == drude_id from getNumParticles</span>
+                            <span class="n">idx1</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span>
+                                <span class="mi">0</span>
+                            <span class="p">]</span>  <span class="c1"># yields the id within this force == drude_id from getNumParticles</span>
                             <span class="n">idx2</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
                             <span class="n">thole</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
-                            <span class="c1">#get the drude idxs in the system</span>
+                            <span class="c1"># get the drude idxs in the system</span>
                             <span class="n">drude1</span> <span class="o">=</span> <span class="n">particle_map</span><span class="p">[</span><span class="n">idx1</span><span class="p">]</span>
                             <span class="n">drude2</span> <span class="o">=</span> <span class="n">particle_map</span><span class="p">[</span><span class="n">idx2</span><span class="p">]</span>
-                            <span class="c1">#parent1, parent2 = pair_12_13_list_params[drude_id]</span>
-                            <span class="c1">#drude1, drude2 = parent1 + 1, parent2 + 1</span>
+                            <span class="c1"># parent1, parent2 = pair_12_13_list_params[drude_id]</span>
+                            <span class="c1"># drude1, drude2 = parent1 + 1, parent2 + 1</span>
                             <span class="c1"># print(f&quot;thole {idx1=}, {idx2=}&quot;)</span>
                             <span class="c1"># print(f&quot;{drude_id=}, {f=}&quot;)</span>
                             <span class="k">if</span> <span class="n">drude1</span> <span class="ow">in</span> <span class="n">atom_idxs</span> <span class="ow">and</span> <span class="n">drude2</span> <span class="ow">in</span> <span class="n">atom_idxs</span><span class="p">:</span>
                                 <span class="c1"># print(f&quot;Thole {query_name=}&quot;)</span>
                                 <span class="c1"># print(f&quot;{drude1=}, {drude2=}&quot;)</span>
                                 <span class="n">forces_dict</span><span class="p">[</span><span class="nb">type</span><span class="p">(</span><span class="n">force</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">+</span> <span class="s2">&quot;Thole&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
-                <span class="k">break</span>  <span class="c1"># do this only for the relevant amino acid once</span>
+                <span class="k">break</span>  <span class="c1"># do this only for the relevant residue once</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;residue not found&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">forces_dict</span>
 
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_check_nr_of_forces</span><span class="p">(</span><span class="n">forces_state1</span><span class="p">,</span> <span class="n">forces_state2</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">name_of_paired_ion</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_check_nr_of_forces</span><span class="p">(</span>
+        <span class="n">forces_state1</span><span class="p">,</span> <span class="n">forces_state2</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">name_of_paired_ion</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="c1"># check if two forces lists have the same number of forces</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">forces_state1</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">forces_state2</span><span class="p">)</span>  <span class="c1"># check the number of forces</span>
         <span class="k">for</span> <span class="n">force_name</span> <span class="ow">in</span> <span class="n">forces_state1</span><span class="p">:</span>
@@ -644,41 +660,148 @@
                     <span class="s2">&quot;There are not the same number of forces or a wrong order. Possible Problems: Bond/Angle/... is missing. Urey_Bradley Term is not defined for both states, ...)&quot;</span>
                 <span class="p">)</span>
 
+    <span class="k">def</span> <span class="nf">_add_force</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">fgroup</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">forcename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">max_value</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">insert_values</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Add the values of a force to the per_residue_forces dict.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        fgroup : int</span>
+<span class="sd">            The integer of the force group</span>
+<span class="sd">        forcename : str</span>
+<span class="sd">            The name of the force</span>
+<span class="sd">        max_value : int</span>
+<span class="sd">            The maximum value of the atom indices in the force to add</span>
+<span class="sd">        insert_values : tuple[int]</span>
+<span class="sd">            The values of the force which should be added, probably the index in the force and the atom indices</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">tuple_item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">per_residue_forces</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="n">tuple_item</span>
+            <span class="k">if</span> <span class="n">start</span> <span class="o">&lt;=</span> <span class="n">max_value</span> <span class="o">&lt;=</span> <span class="n">end</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">per_residue_forces</span><span class="p">[</span><span class="n">tuple_item</span><span class="p">][</span><span class="n">fgroup</span><span class="p">][</span><span class="n">forcename</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="n">insert_values</span>
+                    <span class="p">)</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">per_residue_forces</span><span class="p">[</span><span class="n">tuple_item</span><span class="p">][</span><span class="n">fgroup</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">per_residue_forces</span><span class="p">[</span><span class="n">tuple_item</span><span class="p">][</span><span class="n">fgroup</span><span class="p">][</span><span class="n">forcename</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+                        <span class="n">insert_values</span>
+                    <span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_create_force_idx_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a dictionary containig all the indices to the forces.</span>
+
+<span class="sd">        It is used to specify which force belong to which residue.</span>
+<span class="sd">        It filles the self.per_residue_forces variable.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ignore</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;CMMotionRemover&quot;</span><span class="p">,</span> <span class="s2">&quot;MonteCarloBarostat&quot;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">force</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">getForces</span><span class="p">():</span>
+            <span class="n">fgroup</span> <span class="o">=</span> <span class="n">force</span><span class="o">.</span><span class="n">getForceGroup</span><span class="p">()</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">force</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;NonbondedForce&quot;</span><span class="p">:</span>
+                <span class="c1"># only treat exceptions</span>
+                <span class="k">for</span> <span class="n">exc_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">force</span><span class="o">.</span><span class="n">getNumExceptions</span><span class="p">()):</span>
+                    <span class="n">f</span> <span class="o">=</span> <span class="n">force</span><span class="o">.</span><span class="n">getExceptionParameters</span><span class="p">(</span><span class="n">exc_idx</span><span class="p">)</span>
+                    <span class="n">idx1</span><span class="p">,</span> <span class="n">idx2</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="p">(</span><span class="n">exc_idx</span><span class="p">,</span> <span class="n">idx1</span><span class="p">,</span> <span class="n">idx2</span><span class="p">)</span>
+                    <span class="n">maxi</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">idx1</span><span class="p">,</span> <span class="n">idx2</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_add_force</span><span class="p">(</span><span class="n">fgroup</span><span class="p">,</span> <span class="s2">&quot;NonbondedForceExceptions&quot;</span><span class="p">,</span> <span class="n">maxi</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">force</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;DrudeForce&quot;</span><span class="p">:</span>
+                <span class="n">particle_map</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="k">for</span> <span class="n">drude_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">force</span><span class="o">.</span><span class="n">getNumParticles</span><span class="p">()):</span>
+                    <span class="n">f</span> <span class="o">=</span> <span class="n">force</span><span class="o">.</span><span class="n">getParticleParameters</span><span class="p">(</span><span class="n">drude_idx</span><span class="p">)</span>
+                    <span class="n">idx1</span><span class="p">,</span> <span class="n">idx2</span><span class="p">,</span> <span class="n">idx3</span><span class="p">,</span> <span class="n">idx4</span><span class="p">,</span> <span class="n">idx5</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">f</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">f</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">f</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="p">(</span><span class="n">drude_idx</span><span class="p">,</span> <span class="n">idx1</span><span class="p">,</span> <span class="n">idx2</span><span class="p">,</span> <span class="n">idx3</span><span class="p">,</span> <span class="n">idx4</span><span class="p">,</span> <span class="n">idx5</span><span class="p">)</span>
+                    <span class="n">maxi</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span>
+                        <span class="n">idx1</span><span class="p">,</span> <span class="n">idx2</span>
+                    <span class="p">)</span>  <span class="c1"># drude and parent is enough, we do not need the anisotropy stuff for this here</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_add_force</span><span class="p">(</span><span class="n">fgroup</span><span class="p">,</span> <span class="s2">&quot;DrudeForce&quot;</span><span class="p">,</span> <span class="n">maxi</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+                    <span class="n">particle_map</span><span class="p">[</span><span class="n">drude_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">idx1</span>
+                <span class="k">for</span> <span class="n">drude_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">force</span><span class="o">.</span><span class="n">getNumScreenedPairs</span><span class="p">()):</span>
+                    <span class="n">f</span> <span class="o">=</span> <span class="n">force</span><span class="o">.</span><span class="n">getScreenedPairParameters</span><span class="p">(</span><span class="n">drude_idx</span><span class="p">)</span>
+                    <span class="n">idx1</span><span class="p">,</span> <span class="n">idx2</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="n">drude1</span> <span class="o">=</span> <span class="n">particle_map</span><span class="p">[</span><span class="n">idx1</span><span class="p">]</span>
+                    <span class="n">drude2</span> <span class="o">=</span> <span class="n">particle_map</span><span class="p">[</span><span class="n">idx2</span><span class="p">]</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="p">(</span><span class="n">drude_idx</span><span class="p">,</span> <span class="n">idx1</span><span class="p">,</span> <span class="n">idx2</span><span class="p">)</span>
+                    <span class="n">maxi</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">drude1</span><span class="p">,</span> <span class="n">drude2</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_add_force</span><span class="p">(</span><span class="n">fgroup</span><span class="p">,</span> <span class="s2">&quot;DrudeForceThole&quot;</span><span class="p">,</span> <span class="n">maxi</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">force</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;HarmonicBondForce&quot;</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">bond_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">force</span><span class="o">.</span><span class="n">getNumBonds</span><span class="p">()):</span>
+                    <span class="n">f</span> <span class="o">=</span> <span class="n">force</span><span class="o">.</span><span class="n">getBondParameters</span><span class="p">(</span><span class="n">bond_idx</span><span class="p">)</span>
+                    <span class="n">idx1</span><span class="p">,</span> <span class="n">idx2</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="p">(</span><span class="n">bond_idx</span><span class="p">,</span> <span class="n">idx1</span><span class="p">,</span> <span class="n">idx2</span><span class="p">)</span>
+                    <span class="n">maxi</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">idx1</span><span class="p">,</span> <span class="n">idx2</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_add_force</span><span class="p">(</span><span class="n">fgroup</span><span class="p">,</span> <span class="s2">&quot;HarmonicBondForce&quot;</span><span class="p">,</span> <span class="n">maxi</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">force</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;HarmonicAngleForce&quot;</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">angle_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">force</span><span class="o">.</span><span class="n">getNumAngles</span><span class="p">()):</span>
+                    <span class="n">f</span> <span class="o">=</span> <span class="n">force</span><span class="o">.</span><span class="n">getAngleParameters</span><span class="p">(</span><span class="n">angle_idx</span><span class="p">)</span>
+                    <span class="n">idx1</span><span class="p">,</span> <span class="n">idx2</span><span class="p">,</span> <span class="n">idx3</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">f</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="p">(</span><span class="n">angle_idx</span><span class="p">,</span> <span class="n">idx1</span><span class="p">,</span> <span class="n">idx2</span><span class="p">,</span> <span class="n">idx3</span><span class="p">)</span>
+                    <span class="n">maxi</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">idx1</span><span class="p">,</span> <span class="n">idx2</span><span class="p">,</span> <span class="n">idx3</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_add_force</span><span class="p">(</span><span class="n">fgroup</span><span class="p">,</span> <span class="s2">&quot;HarmonicAngleForce&quot;</span><span class="p">,</span> <span class="n">maxi</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">force</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;PeriodicTorsionForce&quot;</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">torsion_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">force</span><span class="o">.</span><span class="n">getNumTorsions</span><span class="p">()):</span>
+                    <span class="n">f</span> <span class="o">=</span> <span class="n">force</span><span class="o">.</span><span class="n">getTorsionParameters</span><span class="p">(</span><span class="n">torsion_idx</span><span class="p">)</span>
+                    <span class="n">idx1</span><span class="p">,</span> <span class="n">idx2</span><span class="p">,</span> <span class="n">idx3</span><span class="p">,</span> <span class="n">idx4</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">f</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">f</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="p">(</span><span class="n">torsion_idx</span><span class="p">,</span> <span class="n">idx1</span><span class="p">,</span> <span class="n">idx2</span><span class="p">,</span> <span class="n">idx3</span><span class="p">,</span> <span class="n">idx4</span><span class="p">)</span>
+                    <span class="n">maxi</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">idx1</span><span class="p">,</span> <span class="n">idx2</span><span class="p">,</span> <span class="n">idx3</span><span class="p">,</span> <span class="n">idx4</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_add_force</span><span class="p">(</span><span class="n">fgroup</span><span class="p">,</span> <span class="s2">&quot;PeriodicTorsionForce&quot;</span><span class="p">,</span> <span class="n">maxi</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">force</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;CustomTorsionForce&quot;</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">ctorsion_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">force</span><span class="o">.</span><span class="n">getNumTorsions</span><span class="p">()):</span>
+                    <span class="n">f</span> <span class="o">=</span> <span class="n">force</span><span class="o">.</span><span class="n">getTorsionParameters</span><span class="p">(</span><span class="n">ctorsion_idx</span><span class="p">)</span>
+                    <span class="n">idx1</span><span class="p">,</span> <span class="n">idx2</span><span class="p">,</span> <span class="n">idx3</span><span class="p">,</span> <span class="n">idx4</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">f</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">f</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="p">(</span><span class="n">ctorsion_idx</span><span class="p">,</span> <span class="n">idx1</span><span class="p">,</span> <span class="n">idx2</span><span class="p">,</span> <span class="n">idx3</span><span class="p">,</span> <span class="n">idx4</span><span class="p">)</span>
+                    <span class="n">maxi</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">idx1</span><span class="p">,</span> <span class="n">idx2</span><span class="p">,</span> <span class="n">idx3</span><span class="p">,</span> <span class="n">idx4</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_add_force</span><span class="p">(</span><span class="n">fgroup</span><span class="p">,</span> <span class="s2">&quot;CustomTorsionForce&quot;</span><span class="p">,</span> <span class="n">maxi</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">force</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="ow">in</span> <span class="n">ignore</span><span class="p">:</span>
+                <span class="k">pass</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;ATTENTION: Force </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">force</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> not covered. This may lead to wrong results.&quot;</span>
+                <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_fill_residue_templates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">templates</span><span class="o">.</span><span class="n">names</span><span class="p">:</span>
+            <span class="n">name_of_paired_ion</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">templates</span><span class="o">.</span><span class="n">get_residue_name_for_coupled_state</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">residue_templates</span>
+                <span class="ow">or</span> <span class="n">name_of_paired_ion</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">residue_templates</span>
+            <span class="p">):</span>
+                <span class="k">return</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">residue_templates</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extract_templates</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">residue_templates</span><span class="p">[</span><span class="n">name_of_paired_ion</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extract_templates</span><span class="p">(</span>
+                <span class="n">name_of_paired_ion</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">residue_templates</span><span class="p">:</span>  <span class="c1"># or name_of_paired_ion in templates:</span>
+                <span class="k">return</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">residue_templates</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extract_templates</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
     <span class="k">def</span> <span class="nf">_set_initial_states</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;set_initial_states For each ionic liquid residue in the system the protonation state</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;set_initial_states.</span>
+
+<span class="sd">        For each ionic liquid residue in the system the protonation state</span>
 <span class="sd">        is interfered from the provided openMM system object and the protonation site is defined.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># self._build_exclusion_list()</span>
-        <span class="c1">#pair_12_13_list = self._build_exclusion_list(self.topology)</span>
+        <span class="c1"># pair_12_13_list = self._build_exclusion_list(self.topology)</span>
 
         <span class="n">residues</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">templates</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
-
+        <span class="bp">self</span><span class="o">.</span><span class="n">residue_templates</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="c1"># this will become a dict of the form:</span>
+        <span class="c1"># self.per_residue_forces[(min,max tuple of the atom idxs for each residue)][forcegroup][forcename]: list of the idxs of this force for this residue</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">per_residue_forces</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="c1"># for each residue type get forces</span>
         <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">topology</span><span class="o">.</span><span class="n">residues</span><span class="p">():</span>
+            <span class="n">atom_idxs</span> <span class="o">=</span> <span class="p">[</span><span class="n">atom</span><span class="o">.</span><span class="n">index</span> <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">atoms</span><span class="p">()]</span>
+            <span class="n">mini</span><span class="p">,</span> <span class="n">maxi</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">atom_idxs</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">atom_idxs</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">per_residue_forces</span><span class="p">[(</span><span class="n">mini</span><span class="p">,</span> <span class="n">maxi</span><span class="p">)]</span> <span class="o">=</span> <span class="p">{}</span>
             <span class="n">name</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">name</span>
-            <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">templates</span><span class="o">.</span><span class="n">names</span><span class="p">:</span>
-                <span class="n">name_of_paired_ion</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">templates</span><span class="o">.</span><span class="n">get_residue_name_for_coupled_state</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_fill_residue_templates</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
 
-                <span class="c1">### do something like this, to precess meoh without having a template</span>
-                <span class="c1">#### problem: residues for psf are collected this way</span>
-                <span class="c1"># if name in self.templates.names:</span>
-                <span class="c1"># name_of_paired_ion = self.templates.get_residue_name_for_coupled_state(name)</span>
-                <span class="c1">#   if name in templates or name_of_paired_ion in templates:</span>
-                <span class="c1">#     continue</span>
-
-                <span class="c1"># templates[name] = self._extract_templates(name)</span>
-                <span class="c1"># templates[name_of_paired_ion] = self._extract_templates(name_of_paired_ion)</span>
-
-                <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">templates</span> <span class="ow">or</span> <span class="n">name_of_paired_ion</span> <span class="ow">in</span> <span class="n">templates</span><span class="p">:</span>
-                    <span class="k">continue</span>
-
-                <span class="n">templates</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extract_templates</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
-                <span class="n">templates</span><span class="p">[</span><span class="n">name_of_paired_ion</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extract_templates</span><span class="p">(</span><span class="n">name_of_paired_ion</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">templates</span><span class="p">:</span><span class="c1"># or name_of_paired_ion in templates:</span>
-                    <span class="k">continue</span>
-                <span class="n">templates</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extract_templates</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fast</span><span class="p">:</span>
+            <span class="c1"># this takes some time, but the update calls on the residues are then much faster</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_force_idx_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_force_idx_dict</span><span class="p">()</span>
 
         <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">topology</span><span class="o">.</span><span class="n">residues</span><span class="p">():</span>
             <span class="n">name</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">name</span>
@@ -687,48 +810,58 @@
                     <span class="n">name</span>
                 <span class="p">)</span>
 
-                <span class="n">parameters_state1</span> <span class="o">=</span> <span class="n">templates</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
-                <span class="n">parameters_state2</span> <span class="o">=</span> <span class="n">templates</span><span class="p">[</span><span class="n">name_of_paired_ion</span><span class="p">]</span>
+                <span class="n">parameters_state1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">residue_templates</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+                <span class="n">parameters_state2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">residue_templates</span><span class="p">[</span><span class="n">name_of_paired_ion</span><span class="p">]</span>
                 <span class="c1"># check that we have the same number of parameters</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_check_nr_of_forces</span><span class="p">(</span>
                     <span class="n">parameters_state1</span><span class="p">,</span> <span class="n">parameters_state2</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">name_of_paired_ion</span>
                 <span class="p">)</span>
-
-                <span class="n">residues</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                    <span class="n">Residue</span><span class="p">(</span>
+                <span class="n">atom_idxs</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="n">atom</span><span class="o">.</span><span class="n">index</span> <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">atoms</span><span class="p">()</span>
+                <span class="p">]</span>  <span class="c1"># also give them to initilaizer, not inside residue?</span>
+                <span class="n">minmax</span> <span class="o">=</span> <span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">atom_idxs</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">atom_idxs</span><span class="p">))</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fast</span><span class="p">:</span>
+                    <span class="n">new_res</span> <span class="o">=</span> <span class="n">Residue</span><span class="p">(</span>
                         <span class="n">r</span><span class="p">,</span>
                         <span class="n">name_of_paired_ion</span><span class="p">,</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="p">,</span>
                         <span class="n">parameters_state1</span><span class="p">,</span>
                         <span class="n">parameters_state2</span><span class="p">,</span>
-                        <span class="c1">#pair_12_13_list,</span>
+                        <span class="c1"># pair_12_13_list,</span>
+                        <span class="p">(</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">templates</span><span class="o">.</span><span class="n">has_equivalent_atom</span><span class="p">(</span><span class="n">name</span><span class="p">),</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">templates</span><span class="o">.</span><span class="n">has_equivalent_atom</span><span class="p">(</span><span class="n">name_of_paired_ion</span><span class="p">),</span>
+                        <span class="p">),</span>
+                        <span class="n">force_idxs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">per_residue_forces</span><span class="p">[</span><span class="n">minmax</span><span class="p">],</span>
+                    <span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">new_res</span> <span class="o">=</span> <span class="n">Residue</span><span class="p">(</span>
+                        <span class="n">r</span><span class="p">,</span>
+                        <span class="n">name_of_paired_ion</span><span class="p">,</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="p">,</span>
+                        <span class="n">parameters_state1</span><span class="p">,</span>
+                        <span class="n">parameters_state2</span><span class="p">,</span>
+                        <span class="c1"># pair_12_13_list,</span>
                         <span class="p">(</span>
                             <span class="bp">self</span><span class="o">.</span><span class="n">templates</span><span class="o">.</span><span class="n">has_equivalent_atom</span><span class="p">(</span><span class="n">name</span><span class="p">),</span>
                             <span class="bp">self</span><span class="o">.</span><span class="n">templates</span><span class="o">.</span><span class="n">has_equivalent_atom</span><span class="p">(</span><span class="n">name_of_paired_ion</span><span class="p">),</span>
                         <span class="p">),</span>
                     <span class="p">)</span>
-                <span class="p">)</span>
+                <span class="n">residues</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_res</span><span class="p">)</span>
                 <span class="n">residues</span><span class="p">[</span>
                     <span class="o">-</span><span class="mi">1</span>
                 <span class="p">]</span><span class="o">.</span><span class="n">current_name</span> <span class="o">=</span> <span class="p">(</span>
                     <span class="n">name</span>  <span class="c1"># Why, isnt it done in the initializer of Residue?</span>
                 <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">parameters_state1</span> <span class="o">=</span> <span class="n">templates</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
-                <span class="n">r</span> <span class="o">=</span> <span class="n">Residue</span><span class="p">(</span>
-                        <span class="n">r</span><span class="p">,</span>
-                        <span class="kc">None</span><span class="p">,</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="p">,</span>
-                        <span class="n">parameters_state1</span><span class="p">,</span>
-                        <span class="kc">None</span><span class="p">,</span>
-                        <span class="kc">None</span>
-                    <span class="p">)</span>
+                <span class="n">parameters_state1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">residue_templates</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+                <span class="n">r</span> <span class="o">=</span> <span class="n">Residue</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="p">,</span> <span class="n">parameters_state1</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
                 <span class="c1"># the residue is not part of any proton transfers,</span>
                 <span class="c1"># we still need it in the residue list for the parmed hack...</span>
                 <span class="c1"># there we need the current_name attribute, hence give it to the residue</span>
-                <span class="c1">#r.current_name = r.name</span>
+                <span class="c1"># r.current_name = r.name</span>
                 <span class="n">residues</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
-            <span class="c1">#else: #if there are residues on purpose not with protex we want to just ignore them</span>
+            <span class="c1"># else: #if there are residues on purpose not with protex we want to just ignore them</span>
             <span class="c1">#    raise RuntimeError(</span>
             <span class="c1">#        f&quot;Found resiude not present in Templates: {r.name}&quot;</span>
             <span class="c1">#    )  # we want to ignore meoh, doesn&#39;t work the way it actually is</span>

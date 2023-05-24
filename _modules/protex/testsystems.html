@@ -11,6 +11,8 @@
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
         <script src="../../_static/doctools.js"></script>
         <script src="../../_static/sphinx_highlight.js"></script>
@@ -131,7 +133,12 @@
     <span class="k">return</span> <span class="n">psf</span><span class="p">,</span> <span class="n">crd</span><span class="p">,</span> <span class="n">params</span></div>
 
 
-<div class="viewcode-block" id="setup_system"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.testsystems.setup_system.html#protex.testsystems.setup_system">[docs]</a><span class="k">def</span> <span class="nf">setup_system</span><span class="p">(</span><span class="n">psf</span><span class="p">:</span> <span class="n">CharmmPsfFile</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="n">CharmmParameterSet</span><span class="p">,</span> <span class="n">constraints</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dummy_atom_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;DUMH&quot;</span><span class="p">):</span>
+<div class="viewcode-block" id="setup_system"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.testsystems.setup_system.html#protex.testsystems.setup_system">[docs]</a><span class="k">def</span> <span class="nf">setup_system</span><span class="p">(</span>
+    <span class="n">psf</span><span class="p">:</span> <span class="n">CharmmPsfFile</span><span class="p">,</span>
+    <span class="n">params</span><span class="p">:</span> <span class="n">CharmmParameterSet</span><span class="p">,</span>
+    <span class="n">constraints</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">dummy_atom_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;DUMH&quot;</span><span class="p">,</span>
+<span class="p">):</span>
     <span class="k">if</span> <span class="n">dummy_atom_type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="c1"># print(params.atom_types_str[&quot;DUM&quot;].epsilon)</span>
         <span class="c1"># print(params.atom_types_str[&quot;DUM&quot;].rmin)</span>
@@ -189,8 +196,12 @@
     <span class="n">coll_freq</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
     <span class="n">drude_coll_freq</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
     <span class="n">dummies</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">&quot;IM1&quot;</span><span class="p">,</span> <span class="s2">&quot;H7&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;OAC&quot;</span><span class="p">,</span> <span class="s2">&quot;H&quot;</span><span class="p">)],</span>
-    <span class="n">use_plugin</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">use_plugin</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">platformname</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;CUDA&quot;</span><span class="p">,</span>
+    <span class="n">cuda_precision</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;single&quot;</span><span class="p">,</span>
 <span class="p">):</span>
+    <span class="k">if</span> <span class="n">use_plugin</span> <span class="ow">and</span> <span class="n">platformname</span> <span class="o">!=</span> <span class="s2">&quot;CUDA&quot;</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="s2">&quot;Plugin only available with CUDA&quot;</span>
     <span class="k">if</span> <span class="n">use_plugin</span><span class="p">:</span>
         <span class="c1"># plugin</span>
         <span class="c1"># https://github.com/z-gong/openmm-velocityVerlet</span>
@@ -221,8 +232,12 @@
     <span class="c1"># )  # tested with 20, 40, 80, 100, 120, 140, 160: 20,40 bad; 80 - 120 good; 140, 160 crashed</span>
     <span class="n">integrator</span><span class="o">.</span><span class="n">setMaxDrudeDistance</span><span class="p">(</span><span class="mf">0.25</span> <span class="o">*</span> <span class="n">angstroms</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">platform</span> <span class="o">=</span> <span class="n">Platform</span><span class="o">.</span><span class="n">getPlatformByName</span><span class="p">(</span><span class="s2">&quot;CUDA&quot;</span><span class="p">)</span>
-        <span class="n">prop</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">CudaPrecision</span><span class="o">=</span><span class="s2">&quot;single&quot;</span><span class="p">)</span>  <span class="c1"># default is single</span>
+        <span class="n">platform</span> <span class="o">=</span> <span class="n">Platform</span><span class="o">.</span><span class="n">getPlatformByName</span><span class="p">(</span><span class="n">platformname</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">platformname</span> <span class="o">==</span> <span class="s2">&quot;CUDA&quot;</span><span class="p">:</span>
+            <span class="n">prop</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">CudaPrecision</span><span class="o">=</span><span class="n">cuda_precision</span><span class="p">)</span>  <span class="c1"># default is single</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Using precision </span><span class="si">{</span><span class="n">cuda_precision</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">prop</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
         <span class="c1"># prop = dict(CudaPrecision=&quot;double&quot;)</span>
         <span class="c1"># Moved creating the simulation object inside the try...except block, because i.e.</span>
         <span class="c1"># Error loading CUDA module: CUDA_ERROR_INVALID_PTX (218)</span>
@@ -234,7 +249,8 @@
             <span class="n">platform</span><span class="o">=</span><span class="n">platform</span><span class="p">,</span>
             <span class="n">platformProperties</span><span class="o">=</span><span class="n">prop</span><span class="p">,</span>
         <span class="p">)</span>
-    <span class="k">except</span> <span class="n">OpenMMException</span><span class="p">:</span>
+    <span class="k">except</span> <span class="n">OpenMMException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
         <span class="n">platform</span> <span class="o">=</span> <span class="n">Platform</span><span class="o">.</span><span class="n">getPlatformByName</span><span class="p">(</span><span class="s2">&quot;CPU&quot;</span><span class="p">)</span>
         <span class="n">prop</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
         <span class="n">simulation</span> <span class="o">=</span> <span class="n">Simulation</span><span class="p">(</span>
@@ -244,7 +260,7 @@
             <span class="n">platform</span><span class="o">=</span><span class="n">platform</span><span class="p">,</span>
             <span class="n">platformProperties</span><span class="o">=</span><span class="n">prop</span><span class="p">,</span>
         <span class="p">)</span>
-
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Using platform: </span><span class="si">{</span><span class="n">platform</span><span class="o">.</span><span class="n">getName</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="n">simulation</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">setPositions</span><span class="p">(</span><span class="n">crd</span><span class="o">.</span><span class="n">positions</span><span class="p">)</span>
     <span class="c1"># Try with positions from equilibrated system:</span>
     <span class="k">if</span> <span class="n">restart_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">restart_file</span><span class="p">):</span>
@@ -275,22 +291,25 @@
             <span class="n">idx2</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
             <span class="n">chargeProd</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">epsilon</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="mi">2</span><span class="p">:]</span>
             <span class="k">if</span> <span class="n">idx1</span> <span class="ow">in</span> <span class="n">dummy_atoms</span> <span class="ow">or</span> <span class="n">idx2</span> <span class="ow">in</span> <span class="n">dummy_atoms</span><span class="p">:</span>
-                <span class="n">nonbonded_force</span><span class="o">.</span><span class="n">setExceptionParameters</span><span class="p">(</span><span class="n">exc_id</span><span class="p">,</span> <span class="n">idx1</span><span class="p">,</span> <span class="n">idx2</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+                <span class="n">nonbonded_force</span><span class="o">.</span><span class="n">setExceptionParameters</span><span class="p">(</span>
+                    <span class="n">exc_id</span><span class="p">,</span> <span class="n">idx1</span><span class="p">,</span> <span class="n">idx2</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="mf">0.0</span>
+                <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">simulation</span></div>
 
-<div class="viewcode-block" id="generate_complete_system"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.testsystems.generate_complete_system.html#protex.testsystems.generate_complete_system">[docs]</a><span class="k">def</span> <span class="nf">generate_complete_system</span><span class="p">(</span> <span class="c1">#currently not in use</span>
+
+<div class="viewcode-block" id="generate_complete_system"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.testsystems.generate_complete_system.html#protex.testsystems.generate_complete_system">[docs]</a><span class="k">def</span> <span class="nf">generate_complete_system</span><span class="p">(</span>  <span class="c1"># currently not in use</span>
     <span class="n">psf_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">crd_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-    <span class="n">restart_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="c1"># | None,</span>
-    <span class="n">constraints</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="c1"># | None,</span>
+    <span class="n">restart_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>  <span class="c1"># | None,</span>
+    <span class="n">constraints</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>  <span class="c1"># | None,</span>
     <span class="n">boxl</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="n">para_files</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
     <span class="n">coll_freq</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">drude_coll_freq</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">dummy_atom_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-    <span class="n">dummies</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span><span class="nb">str</span><span class="p">]],</span>
-    <span class="n">use_plugin</span><span class="p">:</span> <span class="nb">bool</span>
+    <span class="n">dummies</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]],</span>
+    <span class="n">use_plugin</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
 <span class="p">):</span>
     <span class="n">psf</span><span class="p">,</span> <span class="n">crd</span><span class="p">,</span> <span class="n">params</span> <span class="o">=</span> <span class="n">load_charmm_files</span><span class="p">(</span>
         <span class="n">psf_file</span><span class="o">=</span><span class="n">psf_file</span><span class="p">,</span>
@@ -310,10 +329,11 @@
         <span class="n">coll_freq</span><span class="o">=</span><span class="n">coll_freq</span><span class="p">,</span>
         <span class="n">drude_coll_freq</span><span class="o">=</span><span class="n">drude_coll_freq</span><span class="p">,</span>
         <span class="n">dummies</span><span class="o">=</span><span class="n">dummies</span><span class="p">,</span>
-        <span class="n">use_plugin</span><span class="o">=</span><span class="n">use_plugin</span>
+        <span class="n">use_plugin</span><span class="o">=</span><span class="n">use_plugin</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">simulation</span></div>
+
 
 <span class="c1"># def generate_im1h_oac_system( # using generate_complete_system</span>
 <span class="c1">#     psf_file: str = None,</span>
@@ -372,11 +392,13 @@
     <span class="n">constraints</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">boxl</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">48.0</span><span class="p">,</span>
     <span class="n">para_files</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">coll_freq</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
-    <span class="n">drude_coll_freq</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
-    <span class="n">dummy_atom_type</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s2">&quot;DUMH&quot;</span><span class="p">,</span>
-    <span class="n">dummies</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">&quot;IM1&quot;</span><span class="p">,</span> <span class="s2">&quot;H7&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;OAC&quot;</span><span class="p">,</span> <span class="s2">&quot;H&quot;</span><span class="p">)],</span>
-    <span class="n">use_plugin</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span><span class="kc">True</span>
+    <span class="n">coll_freq</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
+    <span class="n">drude_coll_freq</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
+    <span class="n">dummy_atom_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;DUMH&quot;</span><span class="p">,</span>
+    <span class="n">dummies</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">&quot;IM1&quot;</span><span class="p">,</span> <span class="s2">&quot;H7&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;OAC&quot;</span><span class="p">,</span> <span class="s2">&quot;H&quot;</span><span class="p">)],</span>
+    <span class="n">use_plugin</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">platformname</span><span class="o">=</span><span class="s2">&quot;CUDA&quot;</span><span class="p">,</span>
+    <span class="n">cuda_precision</span><span class="o">=</span><span class="s2">&quot;single&quot;</span><span class="p">,</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Set up a solvated and parametrized system for IM1H/OAC.&quot;&quot;&quot;</span>
     <span class="n">base</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">protex</span><span class="o">.</span><span class="n">__path__</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">/forcefield/&quot;</span>
@@ -415,10 +437,13 @@
         <span class="n">coll_freq</span><span class="o">=</span><span class="n">coll_freq</span><span class="p">,</span>
         <span class="n">drude_coll_freq</span><span class="o">=</span><span class="n">drude_coll_freq</span><span class="p">,</span>
         <span class="n">dummies</span><span class="o">=</span><span class="n">dummies</span><span class="p">,</span>
-        <span class="n">use_plugin</span><span class="o">=</span><span class="n">use_plugin</span>
+        <span class="n">use_plugin</span><span class="o">=</span><span class="n">use_plugin</span><span class="p">,</span>
+        <span class="n">platformname</span><span class="o">=</span><span class="n">platformname</span><span class="p">,</span>
+        <span class="n">cuda_precision</span><span class="o">=</span><span class="n">cuda_precision</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">simulation</span></div>
+
 
 <div class="viewcode-block" id="generate_tfa_system"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.testsystems.generate_tfa_system.html#protex.testsystems.generate_tfa_system">[docs]</a><span class="k">def</span> <span class="nf">generate_tfa_system</span><span class="p">(</span>
     <span class="n">psf_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -427,12 +452,12 @@
     <span class="n">constraints</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">boxl</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">48.0</span><span class="p">,</span>
     <span class="n">para_files</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">coll_freq</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
-    <span class="n">drude_coll_freq</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
-    <span class="n">dummy_atom_type</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s2">&quot;DUMH&quot;</span><span class="p">,</span>
-    <span class="n">dummies</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">&quot;IM1&quot;</span><span class="p">,</span> <span class="s2">&quot;H7&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;OAC&quot;</span><span class="p">,</span> <span class="s2">&quot;H&quot;</span><span class="p">)],</span>
-    <span class="n">use_plugin</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="n">tfa_percent</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span>
+    <span class="n">coll_freq</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
+    <span class="n">drude_coll_freq</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
+    <span class="n">dummy_atom_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;DUMH&quot;</span><span class="p">,</span>
+    <span class="n">dummies</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">&quot;IM1&quot;</span><span class="p">,</span> <span class="s2">&quot;H7&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;OAC&quot;</span><span class="p">,</span> <span class="s2">&quot;H&quot;</span><span class="p">)],</span>
+    <span class="n">use_plugin</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">tfa_percent</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Set up a solvated and parametrized system for IM1H/OAC with tfa.&quot;&quot;&quot;</span>
     <span class="n">base</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">protex</span><span class="o">.</span><span class="n">__path__</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">/forcefield/&quot;</span>
@@ -447,7 +472,7 @@
             <span class="s2">&quot;im1h_d.str&quot;</span><span class="p">,</span>
             <span class="s2">&quot;im1_d_dummy.str&quot;</span><span class="p">,</span>
             <span class="s2">&quot;oac_d_dummy.str&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;tfa_d.str&quot;</span>
+            <span class="s2">&quot;tfa_d.str&quot;</span><span class="p">,</span>
         <span class="p">]</span>
         <span class="n">para_files</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">base</span><span class="si">}</span><span class="s2">/toppar/</span><span class="si">{</span><span class="n">para_files</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">para_files</span> <span class="ow">in</span> <span class="n">PARA_FILES</span><span class="p">]</span>
 
@@ -472,7 +497,7 @@
         <span class="n">coll_freq</span><span class="o">=</span><span class="n">coll_freq</span><span class="p">,</span>
         <span class="n">drude_coll_freq</span><span class="o">=</span><span class="n">drude_coll_freq</span><span class="p">,</span>
         <span class="n">dummies</span><span class="o">=</span><span class="n">dummies</span><span class="p">,</span>
-        <span class="n">use_plugin</span><span class="o">=</span><span class="n">use_plugin</span>
+        <span class="n">use_plugin</span><span class="o">=</span><span class="n">use_plugin</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">simulation</span></div>
@@ -486,11 +511,13 @@
     <span class="n">constraints</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">boxl</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">22.0</span><span class="p">,</span>
     <span class="n">para_files</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">coll_freq</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
-    <span class="n">drude_coll_freq</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
-    <span class="n">dummy_atom_type</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s2">&quot;DUMH&quot;</span><span class="p">,</span>
-    <span class="n">dummies</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span><span class="nb">str</span><span class="p">]]</span><span class="o">=</span><span class="p">[(</span><span class="s2">&quot;IM1&quot;</span><span class="p">,</span> <span class="s2">&quot;H7&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;OAC&quot;</span><span class="p">,</span> <span class="s2">&quot;H&quot;</span><span class="p">)],</span>
-    <span class="n">use_plugin</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">coll_freq</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
+    <span class="n">drude_coll_freq</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
+    <span class="n">dummy_atom_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;DUMH&quot;</span><span class="p">,</span>
+    <span class="n">dummies</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">&quot;IM1&quot;</span><span class="p">,</span> <span class="s2">&quot;H7&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;OAC&quot;</span><span class="p">,</span> <span class="s2">&quot;H&quot;</span><span class="p">)],</span>
+    <span class="n">use_plugin</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">platformname</span><span class="o">=</span><span class="s2">&quot;CUDA&quot;</span><span class="p">,</span>
+    <span class="n">cuda_precision</span><span class="o">=</span><span class="s2">&quot;single&quot;</span><span class="p">,</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Set up a solvated and parametrized system for IM1H/OAC.&quot;&quot;&quot;</span>
     <span class="nb">print</span><span class="p">(</span>
@@ -529,24 +556,29 @@
         <span class="n">coll_freq</span><span class="o">=</span><span class="n">coll_freq</span><span class="p">,</span>
         <span class="n">drude_coll_freq</span><span class="o">=</span><span class="n">drude_coll_freq</span><span class="p">,</span>
         <span class="n">dummies</span><span class="o">=</span><span class="n">dummies</span><span class="p">,</span>
-        <span class="n">use_plugin</span><span class="o">=</span><span class="n">use_plugin</span>
+        <span class="n">use_plugin</span><span class="o">=</span><span class="n">use_plugin</span><span class="p">,</span>
+        <span class="n">platformname</span><span class="o">=</span><span class="n">platformname</span><span class="p">,</span>
+        <span class="n">cuda_precision</span><span class="o">=</span><span class="n">cuda_precision</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">simulation</span></div>
 
-<div class="viewcode-block" id="generate_single_im1h_oac_system"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.testsystems.generate_single_im1h_oac_system.html#protex.testsystems.generate_single_im1h_oac_system">[docs]</a><span class="k">def</span> <span class="nf">generate_single_im1h_oac_system</span><span class="p">(</span> <span class="c1">#does not have dummies</span>
+
+<div class="viewcode-block" id="generate_single_im1h_oac_system"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.testsystems.generate_single_im1h_oac_system.html#protex.testsystems.generate_single_im1h_oac_system">[docs]</a><span class="k">def</span> <span class="nf">generate_single_im1h_oac_system</span><span class="p">(</span>  <span class="c1"># does not have dummies</span>
     <span class="n">psf_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">crd_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">restart_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">constraints</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">boxl</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">22.0</span><span class="p">,</span>
     <span class="n">para_files</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">coll_freq</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
-    <span class="n">drude_coll_freq</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
-    <span class="n">dummy_atom_type</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="c1">#&quot;DUMH&quot;,</span>
-    <span class="n">dummies</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="c1">#[(&quot;IM1&quot;, &quot;H7&quot;), (&quot;OAC&quot;, &quot;H&quot;)]</span>
-    <span class="n">use_plugin</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="p">):</span>
+    <span class="n">coll_freq</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
+    <span class="n">drude_coll_freq</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
+    <span class="n">dummy_atom_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># &quot;DUMH&quot;,</span>
+    <span class="n">dummies</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># [(&quot;IM1&quot;, &quot;H7&quot;), (&quot;OAC&quot;, &quot;H&quot;)]</span>
+    <span class="n">use_plugin</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">platformname</span><span class="o">=</span><span class="s2">&quot;CUDA&quot;</span><span class="p">,</span>
+    <span class="n">cuda_precision</span><span class="o">=</span><span class="s2">&quot;single&quot;</span><span class="p">,</span>
+<span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Set up a system with 1 IM1H, 1OAC, 1IM1 and 1 HOAC.</span>
 
 <span class="sd">    Was for testing the deformation of the imidazole ring -&gt; solved by adding the nonbonded exception to the updates.</span>
@@ -587,10 +619,13 @@
         <span class="n">coll_freq</span><span class="o">=</span><span class="n">coll_freq</span><span class="p">,</span>
         <span class="n">drude_coll_freq</span><span class="o">=</span><span class="n">drude_coll_freq</span><span class="p">,</span>
         <span class="n">dummies</span><span class="o">=</span><span class="n">dummies</span><span class="p">,</span>
-        <span class="n">use_plugin</span><span class="o">=</span><span class="n">use_plugin</span>
+        <span class="n">use_plugin</span><span class="o">=</span><span class="n">use_plugin</span><span class="p">,</span>
+        <span class="n">platformname</span><span class="o">=</span><span class="n">platformname</span><span class="p">,</span>
+        <span class="n">cuda_precision</span><span class="o">=</span><span class="n">cuda_precision</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">simulation</span></div>
+
 
 <div class="viewcode-block" id="generate_im1h_oac_dummy_system"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.testsystems.generate_im1h_oac_dummy_system.html#protex.testsystems.generate_im1h_oac_dummy_system">[docs]</a><span class="k">def</span> <span class="nf">generate_im1h_oac_dummy_system</span><span class="p">(</span>
     <span class="n">psf_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -601,9 +636,9 @@
     <span class="n">para_files</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">coll_freq</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
     <span class="n">drude_coll_freq</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
-    <span class="n">dummy_atom_type</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s2">&quot;DUMH&quot;</span><span class="p">,</span>
-    <span class="n">dummies</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span><span class="nb">str</span><span class="p">]]</span><span class="o">=</span><span class="p">[(</span><span class="s2">&quot;IM1&quot;</span><span class="p">,</span> <span class="s2">&quot;H7&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;OAC&quot;</span><span class="p">,</span> <span class="s2">&quot;H&quot;</span><span class="p">)],</span>
-    <span class="n">use_plugin</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">dummy_atom_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;DUMH&quot;</span><span class="p">,</span>
+    <span class="n">dummies</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">&quot;IM1&quot;</span><span class="p">,</span> <span class="s2">&quot;H7&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;OAC&quot;</span><span class="p">,</span> <span class="s2">&quot;H&quot;</span><span class="p">)],</span>
+    <span class="n">use_plugin</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Set up a solvated and parametrized system for IM1H/OAC.&quot;&quot;&quot;</span>
     <span class="n">base</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">protex</span><span class="o">.</span><span class="n">__path__</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">/forcefield&quot;</span>
@@ -639,24 +674,25 @@
         <span class="n">coll_freq</span><span class="o">=</span><span class="n">coll_freq</span><span class="p">,</span>
         <span class="n">drude_coll_freq</span><span class="o">=</span><span class="n">drude_coll_freq</span><span class="p">,</span>
         <span class="n">dummies</span><span class="o">=</span><span class="n">dummies</span><span class="p">,</span>
-        <span class="n">use_plugin</span><span class="o">=</span><span class="n">use_plugin</span>
+        <span class="n">use_plugin</span><span class="o">=</span><span class="n">use_plugin</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">simulation</span></div>
 
+
 <span class="c1">### new generate</span>
-<div class="viewcode-block" id="generate_hpts_system"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.testsystems.generate_hpts_system.html#protex.testsystems.generate_hpts_system">[docs]</a><span class="k">def</span> <span class="nf">generate_hpts_system</span><span class="p">(</span> <span class="c1">#not in use? -&gt; delete?</span>
+<div class="viewcode-block" id="generate_hpts_system"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.testsystems.generate_hpts_system.html#protex.testsystems.generate_hpts_system">[docs]</a><span class="k">def</span> <span class="nf">generate_hpts_system</span><span class="p">(</span>  <span class="c1"># not in use? -&gt; delete?</span>
     <span class="n">psf_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">crd_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">restart_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">constraints</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">boxl</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">48.0</span><span class="p">,</span>
     <span class="n">para_files</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">coll_freq</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
-    <span class="n">drude_coll_freq</span><span class="p">:</span> <span class="nb">int</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
-    <span class="n">dummy_atom_type</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s2">&quot;DUMH&quot;</span><span class="p">,</span>
-    <span class="n">dummies</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">&quot;IM1&quot;</span><span class="p">,</span> <span class="s2">&quot;H7&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;OAC&quot;</span><span class="p">,</span> <span class="s2">&quot;H&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;HPTS&quot;</span><span class="p">,</span> <span class="s2">&quot;H7&quot;</span><span class="p">)],</span>
-    <span class="n">use_plugin</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">coll_freq</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
+    <span class="n">drude_coll_freq</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
+    <span class="n">dummy_atom_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;DUMH&quot;</span><span class="p">,</span>
+    <span class="n">dummies</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">&quot;IM1&quot;</span><span class="p">,</span> <span class="s2">&quot;H7&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;OAC&quot;</span><span class="p">,</span> <span class="s2">&quot;H&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;HPTS&quot;</span><span class="p">,</span> <span class="s2">&quot;H7&quot;</span><span class="p">)],</span>
+    <span class="n">use_plugin</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Set up a solvated and parametrized system for IM1H/OAC/HPTS.&quot;&quot;&quot;</span>
     <span class="n">base</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">protex</span><span class="o">.</span><span class="n">__path__</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">/forcefield/&quot;</span>
@@ -698,7 +734,7 @@
         <span class="n">coll_freq</span><span class="o">=</span><span class="n">coll_freq</span><span class="p">,</span>
         <span class="n">drude_coll_freq</span><span class="o">=</span><span class="n">drude_coll_freq</span><span class="p">,</span>
         <span class="n">dummies</span><span class="o">=</span><span class="n">dummies</span><span class="p">,</span>
-        <span class="n">use_plugin</span><span class="o">=</span><span class="n">use_plugin</span>
+        <span class="n">use_plugin</span><span class="o">=</span><span class="n">use_plugin</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">simulation</span></div>
@@ -711,11 +747,16 @@
     <span class="n">constraints</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">boxl</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">70.0</span><span class="p">,</span>
     <span class="n">para_files</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">coll_freq</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span><span class="mi">10</span><span class="p">,</span>
-    <span class="n">drude_coll_freq</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span><span class="mi">100</span><span class="p">,</span>
-    <span class="n">dummy_atom_type</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s2">&quot;DUMH&quot;</span><span class="p">,</span>
-    <span class="n">dummies</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">&quot;IM1&quot;</span><span class="p">,</span> <span class="s2">&quot;H7&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;OAC&quot;</span><span class="p">,</span> <span class="s2">&quot;H&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;HPTS&quot;</span><span class="p">,</span> <span class="s2">&quot;H7&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;MEOH&quot;</span><span class="p">,</span> <span class="s2">&quot;HO2&quot;</span><span class="p">)],</span>
-    <span class="n">use_plugin</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">coll_freq</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
+    <span class="n">drude_coll_freq</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
+    <span class="n">dummy_atom_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;DUMH&quot;</span><span class="p">,</span>
+    <span class="n">dummies</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="s2">&quot;IM1&quot;</span><span class="p">,</span> <span class="s2">&quot;H7&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;OAC&quot;</span><span class="p">,</span> <span class="s2">&quot;H&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;HPTS&quot;</span><span class="p">,</span> <span class="s2">&quot;H7&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;MEOH&quot;</span><span class="p">,</span> <span class="s2">&quot;HO2&quot;</span><span class="p">),</span>
+    <span class="p">],</span>
+    <span class="n">use_plugin</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Set up a solvated and parametrized system for IM1H/OAC/HPTS/MEOH.&quot;&quot;&quot;</span>
     <span class="n">base</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">protex</span><span class="o">.</span><span class="n">__path__</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">/forcefield/&quot;</span>
@@ -755,10 +796,11 @@
         <span class="n">coll_freq</span><span class="o">=</span><span class="n">coll_freq</span><span class="p">,</span>
         <span class="n">drude_coll_freq</span><span class="o">=</span><span class="n">drude_coll_freq</span><span class="p">,</span>
         <span class="n">dummies</span><span class="o">=</span><span class="n">dummies</span><span class="p">,</span>
-        <span class="n">use_plugin</span><span class="o">=</span><span class="n">use_plugin</span>
+        <span class="n">use_plugin</span><span class="o">=</span><span class="n">use_plugin</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">simulation</span></div>
+
 
 <div class="viewcode-block" id="generate_hpts_meoh_lj04_system"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.testsystems.generate_hpts_meoh_lj04_system.html#protex.testsystems.generate_hpts_meoh_lj04_system">[docs]</a><span class="k">def</span> <span class="nf">generate_hpts_meoh_lj04_system</span><span class="p">(</span>
     <span class="n">psf_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -769,9 +811,14 @@
     <span class="n">para_files</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">coll_freq</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
     <span class="n">drude_coll_freq</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
-    <span class="n">dummy_atom_type</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s2">&quot;DUMH&quot;</span><span class="p">,</span>
-    <span class="n">dummies</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">&quot;IM1&quot;</span><span class="p">,</span> <span class="s2">&quot;H7&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;OAC&quot;</span><span class="p">,</span> <span class="s2">&quot;H&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;HPTS&quot;</span><span class="p">,</span> <span class="s2">&quot;H7&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;MEOH&quot;</span><span class="p">,</span> <span class="s2">&quot;HO2&quot;</span><span class="p">)],</span>
-    <span class="n">use_plugin</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">dummy_atom_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;DUMH&quot;</span><span class="p">,</span>
+    <span class="n">dummies</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="s2">&quot;IM1&quot;</span><span class="p">,</span> <span class="s2">&quot;H7&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;OAC&quot;</span><span class="p">,</span> <span class="s2">&quot;H&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;HPTS&quot;</span><span class="p">,</span> <span class="s2">&quot;H7&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;MEOH&quot;</span><span class="p">,</span> <span class="s2">&quot;HO2&quot;</span><span class="p">),</span>
+    <span class="p">],</span>
+    <span class="n">use_plugin</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Set up a solvated and parametrized system for IM1H/OAC/HPTS/MEOH.&quot;&quot;&quot;</span>
     <span class="n">base</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">protex</span><span class="o">.</span><span class="n">__path__</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">/forcefield/&quot;</span>
@@ -811,10 +858,11 @@
         <span class="n">coll_freq</span><span class="o">=</span><span class="n">coll_freq</span><span class="p">,</span>
         <span class="n">drude_coll_freq</span><span class="o">=</span><span class="n">drude_coll_freq</span><span class="p">,</span>
         <span class="n">dummies</span><span class="o">=</span><span class="n">dummies</span><span class="p">,</span>
-        <span class="n">use_plugin</span><span class="o">=</span><span class="n">use_plugin</span>
+        <span class="n">use_plugin</span><span class="o">=</span><span class="n">use_plugin</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">simulation</span></div>
+
 
 <span class="c1"># used for faster tests, not for production!</span>
 <div class="viewcode-block" id="generate_single_hpts_meoh_system"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.testsystems.generate_single_hpts_meoh_system.html#protex.testsystems.generate_single_hpts_meoh_system">[docs]</a><span class="k">def</span> <span class="nf">generate_single_hpts_meoh_system</span><span class="p">(</span>
@@ -827,7 +875,12 @@
     <span class="n">coll_freq</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
     <span class="n">drude_coll_freq</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
     <span class="n">dummy_atom_type</span><span class="o">=</span><span class="s2">&quot;DUMH&quot;</span><span class="p">,</span>
-    <span class="n">dummies</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">&quot;IM1&quot;</span><span class="p">,</span> <span class="s2">&quot;H7&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;OAC&quot;</span><span class="p">,</span> <span class="s2">&quot;H&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;HPTS&quot;</span><span class="p">,</span> <span class="s2">&quot;H7&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;MEOH&quot;</span><span class="p">,</span> <span class="s2">&quot;HO2&quot;</span><span class="p">)],</span>
+    <span class="n">dummies</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="s2">&quot;IM1&quot;</span><span class="p">,</span> <span class="s2">&quot;H7&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;OAC&quot;</span><span class="p">,</span> <span class="s2">&quot;H&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;HPTS&quot;</span><span class="p">,</span> <span class="s2">&quot;H7&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;MEOH&quot;</span><span class="p">,</span> <span class="s2">&quot;HO2&quot;</span><span class="p">),</span>
+    <span class="p">],</span>
     <span class="n">use_plugin</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Set up a solvated and parametrized system for IM1H/OAC.&quot;&quot;&quot;</span>
@@ -871,12 +924,10 @@
         <span class="n">coll_freq</span><span class="o">=</span><span class="n">coll_freq</span><span class="p">,</span>
         <span class="n">drude_coll_freq</span><span class="o">=</span><span class="n">drude_coll_freq</span><span class="p">,</span>
         <span class="n">dummies</span><span class="o">=</span><span class="n">dummies</span><span class="p">,</span>
-        <span class="n">use_plugin</span><span class="o">=</span><span class="n">use_plugin</span>
+        <span class="n">use_plugin</span><span class="o">=</span><span class="n">use_plugin</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">simulation</span></div>
-
-
 
 
 <span class="n">IM1H_IM1</span> <span class="o">=</span> <span class="p">{</span>
