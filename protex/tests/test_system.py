@@ -673,10 +673,12 @@ def test_ProtexException():
 
     templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
     # we do not cover the forces
+    recover = ProtexSystem.IGNORED_FORCES
     ProtexSystem.IGNORED_FORCES = []
     # print(ProtexSystem.IGNORED_FORCES)
     with pytest.raises(protex.ProtexException):
         ProtexSystem(simulation, templates)
+    ProtexSystem.IGNORED_FORCES = recover
 
 
 def test_save_load_allowedupdates(tmp_path):
