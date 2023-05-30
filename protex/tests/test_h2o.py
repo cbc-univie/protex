@@ -1,7 +1,7 @@
 import logging
 
+from protex.system import ProtexSystem, ProtexTemplates
 from protex.testsystems import generate_h2o_system
-from protex.system import ProtexTemplates, ProtexSystem
 
 h2o_updates = {
     frozenset(["OH", "OH"]): {"r_max": 0.165, "prob": 1},
