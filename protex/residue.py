@@ -128,6 +128,9 @@ class Residue:
         if force_name == "NonbondedForce":
             parms = self._get_NonbondedForce_parameters_at_lambda(lamb)
             self._set_NonbondedForce_parameters(parms)
+        elif force_name == "CustomNonbondedForce":
+            parms = self._get_CustomNonbondedForce_parameters_at_lambda(lamb)
+            self._set_CustomNonbondedForce_parameters(parms)
         elif force_name == "HarmonicBondForce":
             parms = self._get_HarmonicBondForce_parameters_at_lambda(lamb)
             self._set_HarmonicBondForce_parameters(parms)
@@ -174,6 +177,10 @@ class Residue:
                             force.setExceptionParameters(
                                 exc_idx, idx1, idx2, chargeprod, sigma, epsilon
                             )
+
+    def _set_CustomNonbondedForce_parameters(self, parms) -> None:  # noqa: N802
+        # TODO
+        print("implement")
 
     def _set_HarmonicBondForce_parameters(self, parms) -> None:  # noqa: N802
         parms = deque(parms)
@@ -429,6 +436,13 @@ class Residue:
             )
 
         return [parm_interpolated, exceptions_interpolated]
+
+    def _get_CustomNonbondedForce_parameters_at_lambda(  # noqa: N802
+        self, lamb: float
+    ) -> list[list[int]]:
+        # TODO
+        print("implement...")
+        return [[1, 2], [3, 4]]
 
     def _get_offset(self, name, force_name=None):
         # get offset for atom idx

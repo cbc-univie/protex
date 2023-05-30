@@ -324,6 +324,7 @@ class ProtexSystem:
     #####################
     COVERED_FORCES = [
         "NonbondedForce",
+        "CustomNonbondedForce",
         "HarmonicBondForce",
         "HarmonicAngleForce",
         "PeriodicTorsionForce",
@@ -476,6 +477,12 @@ class ProtexSystem:
                             if idx1 in atom_idxs and idx2 in atom_idxs:
                                 forces_dict[forcename + "Exceptions"].append(f)
 
+                    elif forcename == "CustomNonbondedForce":
+                        # TODO
+                        print("Arghhhhh. Implement!!!!")
+                        # + Exclusions!
+                        pass
+
                     elif forcename == "HarmonicBondForce":
                         for bond_id in range(force.getNumBonds()):
                             f = force.getBondParameters(bond_id)
@@ -623,6 +630,11 @@ class ProtexSystem:
                     value = (exc_idx, idx1, idx2)
                     maxi = max(idx1, idx2)
                     self._add_force(fgroup, "NonbondedForceExceptions", maxi, value)
+            elif forcename == "CustomNonbondedForce":
+                # TODO
+                print("Arghhhhh. Implement!!!!")
+                # + Exclusions!
+                pass
             elif forcename == "DrudeForce":
                 particle_map = {}
                 for drude_idx in range(force.getNumParticles()):

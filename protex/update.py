@@ -63,6 +63,7 @@ class Update(ABC):
         self.all_forces: bool = all_forces
         self.allowed_forces: list[str] = [  # change charges only
             "NonbondedForce",  # BUG: Charge stored in the DrudeForce does NOT get updated, probably you want to allow DrudeForce as well!
+            "CustomNonbondedForce",  # NEW
             "DrudeForce",
         ]
         if self.all_forces:
