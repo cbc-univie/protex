@@ -61,6 +61,8 @@ def setup_system(
     params: CharmmParameterSet,
     constraints=None,
     dummy_atom_type: str = "DUMH",
+    cutoff: float = 11.0,
+    switch: float = 10.0,
 ):
     if dummy_atom_type is not None:
         # print(params.atom_types_str["DUM"].epsilon)
@@ -85,16 +87,16 @@ def setup_system(
         system = psf.createSystem(
             params,
             nonbondedMethod=PME,
-            nonbondedCutoff=11.0 * angstroms,
-            switchDistance=10 * angstroms,
+            nonbondedCutoff=cutoff * angstroms,
+            switchDistance=switch * angstroms,
             constraints=None,
         )
     elif constraints == "HBonds":
         system = psf.createSystem(
             params,
             nonbondedMethod=PME,
-            nonbondedCutoff=11.0 * angstroms,
-            switchDistance=10 * angstroms,
+            nonbondedCutoff=cutoff * angstroms,
+            switchDistance=switch * angstroms,
             constraints=HBonds,
         )
     else:
@@ -357,6 +359,72 @@ def generate_im1h_oac_system(
         crd,
         system,
         restart_file=restart_file,
+        coll_freq=coll_freq,
+        drude_coll_freq=drude_coll_freq,
+        dummies=dummies,
+        use_plugin=use_plugin,
+        platformname=platformname,
+        cuda_precision=cuda_precision,
+    )
+
+    return simulation
+
+
+def generate_h2o_system(
+    psf_file: str = None,
+    crd_file: str = None,
+    restart_file: str = None,
+    constraints: str = None,
+    boxl: float = 10.0,
+    para_files: list[str] = None,
+    coll_freq: int = 10,
+    drude_coll_freq: int = 100,
+    dummy_atom_type: str = "DUMH",
+    dummies: list[tuple[str, str]] = [("IM1", "H7"), ("OAC", "H")],
+    use_plugin: bool = True,
+    platformname="CUDA",
+    cuda_precision="single",
+):
+    """Set up a solvated and parametrized system for IM1H/OAC."""
+    base = f"{protex.__path__[0]}/forcefield/"
+    if psf_file is None:
+        psf_file = f"{base}/h2o/h2o.psf"
+    if crd_file is None:
+        crd_file = f"{base}/h2o/h2o.crd"
+    if para_files is None:
+        PARA_FILES = [
+            "toppar_drude_master_protein_2013f_lj025_modhpts_chelpg.str",
+            "h2o_d.str",
+            "h3o_d.str",
+            "oh_d.str",
+            "cl_d.str",
+            "na_d.str",
+        ]
+        para_files = [f"{base}/h2o/{para_files}" for para_files in PARA_FILES]
+
+    psf, crd, params = load_charmm_files(
+        psf_file=psf_file,
+        crd_file=crd_file,
+        para_files=para_files,
+        boxl=boxl,
+    )
+    system = setup_system(
+        psf,
+        params,
+        constraints=constraints,
+        dummy_atom_type=dummy_atom_type,
+        cutoff=3,
+        switch=2,
+    )
+
+    # if restart_file is None:
+    #    restart_file = f"{base}/traj/im1h_oac_150_im1_hoac_350_npt_7.rst"
+
+    simulation = setup_simulation(
+        psf,
+        crd,
+        system,
+        # restart_file=restart_file,
         coll_freq=coll_freq,
         drude_coll_freq=drude_coll_freq,
         dummies=dummies,
