@@ -179,8 +179,30 @@ class Residue:
                             )
 
     def _set_CustomNonbondedForce_parameters(self, parms) -> None:  # noqa: N802
-        # TODO
-        print("implement")
+        parms_nonb = deque(parms[0])
+        parms_exclusions = deque(parms[1])
+        for force in self.system.getForces():
+            fgroup = force.getForceGroup()
+            if type(force).__name__ == "CustomNonbondedForce":
+                for parms_nonbonded, idx in zip(parms_nonb, self.atom_idxs):
+                    force.setParticleParameters(idx, parms_nonbonded)
+                try:  # use the fast way
+                    lst = self.force_idxs[fgroup]["CustomNonbondedForceExclusions"]
+                    for exc_idx, idx1, idx2 in lst:
+                        excl_idx1, excl_idx2 = parms_exclusions.popleft()
+                        force.setExclusionParticles(
+                            exc_idx, excl_idx1, excl_idx2
+                        )
+                except KeyError:  # use the old slow way
+                    for exc_idx in range(force.getNumExclusions()):
+                        f = force.getExclusionParticles(exc_idx)
+                        idx1 = f[0]
+                        idx2 = f[1]
+                        if idx1 in self.atom_idxs and idx2 in self.atom_idxs:
+                            excl1, excl2 = parms_exclusions.popleft()
+                            force.setExclusionParticles(
+                                exc_idx, excl1,excl2
+                            )
 
     def _set_HarmonicBondForce_parameters(self, parms) -> None:  # noqa: N802
         parms = deque(parms)
@@ -440,9 +462,30 @@ class Residue:
     def _get_CustomNonbondedForce_parameters_at_lambda(  # noqa: N802
         self, lamb: float
     ) -> list[list[int]]:
-        # TODO
-        print("implement...")
-        return [[1, 2], [3, 4]]
+        # we cover the Customnonbonded force wihich depends on atom type, this is not interpolateable, hence it is just switched after lamb > 0.5
+        assert lamb >= 0 and lamb <= 1
+        #what we need to set are the types and exclusions
+
+        if lamb < 0.5:
+            #old
+            current_name = self.current_name
+            cnb_parm = [
+                parm for parm in self.parameters[current_name]["CustomNonbondedForce"]
+            ]
+            cnb_exclusions = [
+                parm for parm in self.parameters[current_name]["CustomNonbondedForceExclusions"]
+            ]
+        else: #lamb >= 0.5
+            #new
+            new_name = self.alternativ_name
+            cnb_parm = [
+                parm for parm in self.parameters[new_name]["CustomNonbondedForce"]
+            ]
+            cnb_exclusions = [
+                parm for parm in self.parameters[new_name]["CustomNonbondedForceExclusions"]
+            ]
+
+        return [cnb_parm, cnb_exclusions]
 
     def _get_offset(self, name, force_name=None):
         # get offset for atom idx
@@ -457,6 +500,7 @@ class Residue:
     def _get_offset_thole(self, name):
         # get offset for atom idx for thole parameters
         force_name = "DrudeForceThole"
+        print(self.parameters[name])
         return min(
             itertools.chain(
                 *[query_parm[0:2] for query_parm in self.parameters[name][force_name]]
@@ -770,39 +814,40 @@ class Residue:
         # Thole
         parm_interpolated_thole = []
         force_name = "DrudeForceThole"
-        new_parms_offset = self._get_offset_thole(new_name)
-        old_parms_offset = self._get_offset_thole(old_name)
-        # print(f"{new_parms_offset=}, {old_parms_offset=}")
-        # print(f"{self.parameters[old_name][force_name]=}")
-        # print(f"{self.parameters[new_name][force_name]=}")
+        if force_name in self.parameters[old_name]:
+            new_parms_offset = self._get_offset_thole(new_name)
+            old_parms_offset = self._get_offset_thole(old_name)
+            # print(f"{new_parms_offset=}, {old_parms_offset=}")
+            # print(f"{self.parameters[old_name][force_name]=}")
+            # print(f"{self.parameters[new_name][force_name]=}")
 
-        # match parameters
-        parms_old = []
-        parms_new = []
-        for old_idx, old_parm in enumerate(self.parameters[old_name][force_name]):
-            idx1, idx2 = old_parm[0], old_parm[1]
-            for new_idx, new_parm in enumerate(self.parameters[new_name][force_name]):
-                if {new_parm[0] - new_parms_offset, new_parm[1] - new_parms_offset} == {
-                    idx1 - old_parms_offset,
-                    idx2 - old_parms_offset,
-                }:
-                    if old_idx != new_idx:
-                        raise RuntimeError(
-                            "Odering of bond parameters is different between the two topologies."
-                        )
-                    parms_old.append(old_parm)
-                    parms_new.append(new_parm)
-                    break
-            else:
-                raise RuntimeError()
+            # match parameters
+            parms_old = []
+            parms_new = []
+            for old_idx, old_parm in enumerate(self.parameters[old_name][force_name]):
+                idx1, idx2 = old_parm[0], old_parm[1]
+                for new_idx, new_parm in enumerate(self.parameters[new_name][force_name]):
+                    if {new_parm[0] - new_parms_offset, new_parm[1] - new_parms_offset} == {
+                        idx1 - old_parms_offset,
+                        idx2 - old_parms_offset,
+                    }:
+                        if old_idx != new_idx:
+                            raise RuntimeError(
+                                "Odering of bond parameters is different between the two topologies."
+                            )
+                        parms_old.append(old_parm)
+                        parms_new.append(new_parm)
+                        break
+                else:
+                    raise RuntimeError()
 
-        # interpolate parameters
-        for parm_old_i, parm_new_i in zip(parms_old, parms_new):
-            thole_old = parm_old_i[-1]
-            thole_new = parm_new_i[-1]
-            thole_interpolated = (1 - lamb) * thole_old + lamb * thole_new
+            # interpolate parameters
+            for parm_old_i, parm_new_i in zip(parms_old, parms_new):
+                thole_old = parm_old_i[-1]
+                thole_new = parm_new_i[-1]
+                thole_interpolated = (1 - lamb) * thole_old + lamb * thole_new
 
-            parm_interpolated_thole.append(thole_interpolated)
+                parm_interpolated_thole.append(thole_interpolated)
 
         return [parm_interpolated, parm_interpolated_thole]
 
