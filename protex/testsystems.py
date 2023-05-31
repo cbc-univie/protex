@@ -1,5 +1,6 @@
 import os
 from itertools import combinations
+
 import protex
 
 try:  # Syntax changed in OpenMM 7.6
@@ -986,7 +987,7 @@ for i in OH_H2O_H3O:
     OH_H2O_H3O[i]["possible_states"] = get_all_states(OH_H2O_H3O[i]["possible_atoms"], OH_H2O_H3O[i]["num_donors"])
 #print(OH_H2O_H3O)
 
-# TODO: 
+# TODO:
 # find a way to switch parameters around to get the parameter sets for each possible state
     # maybe something like: by going from OHHDD to OHDHD, we switch atoms 3 and 4,
     # so the original bond forces between O and H or D were [1, 3, k13, r13] and [1, 4, k14, r14],
