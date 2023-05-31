@@ -69,4 +69,3 @@ def test_customnonbondedforce_update():
     update = NaiveMCUpdate(system, all_forces=True)
     state_update = StateUpdate(update)
     state_update.update(2)
-
