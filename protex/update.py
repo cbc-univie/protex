@@ -61,12 +61,13 @@ class Update(ABC):
         self.include_equivalent_atom: bool = include_equivalent_atom
         self.reorient: bool = reorient
         self.all_forces: bool = all_forces
-        self.allowed_forces: list[str] = [  # change charges only
+        allowed_forces: list[str] = [  # change charges only
             "NonbondedForce",  # BUG: Charge stored in the DrudeForce does NOT get updated, probably you want to allow DrudeForce as well!
+            "CustomNonbondedForce",  # NEW
             "DrudeForce",
         ]
         if self.all_forces:
-            self.allowed_forces.extend(
+            allowed_forces.extend(
                 [
                     "HarmonicBondForce",
                     "HarmonicAngleForce",
@@ -77,6 +78,13 @@ class Update(ABC):
         self.reject_length: int = (
             10  # specify the number of update steps the same residue will be rejected
         )
+        self.allowed_forces = list(set(allowed_forces).intersection(self.ionic_liquid.detected_forces))
+        discarded = set(allowed_forces).difference(self.ionic_liquid.detected_forces)
+        if discarded:
+            print(f"Discarded the following forces, becuase they are not in the system: {', '.join(discarded)}")
+        available = set(self.ionic_liquid.detected_forces).difference(set(allowed_forces))
+        if available:
+            print(f"The following forces are available but not updated: {', '.join(available)}")
 
     @abstractmethod
     def dump(self, fname: str) -> None:

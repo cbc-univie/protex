@@ -324,6 +324,7 @@ class ProtexSystem:
     #####################
     COVERED_FORCES = [
         "NonbondedForce",
+        "CustomNonbondedForce",
         "HarmonicBondForce",
         "HarmonicAngleForce",
         "PeriodicTorsionForce",
@@ -393,6 +394,7 @@ class ProtexSystem:
         self.templates: ProtexTemplates = templates
         self.simulation_for_parameters = simulation_for_parameters
         self._check_forces()
+        self.detected_forces: set[str] = self._detect_forces()
         self.fast: bool = fast
         self.residues: list[Residue] = self._set_initial_states()
         self.boxlength: openmm.Quantity = (
@@ -410,6 +412,39 @@ class ProtexSystem:
         to_pickle = [self.templates, self.residues]  # enusre correct order of arguments
         with open(fname, "wb") as outp:
             pickle.dump(to_pickle, outp, pickle.HIGHEST_PROTOCOL)
+
+    def _detect_forces(self) -> set[str]:
+        def _is_populated(force):
+            if type(force).__name__ in self.IGNORED_FORCES:
+                return False
+            if isinstance(force, openmm.NonbondedForce):
+                return force.getNumParticles() > 0
+            elif isinstance(force, openmm.HarmonicBondForce):
+                return force.getNumBonds() > 0
+            elif isinstance(force, openmm.HarmonicAngleForce):
+                return force.getNumAngles() > 0
+            elif isinstance(force, openmm.PeriodicTorsionForce):
+                return force.getNumTorsions() > 0
+            elif isinstance(force, openmm.CustomTorsionForce):
+                return force.getNumTorsions() > 0
+            elif isinstance(force, openmm.DrudeForce):
+                return force.getNumParticles() > 0
+            elif isinstance(force, openmm.CustomNonbondedForce):
+                return force.getNumParticles() > 0
+            elif isinstance(force, openmm.CMAPTorsionForce):
+                return force.getNumTorsions() > 0
+            else:
+                raise ProtexException(f"This force should be covered here: {type(force).__name__}: {force}")
+
+        detected_forces: list = []
+        for force in self.system.getForces():
+            if _is_populated(force):
+                detected_forces.append(type(force).__name__)
+        if self.simulation_for_parameters is not None:
+            for force in self.simulation_for_parameters.system.getForces():
+                if _is_populated(force):
+                    detected_forces.append(type(force).__name__)
+        return set(detected_forces)
 
     def _check_forces(self) -> None:
         """Will fail if a force is not covered."""
@@ -475,6 +510,18 @@ class ProtexSystem:
                             idx2 = f[1]
                             if idx1 in atom_idxs and idx2 in atom_idxs:
                                 forces_dict[forcename + "Exceptions"].append(f)
+
+                    elif forcename == "CustomNonbondedForce":
+                        # lookup indices of the tabulated table (?)
+                        #index is position, but what about previous ones?
+                        forces_dict[forcename] = [force.getParticleParameters(idx) for idx in atom_idxs]
+                        # Also add exclusions
+                        for exc_id in range(force.getNumExclusions()):
+                            f = force.getExclusionParticles(exc_id)
+                            idx1 = f[0]
+                            idx2 = f[1]
+                            if idx1 in atom_idxs and idx2 in atom_idxs:
+                                forces_dict[forcename + "Exclusions"].append(f)
 
                     elif forcename == "HarmonicBondForce":
                         for bond_id in range(force.getNumBonds()):
@@ -623,6 +670,13 @@ class ProtexSystem:
                     value = (exc_idx, idx1, idx2)
                     maxi = max(idx1, idx2)
                     self._add_force(fgroup, "NonbondedForceExceptions", maxi, value)
+            elif forcename == "CustomNonbondedForce":
+                for excl_idx in range(force.getNumExclusions()):
+                    f = force.getExclusionParticles(excl_idx)
+                    idx1, idx2 = f[0], f[1]
+                    value = (exc_idx, idx1, idx2)
+                    maxi = max(idx1, idx2)
+                    self._add_force(fgroup, "CustomNonbondedForceExclusions", maxi, value)
             elif forcename == "DrudeForce":
                 particle_map = {}
                 for drude_idx in range(force.getNumParticles()):
