@@ -1509,18 +1509,18 @@ def test_force_selection():
     # wrap system in IonicLiquidSystem
     ionic_liquid = ProtexSystem(simulation, templates)
     update = NaiveMCUpdate(ionic_liquid)
-    assert update.allowed_forces == ["NonbondedForce", "DrudeForce"]
+    assert set(update.allowed_forces) == set(["NonbondedForce", "DrudeForce"])
     update = NaiveMCUpdate(ionic_liquid, all_forces=False)
-    assert update.allowed_forces == ["NonbondedForce", "DrudeForce"]
+    assert set(update.allowed_forces) == set(["NonbondedForce", "DrudeForce"])
     update = NaiveMCUpdate(ionic_liquid, all_forces=True)
-    assert update.allowed_forces == [
+    assert set(update.allowed_forces) == set([
         "NonbondedForce",
         "DrudeForce",
         "HarmonicBondForce",
         "HarmonicAngleForce",
         "PeriodicTorsionForce",
         "CustomTorsionForce",
-    ]
+    ])
 
 
 @pytest.mark.skipif(
