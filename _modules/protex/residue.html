@@ -205,6 +205,9 @@
         <span class="k">if</span> <span class="n">force_name</span> <span class="o">==</span> <span class="s2">&quot;NonbondedForce&quot;</span><span class="p">:</span>
             <span class="n">parms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_NonbondedForce_parameters_at_lambda</span><span class="p">(</span><span class="n">lamb</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_set_NonbondedForce_parameters</span><span class="p">(</span><span class="n">parms</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">force_name</span> <span class="o">==</span> <span class="s2">&quot;CustomNonbondedForce&quot;</span><span class="p">:</span>
+            <span class="n">parms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_CustomNonbondedForce_parameters_at_lambda</span><span class="p">(</span><span class="n">lamb</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_set_CustomNonbondedForce_parameters</span><span class="p">(</span><span class="n">parms</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">force_name</span> <span class="o">==</span> <span class="s2">&quot;HarmonicBondForce&quot;</span><span class="p">:</span>
             <span class="n">parms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_HarmonicBondForce_parameters_at_lambda</span><span class="p">(</span><span class="n">lamb</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_set_HarmonicBondForce_parameters</span><span class="p">(</span><span class="n">parms</span><span class="p">)</span>
@@ -250,6 +253,32 @@
                             <span class="n">chargeprod</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">epsilon</span> <span class="o">=</span> <span class="n">parms_exceptions</span><span class="o">.</span><span class="n">popleft</span><span class="p">()</span>
                             <span class="n">force</span><span class="o">.</span><span class="n">setExceptionParameters</span><span class="p">(</span>
                                 <span class="n">exc_idx</span><span class="p">,</span> <span class="n">idx1</span><span class="p">,</span> <span class="n">idx2</span><span class="p">,</span> <span class="n">chargeprod</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">epsilon</span>
+                            <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_set_CustomNonbondedForce_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parms</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># noqa: N802</span>
+        <span class="n">parms_nonb</span> <span class="o">=</span> <span class="n">deque</span><span class="p">(</span><span class="n">parms</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">parms_exclusions</span> <span class="o">=</span> <span class="n">deque</span><span class="p">(</span><span class="n">parms</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">force</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">getForces</span><span class="p">():</span>
+            <span class="n">fgroup</span> <span class="o">=</span> <span class="n">force</span><span class="o">.</span><span class="n">getForceGroup</span><span class="p">()</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">force</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;CustomNonbondedForce&quot;</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">parms_nonbonded</span><span class="p">,</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">parms_nonb</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">atom_idxs</span><span class="p">):</span>
+                    <span class="n">force</span><span class="o">.</span><span class="n">setParticleParameters</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">parms_nonbonded</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>  <span class="c1"># use the fast way</span>
+                    <span class="n">lst</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">force_idxs</span><span class="p">[</span><span class="n">fgroup</span><span class="p">][</span><span class="s2">&quot;CustomNonbondedForceExclusions&quot;</span><span class="p">]</span>
+                    <span class="k">for</span> <span class="n">exc_idx</span><span class="p">,</span> <span class="n">idx1</span><span class="p">,</span> <span class="n">idx2</span> <span class="ow">in</span> <span class="n">lst</span><span class="p">:</span>
+                        <span class="n">excl_idx1</span><span class="p">,</span> <span class="n">excl_idx2</span> <span class="o">=</span> <span class="n">parms_exclusions</span><span class="o">.</span><span class="n">popleft</span><span class="p">()</span>
+                        <span class="n">force</span><span class="o">.</span><span class="n">setExclusionParticles</span><span class="p">(</span>
+                            <span class="n">exc_idx</span><span class="p">,</span> <span class="n">excl_idx1</span><span class="p">,</span> <span class="n">excl_idx2</span>
+                        <span class="p">)</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>  <span class="c1"># use the old slow way</span>
+                    <span class="k">for</span> <span class="n">exc_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">force</span><span class="o">.</span><span class="n">getNumExclusions</span><span class="p">()):</span>
+                        <span class="n">f</span> <span class="o">=</span> <span class="n">force</span><span class="o">.</span><span class="n">getExclusionParticles</span><span class="p">(</span><span class="n">exc_idx</span><span class="p">)</span>
+                        <span class="n">idx1</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                        <span class="n">idx2</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="n">idx1</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">atom_idxs</span> <span class="ow">and</span> <span class="n">idx2</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">atom_idxs</span><span class="p">:</span>
+                            <span class="n">excl1</span><span class="p">,</span> <span class="n">excl2</span> <span class="o">=</span> <span class="n">parms_exclusions</span><span class="o">.</span><span class="n">popleft</span><span class="p">()</span>
+                            <span class="n">force</span><span class="o">.</span><span class="n">setExclusionParticles</span><span class="p">(</span>
+                                <span class="n">exc_idx</span><span class="p">,</span> <span class="n">excl1</span><span class="p">,</span><span class="n">excl2</span>
                             <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_set_HarmonicBondForce_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parms</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># noqa: N802</span>
@@ -507,6 +536,34 @@
 
         <span class="k">return</span> <span class="p">[</span><span class="n">parm_interpolated</span><span class="p">,</span> <span class="n">exceptions_interpolated</span><span class="p">]</span>
 
+    <span class="k">def</span> <span class="nf">_get_CustomNonbondedForce_parameters_at_lambda</span><span class="p">(</span>  <span class="c1"># noqa: N802</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">lamb</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]]:</span>
+        <span class="c1"># we cover the Customnonbonded force wihich depends on atom type, this is not interpolateable, hence it is just switched after lamb &gt; 0.5</span>
+        <span class="k">assert</span> <span class="n">lamb</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">lamb</span> <span class="o">&lt;=</span> <span class="mi">1</span>
+        <span class="c1">#what we need to set are the types and exclusions</span>
+
+        <span class="k">if</span> <span class="n">lamb</span> <span class="o">&lt;</span> <span class="mf">0.5</span><span class="p">:</span>
+            <span class="c1">#old</span>
+            <span class="n">current_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_name</span>
+            <span class="n">cnb_parm</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">parm</span> <span class="k">for</span> <span class="n">parm</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="n">current_name</span><span class="p">][</span><span class="s2">&quot;CustomNonbondedForce&quot;</span><span class="p">]</span>
+            <span class="p">]</span>
+            <span class="n">cnb_exclusions</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">parm</span> <span class="k">for</span> <span class="n">parm</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="n">current_name</span><span class="p">][</span><span class="s2">&quot;CustomNonbondedForceExclusions&quot;</span><span class="p">]</span>
+            <span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span> <span class="c1">#lamb &gt;= 0.5</span>
+            <span class="c1">#new</span>
+            <span class="n">new_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">alternativ_name</span>
+            <span class="n">cnb_parm</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">parm</span> <span class="k">for</span> <span class="n">parm</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="n">new_name</span><span class="p">][</span><span class="s2">&quot;CustomNonbondedForce&quot;</span><span class="p">]</span>
+            <span class="p">]</span>
+            <span class="n">cnb_exclusions</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">parm</span> <span class="k">for</span> <span class="n">parm</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="n">new_name</span><span class="p">][</span><span class="s2">&quot;CustomNonbondedForceExclusions&quot;</span><span class="p">]</span>
+            <span class="p">]</span>
+
+        <span class="k">return</span> <span class="p">[</span><span class="n">cnb_parm</span><span class="p">,</span> <span class="n">cnb_exclusions</span><span class="p">]</span>
+
     <span class="k">def</span> <span class="nf">_get_offset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">force_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="c1"># get offset for atom idx</span>
         <span class="k">if</span> <span class="n">force_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -520,6 +577,7 @@
     <span class="k">def</span> <span class="nf">_get_offset_thole</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
         <span class="c1"># get offset for atom idx for thole parameters</span>
         <span class="n">force_name</span> <span class="o">=</span> <span class="s2">&quot;DrudeForceThole&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="n">name</span><span class="p">])</span>
         <span class="k">return</span> <span class="nb">min</span><span class="p">(</span>
             <span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span>
                 <span class="o">*</span><span class="p">[</span><span class="n">query_parm</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span> <span class="k">for</span> <span class="n">query_parm</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="n">force_name</span><span class="p">]]</span>
@@ -833,39 +891,40 @@
         <span class="c1"># Thole</span>
         <span class="n">parm_interpolated_thole</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">force_name</span> <span class="o">=</span> <span class="s2">&quot;DrudeForceThole&quot;</span>
-        <span class="n">new_parms_offset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_offset_thole</span><span class="p">(</span><span class="n">new_name</span><span class="p">)</span>
-        <span class="n">old_parms_offset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_offset_thole</span><span class="p">(</span><span class="n">old_name</span><span class="p">)</span>
-        <span class="c1"># print(f&quot;{new_parms_offset=}, {old_parms_offset=}&quot;)</span>
-        <span class="c1"># print(f&quot;{self.parameters[old_name][force_name]=}&quot;)</span>
-        <span class="c1"># print(f&quot;{self.parameters[new_name][force_name]=}&quot;)</span>
+        <span class="k">if</span> <span class="n">force_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="n">old_name</span><span class="p">]:</span>
+            <span class="n">new_parms_offset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_offset_thole</span><span class="p">(</span><span class="n">new_name</span><span class="p">)</span>
+            <span class="n">old_parms_offset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_offset_thole</span><span class="p">(</span><span class="n">old_name</span><span class="p">)</span>
+            <span class="c1"># print(f&quot;{new_parms_offset=}, {old_parms_offset=}&quot;)</span>
+            <span class="c1"># print(f&quot;{self.parameters[old_name][force_name]=}&quot;)</span>
+            <span class="c1"># print(f&quot;{self.parameters[new_name][force_name]=}&quot;)</span>
 
-        <span class="c1"># match parameters</span>
-        <span class="n">parms_old</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">parms_new</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">old_idx</span><span class="p">,</span> <span class="n">old_parm</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="n">old_name</span><span class="p">][</span><span class="n">force_name</span><span class="p">]):</span>
-            <span class="n">idx1</span><span class="p">,</span> <span class="n">idx2</span> <span class="o">=</span> <span class="n">old_parm</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">old_parm</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-            <span class="k">for</span> <span class="n">new_idx</span><span class="p">,</span> <span class="n">new_parm</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="n">new_name</span><span class="p">][</span><span class="n">force_name</span><span class="p">]):</span>
-                <span class="k">if</span> <span class="p">{</span><span class="n">new_parm</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">new_parms_offset</span><span class="p">,</span> <span class="n">new_parm</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">new_parms_offset</span><span class="p">}</span> <span class="o">==</span> <span class="p">{</span>
-                    <span class="n">idx1</span> <span class="o">-</span> <span class="n">old_parms_offset</span><span class="p">,</span>
-                    <span class="n">idx2</span> <span class="o">-</span> <span class="n">old_parms_offset</span><span class="p">,</span>
-                <span class="p">}:</span>
-                    <span class="k">if</span> <span class="n">old_idx</span> <span class="o">!=</span> <span class="n">new_idx</span><span class="p">:</span>
-                        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
-                            <span class="s2">&quot;Odering of bond parameters is different between the two topologies.&quot;</span>
-                        <span class="p">)</span>
-                    <span class="n">parms_old</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">old_parm</span><span class="p">)</span>
-                    <span class="n">parms_new</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_parm</span><span class="p">)</span>
-                    <span class="k">break</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">()</span>
+            <span class="c1"># match parameters</span>
+            <span class="n">parms_old</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">parms_new</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">old_idx</span><span class="p">,</span> <span class="n">old_parm</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="n">old_name</span><span class="p">][</span><span class="n">force_name</span><span class="p">]):</span>
+                <span class="n">idx1</span><span class="p">,</span> <span class="n">idx2</span> <span class="o">=</span> <span class="n">old_parm</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">old_parm</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">new_idx</span><span class="p">,</span> <span class="n">new_parm</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="n">new_name</span><span class="p">][</span><span class="n">force_name</span><span class="p">]):</span>
+                    <span class="k">if</span> <span class="p">{</span><span class="n">new_parm</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">new_parms_offset</span><span class="p">,</span> <span class="n">new_parm</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">new_parms_offset</span><span class="p">}</span> <span class="o">==</span> <span class="p">{</span>
+                        <span class="n">idx1</span> <span class="o">-</span> <span class="n">old_parms_offset</span><span class="p">,</span>
+                        <span class="n">idx2</span> <span class="o">-</span> <span class="n">old_parms_offset</span><span class="p">,</span>
+                    <span class="p">}:</span>
+                        <span class="k">if</span> <span class="n">old_idx</span> <span class="o">!=</span> <span class="n">new_idx</span><span class="p">:</span>
+                            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                                <span class="s2">&quot;Odering of bond parameters is different between the two topologies.&quot;</span>
+                            <span class="p">)</span>
+                        <span class="n">parms_old</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">old_parm</span><span class="p">)</span>
+                        <span class="n">parms_new</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_parm</span><span class="p">)</span>
+                        <span class="k">break</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">()</span>
 
-        <span class="c1"># interpolate parameters</span>
-        <span class="k">for</span> <span class="n">parm_old_i</span><span class="p">,</span> <span class="n">parm_new_i</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">parms_old</span><span class="p">,</span> <span class="n">parms_new</span><span class="p">):</span>
-            <span class="n">thole_old</span> <span class="o">=</span> <span class="n">parm_old_i</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-            <span class="n">thole_new</span> <span class="o">=</span> <span class="n">parm_new_i</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-            <span class="n">thole_interpolated</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">lamb</span><span class="p">)</span> <span class="o">*</span> <span class="n">thole_old</span> <span class="o">+</span> <span class="n">lamb</span> <span class="o">*</span> <span class="n">thole_new</span>
+            <span class="c1"># interpolate parameters</span>
+            <span class="k">for</span> <span class="n">parm_old_i</span><span class="p">,</span> <span class="n">parm_new_i</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">parms_old</span><span class="p">,</span> <span class="n">parms_new</span><span class="p">):</span>
+                <span class="n">thole_old</span> <span class="o">=</span> <span class="n">parm_old_i</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">thole_new</span> <span class="o">=</span> <span class="n">parm_new_i</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">thole_interpolated</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">lamb</span><span class="p">)</span> <span class="o">*</span> <span class="n">thole_old</span> <span class="o">+</span> <span class="n">lamb</span> <span class="o">*</span> <span class="n">thole_new</span>
 
-            <span class="n">parm_interpolated_thole</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">thole_interpolated</span><span class="p">)</span>
+                <span class="n">parm_interpolated_thole</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">thole_interpolated</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="p">[</span><span class="n">parm_interpolated</span><span class="p">,</span> <span class="n">parm_interpolated_thole</span><span class="p">]</span>
 

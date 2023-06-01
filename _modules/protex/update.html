@@ -138,12 +138,13 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">include_equivalent_atom</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">include_equivalent_atom</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reorient</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">reorient</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">all_forces</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">all_forces</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">allowed_forces</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>  <span class="c1"># change charges only</span>
+        <span class="n">allowed_forces</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>  <span class="c1"># change charges only</span>
             <span class="s2">&quot;NonbondedForce&quot;</span><span class="p">,</span>  <span class="c1"># BUG: Charge stored in the DrudeForce does NOT get updated, probably you want to allow DrudeForce as well!</span>
+            <span class="s2">&quot;CustomNonbondedForce&quot;</span><span class="p">,</span>  <span class="c1"># NEW</span>
             <span class="s2">&quot;DrudeForce&quot;</span><span class="p">,</span>
         <span class="p">]</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_forces</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">allowed_forces</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+            <span class="n">allowed_forces</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
                 <span class="p">[</span>
                     <span class="s2">&quot;HarmonicBondForce&quot;</span><span class="p">,</span>
                     <span class="s2">&quot;HarmonicAngleForce&quot;</span><span class="p">,</span>
@@ -154,6 +155,13 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">reject_length</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="p">(</span>
             <span class="mi">10</span>  <span class="c1"># specify the number of update steps the same residue will be rejected</span>
         <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">allowed_forces</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">allowed_forces</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ionic_liquid</span><span class="o">.</span><span class="n">detected_forces</span><span class="p">))</span>
+        <span class="n">discarded</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">allowed_forces</span><span class="p">)</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ionic_liquid</span><span class="o">.</span><span class="n">detected_forces</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">discarded</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Discarded the following forces, becuase they are not in the system: </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">discarded</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">available</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ionic_liquid</span><span class="o">.</span><span class="n">detected_forces</span><span class="p">)</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">allowed_forces</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">available</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The following forces are available but not updated: </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">available</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Update.dump"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.update.Update.html#protex.update.Update.dump">[docs]</a>    <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">dump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fname</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>

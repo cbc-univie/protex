@@ -16,6 +16,7 @@
       :nosignatures:
    
       generate_complete_system
+      generate_h2o_system
       generate_hpts_meoh_lj04_system
       generate_hpts_meoh_system
       generate_hpts_system
