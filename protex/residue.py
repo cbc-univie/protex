@@ -87,7 +87,7 @@ class Residue:
         return self.current_name == other.current_name and self.residue.index == other.residue.index
 
     def __hash__(self):
-        return hash(self.current_name, self.residue.index)
+        return hash((self.current_name, self.residue.index))
 
     @property
     def has_equivalent_atom(self) -> bool:
