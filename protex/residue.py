@@ -83,6 +83,12 @@ class Residue:
     def __str__(self):
         return f"Residue {self.current_name}, {self.residue}"
 
+    def __eq__(self, other) -> bool:
+        return self.current_name == other.current_name and self.residue.index == other.residue.index
+
+    def __hash__(self):
+        return hash(self.current_name, self.residue.index)
+
     @property
     def has_equivalent_atom(self) -> bool:
         """Determines if the current residue has an equivalent atom defined.
