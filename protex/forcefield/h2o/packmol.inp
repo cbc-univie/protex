@@ -1,0 +1,32 @@
+tolerance 2.0
+seed -1
+
+
+filetype pdb
+output h2o_init.pdb
+
+structure ../pdb/h2o.pdb
+  number 1
+  inside box -3 -3 -3 3 3 3
+end structure
+
+structure ../pdb/h3o.pdb
+  number 1
+  inside box -3 -3 -3 3 3 3
+end structure
+
+structure ../pdb/oh.pdb 
+  number 1
+  inside box -3 -3 -3 3 3 3
+end structure
+#
+#structure ../pdb/cl.pdb
+#  number 0
+#  inside box -16 -16 -16 16 16 16
+#end structure
+#
+#structure ../pdb/na.pdb
+#  number 3
+#  inside box -16 -16 -16 16 16 16
+#end structure
+
