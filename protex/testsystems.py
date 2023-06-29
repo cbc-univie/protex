@@ -381,12 +381,12 @@ def generate_h2o_system(
     coll_freq: int = 10,
     drude_coll_freq: int = 100,
     dummy_atom_type: str = "DUMH",
-    dummies: list[tuple[str, str]] = [("IM1", "H7"), ("OAC", "H")],
+    dummies: list[tuple[str, str]] = [("OH", "H2"), ("OH", "H3"), ("OH", "H4"), ("H2O", "H3"), ("H2O", "H4"), ("H3O", "H4")], # NOTE: simulation created at start of every run, won't work like this
     use_plugin: bool = True,
     platformname="CUDA",
     cuda_precision="single",
 ):
-    """Set up a solvated and parametrized system for IM1H/OAC."""
+    """Set up a solvated and parametrized system for OH/H2O/H3O."""
     base = f"{protex.__path__[0]}/forcefield/"
     if psf_file is None:
         psf_file = f"{base}/h2o/h2o.psf"
@@ -965,30 +965,32 @@ MEOH_MEOH2 = {
 # started working on new structure with possible donor / acceptor H sites in templates
 # idea: specify atom names of all Hs and which is a real H ("donor") in the supplied topology -> automatically define acceptors
 # find all possible donor / acceptor combinations based on number of donors in molecule
-
 def get_all_states(possible_atoms, num_donors):
-    states = []
-    donors = list(combinations(possible_atoms, num_donors))
-    for i in range(0, len(donors)):
-        donor = donors[i]
-        acceptor = (tuple(set(possible_atoms).symmetric_difference(donor)))
-        states.append({"donors": donor, "acceptors": acceptor})
-    return states
+        states = []
+        donors = list(combinations(possible_atoms, num_donors))
+        for i in range(0, len(donors)):
+            donor = donors[i]
+            acceptor = (tuple(set(possible_atoms).symmetric_difference(donor)))
+            states.append({"donors": donor, "acceptors": acceptor})
+        return states
 
-# NOTE: take care whether we want to use H2O or SWM4, SPCE etc. for residue name
-OH_H2O_H3O =  {
-    "OH": {"possible_atoms" : ("H1", "H2", "H3", "H4"), "num_donors" : 1, "starting_donors" : ("H1",),},
-    "H2O": {"possible_atoms" : ("H1", "H2", "H3", "H4"), "num_donors" : 2, "starting_donors" : ("H1", "H2")},
-    "H3O": {"possible_atoms" : ("H1", "H2", "H3", "H4"), "num_donors" : 3, "starting_donors" : ("H1", "H2", "H3")},
-}
+def OH_H2O_H3O():
 
-for i in OH_H2O_H3O:
-    OH_H2O_H3O[i]["starting_acceptors"] = tuple(set(OH_H2O_H3O[i]["possible_atoms"]).symmetric_difference(OH_H2O_H3O[i]["starting_donors"]))
-    OH_H2O_H3O[i]["possible_states"] = get_all_states(OH_H2O_H3O[i]["possible_atoms"], OH_H2O_H3O[i]["num_donors"])
-#print(OH_H2O_H3O)
+    # NOTE: take care whether we want to use H2O or SWM4, SPCE etc. for residue name
+    OH_H2O_H3O =  {
+        "OH": {"possible_atoms" : ("H1", "H2", "H3", "H4"), "num_donors" : 1, "starting_donors" : ("H1",),},
+        "H2O": {"possible_atoms" : ("H1", "H2", "H3", "H4"), "num_donors" : 2, "starting_donors" : ("H1", "H2")},
+        "H3O": {"possible_atoms" : ("H1", "H2", "H3", "H4"), "num_donors" : 3, "starting_donors" : ("H1", "H2", "H3")},
+    }
+
+    for i in OH_H2O_H3O:
+        OH_H2O_H3O[i]["starting_acceptors"] = tuple(set(OH_H2O_H3O[i]["possible_atoms"]).symmetric_difference(OH_H2O_H3O[i]["starting_donors"]))
+        OH_H2O_H3O[i]["possible_states"] = get_all_states(OH_H2O_H3O[i]["possible_atoms"], OH_H2O_H3O[i]["num_donors"])
+    
+    return OH_H2O_H3O
 
 # TODO:
-# find a way to switch parameters around to get the parameter sets for each possible state
+# find a way to switch parameters around to get the parameter sets for each possible state (problem: how to get original state for each new run)
     # maybe something like: by going from OHHDD to OHDHD, we switch atoms 3 and 4,
     # so the original bond forces between O and H or D were [1, 3, k13, r13] and [1, 4, k14, r14],
     # now we need [1, 3, k14, r14] and [1, 4, k13, r13]
