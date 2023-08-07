@@ -18,7 +18,8 @@ class CustomPSFFile(PSFFile):
     @staticmethod
     def write(struct, dest, vmd=False):
         """
-        Writes a PSF file from the stored molecule
+        Writes a PSF file from the stored molecule.
+
         Parameters
         ----------
         struct : :class:`Structure`
