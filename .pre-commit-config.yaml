@@ -17,14 +17,14 @@ repos:
     -   id: trailing-whitespace
         types: [python]
 -   repo: https://github.com/asottile/pyupgrade
-    rev: v3.8.0
+    rev: v3.10.1
     hooks:
     -   id: pyupgrade
         args:
         - --py39-plus
         - --keep-runtime-typing
--   repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.0.275
+-   repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.0.282
     hooks:
     -   id: ruff
         verbose: True
