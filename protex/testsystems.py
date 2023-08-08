@@ -63,6 +63,7 @@ def setup_system(
     dummy_atom_type: str = "DUMH",
     cutoff: float = 11.0,
     switch: float = 10.0,
+    barostat=None
 ):
     if dummy_atom_type is not None:
         # print(params.atom_types_str["DUM"].epsilon)
@@ -103,6 +104,10 @@ def setup_system(
         print(
             "Only contraints=None or constraints=HBonds (given as string in function call) implemented"
         )
+    
+    
+    if barostat is not None:
+        system.addForce(barostat)
 
     for force in system.getForces():
         if type(force).__name__ == "CMMotionRemover":
@@ -654,7 +659,7 @@ def generate_im1h_oac_dummy_system(
         boxl=boxl,
     )
     system = setup_system(
-        psf, params, constraints=constraints, dummy_atom_type=dummy_atom_type
+        psf, params, constraints=constraints, dummy_atom_type=dummy_atom_type, barostat=barostat
     )
 
     simulation = setup_simulation(
