@@ -61,12 +61,13 @@ class Update(ABC):
         self.include_equivalent_atom: bool = include_equivalent_atom
         self.reorient: bool = reorient
         self.all_forces: bool = all_forces
-        self.allowed_forces: list[str] = [  # change charges only
+        allowed_forces: list[str] = [  # change charges only
             "NonbondedForce",  # BUG: Charge stored in the DrudeForce does NOT get updated, probably you want to allow DrudeForce as well!
+            "CustomNonbondedForce",  # NEW
             "DrudeForce",
         ]
         if self.all_forces:
-            self.allowed_forces.extend(
+            allowed_forces.extend(
                 [
                     "HarmonicBondForce",
                     "HarmonicAngleForce",
@@ -77,6 +78,13 @@ class Update(ABC):
         self.reject_length: int = (
             10  # specify the number of update steps the same residue will be rejected
         )
+        self.allowed_forces = list(set(allowed_forces).intersection(self.ionic_liquid.detected_forces))
+        discarded = set(allowed_forces).difference(self.ionic_liquid.detected_forces)
+        if discarded:
+            print(f"Discarded the following forces, becuase they are not in the system: {', '.join(discarded)}")
+        available = set(self.ionic_liquid.detected_forces).difference(set(allowed_forces))
+        if available:
+            print(f"The following forces are available but not updated: {', '.join(available)}")
 
     @abstractmethod
     def dump(self, fname: str) -> None:
@@ -237,7 +245,10 @@ class KeepHUpdate(Update):
         if "H" in self.ionic_liquid.templates.get_atom_name_for(
             candidate1_residue.current_name
         ) or (
-            self.ionic_liquid.templates.has_equivalent_atom(candidate1_residue.current_name) is True
+            self.ionic_liquid.templates.has_equivalent_atom(
+                candidate1_residue.current_name
+            )
+            is True
             and "H"
             in self.ionic_liquid.templates.get_equivalent_atom_for(
                 candidate1_residue.current_name
@@ -586,7 +597,7 @@ class StateUpdate:
         with open(fname, "wb") as outp:
             pickle.dump(to_pickle, outp, pickle.HIGHEST_PROTOCOL)
 
-    def write_charges(self, filename: str) -> None: #deprecated?
+    def write_charges(self, filename: str) -> None:  # deprecated?
         """Write current charges to a file.
 
         Parameters
@@ -601,8 +612,9 @@ class StateUpdate:
                 f.write(
                     f"{atom.residue.name:>4}:{int(atom.id): 4}:{int(atom.residue.id): 4}:{atom.name:>4}:{charge}\n"
                 )
-    #instead of these to functions use the ChargeReporter probably
-    def get_charges(self) -> list: #deprecated?
+
+    # instead of these to functions use the ChargeReporter probably
+    def get_charges(self) -> list:  # deprecated?
         """_summary_.
 
         Returns
@@ -626,7 +638,7 @@ class StateUpdate:
                 return par
         raise RuntimeError("Something went wrong. There was no NonbondedForce")
 
-    #redundant with ProtexSystem.get_current_number_of_each_residue_type
+    # redundant with ProtexSystem.get_current_number_of_each_residue_type
     def get_num_residues(self) -> dict:
         """Deprecated 1.1."""
         res_dict = {
@@ -858,7 +870,7 @@ class StateUpdate:
 
         # loop over all residues and add the positions of the atoms that can be updated to the pos_dict
         for residue in self.ionic_liquid.residues:
-            #assert residue.current_name in self.ionic_liquid.templates.names
+            # assert residue.current_name in self.ionic_liquid.templates.names
             if residue.current_name in self.ionic_liquid.templates.names:
                 residue.equivalent_atom_pos_in_list = None
                 # get the position of the atom (Hydrogen or the possible acceptor)

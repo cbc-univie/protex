@@ -1,3 +1,4 @@
+# ruff: noqa
 import logging
 import os
 
@@ -217,7 +218,7 @@ def test_get_and_interpolate_forces():
 
 
 def test_setting_forces():
-    #simulation = generate_im1h_oac_system()
+    # simulation = generate_im1h_oac_system()
     simulation = generate_small_box(use_plugin=False)
     allowed_updates = {}
     # allowed updates according to simple protonation scheme
@@ -631,7 +632,7 @@ def test_setting_forces():
 def test_single_update(caplog):
     # caplog.set_level(logging.DEBUG)
 
-    #simulation = generate_im1h_oac_system()
+    # simulation = generate_im1h_oac_system()
     simulation = generate_small_box(use_plugin=False)
     # get ionic liquid templates
     allowed_updates = {}
@@ -705,7 +706,7 @@ def test_single_update(caplog):
 def test_check_updated_charges(caplog, tmp_path):
     caplog.set_level(logging.DEBUG)
 
-    #simulation = generate_im1h_oac_system()
+    # simulation = generate_im1h_oac_system()
     simulation = generate_small_box(use_plugin=False)
     # get ionic liquid templates
     allowed_updates = {}
@@ -870,7 +871,7 @@ def test_transfer_with_distance_matrix(tmp_path):
 def test_updates(caplog):
     caplog.set_level(logging.DEBUG)
 
-    #simulation = generate_im1h_oac_system()
+    # simulation = generate_im1h_oac_system()
     simulation = generate_small_box(use_plugin=True)
     allowed_updates = {}
     # allowed updates according to simple protonation scheme
@@ -902,7 +903,7 @@ def test_updates(caplog):
 
 
 def test_adapt_probabilities(caplog):
-    #simulation = generate_im1h_oac_system()
+    # simulation = generate_im1h_oac_system()
     simulation = generate_small_box(use_plugin=False)
     allowed_updates = {}
     # allowed updates according to simple protonation scheme
@@ -952,7 +953,7 @@ def test_adapt_probabilities(caplog):
 def test_dry_updates(caplog):
     caplog.set_level(logging.DEBUG)
 
-    #simulation = generate_im1h_oac_system()
+    # simulation = generate_im1h_oac_system()
     simulation = generate_small_box(use_plugin=False)
     # get ionic liquid templates
     allowed_updates = {}
@@ -1015,6 +1016,7 @@ def test_equivalence_pair1213_thole(tmp_path):
         pair_13_list = list(sorted(pair_13_set - pair_12_set))
         pair_12_13_list = pair_12_list + pair_13_list
         return pair_12_13_list
+
     simulation = generate_small_box(use_plugin=False)
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
@@ -1032,12 +1034,9 @@ def test_equivalence_pair1213_thole(tmp_path):
             for drude_id in range(force.getNumParticles()):
                 f = force.getParticleParameters(drude_id)
                 idx11 = f[0]  # drude
-                #idx22 = f[1]  # parentatom
+                # idx22 = f[1]  # parentatom
                 particle_map[drude_id] = idx11
-            assert (
-                len(pair_12_13_list)
-                == force.getNumScreenedPairs()
-            )
+            assert len(pair_12_13_list) == force.getNumScreenedPairs()
             for drude_id in range(force.getNumScreenedPairs()):
                 f = force.getScreenedPairParameters(drude_id)
                 idx11 = f[0]
@@ -1046,9 +1045,9 @@ def test_equivalence_pair1213_thole(tmp_path):
                 drude2pm = particle_map[idx22]
                 parent1, parent2 = pair_12_13_list[drude_id]
                 drude1, drude2 = parent1 + 1, parent2 + 1
-                #d = (drude1, drude2)
-                #dpm = (drude1pm,drude2pm)
-                #print(f"{d=}, {dpm=}")
+                # d = (drude1, drude2)
+                # dpm = (drude1pm,drude2pm)
+                # print(f"{d=}, {dpm=}")
                 assert drude1 == drude1pm
                 assert drude2 == drude2pm
                 if (
@@ -1063,7 +1062,8 @@ def test_equivalence_pair1213_thole(tmp_path):
                     thole_before_list_pm.append(f)
     for thole, tholepm in zip(thole_before_list, thole_before_list_pm):
         assert thole == tholepm
-        #print(f"{thole=}, {tholepm=}")
+        # print(f"{thole=}, {tholepm=}")
+
 
 @pytest.mark.skipif(
     os.getenv("CI") == "true",
@@ -1071,7 +1071,7 @@ def test_equivalence_pair1213_thole(tmp_path):
 )
 def test_parameters_after_update(tmp_path):
     simulation = generate_im1h_oac_system()
-    #simulation = generate_small_box()
+    # simulation = generate_small_box()
     # get ionic liquid templates
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
@@ -1164,8 +1164,8 @@ def test_parameters_after_update(tmp_path):
                 idx22 = f[1]
                 drude1 = particle_map[idx11]
                 drude2 = particle_map[idx22]
-                #parent1, parent2 = ionic_liquid.residues[idx1].pair_12_13_list[drude_id]
-                #drude1, drude2 = parent1 + 1, parent2 + 1
+                # parent1, parent2 = ionic_liquid.residues[idx1].pair_12_13_list[drude_id]
+                # drude1, drude2 = parent1 + 1, parent2 + 1
                 if (
                     drude1 in ionic_liquid.residues[idx1].atom_idxs
                     and drude2 in ionic_liquid.residues[idx1].atom_idxs
@@ -1222,8 +1222,8 @@ def test_parameters_after_update(tmp_path):
                 idx22 = f[1]
                 drude1 = particle_map[idx11]
                 drude2 = particle_map[idx22]
-                #parent1, parent2 = ionic_liquid.residues[idx1].pair_12_13_list[drude_id]
-                #drude1, drude2 = parent1 + 1, parent2 + 1
+                # parent1, parent2 = ionic_liquid.residues[idx1].pair_12_13_list[drude_id]
+                # drude1, drude2 = parent1 + 1, parent2 + 1
                 if (
                     drude1 in ionic_liquid.residues[idx1].atom_idxs
                     and drude2 in ionic_liquid.residues[idx1].atom_idxs
@@ -1319,7 +1319,7 @@ def test_parameters_after_update(tmp_path):
 #     reason="Will fail sporadicaly.",
 # )
 def test_pbc():
-    #simulation = generate_im1h_oac_system()
+    # simulation = generate_im1h_oac_system()
     simulation = generate_small_box(use_plugin=False)
     # get ionic liquid templates
     allowed_updates = {}
@@ -1509,18 +1509,18 @@ def test_force_selection():
     # wrap system in IonicLiquidSystem
     ionic_liquid = ProtexSystem(simulation, templates)
     update = NaiveMCUpdate(ionic_liquid)
-    assert update.allowed_forces == ["NonbondedForce", "DrudeForce"]
+    assert set(update.allowed_forces) == {"NonbondedForce", "DrudeForce"}
     update = NaiveMCUpdate(ionic_liquid, all_forces=False)
-    assert update.allowed_forces == ["NonbondedForce", "DrudeForce"]
+    assert set(update.allowed_forces) == {"NonbondedForce", "DrudeForce"}
     update = NaiveMCUpdate(ionic_liquid, all_forces=True)
-    assert update.allowed_forces == [
+    assert set(update.allowed_forces) == {
         "NonbondedForce",
         "DrudeForce",
         "HarmonicBondForce",
         "HarmonicAngleForce",
         "PeriodicTorsionForce",
         "CustomTorsionForce",
-    ]
+    }
 
 
 @pytest.mark.skipif(
@@ -1530,7 +1530,7 @@ def test_force_selection():
 def test_update_all_forces(caplog):
     caplog.set_level(logging.DEBUG)
 
-    #simulation = generate_im1h_oac_system()
+    # simulation = generate_im1h_oac_system()
     simulation = generate_small_box(use_plugin=False)
     allowed_updates = {}
     # allowed updates according to simple protonation scheme
@@ -2317,7 +2317,7 @@ def test_single_energy_molecule(caplog):
 def test_wrong_atom_name(caplog):
     caplog.set_level(logging.DEBUG)
 
-    #simulation = generate_im1h_oac_system()
+    # simulation = generate_im1h_oac_system()
     simulation = generate_small_box(use_plugin=False)
     allowed_updates = {}
     # allowed updates according to simple protonation scheme
@@ -2348,7 +2348,7 @@ def test_wrong_atom_name(caplog):
 def test_save_load_updates(caplog, tmp_path):
     caplog.set_level(logging.DEBUG)
 
-    #simulation = generate_im1h_oac_system()
+    # simulation = generate_im1h_oac_system()
     simulation = generate_small_box(use_plugin=False)
     # get ionic liquid templates
     allowed_updates = {}
@@ -2379,3 +2379,37 @@ def test_save_load_updates(caplog, tmp_path):
     state_update = StateUpdate.load(f"{tmp_path}/stateupdate.pkl", update)
     assert update.all_forces is False
     assert state_update.update_trial == 100
+
+
+@pytest.mark.skipif(
+    os.getenv("CI") == "true",
+    reason="Will fail sporadicaly.",
+)
+def test_profile_update():
+    import time
+
+    start_tot = time.time()
+
+    simulation = generate_im1h_oac_system(use_plugin=False)
+    # simulation = generate_single_im1h_oac_system(use_plugin=False)
+    allowed_updates = {}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.16, "prob": 1}
+    templates = ProtexTemplates(
+        [OAC_HOAC, IM1H_IM1],
+        allowed_updates,
+    )
+    start = time.time()
+    ionic_liquid = ProtexSystem(simulation, templates, fast=False)
+    print("ProtexSystem: ", time.time() - start)
+    update = NaiveMCUpdate(ionic_liquid, all_forces=True)
+    state_update = StateUpdate(update)
+    time_before_update = time.time()
+    state_update.update(2)
+    print("Time for update: ", time.time() - time_before_update)
+    # 282 updates: fast: 30s (tot:45s), slow: 437s(>7min) (tot:443s) speedup x14
+    print("Total time: ", time.time() - start_tot)
+    # new method: 40.47 s
+    # old method: 53.17 s
