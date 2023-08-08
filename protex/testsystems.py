@@ -104,8 +104,8 @@ def setup_system(
         print(
             "Only contraints=None or constraints=HBonds (given as string in function call) implemented"
         )
-    
-    
+
+
     if barostat is not None:
         system.addForce(barostat)
 
