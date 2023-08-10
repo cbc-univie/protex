@@ -635,6 +635,7 @@ def generate_im1h_oac_dummy_system(
     dummy_atom_type: str = "DUMH",
     dummies: list[tuple[str, str]] = [("IM1", "H7"), ("OAC", "H")],
     use_plugin: bool = True,
+    barostat=None
 ):
     """Set up a solvated and parametrized system for IM1H/OAC."""
     base = f"{protex.__path__[0]}/forcefield"

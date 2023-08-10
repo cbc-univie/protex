@@ -55,12 +55,14 @@ class Update(ABC):
         all_forces: bool,
         include_equivalent_atom: bool,
         reorient: bool,
+        K:int = 300,
     ) -> None:
         self.ionic_liquid: ProtexSystem = ionic_liquid
         self.to_adapt: list[tuple[str, int, frozenset[str]]] = to_adapt
         self.include_equivalent_atom: bool = include_equivalent_atom
         self.reorient: bool = reorient
         self.all_forces: bool = all_forces
+        self.K = K
         allowed_forces: list[str] = [  # change charges only
             "NonbondedForce",  # BUG: Charge stored in the DrudeForce does NOT get updated, probably you want to allow DrudeForce as well!
             "CustomNonbondedForce",  # NEW
@@ -102,7 +104,7 @@ class Update(ABC):
         pass
 
     def _adapt_probabilities(
-        self, to_adapt=list[tuple[str, int, frozenset[str]]]
+        self, to_adapt=list[tuple[str, int, frozenset[str]]], K=int
     ) -> None:
         """Adapt the probability for certain events depending on the current equilibrium, in order to stay close to a given reference
         i.e. prob_neu = prob_orig + K*( x(t) - x(eq) )^3 where x(t) is the current percentage in the system of one species.
@@ -119,7 +121,7 @@ class Update(ABC):
             len([e for e, c in counts.items() if c > 1]) == 0
         ), "No duplicates for the transfer reactions allowed!"
 
-        K = 300
+        
         current_numbers: dict[
             str, int
         ] = self.ionic_liquid.get_current_number_of_each_residue_type()
@@ -182,9 +184,10 @@ class KeepHUpdate(Update):
         to_adapt: list[tuple[str, int, frozenset[str]]] or None = None,
         include_equivalent_atom: bool = False,
         reorient: bool = False,
+        K: int = 300
     ) -> None:
         super().__init__(
-            ionic_liquid, to_adapt, all_forces, include_equivalent_atom, reorient
+            ionic_liquid, to_adapt, all_forces, include_equivalent_atom, reorient, K
         )
 
     def dump(self, fname: str) -> None:
@@ -373,7 +376,7 @@ class KeepHUpdate(Update):
 
         for candidate in candidates:
             candidate1_residue, candidate2_residue = candidate
-            print(f"candidate pair {candidates.index(candidate)}")
+            #print(f"candidate pair {candidates.index(candidate)}")
             # print(
             #     f"candidate1 used equivalent atom: {candidate1_residue.used_equivalent_atom}, candidate2 used equivalent atom: {candidate2_residue.used_equivalent_atom}"
             # )
@@ -661,6 +664,7 @@ class StateUpdate:
             ##############################
             ##############################
             --- Update trial: {self.update_trial} ---
+            {self.updateMethod.K=}
             ##############################
             ##############################
             """
@@ -709,7 +713,7 @@ class StateUpdate:
         self.update_trial += 1
 
         if self.updateMethod.to_adapt is not None:
-            self.updateMethod._adapt_probabilities(self.updateMethod.to_adapt)
+            self.updateMethod._adapt_probabilities(self.updateMethod.to_adapt, self.updateMethod.K)
 
         self._print_stop()
 

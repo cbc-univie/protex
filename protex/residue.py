@@ -506,7 +506,7 @@ class Residue:
     def _get_offset_thole(self, name):
         # get offset for atom idx for thole parameters
         force_name = "DrudeForceThole"
-        print(self.parameters[name])
+        #print(self.parameters[name])
         return min(
             itertools.chain(
                 *[query_parm[0:2] for query_parm in self.parameters[name][force_name]]
