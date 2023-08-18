@@ -48,7 +48,7 @@ from velocityverletplugin import VVIntegrator
 import protex
 
 from ..system import ProtexSystem, ProtexTemplates
-from ..testsystems import (  
+from ..testsystems import (
     OH_H2O_H3O,
     generate_toh2_system,
 )
@@ -128,7 +128,7 @@ def test_available_platforms():
     #     )
 
     print(f"{integrator=}")
-    
+
     print(
         f"{coll_freq=}, {drude_coll_freq=}"
     )  # tested with 20, 40, 80, 100, 120, 140, 160: 20,40 bad; 80 - 120 good; 140, 160 crashed
@@ -158,7 +158,7 @@ def test_run_simulation(tmp_path):
 
     positions = simulation.context.getState(getPositions=True).getPositions(asNumpy=True)
     print(f"{positions=}")
-    
+
     # print("Minimizing...")
     # simulation.minimizeEnergy(maxIterations=50)
     state=simulation.context.getState(getPositions=True, getEnergy=True)
@@ -193,9 +193,9 @@ def test_create_ProtexTemplate():
     allowed_updates = {}
     allowed_updates[frozenset(["OH", "H2O"])] = {"r_max": 0.16, "prob": 1}
     allowed_updates[frozenset(["OH", "H3O"])] = {"r_max": 0.16, "prob": 1}
-    allowed_updates[frozenset(["H3O", "H2O"])] = {"r_max": 0.16, "prob": 1} 
-    allowed_updates[frozenset(["H2O", "H2O"])] = {"r_max": 0.16, "prob": 1} 
-    
+    allowed_updates[frozenset(["H3O", "H2O"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["H2O", "H2O"])] = {"r_max": 0.16, "prob": 1}
+
 
     templates = ProtexTemplates(
         [OH_H2O_H3O], (allowed_updates)
