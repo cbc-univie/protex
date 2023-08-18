@@ -436,6 +436,70 @@ def generate_h2o_system(
 
     return simulation
 
+def generate_toh2_system(
+    psf_file: str = None,
+    crd_file: str = None,
+    restart_file: str = None,
+    constraints: str = None,
+    boxl: float = 32.0,
+    para_files: list[str] = None,
+    coll_freq: int = 10,
+    drude_coll_freq: int = 100,
+    dummy_atom_type: str = "DUMH",
+    dummies: list[tuple[str, str]] = [("OH", "H2"), ("OH", "H3"), ("OH", "H4"), ("H2O", "H3"), ("H2O", "H4"), ("H3O", "H4")], # NOTE: simulation created at start of every run, won't work like this
+    use_plugin: bool = True,
+    platformname="CUDA",
+    cuda_precision="single",
+):
+    """Set up a solvated and parametrized system for OH/H2O/H3O."""
+    base = f"{protex.__path__[0]}/forcefield"
+    if psf_file is None:
+        psf_file = f"{base}/toh2/h2o.psf"
+    if crd_file is None:
+        crd_file = f"{base}/toh2/h2o.crd"
+    if para_files is None:
+        PARA_FILES = [
+            "toppar_drude_master_protein_2013f_lj025_modhpts_chelpg.str",
+            "h2o_d.str",
+            "h3o_d.str",
+            "oh_d.str",
+            "cl_d.str",
+            "na_d.str",
+        ]
+        para_files = [f"{base}/toh2/toppar/{para_files}" for para_files in PARA_FILES]
+    
+    if restart_file is None:
+        restart_file = f"{base}/toh2/h2o_npt_7.rst"
+    
+    psf, crd, params = load_charmm_files(
+        psf_file=psf_file,
+        crd_file=crd_file,
+        para_files=para_files,
+        boxl=boxl,
+    )
+    system = setup_system(
+        psf,
+        params,
+        constraints=constraints,
+        dummy_atom_type=dummy_atom_type,
+        cutoff=3,
+        switch=2,
+    )
+
+    simulation = setup_simulation(
+        psf,
+        crd,
+        system,
+        restart_file=restart_file,
+        coll_freq=coll_freq,
+        drude_coll_freq=drude_coll_freq,
+        dummies=dummies,
+        use_plugin=use_plugin,
+        platformname=platformname,
+        cuda_precision=cuda_precision,
+    )
+
+    return simulation
 
 def generate_tfa_system(
     psf_file: str = None,
@@ -978,9 +1042,9 @@ def OH_H2O_H3O():
 
     # NOTE: take care whether we want to use H2O or SWM4, SPCE etc. for residue name
     OH_H2O_H3O =  {
-        "OH": {"possible_atoms" : ("H1", "H2", "H3", "H4"), "num_donors" : 1, "starting_donors" : ("H1",),},
-        "H2O": {"possible_atoms" : ("H1", "H2", "H3", "H4"), "num_donors" : 2, "starting_donors" : ("H1", "H2")},
-        "H3O": {"possible_atoms" : ("H1", "H2", "H3", "H4"), "num_donors" : 3, "starting_donors" : ("H1", "H2", "H3")},
+        "OH": {"possible_atoms" : ("H1", "H2", "H3", "H4"), "num_donors" : 1, "starting_donors" : ("H1",), "modes" : ("acceptor")},
+        "H2O": {"possible_atoms" : ("H1", "H2", "H3", "H4"), "num_donors" : 2, "starting_donors" : ("H1", "H2"), "modes" : ("acceptor", "donor")},
+        "H3O": {"possible_atoms" : ("H1", "H2", "H3", "H4"), "num_donors" : 3, "starting_donors" : ("H1", "H2", "H3"), "modes" : ("donor")},
     }
 
     for i in OH_H2O_H3O:
