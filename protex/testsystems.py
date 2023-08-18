@@ -1050,7 +1050,7 @@ def OH_H2O_H3O():
     for i in OH_H2O_H3O:
         OH_H2O_H3O[i]["starting_acceptors"] = tuple(set(OH_H2O_H3O[i]["possible_atoms"]).symmetric_difference(OH_H2O_H3O[i]["starting_donors"]))
         OH_H2O_H3O[i]["possible_states"] = get_all_states(OH_H2O_H3O[i]["possible_atoms"], OH_H2O_H3O[i]["num_donors"])
-    
+
     return OH_H2O_H3O
 
 # TODO:
