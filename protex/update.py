@@ -326,6 +326,7 @@ class KeepHUpdate(Update):
     def _update(self, candidates: list[tuple], nr_of_steps: int) -> None:
         logger.info("called _update")
 
+        reorient = self.reorient
         # get current state
         state = self.ionic_liquid.simulation.context.getState(getEnergy=True)
         # get initial energy
@@ -383,7 +384,8 @@ class KeepHUpdate(Update):
             #     f"candidate1 used equivalent atom: {candidate1_residue.used_equivalent_atom}, candidate2 used equivalent atom: {candidate2_residue.used_equivalent_atom}"
             # )
 
-            positions = self._reorient_atoms(candidate, positions, positions_copy)
+            if reorient:
+                positions = self._reorient_atoms(candidate, positions, positions_copy)
 
             #### update refactor orig
             #    self._reorient_atoms(candidate2_residue, positions) #from update refactor orig
