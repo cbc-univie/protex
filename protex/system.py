@@ -133,7 +133,7 @@ class ProtexTemplates:
             The atom name
         """
         return self.states[resname][self._atom_name]
-    
+
     def get_donors_for(self, resname: str) -> tuple:
         """Get the atom names of donors for a specific residue.
 
@@ -163,7 +163,7 @@ class ProtexTemplates:
             The atom names
         """
         return self.states[resname][self._acceptors]
-    
+
     def get_modes_for(self, resname: str) -> tuple:
         """Get the possible modes for a specific residue.
 
@@ -641,7 +641,7 @@ class ProtexSystem:
         else:
             raise RuntimeError("residue not found")
         return forces_dict
-    
+
 
     def _extract_templates_Hs(self, query_name: str) -> defaultdict:
         # returns the nonbonded parameters of real Hs for the residue name
@@ -870,7 +870,7 @@ class ProtexSystem:
             name = r.name
             self._fill_residue_templates(name)
             self._fill_H_templates(name)
-           
+
 
         if self.fast:
             # this takes some time, but the update calls on the residues are then much faster

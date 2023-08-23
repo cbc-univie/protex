@@ -110,7 +110,7 @@ class Residue:
     @property
     def alternativ_name(self) -> str:
         """Alternative name for the residue, e.g. the corresponding name for the protonated/deprotonated form.
-            
+
         Returns
         -------
         str

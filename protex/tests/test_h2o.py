@@ -189,7 +189,7 @@ def test_scratch():
     a = [('IM1H', 'H7'), ('HOAC', 'H')]
     for j in range(len(a)):
         print(a[j][1])
-   
+
 
 def test_create_ProtexTemplate():
     allowed_updates = {}
