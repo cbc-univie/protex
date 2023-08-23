@@ -988,20 +988,19 @@ def generate_single_hpts_meoh_system(
 
 IM1H_IM1 = {
     "IM1H": {
-        "atom_name": "H7",
+        "donors": ("H7"), "acceptors": (), "modes": ("donor")
     },
     "IM1": {
-        "atom_name": "N2",
+        "donors": (), "acceptors": ("H7"), "modes": ("acceptor")
     },
 }
 
 OAC_HOAC = {
     "OAC": {
-        "atom_name": "O2",
-        "equivalent_atom": "O1",
+        "donors": (), "acceptors": ("H"), "modes": ("acceptor")
     },
     "HOAC": {
-        "atom_name": "H",
+        "donors": ("H"), "acceptors": (), "modes": ("donor")
     },
 }
 
@@ -1027,39 +1026,33 @@ MEOH_MEOH2 = {
 }
 
 # started working on new structure with possible donor / acceptor H sites in templates
-# idea: specify atom names of all Hs and which is a real H ("donor") in the supplied topology -> automatically define acceptors
-# find all possible donor / acceptor combinations based on number of donors in molecule
-def get_all_states(possible_atoms, num_donors):
-        states = []
-        donors = list(combinations(possible_atoms, num_donors))
-        for i in range(0, len(donors)):
-            donor = donors[i]
-            acceptor = (tuple(set(possible_atoms).symmetric_difference(donor)))
-            states.append({"donors": donor, "acceptors": acceptor})
-        return states
+# def get_all_states(possible_atoms, num_donors): # probably not needed with more generic donor-acceptor structure
+#         states = []
+#         donors = list(combinations(possible_atoms, num_donors))
+#         for i in range(0, len(donors)):
+#             donor = donors[i]
+#             acceptor = (tuple(set(possible_atoms).symmetric_difference(donor)))
+#             states.append({"donors": donor, "acceptors": acceptor})
+#         return states
 
-def OH_H2O_H3O():
 
-    # NOTE: take care whether we want to use H2O or SWM4, SPCE etc. for residue name
-    OH_H2O_H3O =  {
-        "OH": {"possible_atoms" : ("H1", "H2", "H3", "H4"), "num_donors" : 1, "starting_donors" : ("H1",), "modes" : ("acceptor")},
-        "H2O": {"possible_atoms" : ("H1", "H2", "H3", "H4"), "num_donors" : 2, "starting_donors" : ("H1", "H2"), "modes" : ("acceptor", "donor")},
-        "H3O": {"possible_atoms" : ("H1", "H2", "H3", "H4"), "num_donors" : 3, "starting_donors" : ("H1", "H2", "H3"), "modes" : ("donor")},
-    }
+# NOTE: take care whether we want to use H2O or SWM4, SPCE etc. for residue name
+# TODO: at the moment fixed atom names, will revert to this at the beginning of each run -> reformulate so that donors and acceptors are filled based on atom type
 
-    for i in OH_H2O_H3O:
-        OH_H2O_H3O[i]["starting_acceptors"] = tuple(set(OH_H2O_H3O[i]["possible_atoms"]).symmetric_difference(OH_H2O_H3O[i]["starting_donors"]))
-        OH_H2O_H3O[i]["possible_states"] = get_all_states(OH_H2O_H3O[i]["possible_atoms"], OH_H2O_H3O[i]["num_donors"])
-
-    return OH_H2O_H3O
+OH_H2O_H3O =  {
+    "OH":  {"donors" : ("H1",), "acceptors" : ("H2", "H3", "H4"), "modes" : ("acceptor",)},
+    "H2O": {"donors" : ("H1", "H2"), "acceptors" : ("H3", "H4"), "modes" : ("acceptor", "donor")},
+    "H3O": {"donors" : ("H1", "H2", "H3"), "acceptors" : ("H4",), "modes" : ("donor",)},
+}
 
 # TODO:
-# find a way to switch parameters around to get the parameter sets for each possible state (problem: how to get original state for each new run)
-    # maybe something like: by going from OHHDD to OHDHD, we switch atoms 3 and 4,
-    # so the original bond forces between O and H or D were [1, 3, k13, r13] and [1, 4, k14, r14],
-    # now we need [1, 3, k14, r14] and [1, 4, k13, r13]
-# keep track of actual state of each residue
-    #  maybe like "actual_state" : {"donors" : (), "acceptors" : ()}
+# keep track of what H is real at the moment: like "donors" : (), "acceptors" : ()
+    # caution: will have to change how we write the psf as well
 # get atom index or something like that in the update step and swap H to D and vice versa
     # something similar to the way we check whether the equivalent atom was used
-    # then e.g. OHHDD -> OHHHD: H3 was used -> we need parameters from H3O, where H1, H2, H3 are donors, H4 is acceptor
+# find a way to switch parameters around to get the parameter sets for each possible state (problem: how to get original state for each new run)
+    # at the moment only nonbonded parameters change, all possible donors and acceptors in a single molecule are equivalent (i.e. no two different acidic side chains)
+        # update like now
+        # set parameters for H and D that were used extra
+            # D: force.setParticleParameters(atomidx, 0, 0, 0] 
+            # H: extract nonbonded parameters from template first

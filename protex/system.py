@@ -104,6 +104,9 @@ class ProtexTemplates:
         # store names in variables, in case syntax for states dict changes
         self._atom_name: str = "atom_name"
         self._equivalent_atom: str = "equivalent_atom"
+        self._donors: str = "donors"
+        self._acceptors: str = "acceptors"
+        self._modes: str = "modes"
 
     def dump(self, fname: str) -> None:
         """Pickle the current ProtexTemplates object.
@@ -130,6 +133,51 @@ class ProtexTemplates:
             The atom name
         """
         return self.states[resname][self._atom_name]
+    
+    def get_donors_for(self, resname: str) -> tuple:
+        """Get the atom names of donors for a specific residue.
+
+        Parameters
+        ----------
+        resname : str
+            The residue name
+
+        Returns
+        -------
+        tuple
+            The atom names
+        """
+        return self.states[resname][self._donors]
+
+    def get_acceptors_for(self, resname: str) -> tuple:
+        """Get the atom names of acceptors for a specific residue.
+
+        Parameters
+        ----------
+        resname : str
+            The residue name
+
+        Returns
+        -------
+        tuple
+            The atom names
+        """
+        return self.states[resname][self._acceptors]
+    
+    def get_modes_for(self, resname: str) -> tuple:
+        """Get the possible modes for a specific residue.
+
+        Parameters
+        ----------
+        resname : str
+            The residue name
+
+        Returns
+        -------
+        tuple
+            tuple of mode(s)
+        """
+        return self.states[resname][self._modes]
 
     def has_equivalent_atom(self, resname: str) -> bool:
         """Check if a given residue has an equivalent atom defined.
@@ -386,6 +434,7 @@ class ProtexSystem:
         simulation: openmm.app.simulation.Simulation,
         templates: ProtexTemplates,
         simulation_for_parameters: openmm.app.simulation.Simulation = None,
+        real_Hs: list[tuple[str,str]] = [("IM1H", "H7"), ("HOAC", "H")],
         fast: bool = True,
     ) -> None:
         self.system: openmm.openmm.System = simulation.system
@@ -393,6 +442,7 @@ class ProtexSystem:
         self.simulation: openmm.app.simulation.Simulation = simulation
         self.templates: ProtexTemplates = templates
         self.simulation_for_parameters = simulation_for_parameters
+        self.real_Hs = real_Hs
         self._check_forces()
         self.detected_forces: set[str] = self._detect_forces()
         self.fast: bool = fast
@@ -591,6 +641,54 @@ class ProtexSystem:
         else:
             raise RuntimeError("residue not found")
         return forces_dict
+    
+
+    def _extract_templates_Hs(self, query_name: str) -> defaultdict:
+        # returns the nonbonded parameters of real Hs for the residue name
+        forces_dict = defaultdict(list)
+
+        # if there is an additional parameter file with all possible residues,
+        # use this for getting the templates
+        if self.simulation_for_parameters is not None:
+            sim = self.simulation_for_parameters
+        else:
+            sim = self.simulation
+
+        for residue in sim.topology.residues():
+            if query_name == residue.name:
+                logger.debug(residue.name)
+                logger.debug(self.real_Hs)
+                atom_names = [self.real_Hs[i][1] for i in range(len(self.real_Hs)) if self.real_Hs[i][0] == residue.name]
+                atom_idxs_all = [atom.index for atom in residue.atoms()]
+                atom_names_all = [atom.name for atom in residue.atoms()]
+                atom_idxs = [atom_idxs_all[i] for i in range(len(atom_idxs_all)) if atom_names_all[i] in atom_names]
+                logger.debug(atom_idxs)
+                logger.debug(atom_names)
+
+                for force in sim.system.getForces():
+                    forcename = type(force).__name__
+                    if forcename == "NonbondedForce":
+                        forces_dict[forcename] = [
+                            force.getParticleParameters(idx) for idx in atom_idxs
+                        ]
+                        # Also add exceptions TODO: what do we do with these? they need atom idxes and can be applied to e.g H1 and H2. is there a difference with dummies?
+                        for exc_id in range(force.getNumExceptions()):
+                            f = force.getExceptionParameters(exc_id)
+                            idx1 = f[0]
+                            idx2 = f[1]
+                            if (idx1 in atom_idxs and idx2 in atom_idxs_all) or (idx2 in atom_idxs and idx1 in atom_idxs_all):
+                                forces_dict[forcename + "Exceptions"].append(f)
+
+                    # double-checking for molecules with multiple equivalent atoms, then use one set of parameters only (we assume here that all acidic Hs in the residue are the same, e.g. MeOH2, H2O, H2OAc)
+                    if len(atom_names) > 1:
+                        for i in range(len(atom_names)):
+                            assert (forces_dict[forcename][0][1], forces_dict[forcename][0][2], forces_dict[forcename][0][3]) == (forces_dict[forcename][i][1], forces_dict[forcename][i][2], forces_dict[forcename][i][3])
+                        forces_dict = forces_dict[0]
+                break  # do this only for the relevant residue once
+        else:
+            raise RuntimeError("residue not found")
+        logger.debug(forces_dict)
+        return forces_dict
 
     @staticmethod
     def _check_nr_of_forces(
@@ -742,6 +840,16 @@ class ProtexSystem:
                 return
             self.residue_templates[name] = self._extract_templates(name)
 
+    def _fill_H_templates(self, name):
+        if name in self.templates.names:
+            if name in self.H_templates:
+                return
+            self.H_templates[name] = self._extract_templates_Hs(name)
+        else:
+            if name in self.H_templates:  # or name_of_paired_ion in templates:
+                return
+            self.H_templates[name] = self._extract_templates_Hs(name)
+
     def _set_initial_states(self) -> list:
         """set_initial_states.
 
@@ -750,6 +858,7 @@ class ProtexSystem:
         """
         residues = []
         self.residue_templates = dict()
+        self.H_templates = dict()
         # this will become a dict of the form:
         # self.per_residue_forces[(min,max tuple of the atom idxs for each residue)][forcegroup][forcename]: list of the idxs of this force for this residue
         self.per_residue_forces = {}
@@ -760,6 +869,8 @@ class ProtexSystem:
             self.per_residue_forces[(mini, maxi)] = {}
             name = r.name
             self._fill_residue_templates(name)
+            self._fill_H_templates(name)
+           
 
         if self.fast:
             # this takes some time, but the update calls on the residues are then much faster
@@ -793,6 +904,9 @@ class ProtexSystem:
                             self.templates.has_equivalent_atom(name),
                             self.templates.has_equivalent_atom(name_of_paired_ion),
                         ),
+                        self.templates.get_modes_for(name),
+                        self.templates.get_donors_for(name),
+                        self.templates.get_acceptors_for(name),
                         force_idxs=self.per_residue_forces[minmax],
                     )
                 else:
@@ -806,6 +920,9 @@ class ProtexSystem:
                             self.templates.has_equivalent_atom(name),
                             self.templates.has_equivalent_atom(name_of_paired_ion),
                         ),
+                        self.templates.get_modes_for(name),
+                        self.templates.get_donors_for(name),
+                        self.templates.get_acceptors_for(name),
                     )
                 residues.append(new_res)
                 residues[
@@ -815,7 +932,7 @@ class ProtexSystem:
                 )
             else:
                 parameters_state1 = self.residue_templates[name]
-                r = Residue(r, None, self.system, parameters_state1, None, None)
+                r = Residue(r, None, self.system, parameters_state1, None, None, None, None, None)
                 # the residue is not part of any proton transfers,
                 # we still need it in the residue list for the parmed hack...
                 # there we need the current_name attribute, hence give it to the residue
@@ -825,6 +942,7 @@ class ProtexSystem:
             #    raise RuntimeError(
             #        f"Found resiude not present in Templates: {r.name}"
             #    )  # we want to ignore meoh, doesn't work the way it actually is
+
         return residues
 
     # def save_current_names(self, file: str) -> None:

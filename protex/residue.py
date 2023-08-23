@@ -45,6 +45,13 @@ class Residue:
     equivalent_atoms: dict[str, bool]
         if orignal_name and alternative name have equivalent atoms
     force_idxs:
+
+    modes: tuple(str)
+        whether the residue can be a donor, acceptor or both
+    donors: tuple(str)
+        atom names (NOTE: maybe use indices within molecule?) that are currently real Hs (NOTE: at the moment residues with only acceptor mode may also have donor Hs, e.g. OH)
+    acceptors: tuple(str)
+        atom names (NOTE: maybe use indices within molecule?) that are currently dummies
     """
 
     def __init__(
@@ -55,6 +62,9 @@ class Residue:
         inital_parameters,
         alternativ_parameters,
         has_equivalent_atoms,
+        modes,
+        donors,
+        acceptors,
         force_idxs=dict(),
     ) -> None:
         self.residue = residue
@@ -76,6 +86,9 @@ class Residue:
             }
         self.equivalent_atom_pos_in_list: int = None
         self.used_equivalent_atom: bool = False
+        self.modes = modes
+        self.donors = donors
+        self.acceptors = acceptors
         self.force_idxs = force_idxs
 
     def __str__(self) -> str:
@@ -97,11 +110,12 @@ class Residue:
     @property
     def alternativ_name(self) -> str:
         """Alternative name for the residue, e.g. the corresponding name for the protonated/deprotonated form.
-
+            
         Returns
         -------
         str
             The alternative name
+        TODO: handle ampholytes (OH_H2O_H3O)
         """
         for name in self.parameters.keys():
             if name != self.current_name:

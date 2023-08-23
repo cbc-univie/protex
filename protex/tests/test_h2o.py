@@ -186,8 +186,10 @@ def test_run_simulation(tmp_path):
 
 
 def test_scratch():
-    a = "hello"
-    print(f"{'o' in a}")
+    a = [('IM1H', 'H7'), ('HOAC', 'H')]
+    for j in range(len(a)):
+        print(a[j][1])
+   
 
 def test_create_ProtexTemplate():
     allowed_updates = {}
