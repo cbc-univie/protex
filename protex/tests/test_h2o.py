@@ -151,7 +151,7 @@ def test_available_platforms():
 
 def test_run_simulation(tmp_path):
 
-    simulation = generate_toh2_system(use_plugin=True)
+    simulation = generate_toh2_system(use_plugin=False)
     system = simulation.system
     nr_of_particles = system.getNumParticles()
     print(f"{nr_of_particles=}")
@@ -180,15 +180,15 @@ def test_run_simulation(tmp_path):
         )
     )
     print("Running dynmamics...")
-    simulation.step(8)             # coordinates nan
+    simulation.step(40)             # coordinates nan
     positions = simulation.context.getState(getPositions=True).getPositions(asNumpy=True)
     print(f"{positions}")
 
 
 def test_scratch():
-    a = [('IM1H', 'H7'), ('HOAC', 'H')]
-    for j in range(len(a)):
-        print(a[j][1])
+    a = [[1,2,3],[4,5,6]]
+    c = next((l for l in a if l[0]==1), None)
+    print(c)
    
 
 def test_create_ProtexTemplate():
