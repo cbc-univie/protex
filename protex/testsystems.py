@@ -148,7 +148,7 @@ def setup_simulation(
             coll_freq / picoseconds,
             1 * kelvin,
             drude_coll_freq / picoseconds,
-            0.0005 * picoseconds,
+            0.0001 * picoseconds,
         )
         print("Using built in DrudeNoseHooverIntegrator")
         print("Some tests might fail")

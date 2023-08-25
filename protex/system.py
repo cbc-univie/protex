@@ -90,24 +90,100 @@ class ProtexTemplates:
 
     def __init__(
         self,
-        states: list[dict[str, dict[str, str]]],
+        states: list[dict[str, dict[str, tuple]]],
         allowed_updates: dict[frozenset[str], dict[str, float]],
     ) -> None:
         self.__states = states
-        self.pairs: list[list[str]] = [list(i.keys()) for i in states]
-        self.states: dict[str, dict[str, str]] = dict(ChainMap(*states))
-        self.names: list[str] = list(itertools.chain(*self.pairs))
+        self.pairs: list[list[str]] = [list(i.keys()) for i in states]  # same
+        self.states: dict[str, dict[str, list[dict[str, str]]]] = dict(  # different
+            ChainMap(*states)
+        )  # first check that names are unique?
+        self.names: list[str] = list(  # same
+            itertools.chain(*self.pairs)
+        )  # also what about duplicates
+        self.ordered_names: list[
+            tuple[str,...]
+        ] = self._setup_ordered_names()  # TODO, needed?
         self.allowed_updates: dict[frozenset[str], dict[str, float]] = allowed_updates
         self.overall_max_distance: float = max(
             [value["r_max"] for value in self.allowed_updates.values()]
         )
-        # store names in variables, in case syntax for states dict changes
-        self._atom_name: str = "atom_name"
-        self._equivalent_atom: str = "equivalent_atom"
+
         self._donors: str = "donors"
         self._acceptors: str = "acceptors"
         self._modes: str = "modes"
 
+    def get_states(self):
+        return self.__states
+
+    def get_all_states_for(self, resname: str) -> dict[str,dict[str,list[dict[str,str]]]]:
+        """Get all the state information for a specific resname and all corresponding resnames.
+
+        Parameters
+        ----------
+        resname : str
+            The resname
+
+        Returns
+        -------
+        dict[str,dict[str,list[dict[str,str]]]]
+            A dict with the resname and all information
+
+        Raises
+        ------
+        RuntimeError
+            If the given resname does not exist
+        """
+        # return all info correpsonding to one pair tuple, i.e all for oac,hoac,h2oac
+        current_states = {}
+        for pair in self.pairs:
+            if resname in pair:
+                for name in pair:
+                    current_states[name] = self.states[name]
+                return current_states
+        raise RuntimeError(f"Resname {resname} not found. Typo?")
+
+    def _setup_ordered_names(self) -> list[tuple[str,...]]:
+        # from low H to many H
+        #from most acceptor to most donor
+        #i.e. oac -> -1 (one acceptor)
+        #hoac -> 0 (one acceptor, one donor)
+        #h2oac -> 1 (one donor)
+        ordered_names = []
+        for pair in self.pairs:
+            count_dict = {}
+            for p in pair:
+                count_dict[p] = 0
+                if "donor" in self.states[p]["modes"]:
+                    count_dict[p] +=1
+                if "acceptor" in self.states[p]["modes"]:
+                    count_dict[p] -= 1
+            sorted_count_dict = tuple(sorted(count_dict, key=lambda k:(count_dict[k],k)))
+            print(sorted_count_dict)
+            ordered_names.append(sorted_count_dict)
+
+        print(ordered_names)
+        return ordered_names
+        #return [("IM1", "IM1H"), ("OAC", "HOAC", "H2OAC")]
+
+    def get_ordered_names_for(self, resname: str) -> tuple[str,...]:
+        """Get the tuple of the correct resname sequences for a given resname.
+
+        Parameters
+        ----------
+        resname : str
+            The resname
+
+        Returns
+        -------
+        tuple[str]
+            A tuple with the order of resnames from low H (acceptor) to high H (donor) count
+        """
+        for tup in self.ordered_names:
+            if resname in tup:
+                return tup
+        raise RuntimeError(f"Resname {resname} not found in the present names.")
+    
     def dump(self, fname: str) -> None:
         """Pickle the current ProtexTemplates object.
 
@@ -118,21 +194,6 @@ class ProtexTemplates:
         """
         with open(fname, "wb") as outp:
             pickle.dump(self, outp, pickle.HIGHEST_PROTOCOL)
-
-    def get_atom_name_for(self, resname: str) -> str:
-        """Get the atom name for a specific residue.
-
-        Parameters
-        ----------
-        resname : str
-            The residue name
-
-        Returns
-        -------
-        str
-            The atom name
-        """
-        return self.states[resname][self._atom_name]
     
     def get_donors_for(self, resname: str) -> tuple:
         """Get the atom names of donors for a specific residue.
@@ -178,36 +239,6 @@ class ProtexTemplates:
             tuple of mode(s)
         """
         return self.states[resname][self._modes]
-
-    def has_equivalent_atom(self, resname: str) -> bool:
-        """Check if a given residue has an equivalent atom defined.
-
-        Parameters
-        ----------
-        resname : str
-            The residue name
-
-        Returns
-        -------
-        bool
-            True if this residue has an equivalent atom defined, false otherwise
-        """
-        return self._equivalent_atom in self.states[resname]
-
-    def get_equivalent_atom_for(self, resname: str) -> str:
-        """Get the name of the equivalent atom for a given residue name.
-
-        Parameters
-        ----------
-        resname : str
-            The residue name
-
-        Returns
-        -------
-        str
-            The atom name
-        """
-        return self.states[resname][self._equivalent_atom]
 
     def get_update_value_for(self, residue_set: frozenset[str], property: str) -> float:
         """Returns the value in the allowed updates dictionary.
@@ -277,69 +308,34 @@ class ProtexTemplates:
                 "You tried to create a new residue_set or property key! This is only allowed at startup!"
             )
 
-    # Not used
-    def set_allowed_updates(
-        self, allowed_updates: dict[frozenset[str], dict[str, float]]
-    ) -> None:
-        self.allowed_updates = allowed_updates
-
-    # Not used(?)
-    # def get_canonical_name(self, name: str) -> str:
-    #     assert name in self.names
-    #     for state in self.states:
-    #         if name in state:
-    #             return self.states[name]["canonical_name"]
-
-    def get_residue_name_for_coupled_state(self, name: str) -> str:
-        """get_residue_name_of_paired_ion returns the paired residue name given a reisue name.
+    def get_other_resnames(self, resname: str) -> list[str]:
+        """Return the corresponding alternative resname to the given one.
 
         Parameters
         ----------
-        name : str
-            residue name
+        resname : str
+            The resname
 
         Returns
         -------
-        str
+        list[str]
+            The other resnames connected to the current one
 
         Raises
         ------
         RuntimeError
-            is raised if no paired residue name can be found
+            The given resname does not exist
         """
-        assert name in self.names
-
+        assert resname in self.names
         for pair in self.pairs:
-            if name in pair:
-                state_1, state_2 = pair
-                if state_1 == name:
-                    return state_2
-                else:
-                    return state_1
-        raise RuntimeError("something went wrong")
+            if resname in pair:
+                pair_copy = pair[:]
+                pair_copy.remove(resname)
+                return pair_copy
+        else:
+            raise RuntimeError(f"resname {resname} not found")
 
-    # Not used
-    def get_charge_template_for(self, name: str) -> list:
-        """get_charge_template_for returns the charge template for a residue.
-
-        Parameters
-        ----------
-        name : str
-            Name of the residue
-
-        Returns
-        -------
-        list
-            charge state of residue
-
-        Raises
-        ------
-        RuntimeError
-            [description]
-        """
-        assert name in self.names
-
-        return self.states[name]["charge"]
+    
 
 
 class ProtexSystem:
@@ -529,6 +525,35 @@ class ProtexSystem:
             if type(force).__name__ == name:
                 force.updateParametersInContext(self.simulation.context)
 
+    # TODO we have something better in newer versions
+    def _build_exclusion_list(self, topology):
+        pair_12_set = set()
+        pair_13_set = set()
+        for bond in topology.bonds():
+            a1, a2 = bond.atom1, bond.atom2
+            if "H" not in a1.name and "H" not in a2.name:
+                pair = (
+                    min(a1.index, a2.index),
+                    max(a1.index, a2.index),
+                )
+                pair_12_set.add(pair)
+        for a in pair_12_set:
+            for b in pair_12_set:
+                shared = set(a).intersection(set(b))
+                if len(shared) == 1:
+                    pair = tuple(sorted(set(list(a) + list(b)) - shared))
+                    pair_13_set.add(pair)
+                    # there were duplicates in pair_13_set, e.g. (1,3) and (3,1), needs to be sorted
+
+        # self.pair_12_list = list(sorted(pair_12_set))
+        # self.pair_13_list = list(sorted(pair_13_set - pair_12_set))
+        # self.pair_12_13_list = self.pair_12_list + self.pair_13_list
+        # change to return the list and set the parameters in the init method?
+        pair_12_list = list(sorted(pair_12_set))
+        pair_13_list = list(sorted(pair_13_set - pair_12_set))
+        pair_12_13_list = pair_12_list + pair_13_list
+        return pair_12_13_list
+
     def _extract_templates(self, query_name: str) -> defaultdict:
         # returns the forces for the residue name
         forces_dict = defaultdict(list)
@@ -643,7 +668,7 @@ class ProtexSystem:
         return forces_dict
     
 
-    def _extract_templates_Hs(self, query_name: str) -> defaultdict:
+    def _extract_H_templates(self, query_name: str) -> defaultdict:
         # returns the nonbonded parameters of real Hs for the residue name
         forces_dict = defaultdict(list)
 
@@ -671,13 +696,14 @@ class ProtexSystem:
                         forces_dict[forcename] = [
                             force.getParticleParameters(idx) for idx in atom_idxs
                         ]
-                        # Also add exceptions TODO: what do we do with these? they need atom idxes and can be applied to e.g H1 and H2. is there a difference with dummies?
-                        for exc_id in range(force.getNumExceptions()):
-                            f = force.getExceptionParameters(exc_id)
-                            idx1 = f[0]
-                            idx2 = f[1]
-                            if (idx1 in atom_idxs and idx2 in atom_idxs_all) or (idx2 in atom_idxs and idx1 in atom_idxs_all):
-                                forces_dict[forcename + "Exceptions"].append(f)
+                        # # Also add exceptions TODO: what do we do with these? they need atom idxes and can be applied to e.g H1 and H2. is there a difference with dummies?
+                        # # will probably leave them out for the moment. the number of bonds is the same with H and D, nonbonded exceptions should still apply
+                        # for exc_id in range(force.getNumExceptions()):
+                        #     f = force.getExceptionParameters(exc_id)
+                        #     idx1 = f[0]
+                        #     idx2 = f[1]
+                        #     if (idx1 in atom_idxs and idx2 in atom_idxs_all) or (idx2 in atom_idxs and idx1 in atom_idxs_all):
+                        #         forces_dict[forcename + "Exceptions"].append(f)
 
                     # double-checking for molecules with multiple equivalent atoms, then use one set of parameters only (we assume here that all acidic Hs in the residue are the same, e.g. MeOH2, H2O, H2OAc)
                     if len(atom_names) > 1:
@@ -844,11 +870,11 @@ class ProtexSystem:
         if name in self.templates.names:
             if name in self.H_templates:
                 return
-            self.H_templates[name] = self._extract_templates_Hs(name)
+            self.H_templates[name] = self._extract_H_templates_H(name)
         else:
             if name in self.H_templates:  # or name_of_paired_ion in templates:
                 return
-            self.H_templates[name] = self._extract_templates_Hs(name)
+            self.H_templates[name] = self._extract_H_templates_H(name)
 
     def _set_initial_states(self) -> list:
         """set_initial_states.
@@ -856,20 +882,30 @@ class ProtexSystem:
         For each ionic liquid residue in the system the protonation state
         is interfered from the provided openMM system object and the protonation site is defined.
         """
+
+        pair_12_13_list = self._build_exclusion_list(self.topology) # TODO: old code, find out how we managed to do it better
+
         residues = []
-        self.residue_templates = dict()
-        self.H_templates = dict()
+        templates = dict()
+        H_templates = dict()
         # this will become a dict of the form:
         # self.per_residue_forces[(min,max tuple of the atom idxs for each residue)][forcegroup][forcename]: list of the idxs of this force for this residue
         self.per_residue_forces = {}
         # for each residue type get forces
+
         for r in self.topology.residues():
-            atom_idxs = [atom.index for atom in r.atoms()]
-            mini, maxi = min(atom_idxs), max(atom_idxs)
-            self.per_residue_forces[(mini, maxi)] = {}
             name = r.name
-            self._fill_residue_templates(name)
-            self._fill_H_templates(name)
+            other_names = self.templates.get_other_resnames(name)
+
+            # skip if name or all corresponding names are already in the template
+            if name in templates and all(oname in templates for oname in other_names):
+                continue
+
+            templates[name] = self._extract_templates(name)
+            H_templates[name] = self._extract_H_templates(name)
+            for oname in other_names:
+                templates[oname] = self._extract_templates(oname)
+                H_templates[oname] = self._extract_H_templates(oname)
            
 
         if self.fast:
@@ -879,31 +915,28 @@ class ProtexSystem:
         for r in self.topology.residues():
             name = r.name
             if name in self.templates.names:
-                name_of_paired_ion = self.templates.get_residue_name_for_coupled_state(
-                    name
-                )
+                ordered_names = self.templates.get_ordered_names_for(name)
+                assert name in ordered_names
+                parameters = {}
+                for oname in ordered_names:
+                    parameters[oname] = templates[oname]
 
-                parameters_state1 = self.residue_templates[name]
-                parameters_state2 = self.residue_templates[name_of_paired_ion]
                 # check that we have the same number of parameters
-                self._check_nr_of_forces(
-                    parameters_state1, parameters_state2, name, name_of_paired_ion
-                )
+                for name1, name2 in itertools.combinations(parameters, 2):
+                    self._check_nr_of_forces(
+                        parameters[name1], parameters[name2], name1, name2
+                    )
+                    
                 atom_idxs = [
                     atom.index for atom in r.atoms()
                 ]  # also give them to initilaizer, not inside residue?
                 minmax = (min(atom_idxs), max(atom_idxs))
-                if self.fast:
+                if self.fast: # TODO: correct this part (what does it do exactly)
                     new_res = Residue(
                         r,
-                        name_of_paired_ion,
+                        ordered_names,
                         self.system,
-                        parameters_state1,
-                        parameters_state2,
-                        (
-                            self.templates.has_equivalent_atom(name),
-                            self.templates.has_equivalent_atom(name_of_paired_ion),
-                        ),
+                        parameters,
                         self.templates.get_modes_for(name),
                         self.templates.get_donors_for(name),
                         self.templates.get_acceptors_for(name),
@@ -912,14 +945,11 @@ class ProtexSystem:
                 else:
                     new_res = Residue(
                         r,
-                        name_of_paired_ion,
+                        ordered_names,
                         self.system,
-                        parameters_state1,
-                        parameters_state2,
-                        (
-                            self.templates.has_equivalent_atom(name),
-                            self.templates.has_equivalent_atom(name_of_paired_ion),
-                        ),
+                        parameters,
+                        pair_12_13_list,
+                        self.templates.get_all_states_for(name),
                         self.templates.get_modes_for(name),
                         self.templates.get_donors_for(name),
                         self.templates.get_acceptors_for(name),
