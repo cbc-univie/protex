@@ -189,7 +189,7 @@ def test_scratch():
     a = [[1,2,3],[4,5,6]]
     c = next((l for l in a if l[0]==1), None)
     print(c)
-   
+
 
 def test_create_ProtexTemplate():
     allowed_updates = {}

@@ -183,7 +183,7 @@ class ProtexTemplates:
             if resname in tup:
                 return tup
         raise RuntimeError(f"Resname {resname} not found in the present names.")
-    
+
     def dump(self, fname: str) -> None:
         """Pickle the current ProtexTemplates object.
 
@@ -194,7 +194,7 @@ class ProtexTemplates:
         """
         with open(fname, "wb") as outp:
             pickle.dump(self, outp, pickle.HIGHEST_PROTOCOL)
-    
+
     def get_donors_for(self, resname: str) -> tuple:
         """Get the atom names of donors for a specific residue.
 
@@ -335,7 +335,7 @@ class ProtexTemplates:
         else:
             raise RuntimeError(f"resname {resname} not found")
 
-    
+
 
 
 class ProtexSystem:
@@ -882,7 +882,6 @@ class ProtexSystem:
         For each ionic liquid residue in the system the protonation state
         is interfered from the provided openMM system object and the protonation site is defined.
         """
-
         pair_12_13_list = self._build_exclusion_list(self.topology) # TODO: old code, find out how we managed to do it better
 
         residues = []
@@ -906,7 +905,7 @@ class ProtexSystem:
             for oname in other_names:
                 templates[oname] = self._extract_templates(oname)
                 H_templates[oname] = self._extract_H_templates(oname)
-           
+
 
         if self.fast:
             # this takes some time, but the update calls on the residues are then much faster
@@ -926,7 +925,7 @@ class ProtexSystem:
                     self._check_nr_of_forces(
                         parameters[name1], parameters[name2], name1, name2
                     )
-                    
+
                 atom_idxs = [
                     atom.index for atom in r.atoms()
                 ]  # also give them to initilaizer, not inside residue?

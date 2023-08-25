@@ -1,10 +1,10 @@
 from __future__ import annotations
+
 import itertools
-from collections import deque
 import logging
+from collections import deque
+
 import numpy as np
-
-
 
 logger = logging.getLogger(__name__)
 
@@ -106,8 +106,6 @@ class Residue:
         atom names (NOTE: maybe use indices within molecule?) that are currently dummies
     """
 
-    
-
     def __init__(
         self,
         residue,
@@ -195,7 +193,7 @@ class Residue:
         """
         if self.used_atom is None:
             raise RuntimeError("self.used_atom not set")
-        
+
         atom_name = self.used_atom
 
         # # original idea from Flo:
@@ -270,7 +268,7 @@ class Residue:
                     if idx == self.get_idx_for_atom_name(self.used_atom.atom_name):
                         charge, sigma, epsilon = H_D_parms
                         # update the used atom extra with the corresponding H or D parameters
-                    else:   
+                    else:
                         charge, sigma, epsilon = parms_nonb[self.atom_idxs.index(idx)]
                         # update other atoms with the parameters from the new residue
                     force.setParticleParameters(idx, charge, sigma, epsilon)
@@ -291,7 +289,7 @@ class Residue:
                             force.setExceptionParameters(
                                 exc_idx, idx1, idx2, chargeprod, sigma, epsilon
                             )
-            
+
     def _set_CustomNonbondedForce_parameters(self, parms) -> None:  # noqa: N802
         parms_nonb = deque(parms[0])
         parms_exclusions = deque(parms[1])
@@ -575,15 +573,15 @@ class Residue:
 
     def _get_H_D_NonbondedForce_parameters_at_lambda(self,  lamb: float
     ) -> list[list[int]]:
-        
+
         assert lamb >= 0 and lamb <= 1
         current_name = self.current_name
         new_name = self.alternativ_resname
         atom_idx = self.get_idx_for_atom_name(self.used_atom.atom_name)
         mode = self.get_mode_for()
-        
+
         nonbonded_parm_old = next(parms for parms in self.parameters[current_name]["NonbondedForce"] if parms[0] == atom_idx)
-        
+
         if mode == "acceptor": # used_atom changes from D to H
             nonbonded_parm_new = self.H_parameters[new_name]["NonbondedForce"]
         else: # used_atom changes from H to D
@@ -643,8 +641,8 @@ class Residue:
         #         [chargeprod_interpolated, sigma_interpolated, epsilon_interpolated]
         #     )
 
-        # return [parm_interpolated, exceptions_interpolated]       
-        return parm_interpolated 
+        # return [parm_interpolated, exceptions_interpolated]
+        return parm_interpolated
 
     def _get_CustomNonbondedForce_parameters_at_lambda(  # noqa: N802
         self, lamb: float
