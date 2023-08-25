@@ -224,7 +224,7 @@ class ProtexTemplates:
             The atom names
         """
         return self.states[resname][self._acceptors]
-    
+
     def get_modes_for(self, resname: str) -> tuple:
         """Get the possible modes for a specific residue.
 
@@ -666,7 +666,7 @@ class ProtexSystem:
         else:
             raise RuntimeError("residue not found")
         return forces_dict
-    
+
 
     def _extract_H_templates(self, query_name: str) -> defaultdict:
         # returns the nonbonded parameters of real Hs for the residue name

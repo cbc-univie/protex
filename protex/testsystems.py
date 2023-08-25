@@ -1054,5 +1054,5 @@ OH_H2O_H3O =  {
     # at the moment only nonbonded parameters change, all possible donors and acceptors in a single molecule are equivalent (i.e. no two different acidic side chains)
         # update like now
         # set parameters for H and D that were used extra
-            # D: force.setParticleParameters(atomidx, 0, 0, 0] 
+            # D: force.setParticleParameters(atomidx, 0, 0, 0]
             # H: extract nonbonded parameters from template first
