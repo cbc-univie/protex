@@ -214,13 +214,13 @@ class KeepHUpdate(Update):
                     f"{lamb}: donor: {donor.current_name}; charge:{donor.current_charge}: acceptor: {acceptor.current_name}; charge:{acceptor.current_charge}"
                 )
 
-                # TODO does this and update_context work with updating used atom extra? maybe write new function here to update used atom    
+                # TODO does this and update_context work with updating used atom extra? maybe write new function here to update used atom
                 for force_to_be_updated in self.allowed_forces:
                     ######################
                     # candidate1
                     ######################
                     donor.update(force_to_be_updated, lamb)
-                    
+
 
                     ######################
                     # candidate2
@@ -242,7 +242,7 @@ class KeepHUpdate(Update):
 
             # update the context to include the new parameters
             for force_to_be_updated in self.allowed_forces:
-                self.ionic_liquid.update_context(force_to_be_updated) 
+                self.ionic_liquid.update_context(force_to_be_updated)
 
             # get new energy
             state = self.ionic_liquid.simulation.context.getState(getEnergy=True)
@@ -255,7 +255,7 @@ class KeepHUpdate(Update):
         # get new energy
         state = self.ionic_liquid.simulation.context.getState(getEnergy=True)
         new_e = state.getPotentialEnergy()
-        logger.info(f"Energy before/after state change:{initial_e}/{new_e}")          
+        logger.info(f"Energy before/after state change:{initial_e}/{new_e}")
 
 
 
@@ -703,7 +703,7 @@ class StateUpdate:
                             )])
                         donor_names_list.append(atom)
                         donor_resis_list.append(residue)
-        
+
                 if "acceptor" in residue.modes:
                     for atom in residue.acceptors:
                         acceptor_atoms_list.append(pos[
