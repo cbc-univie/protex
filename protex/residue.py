@@ -158,7 +158,7 @@ class Residue:
         # should be used only once per update
         self.current_name = new_name
 
-        self.used_atom = None
+        self.used_atom = None # caution, do we want to do this here? or just replace used atom in next transfer?
 
     @property
     def alternativ_resname(self) -> str:

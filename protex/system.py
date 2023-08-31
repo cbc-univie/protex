@@ -90,7 +90,7 @@ class ProtexTemplates:
 
     def __init__(
         self,
-        states: list[dict[str, dict[str, tuple]]],
+        states: list[dict[str, dict[str, list]]],
         allowed_updates: dict[frozenset[str], dict[str, float]],
     ) -> None:
         self.__states = states

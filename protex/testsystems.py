@@ -988,40 +988,37 @@ def generate_single_hpts_meoh_system(
 
 IM1H_IM1 = {
     "IM1H": {
-        "donors": ("H7"), "acceptors": (), "modes": ("donor")
+        "donors": ["H7"], "acceptors": [], "modes": ("donor",)
     },
     "IM1": {
-        "donors": (), "acceptors": ("H7"), "modes": ("acceptor")
+        "donors": [], "acceptors": ["H7"], "modes": ("acceptor",)
     },
 }
 
 OAC_HOAC = {
     "OAC": {
-        "donors": (), "acceptors": ("H"), "modes": ("acceptor")
+        "donors": [], "acceptors": ["H"], "modes": ("acceptor",)
     },
     "HOAC": {
-        "donors": ("H"), "acceptors": (), "modes": ("donor")
+        "donors": ["H"], "acceptors": [], "modes": ("donor",)
     },
 }
 
 HPTSH_HPTS = {
     "HPTSH": {
-        "atom_name": "H7",
-        "canonical_name": "HPTS",
-    },
+        "donors": ["H7"], "acceptors": [], "modes": ("donor",)
+        },
     "HPTS": {
-        "atom_name": "O7",
-        "canonical_name": "HPTS",
+        "donors": [], "acceptors": ["H7"], "modes": ("acceptor",)
     },
 }
 
 MEOH_MEOH2 = {
     "MEOH": {
-        "atom_name": "O1",
+        "donors": ["HO1"], "acceptors": ["HO2"], "modes": ("acceptor",)
     },
     "MEOH2": {
-        "atom_name": "HO2",
-        "equivalent_atom": "HO1",
+        "donors": ["HO1","HO2"], "acceptors": [], "modes": ("donor",)
     },
 }
 
@@ -1040,13 +1037,13 @@ MEOH_MEOH2 = {
 # TODO: at the moment fixed atom names, will revert to this at the beginning of each run -> reformulate so that donors and acceptors are filled based on atom type
 
 OH_H2O_H3O =  {
-    "OH":  {"donors" : ("H1",), "acceptors" : ("H2", "H3", "H4"), "modes" : ("acceptor",)},
-    "H2O": {"donors" : ("H1", "H2"), "acceptors" : ("H3", "H4"), "modes" : ("acceptor", "donor")},
-    "H3O": {"donors" : ("H1", "H2", "H3"), "acceptors" : ("H4",), "modes" : ("donor",)},
+    "OH":  {"donors" : ["H1"], "acceptors" : ["H2", "H3", "H4"], "modes" : ("acceptor",)},
+    "H2O": {"donors" : ["H1", "H2"], "acceptors" : ["H3", "H4"], "modes" : ("acceptor", "donor")},
+    "H3O": {"donors" : ["H1", "H2", "H3"], "acceptors" : ["H4"], "modes" : ("donor",)},
 }
 
 # TODO:
-# keep track of what H is real at the moment: like "donors" : (), "acceptors" : ()
+# keep track of which H is real at the moment: like "donors" : (), "acceptors" : ()
     # caution: will have to change how we write the psf as well
 # get atom index or something like that in the update step and swap H to D and vice versa
     # something similar to the way we check whether the equivalent atom was used
