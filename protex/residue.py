@@ -158,8 +158,6 @@ class Residue:
         # should be used only once per update
         self.current_name = new_name
 
-        self.used_atom = None # caution, do we want to do this here? or just replace used atom in next transfer?
-
     @property
     def alternativ_resname(self) -> str:
         """Alternative name for the residue, e.g. the corresponding name for the protonated/deprotonated form.
@@ -265,7 +263,7 @@ class Residue:
             fgroup = force.getForceGroup()
             if type(force).__name__ == "NonbondedForce":
                 for idx in self.atom_idxs:
-                    if idx == self.get_idx_for_atom_name(self.used_atom.atom_name):
+                    if idx == self.get_idx_for_atom_name(self.used_atom):
                         charge, sigma, epsilon = H_D_parms
                         # update the used atom extra with the corresponding H or D parameters
                     else:
@@ -577,7 +575,7 @@ class Residue:
         assert lamb >= 0 and lamb <= 1
         current_name = self.current_name
         new_name = self.alternativ_resname
-        atom_idx = self.get_idx_for_atom_name(self.used_atom.atom_name)
+        atom_idx = self.get_idx_for_atom_name(self.used_atom)
         mode = self.get_mode_for()
 
         nonbonded_parm_old = next(parms for parms in self.parameters[current_name]["NonbondedForce"] if parms[0] == atom_idx)

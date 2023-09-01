@@ -1068,7 +1068,7 @@ class ProtexSystem:
                         [-d for d in differences]
                     )
 
-        # either it is the same or just one group will be assumed. -> Not best for proteins, but hopefully Parmed will release new version soon, so that we do not need all this hacks.
+        # either it is the same or just one group will be assumed. -> Not best for proteins, but hopefully Parmed will release new version soon, so that we do not need all these hacks.
         n_residue_is_n_groups = len(psf.groups) == len(psf.residues)
         group_iter = iter(psf.groups)
         for residue, pm_residue in zip(self.residues, psf.residues):
@@ -1091,6 +1091,7 @@ class ProtexSystem:
             for unique_atom, pm_atom in zip(
                 pm_unique_residues[name].atoms, pm_residue.atoms
             ):
+                # TODO this block has to be changed to account for different possible dummy-real H combinations, esp. charge and type
                 pm_atom._charge = unique_atom._charge
                 pm_atom.type = unique_atom.type
                 pm_atom.props = unique_atom.props
