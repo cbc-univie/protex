@@ -1,6 +1,4 @@
 """helpers.py contains additional functions for easier use of protex."""
-from MDAnalysis.coordinates.base import SingleFrameReaderBase
-from MDAnalysis.lib.util import openany
 from openmm import XmlSerializer
 from parmed.formats import PSFFile
 from parmed.topologyobjects import DrudeAtom, ExtraPoint, LocalCoordinatesFrame
@@ -12,6 +10,8 @@ from parmed.utils.io import genopen
 
 
 class XMLSingleReader(SingleFrameReaderBase):
+    from MDAnalysis.coordinates.base import SingleFrameReaderBase
+    from MDAnalysis.lib.util import openany
     format = "rst"
     units = {"time": "ps", "length": "Nanometer"}
     _format_type = "xml"
