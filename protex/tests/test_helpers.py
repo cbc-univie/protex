@@ -2,14 +2,13 @@ import os
 
 import pytest
 
-from protex.helpers import XMLSingleReader
-
 
 @pytest.mark.skipif(
     os.getenv("CI") == "true",
     reason="No MDAnalysis",
 )
 def test_XMLSingleReader():
+    from protex.helpers import XMLSingleReader
     a = XMLSingleReader("protex/forcefield/traj/im1h_oac_150_im1_hoac_350_npt_7.rst")
 
 @pytest.mark.skipif(
