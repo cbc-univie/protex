@@ -109,9 +109,11 @@ class ProtexTemplates:
             [value["r_max"] for value in self.allowed_updates.values()]
         )
 
-        self._donors: str = "donors"
-        self._acceptors: str = "acceptors"
+        self._starting_donors: str = "starting_donors"
+        self._starting_acceptors: str = "starting_acceptors"
         self._modes: str = "modes"
+
+    # TODO function to determine cutoffs from equilibration dcd (MDAnalysis, find shortest distances between atom pairs)
 
     def get_states(self):
         return self.__states
@@ -195,7 +197,7 @@ class ProtexTemplates:
         with open(fname, "wb") as outp:
             pickle.dump(self, outp, pickle.HIGHEST_PROTOCOL)
 
-    def get_donors_for(self, resname: str) -> tuple:
+    def get_starting_donors_for(self, resname: str) -> tuple:
         """Get the atom names of donors for a specific residue.
 
         Parameters
@@ -208,9 +210,9 @@ class ProtexTemplates:
         tuple
             The atom names
         """
-        return self.states[resname][self._donors]
+        return self.states[resname][self._starting_donors]
 
-    def get_acceptors_for(self, resname: str) -> tuple:
+    def get_starting_acceptors_for(self, resname: str) -> tuple:
         """Get the atom names of acceptors for a specific residue.
 
         Parameters
@@ -223,7 +225,7 @@ class ProtexTemplates:
         tuple
             The atom names
         """
-        return self.states[resname][self._acceptors]
+        return self.states[resname][self._starting_acceptors]
 
     def get_modes_for(self, resname: str) -> tuple:
         """Get the possible modes for a specific residue.
@@ -455,9 +457,10 @@ class ProtexSystem:
         fname : str
             The file name to store the object
         """
-        to_pickle = [self.templates, self.residues]  # enusre correct order of arguments
+        to_pickle = [self.templates, self.residues]  # ensure correct order of arguments
         with open(fname, "wb") as outp:
             pickle.dump(to_pickle, outp, pickle.HIGHEST_PROTOCOL)
+        # NOTE if residues are pickled here, can we just use this to adapt donors and acceptors?
 
     def _detect_forces(self) -> set[str]:
         def _is_populated(force):
@@ -849,32 +852,32 @@ class ProtexSystem:
                     maxi = max(idx1, idx2, idx3, idx4)
                     self._add_force(fgroup, "CustomTorsionForce", maxi, value)
 
-    def _fill_residue_templates(self, name):
-        if name in self.templates.names:
-            name_of_paired_ion = self.templates.get_residue_name_for_coupled_state(name)
-            if (
-                name in self.residue_templates
-                or name_of_paired_ion in self.residue_templates
-            ):
-                return
-            self.residue_templates[name] = self._extract_templates(name)
-            self.residue_templates[name_of_paired_ion] = self._extract_templates(
-                name_of_paired_ion
-            )
-        else:
-            if name in self.residue_templates:  # or name_of_paired_ion in templates:
-                return
-            self.residue_templates[name] = self._extract_templates(name)
+    # def _fill_residue_templates(self, name): # not used anymore?
+    #     if name in self.templates.names:
+    #         name_of_paired_ion = self.templates.get_residue_name_for_coupled_state(name)
+    #         if (
+    #             name in self.residue_templates
+    #             or name_of_paired_ion in self.residue_templates
+    #         ):
+    #             return
+    #         self.residue_templates[name] = self._extract_templates(name)
+    #         self.residue_templates[name_of_paired_ion] = self._extract_templates(
+    #             name_of_paired_ion
+    #         )
+    #     else:
+    #         if name in self.residue_templates:  # or name_of_paired_ion in templates:
+    #             return
+    #         self.residue_templates[name] = self._extract_templates(name)
 
-    def _fill_H_templates(self, name):
-        if name in self.templates.names:
-            if name in self.H_templates:
-                return
-            self.H_templates[name] = self._extract_H_templates_H(name)
-        else:
-            if name in self.H_templates:  # or name_of_paired_ion in templates:
-                return
-            self.H_templates[name] = self._extract_H_templates_H(name)
+    # def _fill_H_templates(self, name): # not used anymore?
+    #     if name in self.templates.names:
+    #         if name in self.H_templates:
+    #             return
+    #         self.H_templates[name] = self._extract_H_templates_H(name)
+    #     else:
+    #         if name in self.H_templates:  # or name_of_paired_ion in templates:
+    #             return
+    #         self.H_templates[name] = self._extract_H_templates_H(name)
 
     def _set_initial_states(self) -> list:
         """set_initial_states.
@@ -937,8 +940,8 @@ class ProtexSystem:
                         self.system,
                         parameters,
                         self.templates.get_modes_for(name),
-                        self.templates.get_donors_for(name),
-                        self.templates.get_acceptors_for(name),
+                        self.templates.get_starting_donors_for(name),
+                        self.templates.get_starting_acceptors_for(name),
                         force_idxs=self.per_residue_forces[minmax],
                     )
                 else:
@@ -974,30 +977,37 @@ class ProtexSystem:
 
         return residues
 
-    # def save_current_names(self, file: str) -> None:
+    # def save_donors_acceptors(self, file: str) -> None:
     #     """
-    #     Save a file with the current residue names.
-    #     Can be used with load_current_names to set the residues in the IonicLiquidSystem
+    #     Save a file with the current Hs and Ds for each residue.
+    #     Can be used with load_donors_acceptors to set the residues in the IonicLiquidSystem
     #     in the state of these names and also adapt corresponding charges, parameters,...
     #     """
     #     with open(file, "w") as f:
     #         for residue in self.residues:
-    #             print(residue.current_name, file=f)
+    #             f.write(f"{residue.donors}; {residue.acceptors}")
 
     # def load_current_names(self, file: str) -> None:
     #     """
     #     Load the names of the residues (order important!)
-    #     Update the current_name of all residues to the given one
+    #     Update the donors and acceptors of all residues to the given one
     #     """
-    #     residue_names = []
+    #     residue_donors = []
+    #     residue_acceptors = []
     #     with open(file, "r") as f:
     #         for line in f.readlines():
-    #             residue_names.append(line.strip())
+    #             residue_donors.append(line.split(";")[0])
+    #             residue_acceptors.append(line.split(";")[1])
     #     assert (
-    #         len(residue_names) == self.topology.getNumResidues()
+    #         len(residue_donors) == len(residue_acceptors) == self.topology.getNumResidues()
     #     ), "Number of residues not matching"
-    #     for residue, name in zip(self.residues, residue_names):
-    #         residue.current_name = name
+    #     for residue, donor, acceptor in zip(self.residues, residue_donors, residue_acceptors):
+    #         residue.donors = donor
+    #         residue.acceptors = acceptor
+
+    # TODO use these functions to set donors and acceptors at the start of each new run
+        # write function to update atom parameters 
+        # try to use ProtexSystem.load first to load full residues
 
     # not used
     # def report_states(self) -> None:

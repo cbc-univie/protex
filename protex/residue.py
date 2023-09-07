@@ -100,9 +100,9 @@ class Residue:
 
     modes: tuple(str)
         whether the residue can be a donor, acceptor or both
-    donors: tuple(str)
+    donors: list(str)
         atom names (NOTE: maybe use indices within molecule?) that are currently real Hs (NOTE: at the moment residues with only acceptor mode may also have donor Hs, e.g. OH)
-    acceptors: tuple(str)
+    acceptors: list(str)
         atom names (NOTE: maybe use indices within molecule?) that are currently dummies
     """
 
@@ -136,6 +136,7 @@ class Residue:
         self.pair_12_13_list = pair_12_13_exclusion_list
         self.states = states
         self.used_atom = None
+        self._setup_donors_acceptors()
 
     def __str__(self) -> str:
         return f"Residue {self.current_name}, {self.residue}"
@@ -145,6 +146,36 @@ class Residue:
                 return 1
             if mode == "donor":
                 return -1
+
+    def _setup_donors_acceptors(self):
+        if set(self.donors) != set(self.system.templates.get_starting_donors_for(self.current_name)) or set(self.acceptors) != set(self.system.templates.get_starting_acceptors_for(self.current_name)):
+            H_parms = self._get_H_D_NonbondedForce_parameters_at_setup(self, "donors")
+            D_parms = self._get_H_D_NonbondedForce_parameters_at_setup(self, "acceptors")
+            self._setup_donor_acceptor_parms(H_parms, D_parms)
+    
+    def _get_H_D_NonbondedForce_parameters_at_setup(self, mode) -> list[float]:
+        if mode == "donors": # want to have parameters for real H
+            nonbonded_parm_new = self.system.templates.H_parameters[self.current_name]["NonbondedForce"]
+        else: # want to have parameters for D
+            nonbonded_parm_new = [0.0, 0.0, 0.0]
+
+        return nonbonded_parm_new
+
+    def _setup_donor_acceptor_parms(self, H_parms, D_parms):
+            for force in self.system.getForces():
+                if type(force).__name__ == "NonbondedForce":
+                    for atom in self.atoms:
+                        idx = atom.idx
+                        if atom.name  in self.donors:
+                            charge, sigma, epsilon = H_parms
+                        elif atom.name in self.acceptors:
+                            charge, sigma, epsilon = D_parms
+                        else: # atom not a protonatable H or dummy
+                            continue
+                            
+                        force.setParticleParameters(idx, charge, sigma, epsilon)
+            
+
 
     @property
     def update_resname(self):
@@ -495,7 +526,7 @@ class Residue:
 
     def _get_NonbondedForce_parameters_at_lambda(  # noqa: N802
         self, lamb: float
-    ) -> list[list[int]]:
+    ) -> list[list[float]]:
         # returns interpolated sorted nonbonded Forces.
         assert lamb >= 0 and lamb <= 1
         current_name = self.current_name
@@ -570,7 +601,7 @@ class Residue:
         return [parm_interpolated, exceptions_interpolated]
 
     def _get_H_D_NonbondedForce_parameters_at_lambda(self,  lamb: float
-    ) -> list[list[int]]:
+    ) -> list[list[float]]:
 
         assert lamb >= 0 and lamb <= 1
         current_name = self.current_name
@@ -581,7 +612,7 @@ class Residue:
         nonbonded_parm_old = next(parms for parms in self.parameters[current_name]["NonbondedForce"] if parms[0] == atom_idx)
 
         if mode == "acceptor": # used_atom changes from D to H
-            nonbonded_parm_new = self.H_parameters[new_name]["NonbondedForce"]
+            nonbonded_parm_new = self.templates.H_parameters[new_name]["NonbondedForce"]
         else: # used_atom changes from H to D
             nonbonded_parm_new = [0.0, 0.0, 0.0]
 
@@ -1070,3 +1101,5 @@ class Residue:
                     charge += charge_idx._value
 
         return np.round(charge, 3)
+    
+    
