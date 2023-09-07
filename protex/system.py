@@ -1006,7 +1006,7 @@ class ProtexSystem:
     #         residue.acceptors = acceptor
 
     # TODO use these functions to set donors and acceptors at the start of each new run
-        # write function to update atom parameters 
+        # write function to update atom parameters
         # try to use ProtexSystem.load first to load full residues
 
     # not used

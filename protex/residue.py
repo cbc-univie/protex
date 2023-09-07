@@ -152,7 +152,7 @@ class Residue:
             H_parms = self._get_H_D_NonbondedForce_parameters_at_setup(self, "donors")
             D_parms = self._get_H_D_NonbondedForce_parameters_at_setup(self, "acceptors")
             self._setup_donor_acceptor_parms(H_parms, D_parms)
-    
+
     def _get_H_D_NonbondedForce_parameters_at_setup(self, mode) -> list[float]:
         if mode == "donors": # want to have parameters for real H
             nonbonded_parm_new = self.system.templates.H_parameters[self.current_name]["NonbondedForce"]
@@ -172,9 +172,9 @@ class Residue:
                             charge, sigma, epsilon = D_parms
                         else: # atom not a protonatable H or dummy
                             continue
-                            
+
                         force.setParticleParameters(idx, charge, sigma, epsilon)
-            
+
 
 
     @property
@@ -1101,5 +1101,5 @@ class Residue:
                     charge += charge_idx._value
 
         return np.round(charge, 3)
-    
-    
+
+
