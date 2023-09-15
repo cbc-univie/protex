@@ -1,4 +1,7 @@
 """helpers.py contains additional functions for easier use of protex."""
+from MDAnalysis.coordinates.base import SingleFrameReaderBase
+from MDAnalysis.lib.util import openany
+from openmm import XmlSerializer
 from parmed.formats import PSFFile
 from parmed.topologyobjects import DrudeAtom, ExtraPoint, LocalCoordinatesFrame
 
@@ -6,6 +9,20 @@ from parmed.topologyobjects import DrudeAtom, ExtraPoint, LocalCoordinatesFrame
 # from parmed.formats.registry import FileFormatType
 from parmed.utils import tag_molecules
 from parmed.utils.io import genopen
+
+
+class XMLSingleReader(SingleFrameReaderBase):
+    format = "rst"
+    units = {"time": "ps", "length": "Nanometer"}
+    _format_type = "xml"
+
+    def _read_first_frame(self):
+        with openany(self.filename) as xmlfile:
+            state = XmlSerializer.deserialize(xmlfile.read())
+            positions = state.getPositions(asNumpy=True)
+        self.n_atoms = positions.shape[0]
+        self.ts = self._Timestep.from_coordinates(positions, **self._ts_kwargs)
+        self.ts.frame = 0
 
 
 class CustomPSFFile(PSFFile):
@@ -18,7 +35,8 @@ class CustomPSFFile(PSFFile):
     @staticmethod
     def write(struct, dest, vmd=False):
         """
-        Writes a PSF file from the stored molecule
+        Writes a PSF file from the stored molecule.
+
         Parameters
         ----------
         struct : :class:`Structure`
