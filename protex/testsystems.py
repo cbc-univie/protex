@@ -742,14 +742,14 @@ def generate_hpts_meoh_system(
     crd_file: str = None,
     restart_file: str = None,
     constraints: str = None,
-    boxl: float = 70.0,
+    boxl: float = 40.0,
     para_files: list[str] = None,
     coll_freq: int = 10,
     drude_coll_freq: int = 100,
     dummy_atom_type: str = "DUMH",
     dummies: list[tuple[str, str]] = [
         ("IM1", "H7"),
-        ("OAC", "H"),
+        ("OAC", "HO2"),
         ("HPTS", "H7"),
         ("MEOH", "HO2"),
     ],
@@ -804,14 +804,14 @@ def generate_hpts_meoh_lj04_system(
     crd_file: str = None,
     restart_file: str = None,
     constraints: str = None,
-    boxl: float = 70.0,
+    boxl: float = 40.0,
     para_files: list[str] = None,
     coll_freq=10,
     drude_coll_freq=100,
     dummy_atom_type: str = "DUMH",
     dummies: list[tuple[str, str]] = [
         ("IM1", "H7"),
-        ("OAC", "H"),
+        ("OAC", "HO1"),
         ("HPTS", "H7"),
         ("MEOH", "HO2"),
     ],
@@ -942,7 +942,7 @@ OAC_HOAC = {
         "equivalent_atom": "O1",
     },
     "HOAC": {
-        "atom_name": "H",
+        "atom_name": "HO2",
     },
 }
 

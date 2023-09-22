@@ -226,6 +226,11 @@ class KeepHUpdate(Update):
                 positions[atom_idx] = pos_equivalent
                 positions[equivalent_idx] = pos_atom
 
+                # quick fix to allow 2 dummy Hs in D2OAC: also change position of dummy with Os
+                if resi.current_name == "OAC":
+                    idx_dummy = resi.get_idx_for_atom_name("HO1")
+                    positions[idx_dummy] = positions_copy[resi.get_idx_for_atom_name("HO2")]
+
                 # if resi.current_name == "OAC": # also exchange lone pairs and drudes
                 #     pos_atom_d = positions_copy[atom_idx+1] # got atom idxes from psf
                 #     pos_equivalent_d = positions_copy[equivalent_idx+1]
@@ -286,6 +291,7 @@ class KeepHUpdate(Update):
                 self.ionic_liquid.templates.get_atom_name_for(acceptor.current_name)
             )
 
+
         # account for PBC
         boxl_vec = (
             self.ionic_liquid.boxlength
@@ -317,9 +323,9 @@ class KeepHUpdate(Update):
         # update position of the once-dummy H on the acceptor - original H line
         positions[idx_accepted_H] = pos_accepted_H
 
-        # print(
-        #     f"donated H: {pos_donated_H}, acceptor atom: {pos_acceptor_atom}, H set to: {pos_accepted_H}"
-        # )
+        print(
+            f"donated H: {pos_donated_H}, acceptor atom: {pos_acceptor_atom}, H set to: {pos_accepted_H}"
+        )
 
         return positions
 
@@ -379,9 +385,9 @@ class KeepHUpdate(Update):
         for candidate in candidates:
             candidate1_residue, candidate2_residue = candidate
             #print(f"candidate pair {candidates.index(candidate)}")
-            # print(
-            #     f"candidate1 used equivalent atom: {candidate1_residue.used_equivalent_atom}, candidate2 used equivalent atom: {candidate2_residue.used_equivalent_atom}"
-            # )
+            print(
+                f"candidate1 used equivalent atom: {candidate1_residue.used_equivalent_atom}, candidate2 used equivalent atom: {candidate2_residue.used_equivalent_atom}"
+            )
 
             if self.reorient:
                 positions = self._reorient_atoms(candidate, positions, positions_copy)
@@ -667,7 +673,7 @@ class StateUpdate:
             ##############################
             ##############################
             --- Update trial: {self.update_trial} ---
-            {self.updateMethod.K=}
+            {self.history=}
             ##############################
             ##############################
             """
