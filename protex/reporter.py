@@ -52,6 +52,7 @@ class ChargeReporter:
         ----------
         simulation : Simulation
             The Simulation to generate a report for
+
         Returns
         -------
         tuple
@@ -123,6 +124,7 @@ class EnergyReporter:
         ----------
         simulation : Simulation
             The Simulation to generate a report for
+
         Returns
         -------
         tuple
