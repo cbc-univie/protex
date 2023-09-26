@@ -49,7 +49,7 @@ import protex
 
 from ..system import ProtexSystem, ProtexTemplates
 from ..testsystems import (
-    OH_H2O_H3O, #CLA, SOD,
+    OH_H2O_H3O,  #CLA, SOD,
     generate_toh2_system,
 )
 from ..update import KeepHUpdate, NaiveMCUpdate, StateUpdate
@@ -237,11 +237,11 @@ def test_create_ProtexTemplate():
 def test_create_IonicLiquid():
     psf_for_parameters = f"{protex.__path__[0]}/forcefield/toh2/h2o.psf"
     crd_for_parameters = f"{protex.__path__[0]}/forcefield/toh2/h2o.crd"
-    
+
     simulation = generate_toh2_system(
         use_plugin=False
     )  # psf_file=psf_file)
-    
+
     simulation_for_parameters = generate_toh2_system(
         crd_file=crd_for_parameters, psf_file=psf_for_parameters, use_plugin=False
     )

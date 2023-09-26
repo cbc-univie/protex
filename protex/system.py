@@ -326,18 +326,17 @@ class ProtexTemplates:
         list[str]
             The other resnames connected to the current one
         """
-
         # species (e.g. solvent) that should not exchange protons
-        if resname not in self.names: 
+        if resname not in self.names:
             return [resname]
-        
+
         else:
             for pair in self.pairs:
                 if resname in pair:
                     pair_copy = pair[:]
                     pair_copy.remove(resname)
                     return pair_copy
-        
+
 
 
 class ProtexSystem:
@@ -906,7 +905,7 @@ class ProtexSystem:
             for oname in ordered_names:
                 templates[oname] = self._extract_templates(oname)
                 H_templates[oname] = self._extract_H_templates(oname)
-        
+
         # for i in templates:
         #     print(i, (templates[i]))
 

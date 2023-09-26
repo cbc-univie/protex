@@ -1078,7 +1078,7 @@ class Residue:
     def endstate_charge(self) -> int:
         """Charge of the residue at the endstate (will be int)."""
         print(parm for parm in self.parameters[self.current_name]["NonbondedForce"])
-        
+
         charge = int(
             np.round(
                 sum(
