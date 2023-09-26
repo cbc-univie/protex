@@ -19,8 +19,8 @@ AUTO ANGL DIHE DRUD
 
 RESI OH     -1.0000
 GROUP
-ATOM OH2   ODW          -1.320   ALPHA   -1.0000  THOLE   1.3000 ! ODW and HDW atom types from SWM4 water, Marta
-ATOM H1    HDW          0.320 
+ATOM OH2   OPOL13          -1.320   ALPHA   -1.0000 TYPE DPPOL  THOLE   1.3000 ! ODW and HDW atom types from SWM4 water, Marta
+ATOM H1   HPOL          0.320 
 ATOM H2   DUMH          0.000 
 ATOM H3   DUMH     0.000
 ATOM H4   DUMH     0.000

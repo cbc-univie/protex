@@ -3519,9 +3519,10 @@ CD31G    LPD        0.00      0.000 ! glycerol, xhe
 X        DRUD    1000.00      0.000 ! DO NOT COMMENT. Essential for use of Drudes in c41b1. Bug...
 !X        DOPC     250.00      0.000 ! DRUDE for OPC3-pol, Marta
 ODPC     DOPC     250.00      0.000 ! DRUDE for OPC3-pol, Marta
-!X        DPPOL   1000.00      0.000 ! DRUDE particle for IPOL
-OPOL13   DPPOL   1000.00      0.000 ! DRUDE particle for IPOL
-OPOL16   DPPOL   1000.00      0.000 ! DRUDE particle for IPOL
+X        DPPOL   5000.00      0.000 ! DRUDE particle for IPOL
+OPOL13   DPPOL   5000.00      0.000 ! DRUDE particle for IPOL
+CLAD     DPPOL   5000.00      0.000 ! DRUDE particle for IPOL
+OPOL16   DPPOL   5000.00      0.000 ! DRUDE particle for IPOL
 !X        DPPOLE  1000.00      0.010 ! external DRUDE particle for IPOL
 OPOL13   DPPOLE  1000.00      0.010 ! external DRUDE particle for IPOL
 OPOL16   DPPOLE  1000.00      0.010 ! external DRUDE particle for IPOL
