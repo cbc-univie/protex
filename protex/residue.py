@@ -1103,5 +1103,3 @@ class Residue:
                     charge += charge_idx._value
 
         return np.round(charge, 3)
-
-
