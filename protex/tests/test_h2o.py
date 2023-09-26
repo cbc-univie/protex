@@ -49,7 +49,7 @@ import protex
 
 from ..system import ProtexSystem, ProtexTemplates
 from ..testsystems import (
-    OH_H2O_H3O,
+    OH_H2O_H3O, #CLA, SOD,
     generate_toh2_system,
 )
 from ..update import KeepHUpdate, NaiveMCUpdate, StateUpdate
@@ -97,35 +97,35 @@ def test_available_platforms():
     coll_freq = 10
     drude_coll_freq = 80
 
-    #try:
-    from velocityverletplugin import VVIntegrator
+    try:
+        from velocityverletplugin import VVIntegrator
 
-    # temperature grouped nose hoover thermostat
-    integrator = VVIntegrator(
-        300 * kelvin,
-        coll_freq / picoseconds,
-        1 * kelvin,
-        drude_coll_freq / picoseconds,
-        0.0005 * picoseconds,
-    )
-    # test if platform and integrator are compatible -> VVIntegrator only works on cuda
-    context = Context(system, integrator)
-    del context
-    integrator = VVIntegrator(
-        300 * kelvin,
-        coll_freq / picoseconds,
-        1 * kelvin,
-        drude_coll_freq / picoseconds,
-        0.0005 * picoseconds,
-    )
-    # except (ModuleNotFoundError, OpenMMException):
-    #     integrator = DrudeNoseHooverIntegrator(
-    #         300 * kelvin,
-    #         coll_freq / picoseconds,
-    #         1 * kelvin,
-    #         drude_coll_freq / picoseconds,
-    #         0.0005 * picoseconds,
-    #     )
+        # temperature grouped nose hoover thermostat
+        integrator = VVIntegrator(
+            300 * kelvin,
+            coll_freq / picoseconds,
+            1 * kelvin,
+            drude_coll_freq / picoseconds,
+            0.0005 * picoseconds,
+        )
+        # test if platform and integrator are compatible -> VVIntegrator only works on cuda
+        context = Context(system, integrator)
+        del context
+        integrator = VVIntegrator(
+            300 * kelvin,
+            coll_freq / picoseconds,
+            1 * kelvin,
+            drude_coll_freq / picoseconds,
+            0.0005 * picoseconds,
+        )
+    except (ModuleNotFoundError, OpenMMException):
+        integrator = DrudeNoseHooverIntegrator(
+            300 * kelvin,
+            coll_freq / picoseconds,
+            1 * kelvin,
+            drude_coll_freq / picoseconds,
+            0.0005 * picoseconds,
+        )
 
     print(f"{integrator=}")
 
@@ -180,15 +180,9 @@ def test_run_simulation(tmp_path):
         )
     )
     print("Running dynmamics...")
-    simulation.step(40)             # coordinates nan
+    simulation.step(50)              # coordinates NaN with 200
     positions = simulation.context.getState(getPositions=True).getPositions(asNumpy=True)
     print(f"{positions}")
-
-
-def test_scratch():
-    a = [[1,2,3],[4,5,6]]
-    c = next((l for l in a if l[0]==1), None)
-    print(c)
 
 
 def test_create_ProtexTemplate():
@@ -203,107 +197,86 @@ def test_create_ProtexTemplate():
         [OH_H2O_H3O], (allowed_updates)
     )
 
-    r = templates.get_residue_name_for_coupled_state("OAC")
-    assert r == "HOAC"
-    r = templates.get_residue_name_for_coupled_state("HOAC")
-    assert r == "OAC"
-    r = templates.get_residue_name_for_coupled_state("IM1H")
-    assert r == "IM1"
-    r = templates.get_residue_name_for_coupled_state("HPTS")
-    assert r == "HPTSH"
-    r = templates.get_residue_name_for_coupled_state("MEOH")
-    assert r == "MEOH2"
+    r = templates.get_ordered_names_for("H2O")
+    assert r == ("OH", "H2O", "H3O")
+    r = templates.get_ordered_names_for("OH")
+    assert r == ("OH", "H2O", "H3O")
+    r = templates.get_ordered_names_for("H3O")
+    assert r == ("OH", "H2O", "H3O")
 
     print("###################")
     assert templates.pairs == [
-        ["OAC", "HOAC"],
-        ["IM1H", "IM1"],
-        ["HPTSH", "HPTS"],
-        ["MEOH", "MEOH2"],
+        ["OH", "H2O", "H3O"],
     ]
-    assert templates.states["IM1H"]["atom_name"] == "H7"
-    assert templates.states["IM1"]["atom_name"] == "N2"
-    assert templates.states["HPTS"]["atom_name"] == "O7"
-    assert templates.states["HPTSH"]["atom_name"] == "H7"
-    assert templates.states["MEOH"]["atom_name"] == "O1"
-    assert templates.states["MEOH2"]["atom_name"] == "HO2"
+    assert templates.states["OH"]["modes"] == ("acceptor")
+    assert templates.states["H2O"]["modes"] == ("acceptor", "donor")
+    assert templates.states["H3O"]["modes"] == ("donor")
+
+    assert templates.states["OH"]["starting_donors"] == ["H1"]
+    assert templates.states["H2O"]["starting_donors"] == ["H1", "H2"]
+    assert templates.states["H3O"]["starting_donors"] == ["H1", "H2","H3"]
+
+    assert templates.states["OH"]["starting_acceptors"] == ["H2", "H3", "H4"]
+    assert templates.states["H2O"]["starting_acceptors"] == ["H3", "H4"]
+    assert templates.states["H3O"]["starting_acceptors"] == ["H4"]
 
     assert sorted(templates.names) == sorted(
-        ["OAC", "HOAC", "IM1H", "IM1", "HPTS", "HPTSH", "MEOH", "MEOH2"]
+        ["H2O", "OH", "H3O"]
     )
     print(templates.allowed_updates)
     assert templates.overall_max_distance == 0.16
 
-    neutral_prob = templates.get_update_value_for(frozenset(["IM1", "HOAC"]), "prob")
+    neutral_prob = templates.get_update_value_for(frozenset(["H2O", "H2O"]), "prob")
     assert neutral_prob == 1
-    ionic_prob = templates.get_update_value_for(frozenset(["IM1H", "OAC"]), "prob")
+    ionic_prob = templates.get_update_value_for(frozenset(["OH", "H3O"]), "prob")
     assert ionic_prob == 1
-    hpts_prob = templates.get_update_value_for(frozenset(["HPTSH", "IM1"]), "prob")
-    assert hpts_prob == 1
+    ionic_prob = templates.get_update_value_for(frozenset(["H3O", "OH"]), "prob")
+    assert ionic_prob == 1
 
 
 def test_create_IonicLiquid():
-    psf_for_parameters = f"{protex.__path__[0]}/forcefield/hpts_single/hpts_single.psf"
-    crd_for_parameters = f"{protex.__path__[0]}/forcefield/hpts_single/hpts_single.crd"
-    # psf = f"{protex.__path__[0]}/forcefield/hpts_single/hpts_single.psf"
-
-    # simulation = generate_hpts_meoh_system(psf_file=psf_file)
-    # simulation_for_parameters = generate_hpts_meoh_system(
-    #    crd_file=crd_for_parameters, psf_file=psf_for_parameters
-    # )
-    simulation = generate_single_hpts_meoh_system(
+    psf_for_parameters = f"{protex.__path__[0]}/forcefield/toh2/h2o.psf"
+    crd_for_parameters = f"{protex.__path__[0]}/forcefield/toh2/h2o.crd"
+    
+    simulation = generate_toh2_system(
         use_plugin=False
     )  # psf_file=psf_file)
-    print("hier")
-    simulation_for_parameters = generate_single_hpts_meoh_system(
+    
+    simulation_for_parameters = generate_toh2_system(
         crd_file=crd_for_parameters, psf_file=psf_for_parameters, use_plugin=False
     )
 
     allowed_updates = {}
-    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
-    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
-    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 0.201}  # 1+2
-    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 0.684}  # 3+4
-    allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000}
-    allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
-    allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000}
-    allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
-    allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
-    # allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
-    # allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
-    # allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
-    allowed_updates[frozenset(["HPTSH", "MEOH"])] = {"r_max": 0.155, "prob": 1.000}
-    allowed_updates[frozenset(["MEOH2", "MEOH"])] = {"r_max": 0.155, "prob": 1.000}
-    allowed_updates[frozenset(["MEOH2", "IM1"])] = {"r_max": 0.155, "prob": 1.000}
-    allowed_updates[frozenset(["MEOH2", "OAC"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["OH", "H2O"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["OH", "H3O"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["H3O", "H2O"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["H2O", "H2O"])] = {"r_max": 0.16, "prob": 1}
+
 
     templates = ProtexTemplates(
-        [OAC_HOAC, IM1H_IM1, HPTSH_HPTS, MEOH_MEOH2], (allowed_updates)
+        [OH_H2O_H3O], (allowed_updates)
     )
 
     count = defaultdict(int)
     ionic_liquid = ProtexSystem(simulation, templates, simulation_for_parameters)
 
-    assert len(ionic_liquid.residues) == 8
+    assert len(ionic_liquid.residues) == 5
     for idx, residue in enumerate(ionic_liquid.residues):
         # print(f"{idx} : {residue.original_name}")
         count[residue.original_name] += 1
 
-    assert count["IM1H"] == 1
-    assert count["OAC"] == 1
-    assert count["IM1"] == 1
-    assert count["HOAC"] == 1
-    assert count["HPTS"] == 1
-    assert count["HPTSH"] == 1
-    assert count["MEOH"] == 1
-    assert count["MEOH2"] == 1
+    assert count["H2O"] == 1
+    assert count["H3O"] == 1
+    assert count["OH"] == 1
+    assert count["CLA"] == 1
+    assert count["SOD"] == 1
 
     residue = ionic_liquid.residues[0]
     charge = residue.endstate_charge
 
-    assert charge == 1
+    assert charge == 0
     print(residue.atom_names)
-    assert (residue.get_idx_for_atom_name("H7")) == 18
+    assert (residue.get_idx_for_atom_name("H4")) == 5
 
 
 def test_forces():

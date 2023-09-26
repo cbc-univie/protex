@@ -181,10 +181,13 @@ class ProtexTemplates:
         tuple[str]
             A tuple with the order of resnames from low H (acceptor) to high H (donor) count
         """
-        for tup in self.ordered_names:
-            if resname in tup:
-                return tup
-        raise RuntimeError(f"Resname {resname} not found in the present names.")
+        if resname in self.ordered_names:
+            for tup in self.ordered_names:
+                if resname in tup:
+                    return tup
+        else: # not protexable resi
+            return [resname]
+        #raise RuntimeError(f"Resname {resname} not found in the present names.")
 
     def dump(self, fname: str) -> None:
         """Pickle the current ProtexTemplates object.
@@ -322,22 +325,19 @@ class ProtexTemplates:
         -------
         list[str]
             The other resnames connected to the current one
-
-        Raises
-        ------
-        RuntimeError
-            The given resname does not exist
         """
-        assert resname in self.names
-        for pair in self.pairs:
-            if resname in pair:
-                pair_copy = pair[:]
-                pair_copy.remove(resname)
-                return pair_copy
+
+        # species (e.g. solvent) that should not exchange protons
+        if resname not in self.names: 
+            return [resname]
+        
         else:
-            raise RuntimeError(f"resname {resname} not found")
-
-
+            for pair in self.pairs:
+                if resname in pair:
+                    pair_copy = pair[:]
+                    pair_copy.remove(resname)
+                    return pair_copy
+        
 
 
 class ProtexSystem:
@@ -432,7 +432,7 @@ class ProtexSystem:
         simulation: openmm.app.simulation.Simulation,
         templates: ProtexTemplates,
         simulation_for_parameters: openmm.app.simulation.Simulation = None,
-        real_Hs: list[tuple[str,str]] = [("IM1H", "H7"), ("HOAC", "H")],
+        real_Hs: list[tuple[str,str]] = [("H2O", "H1"), ("H2O", "H2"), ("OH", "H1"), ("H3O", "H1"), ("H3O", "H2"), ("H3O", "H3")],
         fast: bool = True,
     ) -> None:
         self.system: openmm.openmm.System = simulation.system
@@ -667,7 +667,7 @@ class ProtexSystem:
                                 forces_dict[forcename + "Thole"].append(f)
                 break  # do this only for the relevant residue once
         else:
-            raise RuntimeError("residue not found")
+            raise RuntimeError(f"residue not found: {query_name}")
         return forces_dict
 
 
@@ -695,10 +695,12 @@ class ProtexSystem:
 
                 for force in sim.system.getForces():
                     forcename = type(force).__name__
+                    logger.debug(forcename)
                     if forcename == "NonbondedForce":
                         forces_dict[forcename] = [
                             force.getParticleParameters(idx) for idx in atom_idxs
                         ]
+
                         # # Also add exceptions TODO: what do we do with these? they need atom idxes and can be applied to e.g H1 and H2. is there a difference with dummies?
                         # # will probably leave them out for the moment. the number of bonds is the same with H and D, nonbonded exceptions should still apply
                         # for exc_id in range(force.getNumExceptions()):
@@ -708,11 +710,12 @@ class ProtexSystem:
                         #     if (idx1 in atom_idxs and idx2 in atom_idxs_all) or (idx2 in atom_idxs and idx1 in atom_idxs_all):
                         #         forces_dict[forcename + "Exceptions"].append(f)
 
-                    # double-checking for molecules with multiple equivalent atoms, then use one set of parameters only (we assume here that all acidic Hs in the residue are the same, e.g. MeOH2, H2O, H2OAc)
-                    if len(atom_names) > 1:
-                        for i in range(len(atom_names)):
-                            assert (forces_dict[forcename][0][1], forces_dict[forcename][0][2], forces_dict[forcename][0][3]) == (forces_dict[forcename][i][1], forces_dict[forcename][i][2], forces_dict[forcename][i][3])
-                        forces_dict = forces_dict[0]
+                        # double-checking for molecules with multiple equivalent atoms, then use one set of parameters only (we assume here that all acidic Hs in the residue are the same, e.g. MeOH2, H2O, H2OAc)
+                        if len(atom_names) > 1:
+                            logger.debug(f"forces_dict: {forces_dict[forcename]}")
+                            for i in range(len(atom_names)):
+                                assert (forces_dict[forcename][0][0], forces_dict[forcename][0][1], forces_dict[forcename][0][2]) == (forces_dict[forcename][i][0], forces_dict[forcename][i][1], forces_dict[forcename][i][2])
+                            forces_dict = forces_dict[0]
                 break  # do this only for the relevant residue once
         else:
             raise RuntimeError("residue not found")
@@ -731,17 +734,14 @@ class ProtexSystem:
             ):
                 logger.critical(force_name)
                 logger.critical(name)
+                logger.critical(name_of_paired_ion)
                 logger.critical(len(forces_state1[force_name]))
                 logger.critical(len(forces_state2[force_name]))
 
-                for (
-                    b1,
-                    b2,
-                ) in zip(
-                    forces_state1[force_name],
-                    forces_state2[force_name],
-                ):
+                for b1 in forces_state1[force_name]:
                     logger.critical(f"{name}:{b1}")
+
+                for b2 in forces_state2[force_name]:
                     logger.critical(f"{name_of_paired_ion}:{b2}")
 
                 logger.critical(f"{name}:{forces_state1[force_name][-1]}")
@@ -897,17 +897,18 @@ class ProtexSystem:
 
         for r in self.topology.residues():
             name = r.name
-            other_names = self.templates.get_other_resnames(name)
+            ordered_names = self.templates.get_ordered_names_for(name)
 
             # skip if name or all corresponding names are already in the template
-            if name in templates and all(oname in templates for oname in other_names):
+            if name in templates and all(oname in templates for oname in ordered_names):
                 continue
 
-            templates[name] = self._extract_templates(name)
-            H_templates[name] = self._extract_H_templates(name)
-            for oname in other_names:
+            for oname in ordered_names:
                 templates[oname] = self._extract_templates(oname)
                 H_templates[oname] = self._extract_H_templates(oname)
+        
+        # for i in templates:
+        #     print(i, (templates[i]))
 
 
         if self.fast:
@@ -963,7 +964,7 @@ class ProtexSystem:
                     name  # Why, isnt it done in the initializer of Residue?
                 )
             else:
-                parameters_state1 = self.residue_templates[name]
+                parameters_state1 = templates[name]
                 r = Residue(r, None, self.system, parameters_state1, None, None, None, None, None)
                 # the residue is not part of any proton transfers,
                 # we still need it in the residue list for the parmed hack...

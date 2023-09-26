@@ -1022,32 +1022,25 @@ MEOH_MEOH2 = {
     },
 }
 
-# started working on new structure with possible donor / acceptor H sites in templates
-# def get_all_states(possible_atoms, num_donors): # probably not needed with more generic donor-acceptor structure
-#         states = []
-#         donors = list(combinations(possible_atoms, num_donors))
-#         for i in range(0, len(donors)):
-#             donor = donors[i]
-#             acceptor = (tuple(set(possible_atoms).symmetric_difference(donor)))
-#             states.append({"donors": donor, "acceptors": acceptor})
-#         return states
-
-
 # NOTE: take care whether we want to use H2O or SWM4, SPCE etc. for residue name
 # TODO: at the moment fixed atom names, will revert to this at the beginning of each run -> reformulate so that donors and acceptors are filled based on atom type
 
 OH_H2O_H3O =  {
-    "OH":  {"starting_donors" : ["H1"], "starting_acceptors" : ["H2", "H3", "H4"], "modes" : ("acceptor",)},
-    "H2O": {"starting_donors" : ["H1", "H2"], "astarting_cceptors" : ["H3", "H4"], "modes" : ("acceptor", "donor")},
-    "H3O": {"starting_donors" : ["H1", "H2", "H3"], "starting_acceptors" : ["H4"], "modes" : ("donor",)},
+    "OH":  {"starting_donors" : ["H1"], "starting_acceptors" : ["H2", "H3", "H4"], "modes" : ("acceptor")},
+    "H2O": {"starting_donors" : ["H1", "H2"], "starting_acceptors" : ["H3", "H4"], "modes" : ("acceptor", "donor")},
+    "H3O": {"starting_donors" : ["H1", "H2", "H3"], "starting_acceptors" : ["H4"], "modes" : ("donor")},
 }
+
+# CLA = {"CLA": {"starting_donors" : [], "starting_acceptors" : [], "modes" : ()}}
+
+# SOD = {"SOD": {"starting_donors" : [], "starting_acceptors" : [], "modes" : ()}}
 
 # TODO:
 # keep track of which H is real at the moment: like "donors" : (), "acceptors" : ()
     # caution: will have to change how we write the psf as well
+        # new idea: write pasf as usual, save donors and acceptors, adjust at setup
 # get atom index or something like that in the update step and swap H to D and vice versa
-    # something similar to the way we check whether the equivalent atom was used
-# find a way to switch parameters around to get the parameter sets for each possible state (problem: how to get original state for each new run)
+# switch parameters around to get the parameter sets for each possible state
     # at the moment only nonbonded parameters change, all possible donors and acceptors in a single molecule are equivalent (i.e. no two different acidic side chains)
         # update like now
         # set parameters for H and D that were used extra
