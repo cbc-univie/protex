@@ -430,7 +430,7 @@ def test_torsion_forces():
             print(f)
 
     for ridx, r in enumerate(topology.residues()):
-        if r.name == "H2O": 
+        if r.name == "H2O":
             names.append(r.name)
             atom_idxs[r.name] = [atom.index for atom in r.atoms()]
             atom_names[r.name] = [atom.name for atom in r.atoms()]
@@ -453,7 +453,7 @@ def test_torsion_forces():
                             force_state[r.name].append(f)
                             print("H2O", f)
 
-        if r.name == "OH": 
+        if r.name == "OH":
             names.append(r.name)
             atom_idxs[r.name] = [atom.index for atom in r.atoms()]
             atom_names[r.name] = [atom.name for atom in r.atoms()]
@@ -537,7 +537,7 @@ def test_drude_forces():
 
     # iterate over residues, select the first residue for H2O and OH and save the individual bonded forces
     for ridx, r in enumerate(topology.residues()):
-        if r.name == "H2O":  
+        if r.name == "H2O":
             names.append(r.name)
             atom_idxs[r.name] = [atom.index for atom in r.atoms()]
             atom_names[r.name] = [atom.name for atom in r.atoms()]
@@ -575,7 +575,7 @@ def test_drude_forces():
                     print(f)
                     force_state_thole[r.name].append(f)
 
-        if r.name == "OH":  
+        if r.name == "OH":
             names.append(r.name)
             atom_idxs[r.name] = [atom.index for atom in r.atoms()]
             atom_names[r.name] = [atom.name for atom in r.atoms()]

@@ -927,7 +927,7 @@ class ProtexSystem:
                 for oname in ordered_names:
                     parameters[oname] = templates[oname]
                     H_parameters[oname] = H_templates[oname]
-                
+
                 # check that we have the same number of parameters
                 for name1, name2 in itertools.combinations(parameters, 2):
                     self._check_nr_of_forces(
