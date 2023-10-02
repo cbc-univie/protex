@@ -433,7 +433,7 @@ class ProtexSystem:
         templates: ProtexTemplates,
         simulation_for_parameters: openmm.app.simulation.Simulation = None,
         real_Hs: list[tuple[str,str]] = [("H2O", "H1"), ("H2O", "H2"), ("OH", "H1"), ("H3O", "H1"), ("H3O", "H2"), ("H3O", "H3")],
-        fast: bool = True,
+        fast: bool = False, # TODO turn back to True
     ) -> None:
         self.system: openmm.openmm.System = simulation.system
         self.topology: openmm.app.topology.Topology = simulation.topology
@@ -697,9 +697,9 @@ class ProtexSystem:
                     forcename = type(force).__name__
                     logger.debug(forcename)
                     if forcename == "NonbondedForce":
-                        forces_dict[forcename] = [
-                            force.getParticleParameters(idx) for idx in atom_idxs
-                        ]
+                        if len(atom_names) == 1:
+                            idx = atom_idxs[0]
+                            forces_dict[forcename] = force.getParticleParameters(idx)
 
                         # # Also add exceptions TODO: what do we do with these? they need atom idxes and can be applied to e.g H1 and H2. is there a difference with dummies?
                         # # will probably leave them out for the moment. the number of bonds is the same with H and D, nonbonded exceptions should still apply
@@ -711,11 +711,14 @@ class ProtexSystem:
                         #         forces_dict[forcename + "Exceptions"].append(f)
 
                         # double-checking for molecules with multiple equivalent atoms, then use one set of parameters only (we assume here that all acidic Hs in the residue are the same, e.g. MeOH2, H2O, H2OAc)
-                        if len(atom_names) > 1:
+                        elif len(atom_names) > 1:
+                            forces_dict[forcename] = [
+                                force.getParticleParameters(idx) for idx in atom_idxs
+                            ]
                             logger.debug(f"forces_dict: {forces_dict[forcename]}")
                             for i in range(len(atom_names)):
                                 assert (forces_dict[forcename][0][0], forces_dict[forcename][0][1], forces_dict[forcename][0][2]) == (forces_dict[forcename][i][0], forces_dict[forcename][i][1], forces_dict[forcename][i][2])
-                            forces_dict = forces_dict[0]
+                            forces_dict[forcename] = forces_dict[forcename][0]
                 break  # do this only for the relevant residue once
         else:
             raise RuntimeError("residue not found")
@@ -921,9 +924,11 @@ class ProtexSystem:
                 ordered_names = self.templates.get_ordered_names_for(name)
                 assert name in ordered_names
                 parameters = {}
+                H_parameters = {}
                 for oname in ordered_names:
                     parameters[oname] = templates[oname]
-
+                    H_parameters[oname] = H_templates[oname]
+                
                 # check that we have the same number of parameters
                 for name1, name2 in itertools.combinations(parameters, 2):
                     self._check_nr_of_forces(
@@ -940,9 +945,12 @@ class ProtexSystem:
                         ordered_names,
                         self.system,
                         parameters,
+                        H_parameters,
                         self.templates.get_modes_for(name),
                         self.templates.get_starting_donors_for(name),
                         self.templates.get_starting_acceptors_for(name),
+                        self.templates.get_modes_for(name),
+                        self.templates.get_starting_donors_for(name),
                         force_idxs=self.per_residue_forces[minmax],
                     )
                 else:
@@ -951,11 +959,14 @@ class ProtexSystem:
                         ordered_names,
                         self.system,
                         parameters,
+                        H_parameters,
                         pair_12_13_list,
                         self.templates.get_all_states_for(name),
                         self.templates.get_modes_for(name),
-                        self.templates.get_donors_for(name),
-                        self.templates.get_acceptors_for(name),
+                        self.templates.get_starting_donors_for(name),
+                        self.templates.get_modes_for(name),
+                        self.templates.get_starting_donors_for(name),
+                        self.templates.get_starting_acceptors_for(name),
                     )
                 residues.append(new_res)
                 residues[
@@ -965,7 +976,7 @@ class ProtexSystem:
                 )
             else:
                 parameters_state1 = templates[name]
-                r = Residue(r, None, self.system, parameters_state1, None, None, None, None, None)
+                r = Residue(r, None, self.system, parameters_state1, None, None, None, None, None, None, None, None)
                 # the residue is not part of any proton transfers,
                 # we still need it in the residue list for the parmed hack...
                 # there we need the current_name attribute, hence give it to the residue

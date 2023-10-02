@@ -53,10 +53,14 @@ class Update(ABC):
         ionic_liquid: ProtexSystem,
         to_adapt: list[tuple[str, int, frozenset[str]]],
         all_forces: bool,
+        include_equivalent_atom: bool,
+        reorient: bool,
     ) -> None:
         self.ionic_liquid: ProtexSystem = ionic_liquid
         self.to_adapt: list[tuple[str, int, frozenset[str]]] = to_adapt
         self.all_forces: bool = all_forces
+        self.include_equivalent_atom = include_equivalent_atom
+        self.reorient = reorient
         allowed_forces: list[str] = [  # change charges only
             "NonbondedForce",  # BUG: Charge stored in the DrudeForce does NOT get updated, probably you want to allow DrudeForce as well!
             "CustomNonbondedForce",  # NEW
@@ -174,8 +178,8 @@ class KeepHUpdate(Update):
     def __init__(
         self,
         ionic_liquid: ProtexSystem,
-        all_forces: bool = True,
         to_adapt: list[tuple[str, int, frozenset[str]]] or None = None,
+        all_forces: bool = True,
     ) -> None:
         super().__init__(
             ionic_liquid, to_adapt, all_forces, )
@@ -292,8 +296,8 @@ class NaiveMCUpdate(Update):
     def __init__(
         self,
         ionic_liquid: ProtexSystem,
-        all_forces: bool = False,
         to_adapt: list[tuple[str, int, frozenset[str]]] or None = None,
+        all_forces: bool = True,
         include_equivalent_atom: bool = False,
         reorient: bool = False,
     ) -> None:

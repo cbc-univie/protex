@@ -112,9 +112,12 @@ class Residue:
         ordered_names,
         system,
         parameters,
+        H_parameters,
         pair_12_13_exclusion_list,
         states,
         modes,
+        starting_donors,
+        starting_acceptors,
         donors,
         acceptors,
         force_idxs=dict(),
@@ -127,9 +130,12 @@ class Residue:
         self.atom_idxs = [atom.index for atom in residue.atoms()]
         self.atom_names = [atom.name for atom in residue.atoms()]
         self.parameters = parameters
-        self.record_charge_state = []
-        self.record_charge_state.append(self.endstate_charge)  # Not used anywhere?
+        self.H_parameters = H_parameters
+        # self.record_charge_state = []
+        # self.record_charge_state.append(self.endstate_charge)  # Not used anywhere?
         self.modes = modes
+        self.starting_donors = starting_donors
+        self.starting_acceptors = starting_acceptors
         self.donors = donors
         self.acceptors = acceptors
         self.force_idxs = force_idxs
@@ -148,14 +154,16 @@ class Residue:
                 return -1
 
     def _setup_donors_acceptors(self):
-        if set(self.donors) != set(self.system.templates.get_starting_donors_for(self.current_name)) or set(self.acceptors) != set(self.system.templates.get_starting_acceptors_for(self.current_name)):
-            H_parms = self._get_H_D_NonbondedForce_parameters_at_setup(self, "donors")
-            D_parms = self._get_H_D_NonbondedForce_parameters_at_setup(self, "acceptors")
-            self._setup_donor_acceptor_parms(H_parms, D_parms)
+        print(self.current_name, self.donors, self.starting_donors, self.force_idxs, self.states)
+        if self.starting_acceptors is not None and self.starting_donors is not None:
+            if set(self.donors) != set(self.starting_donors) or set(self.acceptors) != set(self.starting_acceptors):
+                H_parms = self._get_H_D_NonbondedForce_parameters_at_setup("donors")
+                D_parms = self._get_H_D_NonbondedForce_parameters_at_setup("acceptors")
+                self._setup_donor_acceptor_parms(H_parms, D_parms)
 
     def _get_H_D_NonbondedForce_parameters_at_setup(self, mode) -> list[float]:
         if mode == "donors": # want to have parameters for real H
-            nonbonded_parm_new = self.system.templates.H_parameters[self.current_name]["NonbondedForce"]
+            nonbonded_parm_new = self.H_parameters[self.current_name]["NonbondedForce"]
         else: # want to have parameters for D
             nonbonded_parm_new = [0.0, 0.0, 0.0]
 
@@ -164,8 +172,11 @@ class Residue:
     def _setup_donor_acceptor_parms(self, H_parms, D_parms):
             for force in self.system.getForces():
                 if type(force).__name__ == "NonbondedForce":
-                    for atom in self.atoms:
-                        idx = atom.idx
+                    for atom in self.residue.atoms():
+                        print(atom)
+                        print(H_parms)
+                        print(D_parms)
+                        idx = atom.index
                         if atom.name  in self.donors:
                             charge, sigma, epsilon = H_parms
                         elif atom.name in self.acceptors:
@@ -612,7 +623,7 @@ class Residue:
         nonbonded_parm_old = next(parms for parms in self.parameters[current_name]["NonbondedForce"] if parms[0] == atom_idx)
 
         if mode == "acceptor": # used_atom changes from D to H
-            nonbonded_parm_new = self.templates.H_parameters[new_name]["NonbondedForce"]
+            nonbonded_parm_new = self.H_parameters[new_name]["NonbondedForce"]
         else: # used_atom changes from H to D
             nonbonded_parm_new = [0.0, 0.0, 0.0]
 
@@ -1074,11 +1085,10 @@ class Residue:
             f"Atom name '{query_atom_name}' not in atom names of residue '{self.current_name}'."
         )
 
+    # not used?
     @property
     def endstate_charge(self) -> int:
         """Charge of the residue at the endstate (will be int)."""
-        print(parm for parm in self.parameters[self.current_name]["NonbondedForce"])
-        
         charge = int(
             np.round(
                 sum(

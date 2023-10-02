@@ -260,16 +260,16 @@ def test_create_IonicLiquid():
     count = defaultdict(int)
     ionic_liquid = ProtexSystem(simulation, templates, simulation_for_parameters)
 
-    assert len(ionic_liquid.residues) == 5
+    assert len(ionic_liquid.residues) == 942
     for idx, residue in enumerate(ionic_liquid.residues):
         # print(f"{idx} : {residue.original_name}")
         count[residue.original_name] += 1
 
-    assert count["H2O"] == 1
-    assert count["H3O"] == 1
-    assert count["OH"] == 1
-    assert count["CLA"] == 1
-    assert count["SOD"] == 1
+    assert count["H2O"] == 902
+    assert count["H3O"] == 10
+    assert count["OH"] == 10
+    assert count["CLA"] == 10
+    assert count["SOD"] == 10
 
     residue = ionic_liquid.residues[0]
     charge = residue.endstate_charge
@@ -282,7 +282,7 @@ def test_create_IonicLiquid():
 def test_forces():
     # simulation = generate_hpts_meoh_system(psf_file=psf_file)
     # generate_hpts_meoh_system(crd_file=crd_for_parameters, psf_file=psf_for_parameters)
-    simulation = generate_single_hpts_meoh_system(use_plugin=False)
+    simulation = generate_toh2_system(use_plugin=False)
     system = simulation.system
     topology = simulation.topology
     force_state = defaultdict(list)  # store bond force
@@ -290,9 +290,9 @@ def test_forces():
     atom_names = {}  # store atom_names
     names = []  # store residue names
 
-    # iterate over residues, select the first residue for HPTS and HPTSH and save the individual bonded forces
+    # iterate over residues, select the first residue for a pair of species and save the individual bonded forces
     for ridx, r in enumerate(topology.residues()):
-        if r.name == "OAC":  # and ridx == 147:  # match first HPTS residue
+        if r.name == "OH":
             names.append(r.name)
             atom_idxs[r.name] = [atom.index for atom in r.atoms()]
             atom_names[r.name] = [atom.name for atom in r.atoms()]
@@ -307,7 +307,7 @@ def test_forces():
                         ):  # atom index of bond force needs to be in atom_idxs
                             force_state[r.name].append(f)
 
-        if r.name == "HOAC":  # and ridx == 457:
+        if r.name == "H3O":
             names.append(r.name)
             atom_idxs[r.name] = [atom.index for atom in r.atoms()]
             atom_names[r.name] = [atom.name for atom in r.atoms()]
@@ -351,7 +351,7 @@ def test_forces():
 def test_torsion_forces():
     # simulation = generate_hpts_meoh_system(psf_file=psf_file)
     # generate_hpts_meoh_system(crd_file=crd_for_parameters, psf_file=psf_for_parameters)
-    simulation = generate_single_hpts_meoh_system(use_plugin=False)
+    simulation = generate_toh2_system(use_plugin=False)
     system = simulation.system
     topology = simulation.topology
     force_state = defaultdict(list)  # store bond force
@@ -360,7 +360,7 @@ def test_torsion_forces():
     names = []  # store residue names
 
     for ridx, r in enumerate(topology.residues()):
-        if r.name == "OAC":  # and ridx == 147:
+        if r.name == "H2O":
             names.append(r.name)
             atom_idxs[r.name] = [atom.index for atom in r.atoms()]
             atom_names[r.name] = [atom.name for atom in r.atoms()]
@@ -381,9 +381,9 @@ def test_torsion_forces():
                             and idx4 in atom_idxs[r.name]
                         ):  # atom index of bond force needs to be in atom_idxs
                             force_state[r.name].append(f)
-                            print("oac", f)
+                            print("H2O", f)
 
-        if r.name == "HOAC":  # and ridx == 457:
+        if r.name == "OH":
             names.append(r.name)
             atom_idxs[r.name] = [atom.index for atom in r.atoms()]
             atom_names[r.name] = [atom.name for atom in r.atoms()]
@@ -403,7 +403,7 @@ def test_torsion_forces():
                             and idx4 in atom_idxs[r.name]
                         ):
                             force_state[r.name].append(f)
-                            print("hoac", f)
+                            print("OH", f)
 
     if len(force_state[names[0]]) != len(
         force_state[names[1]]
@@ -430,7 +430,7 @@ def test_torsion_forces():
             print(f)
 
     for ridx, r in enumerate(topology.residues()):
-        if r.name == "OAC":  # and ridx == 147:
+        if r.name == "H2O": 
             names.append(r.name)
             atom_idxs[r.name] = [atom.index for atom in r.atoms()]
             atom_names[r.name] = [atom.name for atom in r.atoms()]
@@ -451,9 +451,9 @@ def test_torsion_forces():
                             and idx4 in atom_idxs[r.name]
                         ):  # atom index of bond force needs to be in atom_idxs
                             force_state[r.name].append(f)
-                            print("oac", f)
+                            print("H2O", f)
 
-        if r.name == "HOAC":  # and ridx == 457:
+        if r.name == "OH": 
             names.append(r.name)
             atom_idxs[r.name] = [atom.index for atom in r.atoms()]
             atom_names[r.name] = [atom.name for atom in r.atoms()]
@@ -473,7 +473,7 @@ def test_torsion_forces():
                             and idx4 in atom_idxs[r.name]
                         ):
                             force_state[r.name].append(f)
-                            print("hoac", f)
+                            print("OH", f)
 
     if len(force_state[names[0]]) != len(
         force_state[names[1]]
@@ -511,28 +511,17 @@ def test_drude_forces():
     # simulation_for_parameters = generate_hpts_meoh_system(
     #    crd_file=crd_for_parameters, psf_file=psf_for_parameters
     # )
-    simulation = generate_single_hpts_meoh_system(use_plugin=False)
-    simulation_for_parameters = generate_single_hpts_meoh_system(use_plugin=False)
+    simulation = generate_toh2_system(use_plugin=False)
+    simulation_for_parameters = generate_toh2_system(use_plugin=False)
     allowed_updates = {}
-    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
-    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
-    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 0.201}  # 1+2
-    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 0.684}  # 3+4
-    allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000}
-    allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
-    allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000}
-    allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
-    allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
-    # allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
-    # allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
-    # allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
-    allowed_updates[frozenset(["HPTSH", "MEOH"])] = {"r_max": 0.155, "prob": 1.000}
-    allowed_updates[frozenset(["MEOH2", "MEOH"])] = {"r_max": 0.155, "prob": 1.000}
-    allowed_updates[frozenset(["MEOH2", "IM1"])] = {"r_max": 0.155, "prob": 1.000}
-    allowed_updates[frozenset(["MEOH2", "OAC"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["OH", "H2O"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["OH", "H3O"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["H3O", "H2O"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["H2O", "H2O"])] = {"r_max": 0.16, "prob": 1}
+
 
     templates = ProtexTemplates(
-        [OAC_HOAC, IM1H_IM1, HPTSH_HPTS, MEOH_MEOH2], (allowed_updates)
+        [OH_H2O_H3O], (allowed_updates)
     )
 
     ionic_liquid = ProtexSystem(simulation, templates, simulation_for_parameters)
@@ -546,9 +535,9 @@ def test_drude_forces():
 
     #pair_12_13_list = ionic_liquid._build_exclusion_list(ionic_liquid.topology)
 
-    # iterate over residues, select the first residue for HOAC and OAC and save the individual bonded forces
+    # iterate over residues, select the first residue for H2O and OH and save the individual bonded forces
     for ridx, r in enumerate(topology.residues()):
-        if r.name == "HOAC":  # and ridx == 457:  # match first HOAC residue
+        if r.name == "H2O":  
             names.append(r.name)
             atom_idxs[r.name] = [atom.index for atom in r.atoms()]
             atom_names[r.name] = [atom.name for atom in r.atoms()]
@@ -586,7 +575,7 @@ def test_drude_forces():
                     print(f)
                     force_state_thole[r.name].append(f)
 
-        if r.name == "OAC":  # and ridx == 147:
+        if r.name == "OH":  
             names.append(r.name)
             atom_idxs[r.name] = [atom.index for atom in r.atoms()]
             atom_names[r.name] = [atom.name for atom in r.atoms()]
@@ -652,32 +641,21 @@ def test_drude_forces():
     reason="Will fail sporadicaly.",
 )
 def test_write_psf_save_load(tmp_path):
-    psf_for_parameters = f"{protex.__path__[0]}/forcefield/hpts_single/hpts_single.psf"
+    psf_for_parameters = f"{protex.__path__[0]}/forcefield/toh2/h2o.psf"
 
-    simulation = generate_single_hpts_meoh_system()
-    simulation_for_parameters = generate_single_hpts_meoh_system()
+    simulation = generate_toh2_system(use_plugin=False)
+    simulation_for_parameters = generate_toh2_system(use_plugin=False)
 
     # get ionic liquid templates
     allowed_updates = {}
-    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
-    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
-    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 0.201}  # 1+2
-    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 0.684}  # 3+4
-    allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000}
-    allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
-    allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000}
-    allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
-    allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
-    # allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
-    # allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
-    # allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
-    allowed_updates[frozenset(["HPTSH", "MEOH"])] = {"r_max": 0.155, "prob": 1.000}
-    allowed_updates[frozenset(["MEOH2", "MEOH"])] = {"r_max": 0.155, "prob": 1.000}
-    allowed_updates[frozenset(["MEOH2", "IM1"])] = {"r_max": 0.155, "prob": 1.000}
-    allowed_updates[frozenset(["MEOH2", "OAC"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["OH", "H2O"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["OH", "H3O"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["H3O", "H2O"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["H2O", "H2O"])] = {"r_max": 0.16, "prob": 1}
+
 
     templates = ProtexTemplates(
-        [OAC_HOAC, IM1H_IM1, HPTSH_HPTS, MEOH_MEOH2], (allowed_updates)
+        [OH_H2O_H3O], (allowed_updates)
     )
     # wrap system in IonicLiquidSystem
     ionic_liquid = ProtexSystem(simulation, templates, simulation_for_parameters)
@@ -686,7 +664,7 @@ def test_write_psf_save_load(tmp_path):
     # initialize state update class
     state_update = StateUpdate(update)
 
-    old_psf_file = f"{protex.__path__[0]}/forcefield/hpts_single/hpts_single.psf"
+    old_psf_file = f"{protex.__path__[0]}/forcefield/toh2/h2o.psf"
     ionic_liquid.write_psf(old_psf_file, f"{tmp_path}/test.psf", psf_for_parameters)
 
     # ionic_liquid.simulation.step(50)
