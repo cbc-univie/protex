@@ -14,7 +14,9 @@
 [//]: <[![codecov](https://codecov.io/gh/florianj77/protex/branch/main/graph/badge.svg?token=ddqu0BzewU)](https://codecov.io/gh/florianj77/protex)>
 
 <p align="center">
- <img src="https://github.com/florianjoerg/protex/blob/main/docs/assets/images/protex_logo.png" alt="Protex Logo"/>
+ <a href="https://florianjoerg.github.io/protex">
+  <img src="https://github.com/florianjoerg/protex/blob/main/docs/assets/images/protex_logo.png" alt="Protex Logo"/>
+ </a>
 </p>
 
 Protex enables proton exchange in solvent molecules using openMM. The simulations are augmented by possible (de-)protonation events using a single topology approach with two different λ-states.[^1]
