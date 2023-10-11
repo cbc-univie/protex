@@ -607,14 +607,10 @@ class ProtexSystem:
                 logger.critical(len(forces_state1[force_name]))
                 logger.critical(len(forces_state2[force_name]))
 
-                for (
-                    b1,
-                    b2,
-                ) in zip(
-                    forces_state1[force_name],
-                    forces_state2[force_name],
-                ):
+                for b1 in forces_state1[force_name]:
                     logger.critical(f"{name}:{b1}")
+
+                for b2 in forces_state2[force_name]:
                     logger.critical(f"{name_of_paired_ion}:{b2}")
 
                 logger.critical(f"{name}:{forces_state1[force_name][-1]}")
@@ -741,6 +737,7 @@ class ProtexSystem:
             if name in self.residue_templates:  # or name_of_paired_ion in templates:
                 return
             self.residue_templates[name] = self._extract_templates(name)
+        
 
     def _set_initial_states(self) -> list:
         """set_initial_states.
@@ -760,6 +757,7 @@ class ProtexSystem:
             self.per_residue_forces[(mini, maxi)] = {}
             name = r.name
             self._fill_residue_templates(name)
+        print(self.residue_templates["FORA"]["HarmonicBondForce"])
 
         if self.fast:
             # this takes some time, but the update calls on the residues are then much faster
