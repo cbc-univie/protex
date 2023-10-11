@@ -737,7 +737,7 @@ class ProtexSystem:
             if name in self.residue_templates:  # or name_of_paired_ion in templates:
                 return
             self.residue_templates[name] = self._extract_templates(name)
-        
+
 
     def _set_initial_states(self) -> list:
         """set_initial_states.
