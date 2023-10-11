@@ -679,6 +679,49 @@ def test_write_psf_save_load(tmp_path):
     ionic_liquid2.loadCheckpoint(f"{tmp_path}/checkpoint.rst")
 
 
+@pytest.mark.skipif(
+    os.getenv("CI") == "true",
+    reason="Will fail sporadicaly.",
+)
+def test_pickle_residues_save_load(tmp_path):
+    psf_for_parameters = f"{protex.__path__[0]}/forcefield/toh2/h2o.psf"
+
+    simulation = generate_toh2_system(use_plugin=False)
+    simulation_for_parameters = generate_toh2_system(use_plugin=False)
+
+    # get ionic liquid templates
+    allowed_updates = {}
+    allowed_updates[frozenset(["OH", "H2O"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["OH", "H3O"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["H3O", "H2O"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["H2O", "H2O"])] = {"r_max": 0.16, "prob": 1}
+
+
+    templates = ProtexTemplates(
+        [OH_H2O_H3O], (allowed_updates)
+    )
+    # wrap system in IonicLiquidSystem
+    ionic_liquid = ProtexSystem(simulation, templates, simulation_for_parameters)
+    # initialize update method
+    update = NaiveMCUpdate(ionic_liquid)
+    # initialize state update class
+    state_update = StateUpdate(update)
+
+    #ionic_liquid.simulation.step(50)
+    state_update.update(2)
+
+   
+    ionic_liquid.saveState(f"{tmp_path}/state.rst")
+    ionic_liquid.saveCheckpoint(f"{tmp_path}/checkpoint.rst")
+    ionic_liquid.dump(f"{tmp_path}/system.pkl")
+
+
+    ionic_liquid2 = ionic_liquid  # copy.deepcopy(ionic_liquid)
+    ionic_liquid2.load(f"{tmp_path}/system.pkl", ionic_liquid2.simulation, ionic_liquid2.simulation_for_parameters)
+    ionic_liquid2.loadState(f"{tmp_path}/state.rst")
+    ionic_liquid2.loadCheckpoint(f"{tmp_path}/checkpoint.rst")
+
+
 #####################
 # TEST UPDATE
 #######################

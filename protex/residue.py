@@ -4,6 +4,11 @@ import itertools
 import logging
 from collections import deque
 
+try:
+    import openmm.unit as unit
+except ImportError:
+    import simtk.unit as unit
+
 import numpy as np
 
 logger = logging.getLogger(__name__)
@@ -63,8 +68,8 @@ class Residue:
     ----------
     residue: openmm.app.topology.Residue
         The residue from  an OpenMM Topology
-    alternativ_name: str
-        The name of the corresponding protonated/deprotonated form (eg. OAC for HOAC)
+    orderes_names: list(str)
+        The name(s) of the corresponding protonated/deprotonated form(s) (eg. OAC and H2OAc for HOAC)
     system: openmm.openmm.System
         The system generated with openMM, where all residues are in
     initial_parameters: dict[list]
@@ -88,7 +93,7 @@ class Residue:
     atom_names; list[str]
         List of all atom names belonging to that residue
     parameters: dict[str: dict[list]]
-        Dictionary containnig the parameters for ``original_name`` and ``alternativ_name``
+        Dictionary containnig the parameters for ``original_name`` and ``alternativ_names``
     record_charge_state: list
         deprecated 1.1?
         Records the charge state of that residue
@@ -152,6 +157,7 @@ class Residue:
                 return 1
             if mode == "donor":
                 return -1
+        
 
     def _setup_donors_acceptors(self):
         print(self.current_name, self.donors, self.starting_donors, self.force_idxs, self.states)
@@ -165,7 +171,7 @@ class Residue:
         if mode == "donors": # want to have parameters for real H
             nonbonded_parm_new = self.H_parameters[self.current_name]["NonbondedForce"]
         else: # want to have parameters for D
-            nonbonded_parm_new = [0.0, 0.0, 0.0]
+            nonbonded_parm_new = [unit.quantity.Quantity(value=0.0, unit=unit.elementary_charge), unit.quantity.Quantity(value=0.0, unit=unit.nanometer), unit.quantity.Quantity(value=0.0, unit=unit.kilojoule_per_mole)]
 
         return nonbonded_parm_new
 
@@ -209,12 +215,19 @@ class Residue:
         str
             The alternative name
         """
+        logger.debug(f"{self.current_name=}")
         if self.used_atom is None:
             logger.critical(f"{self.original_name=}, {self.current_name=}, {self.residue.index=}, {self.residue=}")
             raise RuntimeError("Currently no atom is selected that was used for the update. Determination of the alternative atom is not possible. Define self.used_atom first.")
         # check position in ordered names and then decide if go to left (= less H -> donated), or right ->more H
+        onames = self.ordered_names
+        logger.debug(f"{onames=}")
         current_pos = self.ordered_names.index(self.current_name)
+        logger.debug(f"{current_pos=}")
         mode = self.get_mode_for()
+        logger.debug(f"{mode=}")
+        shift = self._get_shift(mode)
+        logger.debug(f"{shift=}")
         new_name = self.ordered_names[current_pos + self._get_shift(mode)]
         return new_name
 
@@ -541,7 +554,7 @@ class Residue:
         # returns interpolated sorted nonbonded Forces.
         assert lamb >= 0 and lamb <= 1
         current_name = self.current_name
-        new_name = self.alternativ_name
+        new_name = self.alternativ_resname
 
         nonbonded_parm_old = [
             parm for parm in self.parameters[current_name]["NonbondedForce"]
@@ -617,15 +630,17 @@ class Residue:
         assert lamb >= 0 and lamb <= 1
         current_name = self.current_name
         new_name = self.alternativ_resname
-        atom_idx = self.get_idx_for_atom_name(self.used_atom)
+        idx = self.atom_names.index(self.used_atom)
         mode = self.get_mode_for()
 
-        nonbonded_parm_old = next(parms for parms in self.parameters[current_name]["NonbondedForce"] if parms[0] == atom_idx)
+        nonbonded_parm_old = self.parameters[current_name]["NonbondedForce"][idx]
+            
+        logger.debug(nonbonded_parm_old)
 
         if mode == "acceptor": # used_atom changes from D to H
             nonbonded_parm_new = self.H_parameters[new_name]["NonbondedForce"]
         else: # used_atom changes from H to D
-            nonbonded_parm_new = [0.0, 0.0, 0.0]
+            nonbonded_parm_new = [unit.quantity.Quantity(value=0.0, unit=unit.elementary_charge), unit.quantity.Quantity(value=0.0, unit=unit.nanometer), unit.quantity.Quantity(value=0.0, unit=unit.kilojoule_per_mole)]
 
         charge_old, sigma_old, epsilon_old = nonbonded_parm_old
         charge_new, sigma_new, epsilon_new = nonbonded_parm_new
@@ -702,7 +717,7 @@ class Residue:
             ]
         else: #lamb >= 0.5
             #new
-            new_name = self.alternativ_name
+            new_name = self.alternativ_resname
             cnb_parm = [
                 parm for parm in self.parameters[new_name]["CustomNonbondedForce"]
             ]
@@ -737,7 +752,7 @@ class Residue:
         assert lamb >= 0 and lamb <= 1
         # get the names of new and current state
         old_name = self.current_name
-        new_name = self.alternativ_name
+        new_name = self.alternativ_resname
         parm_interpolated = []
         force_name = "HarmonicBondForce"
         new_parms_offset = self._get_offset(new_name)
@@ -786,7 +801,7 @@ class Residue:
         assert lamb >= 0 and lamb <= 1
         # get the names of new and current state
         old_name = self.current_name
-        new_name = self.alternativ_name
+        new_name = self.alternativ_resname
         parm_interpolated = []
         force_name = "HarmonicAngleForce"
         new_parms_offset = self._get_offset(new_name)
@@ -835,7 +850,7 @@ class Residue:
         assert lamb >= 0 and lamb <= 1
         # get the names of new and current state
         old_name = self.current_name
-        new_name = self.alternativ_name
+        new_name = self.alternativ_resname
         parm_interpolated = []
         force_name = "PeriodicTorsionForce"
         new_parms_offset = self._get_offset(new_name, force_name=force_name)
@@ -936,7 +951,7 @@ class Residue:
         assert lamb >= 0 and lamb <= 1
         # get the names of new and current state
         old_name = self.current_name
-        new_name = self.alternativ_name
+        new_name = self.alternativ_resname
         parm_interpolated = []
         force_name = "CustomTorsionForce"
         new_parms_offset = self._get_offset(new_name)
@@ -992,7 +1007,7 @@ class Residue:
         assert lamb >= 0 and lamb <= 1
         # get the names of new and current state
         old_name = self.current_name
-        new_name = self.alternativ_name
+        new_name = self.alternativ_resname
         parm_interpolated = []
         force_name = "DrudeForce"
         new_parms_offset = self._get_offset(new_name)

@@ -161,12 +161,12 @@ class ProtexTemplates:
                 if "acceptor" in self.states[p]["modes"]:
                     count_dict[p] -= 1
             sorted_count_dict = tuple(sorted(count_dict, key=lambda k:(count_dict[k],k)))
-            print(sorted_count_dict)
+            # logger.debug(sorted_count_dict)
             ordered_names.append(sorted_count_dict)
 
-        print(ordered_names)
+        # logger.debug(ordered_names)
         return ordered_names
-        #return [("IM1", "IM1H"), ("OAC", "HOAC", "H2OAC")]
+        #returns something like [("IM1", "IM1H"), ("OAC", "HOAC", "H2OAC")]
 
     def get_ordered_names_for(self, resname: str) -> tuple[str,...]:
         """Get the tuple of the correct resname sequences for a given resname.
@@ -181,7 +181,10 @@ class ProtexTemplates:
         tuple[str]
             A tuple with the order of resnames from low H (acceptor) to high H (donor) count
         """
-        if resname in self.ordered_names:
+        # logger.debug(self.ordered_names)
+        # logger.debug(resname)
+        # logger.debug(any(resname in sublist for sublist in self.ordered_names))
+        if any(resname in sublist for sublist in self.ordered_names):
             for tup in self.ordered_names:
                 if resname in tup:
                     return tup
@@ -921,6 +924,7 @@ class ProtexSystem:
             name = r.name
             if name in self.templates.names:
                 ordered_names = self.templates.get_ordered_names_for(name)
+                print("ORDERED NAMES ", ordered_names)
                 assert name in ordered_names
                 parameters = {}
                 H_parameters = {}
