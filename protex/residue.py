@@ -215,19 +215,13 @@ class Residue:
         str
             The alternative name
         """
-        logger.debug(f"{self.current_name=}")
+
         if self.used_atom is None:
             logger.critical(f"{self.original_name=}, {self.current_name=}, {self.residue.index=}, {self.residue=}")
             raise RuntimeError("Currently no atom is selected that was used for the update. Determination of the alternative atom is not possible. Define self.used_atom first.")
         # check position in ordered names and then decide if go to left (= less H -> donated), or right ->more H
-        onames = self.ordered_names
-        logger.debug(f"{onames=}")
         current_pos = self.ordered_names.index(self.current_name)
-        logger.debug(f"{current_pos=}")
         mode = self.get_mode_for()
-        logger.debug(f"{mode=}")
-        shift = self._get_shift(mode)
-        logger.debug(f"{shift=}")
         new_name = self.ordered_names[current_pos + self._get_shift(mode)]
         return new_name
 
@@ -344,8 +338,11 @@ class Residue:
                             )
 
     def _set_CustomNonbondedForce_parameters(self, parms) -> None:  # noqa: N802
+        # logger.debug(parms)
         parms_nonb = deque(parms[0])
+        #logger.debug(parms_nonb)
         parms_exclusions = deque(parms[1])
+        #logger.debug(parms_exclusions)
         for force in self.system.getForces():
             fgroup = force.getForceGroup()
             if type(force).__name__ == "CustomNonbondedForce":
@@ -359,11 +356,14 @@ class Residue:
                             exc_idx, excl_idx1, excl_idx2
                         )
                 except KeyError:  # use the old slow way
+                    logger.debug(force.getNumExclusions())
+                    logger.debug(len(parms_exclusions))
                     for exc_idx in range(force.getNumExclusions()):
                         f = force.getExclusionParticles(exc_idx)
                         idx1 = f[0]
                         idx2 = f[1]
                         if idx1 in self.atom_idxs and idx2 in self.atom_idxs:
+                            # logger.debug(parms_exclusions)
                             excl1, excl2 = parms_exclusions.popleft()
                             force.setExclusionParticles(
                                 exc_idx, excl1,excl2
@@ -634,8 +634,6 @@ class Residue:
         mode = self.get_mode_for()
 
         nonbonded_parm_old = self.parameters[current_name]["NonbondedForce"][idx]
-            
-        logger.debug(nonbonded_parm_old)
 
         if mode == "acceptor": # used_atom changes from D to H
             nonbonded_parm_new = self.H_parameters[new_name]["NonbondedForce"]

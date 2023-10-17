@@ -574,8 +574,8 @@ class ProtexSystem:
             if query_name == residue.name:
                 atom_idxs = [atom.index for atom in residue.atoms()]
                 atom_names = [atom.name for atom in residue.atoms()]
-                logger.debug(atom_idxs)
-                logger.debug(atom_names)
+                # logger.debug(atom_idxs)
+                # logger.debug(atom_names)
 
                 for force in sim.system.getForces():
                     forcename = type(force).__name__
@@ -594,6 +594,7 @@ class ProtexSystem:
                     elif forcename == "CustomNonbondedForce":
                         # lookup indices of the tabulated table (?)
                         #index is position, but what about previous ones?
+                        logger.debug(force)
                         forces_dict[forcename] = [force.getParticleParameters(idx) for idx in atom_idxs]
                         # Also add exclusions
                         for exc_id in range(force.getNumExclusions()):
@@ -686,18 +687,18 @@ class ProtexSystem:
 
         for residue in sim.topology.residues():
             if query_name == residue.name:
-                logger.debug(residue.name)
-                logger.debug(self.real_Hs)
+                # logger.debug(residue.name)
+                # logger.debug(self.real_Hs)
                 atom_names = [self.real_Hs[i][1] for i in range(len(self.real_Hs)) if self.real_Hs[i][0] == residue.name]
                 atom_idxs_all = [atom.index for atom in residue.atoms()]
                 atom_names_all = [atom.name for atom in residue.atoms()]
                 atom_idxs = [atom_idxs_all[i] for i in range(len(atom_idxs_all)) if atom_names_all[i] in atom_names]
-                logger.debug(atom_idxs)
-                logger.debug(atom_names)
+                # logger.debug(atom_idxs)
+                # logger.debug(atom_names)
 
                 for force in sim.system.getForces():
                     forcename = type(force).__name__
-                    logger.debug(forcename)
+                    # logger.debug(forcename)
                     if forcename == "NonbondedForce":
                         if len(atom_names) == 1:
                             idx = atom_idxs[0]
@@ -717,14 +718,14 @@ class ProtexSystem:
                             forces_dict[forcename] = [
                                 force.getParticleParameters(idx) for idx in atom_idxs
                             ]
-                            logger.debug(f"forces_dict: {forces_dict[forcename]}")
+                            # logger.debug(f"forces_dict: {forces_dict[forcename]}")
                             for i in range(len(atom_names)):
                                 assert (forces_dict[forcename][0][0], forces_dict[forcename][0][1], forces_dict[forcename][0][2]) == (forces_dict[forcename][i][0], forces_dict[forcename][i][1], forces_dict[forcename][i][2])
                             forces_dict[forcename] = forces_dict[forcename][0]
                 break  # do this only for the relevant residue once
         else:
             raise RuntimeError("residue not found")
-        logger.debug(forces_dict)
+        # logger.debug(forces_dict)
         return forces_dict
 
     @staticmethod
@@ -924,7 +925,6 @@ class ProtexSystem:
             name = r.name
             if name in self.templates.names:
                 ordered_names = self.templates.get_ordered_names_for(name)
-                print("ORDERED NAMES ", ordered_names)
                 assert name in ordered_names
                 parameters = {}
                 H_parameters = {}

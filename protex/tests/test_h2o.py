@@ -192,7 +192,6 @@ def test_create_ProtexTemplate():
     allowed_updates[frozenset(["H3O", "H2O"])] = {"r_max": 0.16, "prob": 1}
     allowed_updates[frozenset(["H2O", "H2O"])] = {"r_max": 0.16, "prob": 1}
 
-
     templates = ProtexTemplates(
         [OH_H2O_H3O], (allowed_updates)
     )
@@ -500,6 +499,80 @@ def test_torsion_forces():
             print(f)
 
         raise AssertionError("ohoh")
+    
+
+def test_customnonbonded_forces():
+    simulation = generate_toh2_system(use_plugin=False)
+    system = simulation.system
+    topology = simulation.topology
+    force_state = defaultdict(list)  # store bond force
+    atom_idxs = {}  # store atom_idxs
+    atom_names = {}  # store atom_names
+    names = []  # store residue names
+
+    for ridx, r in enumerate(topology.residues()):
+        if r.name == "H2O" and "H2O" not in names:
+            names.append(r.name)
+            atom_idxs[r.name] = [atom.index for atom in r.atoms()]
+            atom_names[r.name] = [atom.name for atom in r.atoms()]
+            for force in system.getForces():
+                forces_dict_H2O_exceptions = []
+                if type(force).__name__ == "CustomNonbondedForce":
+                    forces_dict_H2O = [force.getParticleParameters(idx) for idx in atom_idxs["H2O"]]
+                    print(f"{forces_dict_H2O=}")
+                    # Also add exclusions
+                    for exc_id in range(force.getNumExclusions()):
+                        f = force.getExclusionParticles(exc_id)
+                        idx1 = f[0]
+                        idx2 = f[1]
+                        if idx1 in atom_idxs["H2O"] and idx2 in atom_idxs["H2O"]:
+                            forces_dict_H2O_exceptions.append(f)
+                        #print("H2O", f)
+
+        if r.name == "OH" and "OH" not in names:
+            names.append(r.name)
+            atom_idxs[r.name] = [atom.index for atom in r.atoms()]
+            atom_names[r.name] = [atom.name for atom in r.atoms()]
+            for force in system.getForces():
+                forces_dict_OH_exceptions = []
+                if type(force).__name__ == "CustomNonbondedForce":
+                    forces_dict_OH = [force.getParticleParameters(idx) for idx in atom_idxs["OH"]]
+                    print(f"{forces_dict_OH=}")
+                    # Also add exclusions
+                    for exc_id in range(force.getNumExclusions()):
+                        f = force.getExclusionParticles(exc_id)
+                        idx1 = f[0]
+                        idx2 = f[1]
+                        if idx1 in atom_idxs["OH"] and idx2 in atom_idxs["OH"]:
+                            forces_dict_OH_exceptions.append(f)
+                        #print("OH", f)
+
+    if len(forces_dict_OH) != len(
+        forces_dict_H2O
+    ):  # check the number of entries in the forces
+        print(f"H2O: {len(forces_dict_H2O)}")
+        print(f"OH: {len(forces_dict_OH)}")
+
+        print(f"{names[0]}:Atom indicies and atom names")
+        for idx, name in zip(atom_idxs[names[0]], atom_names[names[0]]):
+            print(f"{idx}:{name}")
+        print(f"{names[1]}:Atom indicies and atom names")
+        for idx, name in zip(atom_idxs[names[1]], atom_names[names[1]]):
+            print(f"{idx}:{name}")
+
+        # print forces for the two residues
+        print("########################")
+        print(names[0])
+        for f in forces_dict_H2O:
+            print(f)
+
+        print("########################")
+        print(names[1])
+        for f in forces_dict_OH:
+            print(f)
+
+    
+    raise AssertionError("ohoh")
 
 
 def test_drude_forces():
@@ -695,7 +768,6 @@ def test_pickle_residues_save_load(tmp_path):
     allowed_updates[frozenset(["OH", "H3O"])] = {"r_max": 0.16, "prob": 1}
     allowed_updates[frozenset(["H3O", "H2O"])] = {"r_max": 0.16, "prob": 1}
     allowed_updates[frozenset(["H2O", "H2O"])] = {"r_max": 0.16, "prob": 1}
-
 
     templates = ProtexTemplates(
         [OH_H2O_H3O], (allowed_updates)
