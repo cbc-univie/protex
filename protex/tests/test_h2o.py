@@ -782,7 +782,7 @@ def test_pickle_residues_save_load(tmp_path):
     #ionic_liquid.simulation.step(50)
     state_update.update(2)
 
-   
+
     ionic_liquid.saveState(f"{tmp_path}/state.rst")
     ionic_liquid.saveCheckpoint(f"{tmp_path}/checkpoint.rst")
     ionic_liquid.dump(f"{tmp_path}/system.pkl")

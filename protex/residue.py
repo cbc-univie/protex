@@ -157,7 +157,7 @@ class Residue:
                 return 1
             if mode == "donor":
                 return -1
-        
+
 
     def _setup_donors_acceptors(self):
         print(self.current_name, self.donors, self.starting_donors, self.force_idxs, self.states)
@@ -634,6 +634,8 @@ class Residue:
         mode = self.get_mode_for()
 
         nonbonded_parm_old = self.parameters[current_name]["NonbondedForce"][idx]
+
+        logger.debug(nonbonded_parm_old)
 
         if mode == "acceptor": # used_atom changes from D to H
             nonbonded_parm_new = self.H_parameters[new_name]["NonbondedForce"]
