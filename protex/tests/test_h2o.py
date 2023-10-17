@@ -499,7 +499,7 @@ def test_torsion_forces():
             print(f)
 
         raise AssertionError("ohoh")
-    
+
 
 def test_customnonbonded_forces():
     simulation = generate_toh2_system(use_plugin=False)
@@ -571,7 +571,7 @@ def test_customnonbonded_forces():
         for f in forces_dict_OH:
             print(f)
 
-    
+
     raise AssertionError("ohoh")
 
 
