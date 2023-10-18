@@ -435,7 +435,7 @@ class ProtexSystem:
         templates: ProtexTemplates,
         simulation_for_parameters: openmm.app.simulation.Simulation = None,
         real_Hs: list[tuple[str,str]] = [("H2O", "H1"), ("H2O", "H2"), ("OH", "H1"), ("H3O", "H1"), ("H3O", "H2"), ("H3O", "H3")],
-        fast: bool = False, # TODO turn back to True
+        fast: bool = True, # TODO turn back to True
     ) -> None:
         self.system: openmm.openmm.System = simulation.system
         self.topology: openmm.app.topology.Topology = simulation.topology
@@ -594,6 +594,8 @@ class ProtexSystem:
                     elif forcename == "CustomNonbondedForce":
                         # lookup indices of the tabulated table (?)
                         #index is position, but what about previous ones?
+                        # BUG problem with slow method: need every atom idx for exceptions, now only from 1 residue
+                        # TODO normalize / offset etc for each residue
                         logger.debug(force)
                         forces_dict[forcename] = [force.getParticleParameters(idx) for idx in atom_idxs]
                         # Also add exclusions
@@ -789,8 +791,8 @@ class ProtexSystem:
     def _create_force_idx_dict(self) -> None:
         """Create a dictionary containig all the indices to the forces.
 
-        It is used to specify which force belong to which residue.
-        It filles the self.per_residue_forces variable.
+        It is used to specify which force belongs to which residue.
+        It fills the self.per_residue_forces variable.
         """
         for force in self.system.getForces():
             forcename = type(force).__name__
@@ -912,9 +914,11 @@ class ProtexSystem:
             for oname in ordered_names:
                 templates[oname] = self._extract_templates(oname)
                 H_templates[oname] = self._extract_H_templates(oname)
-
-        # for i in templates:
-        #     print(i, (templates[i]))
+        
+        for r in self.topology.residues():
+            atom_idxs = [atom.index for atom in r.atoms()]
+            mini, maxi = min(atom_idxs), max(atom_idxs)
+            self.per_residue_forces[(mini, maxi)] = {}
 
 
         if self.fast:
@@ -942,18 +946,20 @@ class ProtexSystem:
                     atom.index for atom in r.atoms()
                 ]  # also give them to initilaizer, not inside residue?
                 minmax = (min(atom_idxs), max(atom_idxs))
-                if self.fast: # TODO: correct this part (what does it do exactly)
+                if self.fast:
                     new_res = Residue(
                         r,
                         ordered_names,
                         self.system,
                         parameters,
                         H_parameters,
+                        pair_12_13_list,
+                        self.templates.get_all_states_for(name),
                         self.templates.get_modes_for(name),
                         self.templates.get_starting_donors_for(name),
                         self.templates.get_starting_acceptors_for(name),
-                        self.templates.get_modes_for(name),
                         self.templates.get_starting_donors_for(name),
+                        self.templates.get_starting_acceptors_for(name),
                         force_idxs=self.per_residue_forces[minmax],
                     )
                 else:
@@ -967,16 +973,16 @@ class ProtexSystem:
                         self.templates.get_all_states_for(name),
                         self.templates.get_modes_for(name),
                         self.templates.get_starting_donors_for(name),
-                        self.templates.get_modes_for(name),
+                        self.templates.get_starting_acceptors_for(name),
                         self.templates.get_starting_donors_for(name),
                         self.templates.get_starting_acceptors_for(name),
                     )
                 residues.append(new_res)
-                residues[
-                    -1
-                ].current_name = (
-                    name  # Why, isnt it done in the initializer of Residue?
-                )
+                # residues[
+                #     -1
+                # ].current_name = (
+                #     name  # Why, isnt it done in the initializer of Residue?
+                # )
             else:
                 parameters_state1 = templates[name]
                 r = Residue(r, None, self.system, parameters_state1, None, None, None, None, None, None, None, None)

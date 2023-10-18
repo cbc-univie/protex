@@ -356,14 +356,16 @@ class Residue:
                             exc_idx, excl_idx1, excl_idx2
                         )
                 except KeyError:  # use the old slow way
-                    logger.debug(force.getNumExclusions())
-                    logger.debug(len(parms_exclusions))
+                    #logger.debug(force.getNumExclusions())
+                    #logger.debug(len(parms_exclusions))
                     for exc_idx in range(force.getNumExclusions()):
                         f = force.getExclusionParticles(exc_idx)
+                        #logger.debug(f)
                         idx1 = f[0]
                         idx2 = f[1]
                         if idx1 in self.atom_idxs and idx2 in self.atom_idxs:
-                            # logger.debug(parms_exclusions)
+                            idxs = (idx1, idx2)
+                            #logger.debug(idxs)
                             excl1, excl2 = parms_exclusions.popleft()
                             force.setExclusionParticles(
                                 exc_idx, excl1,excl2
@@ -635,7 +637,7 @@ class Residue:
 
         nonbonded_parm_old = self.parameters[current_name]["NonbondedForce"][idx]
 
-        logger.debug(nonbonded_parm_old)
+        #logger.debug(nonbonded_parm_old)
 
         if mode == "acceptor": # used_atom changes from D to H
             nonbonded_parm_new = self.H_parameters[new_name]["NonbondedForce"]
