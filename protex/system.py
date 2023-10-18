@@ -914,7 +914,7 @@ class ProtexSystem:
             for oname in ordered_names:
                 templates[oname] = self._extract_templates(oname)
                 H_templates[oname] = self._extract_H_templates(oname)
-        
+
         for r in self.topology.residues():
             atom_idxs = [atom.index for atom in r.atoms()]
             mini, maxi = min(atom_idxs), max(atom_idxs)

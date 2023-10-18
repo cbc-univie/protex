@@ -526,7 +526,7 @@ def test_customnonbonded_forces():
                         idx2 = f[1]
                         if idx1 in atom_idxs["H2O"] and idx2 in atom_idxs["H2O"]:
                             forces_dict_H2O_exceptions.append(f)
-                       
+
 
         if r.name == "OH" and "OH" not in names:
             names.append(r.name)
@@ -543,8 +543,8 @@ def test_customnonbonded_forces():
                         idx2 = f[1]
                         if idx1 in atom_idxs["OH"] and idx2 in atom_idxs["OH"]:
                             forces_dict_OH_exceptions.append(f)
-                        
-        
+
+
         if r.name == "H3O" and "H3O" not in names:
             names.append(r.name)
             atom_idxs[r.name] = [atom.index for atom in r.atoms()]
@@ -560,7 +560,7 @@ def test_customnonbonded_forces():
                         idx2 = f[1]
                         if idx1 in atom_idxs["H3O"] and idx2 in atom_idxs["H3O"]:
                             forces_dict_H3O_exceptions.append(f)
-        
+
         if r.name == "CLA" and "CLA" not in names:
             names.append(r.name)
             atom_idxs[r.name] = [atom.index for atom in r.atoms()]
@@ -592,13 +592,13 @@ def test_customnonbonded_forces():
                         idx2 = f[1]
                         if idx1 in atom_idxs["SOD"] and idx2 in atom_idxs["SOD"]:
                             forces_dict_SOD_exceptions.append(f)
-                    
+
     print(forces_dict_H2O_exceptions)
     print(forces_dict_OH_exceptions)
     print(forces_dict_H3O_exceptions)
     print(forces_dict_CLA_exceptions)
     print(forces_dict_SOD_exceptions)
-    
+
     if len(forces_dict_OH) != len(
         forces_dict_H2O
     ):  # check the number of entries in the forces
