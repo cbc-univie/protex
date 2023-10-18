@@ -215,7 +215,6 @@ class Residue:
         str
             The alternative name
         """
-
         if self.used_atom is None:
             logger.critical(f"{self.original_name=}, {self.current_name=}, {self.residue.index=}, {self.residue=}")
             raise RuntimeError("Currently no atom is selected that was used for the update. Determination of the alternative atom is not possible. Define self.used_atom first.")
