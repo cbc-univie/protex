@@ -201,7 +201,7 @@ class Residue:
         new_name = self.alternativ_resname
         # should be used only once per update
         self.current_name = new_name
-    
+
     @property
     def modes(self) -> bool:
         """Determines which modes the current residue has.
@@ -240,7 +240,7 @@ class Residue:
         new_name = self.ordered_names[current_pos + self._get_shift(mode)]
         return new_name
 
-    def get_mode_for(self) -> str: 
+    def get_mode_for(self) -> str:
         # BUG when do we want to check mode? (if it was an acceptor, now it is a donor. do we update this first or params?)
         # confusing: mode vs modes
         """Return the mode of the current resname and atom_name.

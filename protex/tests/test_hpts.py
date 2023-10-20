@@ -557,8 +557,8 @@ def test_customnonbonded_forces():
                         idx2 = f[1]
                         if idx1 in atom_idxs["HOAC"] and idx2 in atom_idxs["HOAC"]:
                             forces_dict_HOAC_exceptions.append(f)
-                       
-                    
+
+
     print(forces_dict_HOAC_exceptions)
     raise AssertionError("show output")
 

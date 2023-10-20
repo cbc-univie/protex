@@ -720,7 +720,7 @@ class StateUpdate:
                             )])
                         acceptor_names_list.append(atom)
                         acceptor_resis_list.append(residue)
-                
+
         logger.debug(acceptor_resis_list)
         logger.debug(donor_resis_list)
 
