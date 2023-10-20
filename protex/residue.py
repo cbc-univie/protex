@@ -103,8 +103,6 @@ class Residue:
         if orignal_name and alternative name have equivalent atoms
     force_idxs:
 
-    modes: tuple(str)
-        whether the residue can be a donor, acceptor or both
     donors: list(str)
         atom names (NOTE: maybe use indices within molecule?) that are currently real Hs (NOTE: at the moment residues with only acceptor mode may also have donor Hs, e.g. OH)
     acceptors: list(str)
@@ -138,7 +136,7 @@ class Residue:
         self.H_parameters = H_parameters
         # self.record_charge_state = []
         # self.record_charge_state.append(self.endstate_charge)  # Not used anywhere?
-        self.modes = modes
+        self.modes_dict = modes
         self.starting_donors = starting_donors
         self.starting_acceptors = starting_acceptors
         self.donors = donors
@@ -157,7 +155,6 @@ class Residue:
                 return 1
             if mode == "donor":
                 return -1
-
 
     def _setup_donors_acceptors(self):
         print(self.current_name, self.donors, self.starting_donors, self.force_idxs, self.states)
@@ -192,8 +189,6 @@ class Residue:
 
                         force.setParticleParameters(idx, charge, sigma, epsilon)
 
-
-
     @property
     def update_resname(self):
         """Updates the current name to the new name.
@@ -202,9 +197,26 @@ class Residue:
         The used_atom is reset afterwards, and has to be set again before using this funciton again.
         This is on purpose, to only allow name changes once per update.
         """
+        # do we need this? we only allow one update per residue anyways
         new_name = self.alternativ_resname
         # should be used only once per update
         self.current_name = new_name
+    
+    @property
+    def modes(self) -> bool:
+        """Determines which modes the current residue has.
+
+        It depends on if the residue is currently OAC (acceptor) or HOAC (donor).
+
+        Returns
+        -------
+        tuple
+            the possible modes
+        """
+        if self.modes_dict is not None:
+            return self.modes_dict[self.current_name]
+        else:
+            return None
 
     @property
     def alternativ_resname(self) -> str:
@@ -221,10 +233,16 @@ class Residue:
         # check position in ordered names and then decide if go to left (= less H -> donated), or right ->more H
         current_pos = self.ordered_names.index(self.current_name)
         mode = self.get_mode_for()
+        logger.debug(self.current_name)
+        logger.debug(mode)
+        logger.debug(self.ordered_names)
+        logger.debug(self._get_shift(mode))
         new_name = self.ordered_names[current_pos + self._get_shift(mode)]
         return new_name
 
-    def get_mode_for(self) -> str:
+    def get_mode_for(self) -> str: 
+        # BUG when do we want to check mode? (if it was an acceptor, now it is a donor. do we update this first or params?)
+        # confusing: mode vs modes
         """Return the mode of the current resname and atom_name.
 
         Parameters
@@ -248,8 +266,12 @@ class Residue:
         #     possible_atom_names = [atom["name"], atom.get("equivalent_atom", None)]
         #     if atom_name in possible_atom_names:
         #         return atom["mode"]
-        # # now trying to make it more universal (mode is property of residue, atoms are classified as donors or acceptors, but this canc change)
-
+        # # now trying to make it more universal (mode is property of residue template, atoms are classified as donors or acceptors, but this canc change)
+        logger.debug(self.current_name)
+        logger.debug(self.modes)
+        logger.debug(self.used_atom)
+        logger.debug(self.acceptors)
+        logger.debug(self.donors)
         if atom_name in self.donors and "donor" in self.modes:
             mode = "donor"
         elif atom_name in self.acceptors and "acceptor" in self.modes:

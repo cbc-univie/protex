@@ -531,6 +531,37 @@ def test_torsion_forces():
         raise AssertionError("ohoh")
 
 
+def test_customnonbonded_forces():
+    simulation = generate_single_hpts_meoh_system(use_plugin=False)
+    system = simulation.system
+    topology = simulation.topology
+    force_state = defaultdict(list)  # store bond force
+    atom_idxs = {}  # store atom_idxs
+    atom_names = {}  # store atom_names
+    names = []  # store residue names
+
+    for ridx, r in enumerate(topology.residues()):
+        if r.name == "HOAC" and "HOAC" not in names:
+            names.append(r.name)
+            atom_idxs[r.name] = [atom.index for atom in r.atoms()]
+            atom_names[r.name] = [atom.name for atom in r.atoms()]
+            forces_dict_HOAC_exceptions = []
+            for force in system.getForces():
+                print(type(force).__name__)
+                if type(force).__name__ == "CustomNonbondedForce":
+                    forces_dict_HOAC = [force.getParticleParameters(idx) for idx in atom_idxs["HOAC"]]
+                    # Also add exclusions
+                    for exc_id in range(force.getNumExclusions()):
+                        f = force.getExclusionParticles(exc_id)
+                        idx1 = f[0]
+                        idx2 = f[1]
+                        if idx1 in atom_idxs["HOAC"] and idx2 in atom_idxs["HOAC"]:
+                            forces_dict_HOAC_exceptions.append(f)
+                       
+                    
+    print(forces_dict_HOAC_exceptions)
+    raise AssertionError("show output")
+
 def test_drude_forces():
     # f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
     # f"{protex.__path__[0]}/forcefield/crd_for_parameters.crd"

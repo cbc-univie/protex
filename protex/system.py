@@ -243,10 +243,14 @@ class ProtexTemplates:
 
         Returns
         -------
-        tuple
-            tuple of mode(s)
+        dictionary
+            dictionary of tuples of mode(s) for each other_name
         """
-        return self.states[resname][self._modes]
+        modes = {}
+        onames = self.get_ordered_names_for(resname)
+        for oname in onames:
+            modes[oname] = self.states[oname][self._modes]
+        return modes
 
     def get_update_value_for(self, residue_set: frozenset[str], property: str) -> float:
         """Returns the value in the allowed updates dictionary.

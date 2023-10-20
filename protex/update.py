@@ -231,11 +231,11 @@ class KeepHUpdate(Update):
                     ######################
                     acceptor.update(force_to_be_updated, lamb)
 
-                donor.current_name = donor.alternativ_name
-                acceptor.current_name = acceptor.alternativ_name
+                donor.current_name = donor.alternativ_resname
+                acceptor.current_name = acceptor.alternativ_resname
 
-                assert donor.current_name != donor.alternativ_name
-                assert acceptor.current_name != acceptor.alternativ_name
+                assert donor.current_name != donor.alternativ_resname
+                assert acceptor.current_name != acceptor.alternativ_resname
 
                 # switch mode of used atom, WARNING can only be done after update finished, otherwise get_mode_for() doesn't work
                 donor.donors.remove(donor.used_atom)
@@ -375,11 +375,11 @@ class NaiveMCUpdate(Update):
         for candidate in candidates:
             candidate1_residue, candidate2_residue = candidate
             # after the update is finished the current_name attribute is updated (and since alternative_name depends on current_name it too is updated)
-            candidate1_residue.current_name = candidate1_residue.alternativ_name
-            candidate2_residue.current_name = candidate2_residue.alternativ_name
+            candidate1_residue.current_name = candidate1_residue.alternativ_resname
+            candidate2_residue.current_name = candidate2_residue.alternativ_resname
 
-            assert candidate1_residue.current_name != candidate1_residue.alternativ_name
-            assert candidate2_residue.current_name != candidate2_residue.alternativ_name
+            assert candidate1_residue.current_name != candidate1_residue.alternativ_resname
+            assert candidate2_residue.current_name != candidate2_residue.alternativ_resname
 
         # get new energy
         state = self.ionic_liquid.simulation.context.getState(getEnergy=True)
@@ -695,9 +695,13 @@ class StateUpdate:
         acceptor_resis_list = []
         acceptor_names_list = []
 
+        # BUG mode has to change with name!!! now it is stuck at original
+
         # loop over all residues and add the positions of the atoms that can be updated to the pos_dict
         for residue in self.ionic_liquid.residues:
-            # assert residue.current_name in self.ionic_liquid.templates.names
+            #assert residue.current_name in self.ionic_liquid.templates.names
+            logger.debug(residue.current_name)
+            logger.debug(residue.modes)
             if residue.current_name in self.ionic_liquid.templates.names:
                 if "donor" in residue.modes:
                     for atom in residue.donors:
@@ -716,5 +720,8 @@ class StateUpdate:
                             )])
                         acceptor_names_list.append(atom)
                         acceptor_resis_list.append(residue)
+                
+        logger.debug(acceptor_resis_list)
+        logger.debug(donor_resis_list)
 
         return donor_atoms_list, donor_resis_list, donor_names_list, acceptor_atoms_list, acceptor_resis_list, acceptor_names_list
