@@ -226,10 +226,11 @@ class KeepHUpdate(Update):
                 positions[atom_idx] = pos_equivalent
                 positions[equivalent_idx] = pos_atom
 
+                # TODO include this part again when relevant
                 # quick fix to allow 2 dummy Hs in D2OAC: also change position of dummy with Os
-                if resi.current_name == "OAC":
-                    idx_dummy = resi.get_idx_for_atom_name("HO1")
-                    positions[idx_dummy] = positions_copy[resi.get_idx_for_atom_name("HO2")]
+                # if resi.current_name == "OAC":
+                #     idx_dummy = resi.get_idx_for_atom_name("HO1")
+                #     positions[idx_dummy] = positions_copy[resi.get_idx_for_atom_name("HO2")]
 
                 # if resi.current_name == "OAC": # also exchange lone pairs and drudes
                 #     pos_atom_d = positions_copy[atom_idx+1] # got atom idxes from psf
@@ -291,23 +292,20 @@ class KeepHUpdate(Update):
                 self.ionic_liquid.templates.get_atom_name_for(acceptor.current_name)
             )
 
-
-        # account for PBC
-        boxl_vec = (
-            self.ionic_liquid.boxlength
-        )  # changed to store boxl as quantity in system class
-
         pos_acceptor_atom = positions_copy[idx_acceptor_atom]
         pos_donated_H = positions_copy[idx_donated_H]
 
         for i in range(0, 3):
             if (
-                abs(pos_acceptor_atom[i] - pos_donated_H[i]) > boxl_vec / 2
+                abs(pos_acceptor_atom[i] - pos_donated_H[i]) > self.boxl_vec / 2
             ):  # could also be some other value
+                print("PBC CORRECTION PERFORMED")
+                print(f"{pos_acceptor_atom=}")
+                print(f"{pos_donated_H=}")
                 if pos_acceptor_atom[i] > pos_donated_H[i]:
-                    pos_donated_H[i] = pos_donated_H[i] + boxl_vec
+                    pos_donated_H[i] = pos_donated_H[i] + self.boxl_vec
                 else:
-                    pos_donated_H[i] = pos_donated_H[i] - boxl_vec
+                    pos_donated_H[i] = pos_donated_H[i] - self.boxl_vec
 
         newbond_factor = (np.sqrt((pos_donated_H[0] - pos_acceptor_atom[0])**2+(pos_donated_H[1] - pos_acceptor_atom[1])**2+(pos_donated_H[2] - pos_acceptor_atom[2])**2) - 0.1)/(np.sqrt((pos_donated_H[0] - pos_acceptor_atom[0])**2+(pos_donated_H[1] - pos_acceptor_atom[1])**2+(pos_donated_H[2] - pos_acceptor_atom[2])**2))
 
@@ -338,7 +336,16 @@ class KeepHUpdate(Update):
         initial_e = state.getPotentialEnergy()
         if np.isnan(initial_e._value):
             raise RuntimeError(f"Energy is {initial_e}")
-
+        
+        # get the boxlength depending on ensemble
+        if self.ionic_liquid.ensemble == "nVT":
+            self.boxl_vec = (
+                self.ionic_liquid.boxlength
+            )  # changed to store boxl as quantity in system class
+        elif self.ionic_liquid.ensemble == "npT":
+            self.boxl_vec = self.ionic_liquid.simulation.context.getState().getPeriodicBoxVectors()[0][0] 
+        self.boxl = self.boxl_vec.value_in_unit(nanometers)
+        
         logger.info("Start changing states ...")
         assert nr_of_steps > 1, "Use an update step number of at least 2."
         for lamb in np.linspace(0, 1, nr_of_steps):
@@ -560,7 +567,7 @@ class NaiveMCUpdate(Update):
 
 
 class StateUpdate:
-    """Controls the update sheme and proposes the residues that need an update."""
+    """Controls the update scheme and proposes the residues that need an update."""
 
     @staticmethod
     def load(fname: str, updateMethod: Update) -> StateUpdate:
@@ -673,7 +680,6 @@ class StateUpdate:
             ##############################
             ##############################
             --- Update trial: {self.update_trial} ---
-            {self.history=}
             ##############################
             ##############################
             """
@@ -704,6 +710,17 @@ class StateUpdate:
         list[tuple[Residue, Residue]]
             A list with all the updated residue tuples
         """
+        
+        # get the boxlength depending on ensemble
+        if self.ionic_liquid.ensemble == "nVT":
+            self.boxl_vec = (
+                self.ionic_liquid.boxlength
+            )  # changed to store boxl as quantity in system class
+        elif self.ionic_liquid.ensemble == "npT":
+            self.boxl_vec = self.ionic_liquid.simulation.context.getState().getPeriodicBoxVectors()[0][0] 
+        self.boxl = self.boxl_vec.value_in_unit(nanometers)
+        print(f"{self.boxl=}")
+
         # calculate the distance betwen updateable residues
         pos_list, res_list = self._get_positions_for_mutation_sites()
         # propose the update candidates based on distances
@@ -739,7 +756,8 @@ class StateUpdate:
         from scipy.spatial.distance import cdist
 
         def _rPBC(
-            coor1, coor2, boxl=self.ionic_liquid.boxlength.value_in_unit(nanometers)
+            #coor1, coor2, boxl=self.ionic_liquid.boxlength.value_in_unit(nanometers)
+            coor1, coor2, boxl=self.boxl
         ):
             dx = abs(coor1[0] - coor2[0])
             if dx > boxl / 2:
@@ -860,6 +878,7 @@ class StateUpdate:
                     print(
                         f"{residue1.current_name}:{residue1.residue.id}:{charge_candidate_idx1}-{residue2.current_name}:{residue2.residue.id}:{charge_candidate_idx2} pair accepted ..."
                     )
+                    print(f"{r=}")
                     # residue.index 0-based through whole topology
                     print(
                         f"UpdatePair:{residue1.current_name}:{residue1.residue.index}:{charge_candidate_idx1}:{residue2.current_name}:{residue2.residue.index}:{charge_candidate_idx2}"

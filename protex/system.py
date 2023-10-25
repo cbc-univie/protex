@@ -393,13 +393,14 @@ class ProtexSystem:
         self.simulation: openmm.app.simulation.Simulation = simulation
         self.templates: ProtexTemplates = templates
         self.simulation_for_parameters = simulation_for_parameters
+        self.ensemble = "nVT"
         self._check_forces()
         self.detected_forces: set[str] = self._detect_forces()
         self.fast: bool = fast
         self.residues: list[Residue] = self._set_initial_states()
         self.boxlength: openmm.Quantity = (
-            simulation.context.getState().getPeriodicBoxVectors()[0][0]
-        )  # NOTE: supports only cubic boxes
+            simulation.context.getState().getPeriodicBoxVectors()[0][0] # NOTE: supports only cubic boxes and nVT -> changed in update.py to get at every step for npT
+        )  
 
     def dump(self, fname: str) -> None:
         """Pickle the current ProtexSystem object.
@@ -450,6 +451,8 @@ class ProtexSystem:
         """Will fail if a force is not covered."""
         for force in self.system.getForces():
             self.force_is_valid(type(force).__name__)
+            if type(force).__name__ == "MonteCarloBarostat": # find out if we have a barostat (maybe not the best place to do it?)
+                self.ensemble = "npT"
         if self.simulation_for_parameters is not None:
             for force in self.simulation_for_parameters.system.getForces():
                 self.force_is_valid(type(force).__name__)
@@ -757,7 +760,6 @@ class ProtexSystem:
             self.per_residue_forces[(mini, maxi)] = {}
             name = r.name
             self._fill_residue_templates(name)
-        print(self.residue_templates["FORA"]["HarmonicBondForce"])
 
         if self.fast:
             # this takes some time, but the update calls on the residues are then much faster

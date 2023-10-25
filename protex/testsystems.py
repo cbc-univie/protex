@@ -10,6 +10,8 @@ try:  # Syntax changed in OpenMM 7.6
         OpenMMException,
         Platform,
         XmlSerializer,
+        MonteCarloBarostat
+
     )
     from openmm.app import (
         PME,
@@ -19,7 +21,7 @@ try:  # Syntax changed in OpenMM 7.6
         HBonds,
         Simulation,
     )
-    from openmm.unit import angstroms, kelvin, picoseconds
+    from openmm.unit import angstroms, kelvin, picoseconds, atmosphere
 except ImportError:
     import simtk.openmm as mm
     from simtk.openmm import (
@@ -63,7 +65,7 @@ def setup_system(
     dummy_atom_type: str = "DUMH",
     cutoff: float = 11.0,
     switch: float = 10.0,
-    barostat=None
+    ensemble = "nVT"
 ):
     if dummy_atom_type is not None:
         # print(params.atom_types_str["DUM"].epsilon)
@@ -106,7 +108,8 @@ def setup_system(
         )
 
 
-    if barostat is not None:
+    if ensemble == "npT":
+        barostat = MonteCarloBarostat(1*atmosphere, 300*kelvin)
         system.addForce(barostat)
 
     for force in system.getForces():
@@ -240,6 +243,7 @@ def generate_complete_system(  # currently not in use
     dummy_atom_type: str,
     dummies: list[tuple[str, str]],
     use_plugin: bool,
+    ensemble = "nVT"
 ):
     psf, crd, params = load_charmm_files(
         psf_file=psf_file,
@@ -248,7 +252,7 @@ def generate_complete_system(  # currently not in use
         boxl=boxl,
     )
     system = setup_system(
-        psf, params, constraints=constraints, dummy_atom_type=dummy_atom_type
+        psf, params, constraints=constraints, dummy_atom_type=dummy_atom_type, ensemble=ensemble
     )
 
     simulation = setup_simulation(
@@ -325,10 +329,11 @@ def generate_im1h_oac_system(
     coll_freq: int = 10,
     drude_coll_freq: int = 100,
     dummy_atom_type: str = "DUMH",
-    dummies: list[tuple[str, str]] = [("IM1", "H7"), ("OAC", "H")],
+    dummies: list[tuple[str, str]] = [("IM1", "H7"), ("OAC", "HO1")],
     use_plugin: bool = True,
     platformname="CUDA",
     cuda_precision="single",
+    ensemble = "nVT"
 ):
     """Set up a solvated and parametrized system for IM1H/OAC."""
     base = f"{protex.__path__[0]}/forcefield/"
@@ -353,7 +358,7 @@ def generate_im1h_oac_system(
         boxl=boxl,
     )
     system = setup_system(
-        psf, params, constraints=constraints, dummy_atom_type=dummy_atom_type
+        psf, params, constraints=constraints, dummy_atom_type=dummy_atom_type, ensemble=ensemble
     )
 
     if restart_file is None:
@@ -389,6 +394,7 @@ def generate_h2o_system(
     use_plugin: bool = True,
     platformname="CUDA",
     cuda_precision="single",
+    ensemble = "nVT"
 ):
     """Set up a solvated and parametrized system for IM1H/OAC."""
     base = f"{protex.__path__[0]}/forcefield/"
@@ -420,6 +426,7 @@ def generate_h2o_system(
         dummy_atom_type=dummy_atom_type,
         cutoff=3,
         switch=2,
+        ensemble=ensemble
     )
 
     # if restart_file is None:
@@ -454,6 +461,7 @@ def generate_tfa_system(
     dummies: list[tuple[str, str]] = [("IM1", "H7"), ("OAC", "H")],
     use_plugin: bool = True,
     tfa_percent: int = 10,
+    ensemble = "nVT"
 ):
     """Set up a solvated and parametrized system for IM1H/OAC with tfa."""
     base = f"{protex.__path__[0]}/forcefield/"
@@ -479,7 +487,7 @@ def generate_tfa_system(
         boxl=boxl,
     )
     system = setup_system(
-        psf, params, constraints=constraints, dummy_atom_type=dummy_atom_type
+        psf, params, constraints=constraints, dummy_atom_type=dummy_atom_type, ensemble=ensemble
     )
 
     if restart_file is None:
@@ -514,6 +522,7 @@ def generate_small_box(
     use_plugin: bool = True,
     platformname="CUDA",
     cuda_precision="single",
+    ensemble = "nVT"
 ):
     """Set up a solvated and parametrized system for IM1H/OAC."""
     print(
@@ -541,7 +550,7 @@ def generate_small_box(
         boxl=boxl,
     )
     system = setup_system(
-        psf, params, constraints=constraints, dummy_atom_type=dummy_atom_type
+        psf, params, constraints=constraints, dummy_atom_type=dummy_atom_type, ensemble=ensemble
     )
 
     simulation = setup_simulation(
@@ -574,6 +583,7 @@ def generate_single_im1h_oac_system(  # does not have dummies
     use_plugin: bool = True,
     platformname="CUDA",
     cuda_precision="single",
+    ensemble = "nVT"
 ):
     """Set up a system with 1 IM1H, 1OAC, 1IM1 and 1 HOAC.
 
@@ -604,7 +614,7 @@ def generate_single_im1h_oac_system(  # does not have dummies
         boxl=boxl,
     )
     system = setup_system(
-        psf, params, constraints=constraints, dummy_atom_type=dummy_atom_type
+        psf, params, constraints=constraints, dummy_atom_type=dummy_atom_type, ensemble=ensemble
     )
 
     simulation = setup_simulation(
@@ -633,9 +643,9 @@ def generate_im1h_oac_dummy_system(
     coll_freq=10,
     drude_coll_freq=100,
     dummy_atom_type: str = "DUMH",
-    dummies: list[tuple[str, str]] = [("IM1", "H7"), ("OAC", "H")],
+    dummies: list[tuple[str, str]] = [("IM1", "H7"), ("OAC", "HO1")],
     use_plugin: bool = True,
-    barostat=None
+    ensemble = "nVT"
 ):
     """Set up a solvated and parametrized system for IM1H/OAC."""
     base = f"{protex.__path__[0]}/forcefield"
@@ -660,7 +670,7 @@ def generate_im1h_oac_dummy_system(
         boxl=boxl,
     )
     system = setup_system(
-        psf, params, constraints=constraints, dummy_atom_type=dummy_atom_type, barostat=barostat
+        psf, params, constraints=constraints, dummy_atom_type=dummy_atom_type, ensemble=ensemble
     )
 
     simulation = setup_simulation(
@@ -690,6 +700,7 @@ def generate_hpts_system(  # not in use? -> delete?
     dummy_atom_type: str = "DUMH",
     dummies: list[tuple[str, str]] = [("IM1", "H7"), ("OAC", "H"), ("HPTS", "H7")],
     use_plugin: bool = True,
+    ensemble = "nVT"
 ):
     """Set up a solvated and parametrized system for IM1H/OAC/HPTS."""
     base = f"{protex.__path__[0]}/forcefield/"
@@ -716,7 +727,7 @@ def generate_hpts_system(  # not in use? -> delete?
         boxl=boxl,
     )
     system = setup_system(
-        psf, params, constraints=constraints, dummy_atom_type=dummy_atom_type
+        psf, params, constraints=constraints, dummy_atom_type=dummy_atom_type, ensemble=ensemble
     )
 
     if restart_file is None:
@@ -754,6 +765,7 @@ def generate_hpts_meoh_system(
         ("MEOH", "HO2"),
     ],
     use_plugin: bool = True,
+    ensemble = "nVT"
 ):
     """Set up a solvated and parametrized system for IM1H/OAC/HPTS/MEOH."""
     base = f"{protex.__path__[0]}/forcefield/"
@@ -782,7 +794,7 @@ def generate_hpts_meoh_system(
         boxl=boxl,
     )
     system = setup_system(
-        psf, params, constraints=constraints, dummy_atom_type=dummy_atom_type
+        psf, params, constraints=constraints, dummy_atom_type=dummy_atom_type, ensemble=ensemble
     )
 
     simulation = setup_simulation(
@@ -816,6 +828,7 @@ def generate_hpts_meoh_lj04_system(
         ("MEOH", "HO2"),
     ],
     use_plugin: bool = True,
+    ensemble = "nVT"
 ):
     """Set up a solvated and parametrized system for IM1H/OAC/HPTS/MEOH."""
     base = f"{protex.__path__[0]}/forcefield/"
@@ -844,7 +857,7 @@ def generate_hpts_meoh_lj04_system(
         boxl=boxl,
     )
     system = setup_system(
-        psf, params, constraints=constraints, dummy_atom_type=dummy_atom_type
+        psf, params, constraints=constraints, dummy_atom_type=dummy_atom_type, ensemble=ensemble
     )
 
     simulation = setup_simulation(
@@ -875,6 +888,7 @@ def generate_im1h_fora_system(
         ("FORA", "HO1"),
     ],
     use_plugin: bool = True,
+    ensemble = "nVT"
 ):
     """Set up a solvated and parametrized system for IM1H/FORA."""
     base = f"{protex.__path__[0]}/forcefield/"
@@ -899,7 +913,7 @@ def generate_im1h_fora_system(
         boxl=boxl,
     )
     system = setup_system(
-        psf, params, constraints=constraints, dummy_atom_type=dummy_atom_type
+        psf, params, constraints=constraints, dummy_atom_type=dummy_atom_type, ensemble=ensemble
     )
 
     simulation = setup_simulation(
@@ -934,6 +948,7 @@ def generate_single_hpts_meoh_system(
         ("MEOH", "HO2"),
     ],
     use_plugin=True,
+    ensemble = "nVT"
 ):
     """Set up a solvated and parametrized system for IM1H/OAC."""
     print(
@@ -965,7 +980,7 @@ def generate_single_hpts_meoh_system(
         boxl=boxl,
     )
     system = setup_system(
-        psf, params, constraints=constraints, dummy_atom_type=dummy_atom_type
+        psf, params, constraints=constraints, dummy_atom_type=dummy_atom_type, ensemble=ensemble
     )
 
     simulation = setup_simulation(
@@ -997,7 +1012,7 @@ OAC_HOAC = {
         "equivalent_atom": "O1",
     },
     "HOAC": {
-        "atom_name": "HO2",
+        "atom_name": "HO1",
     },
 }
 
