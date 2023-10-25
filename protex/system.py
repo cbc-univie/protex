@@ -400,7 +400,7 @@ class ProtexSystem:
         self.residues: list[Residue] = self._set_initial_states()
         self.boxlength: openmm.Quantity = (
             simulation.context.getState().getPeriodicBoxVectors()[0][0] # NOTE: supports only cubic boxes and nVT -> changed in update.py to get at every step for npT
-        )  
+        )
 
     def dump(self, fname: str) -> None:
         """Pickle the current ProtexSystem object.

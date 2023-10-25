@@ -7,11 +7,10 @@ try:  # Syntax changed in OpenMM 7.6
     from openmm import (
         Context,
         DrudeNoseHooverIntegrator,
+        MonteCarloBarostat,
         OpenMMException,
         Platform,
         XmlSerializer,
-        MonteCarloBarostat
-
     )
     from openmm.app import (
         PME,
@@ -21,7 +20,7 @@ try:  # Syntax changed in OpenMM 7.6
         HBonds,
         Simulation,
     )
-    from openmm.unit import angstroms, kelvin, picoseconds, atmosphere
+    from openmm.unit import angstroms, atmosphere, kelvin, picoseconds
 except ImportError:
     import simtk.openmm as mm
     from simtk.openmm import (

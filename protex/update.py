@@ -336,16 +336,16 @@ class KeepHUpdate(Update):
         initial_e = state.getPotentialEnergy()
         if np.isnan(initial_e._value):
             raise RuntimeError(f"Energy is {initial_e}")
-        
+
         # get the boxlength depending on ensemble
         if self.ionic_liquid.ensemble == "nVT":
             self.boxl_vec = (
                 self.ionic_liquid.boxlength
             )  # changed to store boxl as quantity in system class
         elif self.ionic_liquid.ensemble == "npT":
-            self.boxl_vec = self.ionic_liquid.simulation.context.getState().getPeriodicBoxVectors()[0][0] 
+            self.boxl_vec = self.ionic_liquid.simulation.context.getState().getPeriodicBoxVectors()[0][0]
         self.boxl = self.boxl_vec.value_in_unit(nanometers)
-        
+
         logger.info("Start changing states ...")
         assert nr_of_steps > 1, "Use an update step number of at least 2."
         for lamb in np.linspace(0, 1, nr_of_steps):
@@ -710,14 +710,13 @@ class StateUpdate:
         list[tuple[Residue, Residue]]
             A list with all the updated residue tuples
         """
-        
         # get the boxlength depending on ensemble
         if self.ionic_liquid.ensemble == "nVT":
             self.boxl_vec = (
                 self.ionic_liquid.boxlength
             )  # changed to store boxl as quantity in system class
         elif self.ionic_liquid.ensemble == "npT":
-            self.boxl_vec = self.ionic_liquid.simulation.context.getState().getPeriodicBoxVectors()[0][0] 
+            self.boxl_vec = self.ionic_liquid.simulation.context.getState().getPeriodicBoxVectors()[0][0]
         self.boxl = self.boxl_vec.value_in_unit(nanometers)
         print(f"{self.boxl=}")
 
