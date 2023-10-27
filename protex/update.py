@@ -307,11 +307,17 @@ class KeepHUpdate(Update):
                 else:
                     pos_donated_H[i] = pos_donated_H[i] - self.boxl_vec
 
-        newbond_factor = (np.sqrt((pos_donated_H[0] - pos_acceptor_atom[0])**2+(pos_donated_H[1] - pos_acceptor_atom[1])**2+(pos_donated_H[2] - pos_acceptor_atom[2])**2) - 0.1)/(np.sqrt((pos_donated_H[0] - pos_acceptor_atom[0])**2+(pos_donated_H[1] - pos_acceptor_atom[1])**2+(pos_donated_H[2] - pos_acceptor_atom[2])**2))
+        # set position at exactly 1A from acceptor if r > 1.1A, otherwise at 90% of the distance
+        # NOTE we may have to adjust the criterion (is H-DUMH distance large enough?)
+        dist = np.sqrt((pos_donated_H[0] - pos_acceptor_atom[0])**2+(pos_donated_H[1] - pos_acceptor_atom[1])**2+(pos_donated_H[2] - pos_acceptor_atom[2])**2)
+        if dist > 0.11:
+            newbond_factor = (dist - 0.1)/dist
+        else:
+            newbond_factor = 0.1
 
         pos_accepted_H = pos_donated_H - newbond_factor * (
             pos_donated_H - pos_acceptor_atom
-        )  # set position at exactly 1 angstrom from acceptor -> more stable
+        )
 
         # atom name of acceptor alternative is the H that used to be the dummy H
         idx_accepted_H = acceptor.get_idx_for_atom_name(
