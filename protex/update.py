@@ -180,9 +180,11 @@ class KeepHUpdate(Update):
         ionic_liquid: ProtexSystem,
         to_adapt: list[tuple[str, int, frozenset[str]]] or None = None,
         all_forces: bool = True,
+        include_equivalent_atom: bool = False,
+        reorient: bool = False,
     ) -> None:
         super().__init__(
-            ionic_liquid, to_adapt, all_forces, )
+            ionic_liquid, to_adapt, all_forces, include_equivalent_atom, reorient)
 
     def dump(self, fname: str) -> None:
         to_pickle = [
@@ -213,7 +215,7 @@ class KeepHUpdate(Update):
                 # ) # need to know who is donor and acceptor, keep original sorting
 
                 donor, acceptor = candidate
-
+                
                 print(
                     f"{lamb}: donor: {donor.current_name}; charge:{donor.current_charge}: acceptor: {acceptor.current_name}; charge:{acceptor.current_charge}"
                 )
@@ -231,18 +233,24 @@ class KeepHUpdate(Update):
                     ######################
                     acceptor.update(force_to_be_updated, lamb)
 
-                donor.current_name = donor.alternativ_resname
-                acceptor.current_name = acceptor.alternativ_resname
-
-                assert donor.current_name != donor.alternativ_resname
-                assert acceptor.current_name != acceptor.alternativ_resname
-
-                # switch mode of used atom, WARNING can only be done after update finished, otherwise get_mode_for() doesn't work
+                logger.debug(donor)
+                logger.debug(donor.donors)
+                logger.debug(donor.used_atom)
                 donor.donors.remove(donor.used_atom)
                 donor.acceptors.append(donor.used_atom)
 
                 acceptor.acceptors.remove(acceptor.used_atom)
                 acceptor.donors.append(acceptor.used_atom)
+
+                donor.current_name = donor.alternativ_resname
+                acceptor.current_name = acceptor.alternativ_resname
+
+                # can't do this check any more, alternative resname after update is not clear
+                # assert donor.current_name != donor.alternativ_resname
+                # assert acceptor.current_name != acceptor.alternativ_resname
+
+                # switch mode of used atom, WARNING can only be done after update finished, otherwise get_mode_for() doesn't work
+                
 
             # update the context to include the new parameters
             for force_to_be_updated in self.allowed_forces:
@@ -594,9 +602,9 @@ class StateUpdate:
         # np.fill_diagonal(distance, np.inf) # not needed any more, as diagonal elements do not necessarily belong to the same residue (need to filter them out anyway)
         # # print(f"{distance=}, {distance_pbc=}")
         # # get a list of indices for elements in the distance matrix sorted by increasing distance
-        # # also combinations which are not psossible are in list
+        # # also combinations which are not possible are in list
         # # -> the selecion is then done with the check if both residues
-        # # corresponiding to the distance index are an allowed update
+        # # corresponding to the distance index are an allowed update
         shape = distance.shape
         idx = np.dstack(np.unravel_index(np.argsort(distance.ravel()), shape))[0]
         # print(f"{idx=}")
@@ -613,6 +621,7 @@ class StateUpdate:
             # is this the same residue?
             if donor == acceptor:
                 continue
+            assert donor.residue.index != acceptor.residue.index
             # is this combination allowed?
             if (
                 frozenset([donor.current_name, acceptor.current_name])
@@ -624,7 +633,7 @@ class StateUpdate:
                 prob = self.ionic_liquid.templates.allowed_updates[
                     frozenset([donor.current_name, acceptor.current_name])
                 ]["prob"]
-                logger.debug(f"{r_max=}, {prob=}")
+                #logger.debug(f"{r_max=}, {prob=}")
                 r = distance[candidate_idx1, candidate_idx2]
                 # break for loop if no pair can fulfill distance condition
                 if r > self.ionic_liquid.templates.overall_max_distance:
@@ -633,38 +642,42 @@ class StateUpdate:
                     charge_candidate_idx1 = donor.endstate_charge
                     charge_candidate_idx2 = acceptor.endstate_charge
 
-                    logger.debug(
-                        f"donor:{donor.original_name}:{donor.current_name}:{donor.residue.id}:{charge_candidate_idx1}:acceptor:{acceptor.original_name}:{acceptor.current_name}:{acceptor.residue.id}:{charge_candidate_idx2} pair suggested ..."
-                    )
-                    logger.debug(
-                        f"Distance between pairs: {distance[candidate_idx1,candidate_idx2]}"
-                    )
+                    # logger.debug(
+                    #     f"donor:{donor.original_name}:{donor.current_name}:{donor.residue.id}:{charge_candidate_idx1}:acceptor:{acceptor.original_name}:{acceptor.current_name}:{acceptor.residue.id}:{charge_candidate_idx2} pair suggested ..."
+                    # )
+                    # logger.debug(
+                    #     f"Distance between pairs: {distance[candidate_idx1,candidate_idx2]}"
+                    # )
                     proposed_candidate_pair = (donor, acceptor)
                     # reject if already used in this transfer call
                     # print(f"{residue1=}, {residue2=}")
                     if (
                         donor in used_residues or acceptor in used_residues
                     ):  # TODO: is this working with changing some variables in the classes?
-                        logger.debug(
-                            f"{donor.current_name}:{donor.residue.id}:{charge_candidate_idx1}:{acceptor.current_name}:{acceptor.residue.id}:{charge_candidate_idx2} pair rejected, bc used this transfer call ..."
-                        )
+                        # logger.debug(
+                        #     f"{donor.current_name}:{donor.residue.id}:{charge_candidate_idx1}:{acceptor.current_name}:{acceptor.residue.id}:{charge_candidate_idx2} pair rejected, bc used this transfer call ..."
+                        # )
                         continue
                     # reject if already in last 10 updates
                     if any(
                         set(proposed_candidate_pair) in sublist
                         for sublist in self.history
                     ):
-                        logger.debug(
-                            f"{donor.current_name}:{donor.residue.id}:{charge_candidate_idx1}:{acceptor.current_name}:{acceptor.residue.id}:{charge_candidate_idx2} pair rejected, bc in history ..."
-                        )
+                        # logger.debug(
+                        #     f"{donor.current_name}:{donor.residue.id}:{charge_candidate_idx1}:{acceptor.current_name}:{acceptor.residue.id}:{charge_candidate_idx2} pair rejected, bc in history ..."
+                        # )
 
                         continue
                     # accept otherwise
                     proposed_candidate_pairs.append(proposed_candidate_pair)
+                    info = f"donor: {donor.current_name}, acceptor: {acceptor.current_name}"
+                    logger.debug(info)
                     used_residues.append(donor)
                     donor.used_atom = donor_names_list[candidate_idx1]
+                    donor.mode_in_last_transfer = "donor"
                     used_residues.append(acceptor)
                     acceptor.used_atom = acceptor_names_list[candidate_idx2]
+                    acceptor.mode_in_last_transfer = "acceptor"
                     proposed_candidate_pair_sets.append(set(proposed_candidate_pair))
                     print(
                         f"{donor.current_name}:{donor.residue.id}:{charge_candidate_idx1}:{acceptor.current_name}:{acceptor.residue.id}:{charge_candidate_idx2} pair accepted ..."
@@ -673,7 +686,7 @@ class StateUpdate:
                     print(
                         f"UpdatePair:{donor.current_name}:{donor.residue.index}:{charge_candidate_idx1}:{acceptor.current_name}:{acceptor.residue.index}:{charge_candidate_idx2}"
                     )
-                # return proposed_candidate_pair
+                
         if len(proposed_candidate_pair_sets) == 0:
             self.history.append([])
         else:
@@ -695,15 +708,13 @@ class StateUpdate:
         acceptor_resis_list = []
         acceptor_names_list = []
 
-        # BUG mode has to change with name!!! now it is stuck at original
-
         # loop over all residues and add the positions of the atoms that can be updated to the pos_dict
         for residue in self.ionic_liquid.residues:
             #assert residue.current_name in self.ionic_liquid.templates.names
-            logger.debug(residue.current_name)
-            logger.debug(residue.modes)
+            # logger.debug(residue.current_name)
+            # logger.debug(residue.possible_modes)
             if residue.current_name in self.ionic_liquid.templates.names:
-                if "donor" in residue.modes:
+                if "donor" in residue.possible_modes:
                     for atom in residue.donors:
                         donor_atoms_list.append(pos[
                             residue.get_idx_for_atom_name(
@@ -712,7 +723,7 @@ class StateUpdate:
                         donor_names_list.append(atom)
                         donor_resis_list.append(residue)
 
-                if "acceptor" in residue.modes:
+                if "acceptor" in residue.possible_modes:
                     for atom in residue.acceptors:
                         acceptor_atoms_list.append(pos[
                             residue.get_idx_for_atom_name(
@@ -721,7 +732,13 @@ class StateUpdate:
                         acceptor_names_list.append(atom)
                         acceptor_resis_list.append(residue)
 
-        logger.debug(acceptor_resis_list)
-        logger.debug(donor_resis_list)
+        # logger.debug(acceptor_resis_list)
+        # logger.debug(donor_resis_list)
 
+        current_numbers: dict[
+            str, int
+        ] = self.ionic_liquid.get_current_number_of_each_residue_type()
+        assert len(donor_atoms_list) == len(donor_names_list) == len(donor_resis_list) == current_numbers["H2O"]*2+current_numbers["H3O"]*3
+        assert len(acceptor_atoms_list) == len(acceptor_names_list) == len(acceptor_resis_list) == current_numbers["H2O"]*2+current_numbers["OH"]*3
+        
         return donor_atoms_list, donor_resis_list, donor_names_list, acceptor_atoms_list, acceptor_resis_list, acceptor_names_list

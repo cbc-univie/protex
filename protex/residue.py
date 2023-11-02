@@ -32,8 +32,8 @@ def is_allowed_combination(residue1: Residue, atom_name1: str, residue2: Residue
     bool
         True if the combination is allowed, false otherwise
     """
-    mode1 = residue1.get_mode_for()
-    mode2 = residue2.get_mode_for()
+    mode1 = residue1.mode_in_last_transfer
+    mode2 = residue2.mode_in_last_transfer
     idx1 = residue1.residue.index
     idx2 = residue2.residue.index
 
@@ -118,7 +118,7 @@ class Residue:
         H_parameters,
         pair_12_13_exclusion_list,
         states,
-        modes,
+        modes_dict,
         starting_donors,
         starting_acceptors,
         donors,
@@ -136,7 +136,7 @@ class Residue:
         self.H_parameters = H_parameters
         # self.record_charge_state = []
         # self.record_charge_state.append(self.endstate_charge)  # Not used anywhere?
-        self.modes_dict = modes
+        self.modes_dict = modes_dict
         self.starting_donors = starting_donors
         self.starting_acceptors = starting_acceptors
         self.donors = donors
@@ -145,10 +145,17 @@ class Residue:
         self.pair_12_13_list = pair_12_13_exclusion_list
         self.states = states
         self.used_atom = None
+        self.mode_in_last_transfer = None
         self._setup_donors_acceptors()
 
     def __str__(self) -> str:
         return f"Residue {self.current_name}, {self.residue}"
+    
+    def __eq__(self, other) -> bool:
+        return self.residue.index == other.residue.index
+
+    def __hash__(self):
+        return hash(self.residue.index)
 
     def _get_shift(self, mode):
             if mode == "acceptor":
@@ -167,7 +174,7 @@ class Residue:
     def _get_H_D_NonbondedForce_parameters_at_setup(self, mode) -> list[float]:
         if mode == "donors": # want to have parameters for real H
             nonbonded_parm_new = self.H_parameters[self.current_name]["NonbondedForce"]
-        else: # want to have parameters for D
+        elif mode == "acceptors": # want to have parameters for D, TODO change to syntax for H_parameters if we want to use combined lone pair - dummy Hs
             nonbonded_parm_new = [unit.quantity.Quantity(value=0.0, unit=unit.elementary_charge), unit.quantity.Quantity(value=0.0, unit=unit.nanometer), unit.quantity.Quantity(value=0.0, unit=unit.kilojoule_per_mole)]
 
         return nonbonded_parm_new
@@ -189,21 +196,21 @@ class Residue:
 
                         force.setParticleParameters(idx, charge, sigma, epsilon)
 
-    @property
-    def update_resname(self):
-        """Updates the current name to the new name.
+    # @property
+    # def update_resname(self):
+    #     """Updates the current name to the new name.
 
-        This is based on the current residue name and the used_atom for this update.
-        The used_atom is reset afterwards, and has to be set again before using this funciton again.
-        This is on purpose, to only allow name changes once per update.
-        """
-        # do we need this? we only allow one update per residue anyways
-        new_name = self.alternativ_resname
-        # should be used only once per update
-        self.current_name = new_name
+    #     This is based on the current residue name and the used_atom for this update.
+    #     The used_atom is reset afterwards, and has to be set again before using this funciton again.
+    #     This is on purpose, to only allow name changes once per update.
+    #     """
+    #     # do we need this? we only allow one update per residue anyways
+    #     new_name = self.alternativ_resname
+    #     # should be used only once per update
+    #     self.current_name = new_name
 
     @property
-    def modes(self) -> bool:
+    def possible_modes(self) -> bool:
         """Determines which modes the current residue has.
 
         It depends on if the residue is currently OAC (acceptor) or HOAC (donor).
@@ -227,22 +234,27 @@ class Residue:
         str
             The alternative name
         """
-        if self.used_atom is None:
+        if self.mode_in_last_transfer is None:
             logger.critical(f"{self.original_name=}, {self.current_name=}, {self.residue.index=}, {self.residue=}")
-            raise RuntimeError("Currently no atom is selected that was used for the update. Determination of the alternative atom is not possible. Define self.used_atom first.")
+            raise RuntimeError("Residue was not used in any transfers yet.")
         # check position in ordered names and then decide if go to left (= less H -> donated), or right ->more H
         current_pos = self.ordered_names.index(self.current_name)
-        mode = self.get_mode_for()
-        logger.debug(self.current_name)
-        logger.debug(mode)
-        logger.debug(self.ordered_names)
-        logger.debug(self._get_shift(mode))
-        new_name = self.ordered_names[current_pos + self._get_shift(mode)]
+        mode = self.mode_in_last_transfer
+        # logger.debug(self.current_name)
+        # logger.debug(mode)
+        # logger.debug(self.ordered_names)
+        # logger.debug(self._get_shift(mode))
+        try:
+            new_name = self.ordered_names[current_pos + self._get_shift(mode)]
+        except(IndexError):
+            logger.debug(self.current_name)
+            logger.debug(mode)
+            logger.debug(self.ordered_names)
+            logger.debug(self._get_shift(mode))
         return new_name
 
-    def get_mode_for(self) -> str:
-        # BUG when do we want to check mode? (if it was an acceptor, now it is a donor. do we update this first or params?)
-        # confusing: mode vs modes
+    def get_mode_in_last_transfer_for(self) -> str:
+        # TODO do we need this?
         """Return the mode of the current resname and atom_name.
 
         Parameters
@@ -258,27 +270,31 @@ class Residue:
         if self.used_atom is None:
             raise RuntimeError("self.used_atom not set")
 
-        atom_name = self.used_atom
-
         # # original idea from Flo:
+        # atom_name = self.used_atom
         # for atom in self.states[self.current_name]["atoms"]:
         #     # also check if it is an equivalent atom, then the transfer is also fine
         #     possible_atom_names = [atom["name"], atom.get("equivalent_atom", None)]
         #     if atom_name in possible_atom_names:
         #         return atom["mode"]
-        # # now trying to make it more universal (mode is property of residue template, atoms are classified as donors or acceptors, but this canc change)
+        # # now trying to make it more universal (mode is property of residue template, atoms are classified as donors or acceptors, but this can change)
         logger.debug(self.current_name)
-        logger.debug(self.modes)
+        logger.debug(self.possible_modes)
         logger.debug(self.used_atom)
         logger.debug(self.acceptors)
         logger.debug(self.donors)
-        if atom_name in self.donors and "donor" in self.modes:
-            mode = "donor"
-        elif atom_name in self.acceptors and "acceptor" in self.modes:
-            mode = "acceptor"
-        else:
-            raise RuntimeError("Not allowed combination of atoms or modes.")
-        return mode
+        logger.debug(self.mode_in_last_transfer)
+
+        return self.mode_in_last_transfer
+
+        # # original idea from Marta
+        # if atom_name in self.donors and "donor" in self.possible_modes:
+        #     mode = "donor"
+        # elif atom_name in self.acceptors and "acceptor" in self.possible_modes:
+        #     mode = "acceptor"
+        # else:
+        #     raise RuntimeError("Not allowed combination of atoms or modes.")
+        # return mode
 
 
     def update(
@@ -654,7 +670,7 @@ class Residue:
         current_name = self.current_name
         new_name = self.alternativ_resname
         idx = self.atom_names.index(self.used_atom)
-        mode = self.get_mode_for()
+        mode = self.mode_in_last_transfer
 
         nonbonded_parm_old = self.parameters[current_name]["NonbondedForce"][idx]
 
@@ -662,7 +678,7 @@ class Residue:
 
         if mode == "acceptor": # used_atom changes from D to H
             nonbonded_parm_new = self.H_parameters[new_name]["NonbondedForce"]
-        else: # used_atom changes from H to D
+        elif mode == "donor": # used_atom changes from H to D
             nonbonded_parm_new = [unit.quantity.Quantity(value=0.0, unit=unit.elementary_charge), unit.quantity.Quantity(value=0.0, unit=unit.nanometer), unit.quantity.Quantity(value=0.0, unit=unit.kilojoule_per_mole)]
 
         charge_old, sigma_old, epsilon_old = nonbonded_parm_old

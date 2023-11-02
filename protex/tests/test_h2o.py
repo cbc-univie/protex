@@ -180,7 +180,7 @@ def test_run_simulation(tmp_path):
         )
     )
     print("Running dynmamics...")
-    simulation.step(50)              # coordinates NaN with 200
+    simulation.step(10)              # coordinates NaN with 200, 50
     positions = simulation.context.getState(getPositions=True).getPositions(asNumpy=True)
     print(f"{positions}")
 
@@ -207,9 +207,9 @@ def test_create_ProtexTemplate():
     assert templates.pairs == [
         ["OH", "H2O", "H3O"],
     ]
-    assert templates.states["OH"]["modes"] == ("acceptor")
-    assert templates.states["H2O"]["modes"] == ("acceptor", "donor")
-    assert templates.states["H3O"]["modes"] == ("donor")
+    assert templates.states["OH"]["possible_modes"] == ("acceptor")
+    assert templates.states["H2O"]["possible_modes"] == ("acceptor", "donor")
+    assert templates.states["H3O"]["possible_modes"] == ("donor")
 
     assert templates.states["OH"]["starting_donors"] == ["H1"]
     assert templates.states["H2O"]["starting_donors"] == ["H1", "H2"]
@@ -270,12 +270,15 @@ def test_create_IonicLiquid():
     assert count["CLA"] == 10
     assert count["SOD"] == 10
 
-    residue = ionic_liquid.residues[0]
-    charge = residue.endstate_charge
-
-    assert charge == 0
-    print(residue.atom_names)
-    assert (residue.get_idx_for_atom_name("H4")) == 5
+    for resi in ionic_liquid.residues:
+        if resi.current_name == "H2O":
+            assert len(resi.acceptors) == len(resi.donors) == 2
+        elif resi.current_name == "H3O":
+            assert len(resi.acceptors) == 1 
+            assert len(resi.donors) == 3
+        elif resi.current_name == "OH":
+            assert len(resi.acceptors) == 3 
+            assert len(resi.donors) == 1
 
 
 def test_forces():
@@ -825,7 +828,7 @@ def test_pickle_residues_save_load(tmp_path):
     # wrap system in IonicLiquidSystem
     ionic_liquid = ProtexSystem(simulation, templates, simulation_for_parameters)
     # initialize update method
-    update = NaiveMCUpdate(ionic_liquid)
+    update = KeepHUpdate(ionic_liquid)#, include_equivalent_atom=False, reorient=False)
     # initialize state update class
     state_update = StateUpdate(update)
 

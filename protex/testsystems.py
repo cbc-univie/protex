@@ -988,47 +988,47 @@ def generate_single_hpts_meoh_system(
 
 IM1H_IM1 = {
     "IM1H": {
-        "starting_donors": ["H7"], "starting_acceptors": [], "modes": ("donor",)
+        "starting_donors": ["H7"], "starting_acceptors": [], "possible_modes": ("donor",)
     },
     "IM1": {
-        "starting_donors": [], "starting_acceptors": ["H7"], "modes": ("acceptor",)
+        "starting_donors": [], "starting_acceptors": ["H7"], "possible_modes": ("acceptor",)
     },
 }
 
 OAC_HOAC = {
     "OAC": {
-        "starting_donors": [], "starting_acceptors": ["H"], "modes": ("acceptor",)
+        "starting_donors": [], "starting_acceptors": ["H"], "possible_modes": ("acceptor",)
     },
     "HOAC": {
-        "starting_donors": ["H"], "starting_acceptors": [], "modes": ("donor",)
+        "starting_donors": ["H"], "starting_acceptors": [], "possible_modes": ("donor",)
     },
 }
 
 HPTSH_HPTS = {
     "HPTSH": {
-        "starting_donors": ["H7"], "starting_acceptors": [], "modes": ("donor",)
+        "starting_donors": ["H7"], "starting_acceptors": [], "possible_modes": ("donor",)
         },
     "HPTS": {
-        "starting_donors": [], "starting_acceptors": ["H7"], "modes": ("acceptor",)
+        "starting_donors": [], "starting_acceptors": ["H7"], "possible_modes": ("acceptor",)
     },
 }
 
 MEOH_MEOH2 = {
     "MEOH": {
-        "starting_donors": ["HO1"], "starting_acceptors": ["HO2"], "modes": ("acceptor",)
+        "starting_donors": ["HO1"], "starting_acceptors": ["HO2"], "possible_modes": ("acceptor",)
     },
     "MEOH2": {
-        "starting_donors": ["HO1","HO2"], "starting_acceptors": [], "modes": ("donor",)
+        "starting_donors": ["HO1","HO2"], "starting_acceptors": [], "possible_modes": ("donor",)
     },
 }
 
 # NOTE: take care whether we want to use H2O or SWM4, SPCE etc. for residue name
-# TODO: at the moment fixed atom names, will revert to this at the beginning of each run -> reformulate so that donors and acceptors are filled based on atom type
+# TODO: at the moment fixed atom names, will revert to this at the beginning of each run -> reformulate so that donors and acceptors are filled based on atom type (should be ok with pickling residues)
 
 OH_H2O_H3O =  {
-    "OH":  {"starting_donors" : ["H1"], "starting_acceptors" : ["H2", "H3", "H4"], "modes" : ("acceptor")},
-    "H2O": {"starting_donors" : ["H1", "H2"], "starting_acceptors" : ["H3", "H4"], "modes" : ("acceptor", "donor")},
-    "H3O": {"starting_donors" : ["H1", "H2", "H3"], "starting_acceptors" : ["H4"], "modes" : ("donor")},
+    "OH":  {"starting_donors" : ["H1"], "starting_acceptors" : ["H2", "H3", "H4"], "possible_modes" : ("acceptor")},
+    "H2O": {"starting_donors" : ["H1", "H2"], "starting_acceptors" : ["H3", "H4"], "possible_modes" : ("acceptor", "donor")},
+    "H3O": {"starting_donors" : ["H1", "H2", "H3"], "starting_acceptors" : ["H4"], "possible_modes" : ("donor")},
 }
 
 # CLA = {"CLA": {"starting_donors" : [], "starting_acceptors" : [], "modes" : ()}}

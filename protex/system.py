@@ -111,7 +111,7 @@ class ProtexTemplates:
 
         self._starting_donors: str = "starting_donors"
         self._starting_acceptors: str = "starting_acceptors"
-        self._modes: str = "modes"
+        self._modes: str = "possible_modes"
 
     # TODO function to determine cutoffs from equilibration dcd (MDAnalysis, find shortest distances between atom pairs)
 
@@ -156,9 +156,9 @@ class ProtexTemplates:
             count_dict = {}
             for p in pair:
                 count_dict[p] = 0
-                if "donor" in self.states[p]["modes"]:
+                if "donor" in self.states[p]["possible_modes"]:
                     count_dict[p] +=1
-                if "acceptor" in self.states[p]["modes"]:
+                if "acceptor" in self.states[p]["possible_modes"]:
                     count_dict[p] -= 1
             sorted_count_dict = tuple(sorted(count_dict, key=lambda k:(count_dict[k],k)))
             # logger.debug(sorted_count_dict)
@@ -233,7 +233,7 @@ class ProtexTemplates:
         """
         return self.states[resname][self._starting_acceptors]
 
-    def get_modes_for(self, resname: str) -> tuple:
+    def get_possible_modes_for(self, resname: str) -> tuple:
         """Get the possible modes for a specific residue.
 
         Parameters
@@ -959,7 +959,7 @@ class ProtexSystem:
                         H_parameters,
                         pair_12_13_list,
                         self.templates.get_all_states_for(name),
-                        self.templates.get_modes_for(name),
+                        self.templates.get_possible_modes_for(name),
                         self.templates.get_starting_donors_for(name),
                         self.templates.get_starting_acceptors_for(name),
                         self.templates.get_starting_donors_for(name),
@@ -975,7 +975,7 @@ class ProtexSystem:
                         H_parameters,
                         pair_12_13_list,
                         self.templates.get_all_states_for(name),
-                        self.templates.get_modes_for(name),
+                        self.templates.get_possible_modes_for(name),
                         self.templates.get_starting_donors_for(name),
                         self.templates.get_starting_acceptors_for(name),
                         self.templates.get_starting_donors_for(name),
