@@ -215,7 +215,7 @@ class KeepHUpdate(Update):
                 # ) # need to know who is donor and acceptor, keep original sorting
 
                 donor, acceptor = candidate
-                
+
                 print(
                     f"{lamb}: donor: {donor.current_name}; charge:{donor.current_charge}: acceptor: {acceptor.current_name}; charge:{acceptor.current_charge}"
                 )
@@ -250,7 +250,7 @@ class KeepHUpdate(Update):
                 # assert acceptor.current_name != acceptor.alternativ_resname
 
                 # switch mode of used atom, WARNING can only be done after update finished, otherwise get_mode_for() doesn't work
-                
+
 
             # update the context to include the new parameters
             for force_to_be_updated in self.allowed_forces:
@@ -686,7 +686,7 @@ class StateUpdate:
                     print(
                         f"UpdatePair:{donor.current_name}:{donor.residue.index}:{charge_candidate_idx1}:{acceptor.current_name}:{acceptor.residue.index}:{charge_candidate_idx2}"
                     )
-                
+
         if len(proposed_candidate_pair_sets) == 0:
             self.history.append([])
         else:
@@ -740,5 +740,5 @@ class StateUpdate:
         ] = self.ionic_liquid.get_current_number_of_each_residue_type()
         assert len(donor_atoms_list) == len(donor_names_list) == len(donor_resis_list) == current_numbers["H2O"]*2+current_numbers["H3O"]*3
         assert len(acceptor_atoms_list) == len(acceptor_names_list) == len(acceptor_resis_list) == current_numbers["H2O"]*2+current_numbers["OH"]*3
-        
+
         return donor_atoms_list, donor_resis_list, donor_names_list, acceptor_atoms_list, acceptor_resis_list, acceptor_names_list

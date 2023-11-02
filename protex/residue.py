@@ -150,7 +150,7 @@ class Residue:
 
     def __str__(self) -> str:
         return f"Residue {self.current_name}, {self.residue}"
-    
+
     def __eq__(self, other) -> bool:
         return self.residue.index == other.residue.index
 

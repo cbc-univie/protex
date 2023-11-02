@@ -274,10 +274,10 @@ def test_create_IonicLiquid():
         if resi.current_name == "H2O":
             assert len(resi.acceptors) == len(resi.donors) == 2
         elif resi.current_name == "H3O":
-            assert len(resi.acceptors) == 1 
+            assert len(resi.acceptors) == 1
             assert len(resi.donors) == 3
         elif resi.current_name == "OH":
-            assert len(resi.acceptors) == 3 
+            assert len(resi.acceptors) == 3
             assert len(resi.donors) == 1
 
 
