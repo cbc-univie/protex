@@ -571,6 +571,129 @@ class NaiveMCUpdate(Update):
         #    300.0 * unit.kelvin
         # )
 
+class OnlyCTUpdate(Update):
+    """OnlyCTUpdate Performs just charge transfer update on molecule pairs in close proximity.
+
+    Parameters
+    ----------
+    UpdateMethod : [type]
+        [description]
+    """
+
+    @staticmethod
+    def load(fname: str, protex_system: ProtexSystem) -> NaiveMCUpdate:
+        """Load a pickled NaiveMCUpdate instance.
+
+        Parameters
+        ----------
+        fname : str
+            The file name
+        protex_system : ProtexSystem
+            A ProtexSystem instance
+
+        Returns
+        -------
+        OnlyCTUpdate
+            A OnlyCTUpdate instance
+        """
+        with open(fname, "rb") as inp:
+            from_pickle = pickle.load(inp)  # ensure correct order of arguments
+        update = OnlyCTUpdate(protex_system, *from_pickle)
+        return update
+
+    def __init__(
+        self,
+        ionic_liquid: ProtexSystem,
+        all_forces: bool = True,
+        to_adapt: list[tuple[str, int, frozenset[str]]] or None = None,
+        include_equivalent_atom: bool = False,
+        reorient: bool = False,
+    ) -> None:
+        super().__init__(
+            ionic_liquid, to_adapt, all_forces, include_equivalent_atom, reorient
+        )
+        if reorient:
+            raise NotImplementedError(
+                "Currently reorienting atoms if equivalent atoms are used is not implemented. Set reorient=False."
+            )
+
+    def dump(self, fname: str) -> None:
+        """Pickle the NaiveMCUpdate instance.
+
+        Parameters
+        ----------
+        fname : str
+            The file name
+        """
+        to_pickle = [
+            self.all_forces,
+            self.to_adapt,
+            self.include_equivalent_atom,
+            self.reorient,
+        ]  # enusre correct order of arguments
+        with open(fname, "wb") as outp:
+            pickle.dump(to_pickle, outp, pickle.HIGHEST_PROTOCOL)
+
+    def _update(self, candidates: list[tuple], nr_of_steps: int) -> None:
+        logger.info("called _update")
+        # get current state
+        state = self.ionic_liquid.simulation.context.getState(getEnergy=True)
+        # get initial energy
+        initial_e = state.getPotentialEnergy()
+        if np.isnan(initial_e._value):
+            raise RuntimeError(f"Energy is {initial_e}")
+
+        logger.info("Start changing states ...")
+        assert nr_of_steps > 1, "Use an update step number of at least 2."
+        for lamb in np.linspace(0, 1, nr_of_steps):
+            # for lamb in reversed(np.linspace(1, 0, nr_of_steps, endpoint=False)):
+            for candidate in candidates:
+                # retrive residue instances
+                candidate1_residue, candidate2_residue = sorted(
+                    candidate, key=lambda candidate: candidate.current_name
+                )
+
+                print(
+                    f"{lamb}: candiadate_1: {candidate1_residue.current_name}; charge:{candidate1_residue.current_charge}: candiadate_2: {candidate2_residue.current_name}; charge:{candidate2_residue.current_charge}"
+                )
+
+                for force_to_be_updated in self.allowed_forces:
+                    ######################
+                    # candidate1
+                    ######################
+                    candidate1_residue.update(force_to_be_updated, lamb)
+
+                    ######################
+                    # candidate2
+                    ######################
+                    candidate2_residue.update(force_to_be_updated, lamb)
+
+            # update the context to include the new parameters
+            for force_to_be_updated in self.allowed_forces:
+                self.ionic_liquid.update_context(force_to_be_updated)
+
+            # get new energy
+            state = self.ionic_liquid.simulation.context.getState(getEnergy=True)
+            new_e = state.getPotentialEnergy()
+            if np.isnan(new_e._value):
+                raise RuntimeError(f"Energy is {new_e}")
+
+            self.ionic_liquid.simulation.step(1)
+
+        for candidate in candidates:
+            candidate1_residue, candidate2_residue = candidate
+            # after the update is finished the current_name attribute is updated (and since alternative_name depends on current_name it too is updated)
+            candidate1_residue.current_name = candidate1_residue.alternativ_name
+            candidate2_residue.current_name = candidate2_residue.alternativ_name
+
+            assert candidate1_residue.current_name != candidate1_residue.alternativ_name
+            assert candidate2_residue.current_name != candidate2_residue.alternativ_name
+
+        # get new energy
+        state = self.ionic_liquid.simulation.context.getState(getEnergy=True)
+        new_e = state.getPotentialEnergy()
+        logger.info(f"Energy before/after state change:{initial_e}/{new_e}")
+
 
 class StateUpdate:
     """Controls the update scheme and proposes the residues that need an update."""
@@ -668,7 +791,9 @@ class StateUpdate:
         """Deprecated 1.1."""
         res_dict = {
             "IM1H": 0,
+            "IM1H7": 0,
             "OAC": 0,
+            "OAC7": 0,
             "IM1": 0,
             "HOAC": 0,
             "HPTS": 0,
@@ -701,7 +826,7 @@ class StateUpdate:
             """
         )
 
-    def update(self, nr_of_steps: int = 2) -> list[tuple[Residue, Residue]]:
+    def update(self, nr_of_steps: int = 2, transfer: str ="proton") -> list[tuple[Residue, Residue]]:
         r"""Updates the current state using the method defined in the UpdateMethod class.
 
         Parameters
@@ -727,7 +852,7 @@ class StateUpdate:
         print(f"{self.boxl=}")
 
         # calculate the distance betwen updateable residues
-        pos_list, res_list = self._get_positions_for_mutation_sites()
+        pos_list, res_list = self._get_positions_for_mutation_sites(transfer=transfer)
         # propose the update candidates based on distances
         self._print_start()
         candidate_pairs = self._propose_candidate_pair(pos_list, res_list)
@@ -895,58 +1020,86 @@ class StateUpdate:
             self.history.append(proposed_candidate_pair_sets)
         return proposed_candidate_pairs
 
-    def _get_positions_for_mutation_sites(self) -> tuple[list[float], list[Residue]]:
+    def _get_positions_for_mutation_sites(self, transfer) -> tuple[list[float], list[Residue]]:
         """_get_positions_for_mutation_sites returns."""
-        pos = self.ionic_liquid.simulation.context.getState(
-            getPositions=True
-        ).getPositions(asNumpy=True)
+        
+        if transfer == "proton":        
+            pos = self.ionic_liquid.simulation.context.getState(
+                getPositions=True
+            ).getPositions(asNumpy=True)
 
-        # fill in the positions for each species
-        pos_list = []
-        res_list = []
+            # fill in the positions for each species
+            pos_list = []
+            res_list = []
 
-        # loop over all residues and add the positions of the atoms that can be updated to the pos_dict
-        for residue in self.ionic_liquid.residues:
-            # assert residue.current_name in self.ionic_liquid.templates.names
-            if residue.current_name in self.ionic_liquid.templates.names:
-                residue.equivalent_atom_pos_in_list = None
-                # get the position of the atom (Hydrogen or the possible acceptor)
-                # new idea: just make one list with all positions and then calc distances of everything with everything... -> not so fast, but i need i.e. IM1H-IM1
-                pos_list.append(
-                    pos[
-                        residue.get_idx_for_atom_name(
-                            self.ionic_liquid.templates.get_atom_name_for(
-                                residue.current_name
-                            )
-                        )
-                        # this needs the atom idx to be the same for both topologies
-                        # TODO: maybe get rid of this caveat
-                        # maybe some mapping between possible residue states and corresponding atom positions
-                    ]
-                )
-                res_list.append(residue)
-
-                if (
-                    self.updateMethod.include_equivalent_atom
-                    and self.ionic_liquid.templates.has_equivalent_atom(
-                        residue.current_name
-                    )
-                ):
+            # loop over all residues and add the positions of the atoms that can be updated to the pos_dict
+            for residue in self.ionic_liquid.residues:
+                # assert residue.current_name in self.ionic_liquid.templates.names
+                if residue.current_name in self.ionic_liquid.templates.names:
+                    residue.equivalent_atom_pos_in_list = None
+                    # get the position of the atom (Hydrogen or the possible acceptor)
+                    # new idea: just make one list with all positions and then calc distances of everything with everything... -> not so fast, but i need i.e. IM1H-IM1
                     pos_list.append(
                         pos[
                             residue.get_idx_for_atom_name(
-                                self.ionic_liquid.templates.get_equivalent_atom_for(
+                                self.ionic_liquid.templates.get_atom_name_for(
                                     residue.current_name
                                 )
                             )
+                            # this needs the atom idx to be the same for both topologies
+                            # TODO: maybe get rid of this caveat
+                            # maybe some mapping between possible residue states and corresponding atom positions
                         ]
                     )
-                    residue.equivalent_atom_pos_in_list = len(
-                        res_list
-                    )  # store idx to know which coordinates where used for distance
+                    res_list.append(residue)
 
-                    res_list.append(
-                        residue
-                    )  # add second time the residue to have same length of pos_list and res_list
+                    if (
+                        self.updateMethod.include_equivalent_atom
+                        and self.ionic_liquid.templates.has_equivalent_atom(
+                            residue.current_name
+                        )
+                    ):
+                        pos_list.append(
+                            pos[
+                                residue.get_idx_for_atom_name(
+                                    self.ionic_liquid.templates.get_equivalent_atom_for(
+                                        residue.current_name
+                                    )
+                                )
+                            ]
+                        )
+                        residue.equivalent_atom_pos_in_list = len(
+                            res_list
+                        )  # store idx to know which coordinates where used for distance
+
+                        res_list.append(
+                            residue
+                        )  # add second time the residue to have same length of pos_list and res_list
+            
+        elif transfer == "charge":
+            # NOTE now getting positions of everything and calculating distance between all atoms
+            # TODO maybe change to COM/COG
+            pos = self.ionic_liquid.simulation.context.getState(
+                getPositions=True
+            ).getPositions(asNumpy=True)
+
+            # fill in the positions for each species
+            pos_list = []
+            res_list = []
+
+            # loop over all residues and add the positions of the atoms that can be updated to the pos_dict
+            for residue in self.ionic_liquid.residues:
+                # assert residue.current_name in self.ionic_liquid.templates.names
+                if residue.current_name in self.ionic_liquid.templates.names:
+                    for atom in self.ionic_liquid.templates.get_atom_names_for(residue.current_name):
+                        pos_list.append(
+                            pos[
+                                residue.get_idx_for_atom_name(atom)
+                                # this needs the atom idx to be the same for both topologies
+                                # TODO: maybe get rid of this caveat
+                                # maybe some mapping between possible residue states and corresponding atom positions
+                            ]
+                        )
+                        res_list.append(residue)
 
         return pos_list, res_list

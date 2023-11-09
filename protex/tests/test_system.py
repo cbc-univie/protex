@@ -67,6 +67,8 @@ from ..system import ProtexSystem, ProtexTemplates
 from ..testsystems import (
     IM1H_IM1,
     OAC_HOAC,
+    OAC_OAC7, 
+    IM1H_IM1H7,
     generate_im1h_oac_dummy_system,
     generate_im1h_oac_system,
     generate_single_im1h_oac_system,
@@ -639,6 +641,30 @@ def test_create_IonicLiquidTemplate():
     assert neutral_prob == -2.33
     ionic_prob = templates.get_update_value_for(frozenset(["IM1H", "OAC"]), "prob")
     assert ionic_prob == 2.33
+
+def test_create_IonicLiquidTemplate_for_charge_transfer():
+    allowed_updates = {}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_min": 0.175, "r_max": 0.21, "prob": 0.5}  # r_max in nanometer, prob zwischen 0 und 1
+    allowed_updates[frozenset(["IM1H7", "OAC7"])] = {"r_min": 0.165, "r_max": 0.21, "prob": 0.5} 
+
+    templates = ProtexTemplates([OAC_OAC7, IM1H_IM1H7], (allowed_updates))
+
+    r = templates.get_residue_name_for_coupled_state("OAC")
+    print(r)
+    assert r == "OAC7"
+    r = templates.get_residue_name_for_coupled_state("IM1H")
+    print(r)
+    assert r == "IM1H7"
+    
+
+    print("###################")
+    assert templates.pairs == [["OAC", "OAC7"], ["IM1H", "IM1H7"]]
+
+    assert sorted(templates.names) == sorted(["OAC", "OAC7", "IM1H", "IM1H7"])
+    print(templates.allowed_updates)
+
+    print(templates.names)
+   
 
 
 def test_create_IonicLiquid():

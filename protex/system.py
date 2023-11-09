@@ -103,6 +103,7 @@ class ProtexTemplates:
         )
         # store names in variables, in case syntax for states dict changes
         self._atom_name: str = "atom_name"
+        self._atom_names: tuple(str) = "atom_names" # TODO clear up confusing syntax
         self._equivalent_atom: str = "equivalent_atom"
 
     def dump(self, fname: str) -> None:
@@ -130,6 +131,21 @@ class ProtexTemplates:
             The atom name
         """
         return self.states[resname][self._atom_name]
+    
+    def get_atom_names_for(self, resname: str) -> str:
+        """Get the atom names for a specific residue.
+
+        Parameters
+        ----------
+        resname : str
+            The residue name
+
+        Returns
+        -------
+        tup
+            The tuple of atom names (used for charge transfer)
+        """
+        return self.states[resname][self._atom_names]
 
     def has_equivalent_atom(self, resname: str) -> bool:
         """Check if a given residue has an equivalent atom defined.
@@ -485,7 +501,7 @@ class ProtexSystem:
     def _extract_templates(self, query_name: str) -> defaultdict:
         # returns the forces for the residue name
         forces_dict = defaultdict(list)
-
+        
         # if there is an additional parameter file with all possible residues,
         # use this for getting the templates
         if self.simulation_for_parameters is not None:
@@ -874,6 +890,7 @@ class ProtexSystem:
         residue_counts: dict[str, int] = {}
 
         for pm_residue in parameters.residues:
+            print(pm_residue.name)
             if pm_residue.name in pm_unique_residues:
                 continue
             else:
@@ -1031,6 +1048,7 @@ class ProtexSystem:
         -------
         None
         """
+        
         if psf_for_parameters is None:
             psf_for_parameters = old_psf_infname
 
