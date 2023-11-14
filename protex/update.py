@@ -160,6 +160,7 @@ class Update(ABC):
             self.ionic_liquid.templates.set_update_value_for(
                 update_set, "prob", new_prob
             )
+           
             print(f"New Prob for {update_set}: {new_prob}")
 
 
@@ -196,7 +197,7 @@ class KeepHUpdate(Update):
 
     def _update(self, candidates: list[tuple], nr_of_steps: int) -> None:
         logger.info("called _update")
-
+        
         # get current state
         state = self.ionic_liquid.simulation.context.getState(getEnergy=True)
         # get initial energy
@@ -207,13 +208,8 @@ class KeepHUpdate(Update):
         logger.info("Start changing states ...")
         assert nr_of_steps > 1, "Use an update step number of at least 2."
         for lamb in np.linspace(0, 1, nr_of_steps):
-            # for lamb in reversed(np.linspace(1, 0, nr_of_steps, endpoint=False)):
+            logger.debug(lamb)
             for candidate in candidates:
-                # # retrive residue instances
-                # candidate1_residue, candidate2_residue = sorted(
-                #     candidate, key=lambda candidate: candidate.current_name
-                # ) # need to know who is donor and acceptor, keep original sorting
-
                 donor, acceptor = candidate
 
                 print(
@@ -227,32 +223,13 @@ class KeepHUpdate(Update):
                     ######################
                     donor.update(force_to_be_updated, lamb)
 
-
                     ######################
                     # candidate2
                     ######################
                     acceptor.update(force_to_be_updated, lamb)
 
-                logger.debug(donor)
-                logger.debug(donor.donors)
-                logger.debug(donor.used_atom)
-                donor.donors.remove(donor.used_atom)
-                donor.acceptors.append(donor.used_atom)
-
-                acceptor.acceptors.remove(acceptor.used_atom)
-                acceptor.donors.append(acceptor.used_atom)
-
-                donor.current_name = donor.alternativ_resname
-                acceptor.current_name = acceptor.alternativ_resname
-
-                # can't do this check any more, alternative resname after update is not clear
-                # assert donor.current_name != donor.alternativ_resname
-                # assert acceptor.current_name != acceptor.alternativ_resname
-
-                # switch mode of used atom, WARNING can only be done after update finished, otherwise get_mode_for() doesn't work
-
-
-            # update the context to include the new parameters
+                
+            # update the context to include the new parameters (do this in every lambda step)
             for force_to_be_updated in self.allowed_forces:
                 self.ionic_liquid.update_context(force_to_be_updated)
 
@@ -263,6 +240,84 @@ class KeepHUpdate(Update):
                 raise RuntimeError(f"Energy is {new_e}")
 
             self.ionic_liquid.simulation.step(1)
+        
+        # update names and involved atoms after last lambda step
+        for candidate in candidates:
+            donor, acceptor = candidate
+            # candidate_idxs = (donor.residue.index, acceptor.residue.index)
+            # logger.debug("############# BEFORE UPDATE ################")
+            # logger.debug(candidate_idxs)
+            # logger.debug(donor)
+            # logger.debug(donor.current_name)
+            # logger.debug(donor.__hash__)
+            # logger.debug(donor.donors)
+            # logger.debug(donor.used_atom)
+            # logger.debug(acceptor)
+            # logger.debug(acceptor.current_name)
+            # logger.debug(acceptor.__hash__)
+            # logger.debug(acceptor.donors)
+            # logger.debug(acceptor.used_atom)
+            # nexts = candidates[candidates.index(candidate)+2]
+            # ndon, nacc = nexts
+            # logger.debug(ndon.current_name)
+            # logger.debug(nacc.current_name)
+            # logger.debug(ndon.donors)
+            # logger.debug(nacc.acceptors)
+            assert donor.mode_in_last_transfer == "donor"
+            assert acceptor.mode_in_last_transfer == "acceptor"
+            # assert (donor.current_name == "H3O" or donor.current_name == "H2O")
+            # if donor.current_name == "H2O":
+            #     assert len(donor.donors) == 2
+            #     assert len(donor.acceptors) == 2
+            # if donor.current_name == "H3O":
+            #     assert len(donor.donors) == 3
+            #     assert len(donor.acceptors) == 1
+            # assert (acceptor.current_name == "OH" or acceptor.current_name == "H2O")
+            # if acceptor.current_name == "H2O":
+            #     assert len(acceptor.donors) == 2
+            #     assert len(acceptor.acceptors) == 2
+            # if acceptor.current_name == "OH":
+            #     assert len(acceptor.donors) == 1
+            #     assert len(acceptor.acceptors) == 3
+            # assert (donor.used_atom in donor.donors and acceptor.used_atom in acceptor.acceptors)
+            
+            # NOTE this works with deepcopy, why doesn't it work without copy, like the current_name?
+            ddonors = copy.deepcopy(donor.donors)
+            dacceptors = copy.deepcopy(donor.acceptors)
+            ddonors.remove(donor.used_atom)
+            dacceptors.append(donor.used_atom)
+            donor.donors = ddonors
+            donor.acceptors = dacceptors
+
+            adonors = copy.deepcopy(acceptor.donors)
+            aacceptors = copy.deepcopy((acceptor.acceptors))
+            adonors.append(acceptor.used_atom)
+            aacceptors.remove(acceptor.used_atom)
+            acceptor.donors = adonors
+            acceptor.acceptors = aacceptors
+
+            donor.current_name = donor.alternativ_resname
+            acceptor.current_name = acceptor.alternativ_resname
+
+            # logger.debug("############# AFTER UPDATE ################")
+            # candidate_idxs = (donor.residue.index, acceptor.residue.index)
+            # logger.debug(candidate_idxs)
+            # logger.debug(donor)
+            # logger.debug(donor.current_name)
+            # logger.debug(donor.__hash__)
+            # logger.debug(donor.donors)
+            # logger.debug(donor.used_atom)
+            # logger.debug(acceptor)
+            # logger.debug(acceptor.current_name)
+            # logger.debug(acceptor.__hash__)
+            # logger.debug(acceptor.donors)
+            # logger.debug(acceptor.used_atom)
+            # nexts = candidates[candidates.index(candidate)+2]
+            # ndon, nacc = nexts
+            # logger.debug(ndon.current_name)
+            # logger.debug(nacc.current_name)
+            # logger.debug(ndon.donors)
+            # logger.debug(nacc.acceptors)
 
         # get new energy
         state = self.ionic_liquid.simulation.context.getState(getEnergy=True)
@@ -352,7 +407,7 @@ class NaiveMCUpdate(Update):
                 candidate1_residue, candidate2_residue = sorted(
                     candidate, key=lambda candidate: candidate.current_name
                 )
-
+                
                 print(
                     f"{lamb}: candiadate_1: {candidate1_residue.current_name}; charge:{candidate1_residue.current_charge}: candiadate_2: {candidate2_residue.current_name}; charge:{candidate2_residue.current_charge}"
                 )
@@ -616,8 +671,27 @@ class StateUpdate:
         used_residues = []
         # check if charge transfer is possible
         for candidate_idx1, candidate_idx2 in idx:
-            donor: Residue = donor_resis_list[candidate_idx1]
-            acceptor: Residue = acceptor_resis_list[candidate_idx2]
+            donor = donor_resis_list[candidate_idx1]
+            assert (donor.current_name == "H3O" or donor.current_name == "H2O")
+            if donor.current_name == "H2O":
+                assert len(donor.donors) == 2
+                assert len(donor.acceptors) == 2
+                assert donor.possible_modes == ("acceptor", "donor")
+            if donor.current_name == "H3O":
+                assert len(donor.donors) == 3
+                assert len(donor.acceptors) == 1
+                assert donor.possible_modes == ("donor")
+            
+            acceptor = acceptor_resis_list[candidate_idx2]
+            assert (acceptor.current_name == "OH" or acceptor.current_name == "H2O")
+            if acceptor.current_name == "H2O":
+                assert len(acceptor.donors) == 2
+                assert len(acceptor.acceptors) == 2
+                assert acceptor.possible_modes == ("acceptor", "donor")
+            if acceptor.current_name == "OH":
+                assert len(acceptor.donors) == 1
+                assert len(acceptor.acceptors) == 3
+                assert acceptor.possible_modes == ("acceptor")
             # is this the same residue?
             if donor == acceptor:
                 continue
@@ -663,15 +737,15 @@ class StateUpdate:
                         set(proposed_candidate_pair) in sublist
                         for sublist in self.history
                     ):
-                        # logger.debug(
-                        #     f"{donor.current_name}:{donor.residue.id}:{charge_candidate_idx1}:{acceptor.current_name}:{acceptor.residue.id}:{charge_candidate_idx2} pair rejected, bc in history ..."
-                        # )
+                        logger.debug(
+                            f"{donor.current_name}:{donor.residue.id}:{charge_candidate_idx1}:{acceptor.current_name}:{acceptor.residue.id}:{charge_candidate_idx2} pair rejected, bc in history ..."
+                        )
 
                         continue
                     # accept otherwise
                     proposed_candidate_pairs.append(proposed_candidate_pair)
-                    info = f"donor: {donor.current_name}, acceptor: {acceptor.current_name}"
-                    logger.debug(info)
+                    # info = f"donor: {donor.current_name}, acceptor: {acceptor.current_name}"
+                    # logger.debug(info)
                     used_residues.append(donor)
                     donor.used_atom = donor_names_list[candidate_idx1]
                     donor.mode_in_last_transfer = "donor"
@@ -679,6 +753,7 @@ class StateUpdate:
                     acceptor.used_atom = acceptor_names_list[candidate_idx2]
                     acceptor.mode_in_last_transfer = "acceptor"
                     proposed_candidate_pair_sets.append(set(proposed_candidate_pair))
+                    
                     print(
                         f"{donor.current_name}:{donor.residue.id}:{charge_candidate_idx1}:{acceptor.current_name}:{acceptor.residue.id}:{charge_candidate_idx2} pair accepted ..."
                     )
@@ -691,6 +766,8 @@ class StateUpdate:
             self.history.append([])
         else:
             self.history.append(proposed_candidate_pair_sets)
+        
+
         return proposed_candidate_pairs
 
     def _get_positions_for_mutation_sites(self) -> tuple[list[float], list[Residue]]:
@@ -714,6 +791,21 @@ class StateUpdate:
             # logger.debug(residue.current_name)
             # logger.debug(residue.possible_modes)
             if residue.current_name in self.ionic_liquid.templates.names:
+                #logger.debug(residue.donors)
+                #logger.debug(residue.acceptors)
+                if residue.current_name == "H2O":
+                    assert len(residue.donors) == 2
+                    assert len(residue.acceptors) == 2
+                    assert residue.possible_modes == ("acceptor", "donor")
+                if residue.current_name == "H3O":
+                    assert len(residue.donors) == 3
+                    assert len(residue.acceptors) == 1
+                    assert residue.possible_modes == ("donor")
+                if residue.current_name == "OH":
+                    assert len(residue.donors) == 1
+                    assert len(residue.acceptors) == 3
+                    assert residue.possible_modes == ("acceptor")
+
                 if "donor" in residue.possible_modes:
                     for atom in residue.donors:
                         donor_atoms_list.append(pos[

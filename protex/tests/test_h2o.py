@@ -832,19 +832,35 @@ def test_pickle_residues_save_load(tmp_path):
     # initialize state update class
     state_update = StateUpdate(update)
 
+    for i in range(10):
+        print(ionic_liquid.residues[i].current_name, ionic_liquid.residues[i].donors)
+
     #ionic_liquid.simulation.step(50)
     state_update.update(2)
 
+    before_loading = [[ionic_liquid.residues[i].current_name, ionic_liquid.residues[i].donors, ionic_liquid.residues[i].mode_in_last_transfer] for i in range(10)]
+    # for i in range(10):
+    #     print(ionic_liquid.residues[i].current_name, ionic_liquid.residues[i].donors, ionic_liquid.residues[i].mode_in_last_transfer)
 
     ionic_liquid.saveState(f"{tmp_path}/state.rst")
     ionic_liquid.saveCheckpoint(f"{tmp_path}/checkpoint.rst")
     ionic_liquid.dump(f"{tmp_path}/system.pkl")
 
+    simulation = generate_toh2_system(use_plugin=False)
+    simulation_for_parameters = generate_toh2_system(use_plugin=False)
 
-    ionic_liquid2 = ionic_liquid  # copy.deepcopy(ionic_liquid)
-    ionic_liquid2.load(f"{tmp_path}/system.pkl", ionic_liquid2.simulation, ionic_liquid2.simulation_for_parameters)
+    ionic_liquid2 = ProtexSystem.load(f"{tmp_path}/system.pkl", simulation, simulation_for_parameters)
+    
+    # print("####### after load #########")
+    # for i in range(10):
+    #     print(ionic_liquid2.residues[i].current_name, ionic_liquid2.residues[i].donors, ionic_liquid2.residues[i].mode_in_last_transfer)
+    
     ionic_liquid2.loadState(f"{tmp_path}/state.rst")
     ionic_liquid2.loadCheckpoint(f"{tmp_path}/checkpoint.rst")
+
+    after_loading = [[ionic_liquid.residues[i].current_name, ionic_liquid.residues[i].donors, ionic_liquid.residues[i].mode_in_last_transfer] for i in range(10)]
+
+    assert before_loading == after_loading
 
 
 #####################

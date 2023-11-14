@@ -146,7 +146,7 @@ class Residue:
         self.states = states
         self.used_atom = None
         self.mode_in_last_transfer = None
-        self._setup_donors_acceptors()
+        #self._setup_donors_acceptors()
 
     def __str__(self) -> str:
         return f"Residue {self.current_name}, {self.residue}"
@@ -163,38 +163,39 @@ class Residue:
             if mode == "donor":
                 return -1
 
-    def _setup_donors_acceptors(self):
-        print(self.current_name, self.donors, self.starting_donors, self.force_idxs, self.states)
-        if self.starting_acceptors is not None and self.starting_donors is not None:
-            if set(self.donors) != set(self.starting_donors) or set(self.acceptors) != set(self.starting_acceptors):
-                H_parms = self._get_H_D_NonbondedForce_parameters_at_setup("donors")
-                D_parms = self._get_H_D_NonbondedForce_parameters_at_setup("acceptors")
-                self._setup_donor_acceptor_parms(H_parms, D_parms)
+    ## not needed any more when pickling whole system
+    # def _setup_donors_acceptors(self):
+    #     #print(self.current_name, self.donors, self.starting_donors, self.force_idxs, self.states)
+    #     if self.starting_acceptors is not None and self.starting_donors is not None:
+    #         if set(self.donors) != set(self.starting_donors) or set(self.acceptors) != set(self.starting_acceptors):
+    #             H_parms = self._get_H_D_NonbondedForce_parameters_at_setup("donors")
+    #             D_parms = self._get_H_D_NonbondedForce_parameters_at_setup("acceptors")
+    #             self._setup_donor_acceptor_parms(H_parms, D_parms)
 
-    def _get_H_D_NonbondedForce_parameters_at_setup(self, mode) -> list[float]:
-        if mode == "donors": # want to have parameters for real H
-            nonbonded_parm_new = self.H_parameters[self.current_name]["NonbondedForce"]
-        elif mode == "acceptors": # want to have parameters for D, TODO change to syntax for H_parameters if we want to use combined lone pair - dummy Hs
-            nonbonded_parm_new = [unit.quantity.Quantity(value=0.0, unit=unit.elementary_charge), unit.quantity.Quantity(value=0.0, unit=unit.nanometer), unit.quantity.Quantity(value=0.0, unit=unit.kilojoule_per_mole)]
+    # def _get_H_D_NonbondedForce_parameters_at_setup(self, mode) -> list[float]:
+    #     if mode == "donors": # want to have parameters for real H
+    #         nonbonded_parm_new = self.H_parameters[self.current_name]["NonbondedForce"]
+    #     elif mode == "acceptors": # want to have parameters for D, TODO change to syntax for H_parameters if we want to use combined lone pair - dummy Hs
+    #         nonbonded_parm_new = [unit.quantity.Quantity(value=0.0, unit=unit.elementary_charge), unit.quantity.Quantity(value=0.0, unit=unit.nanometer), unit.quantity.Quantity(value=0.0, unit=unit.kilojoule_per_mole)]
 
-        return nonbonded_parm_new
+    #     return nonbonded_parm_new
 
-    def _setup_donor_acceptor_parms(self, H_parms, D_parms):
-            for force in self.system.getForces():
-                if type(force).__name__ == "NonbondedForce":
-                    for atom in self.residue.atoms():
-                        print(atom)
-                        print(H_parms)
-                        print(D_parms)
-                        idx = atom.index
-                        if atom.name  in self.donors:
-                            charge, sigma, epsilon = H_parms
-                        elif atom.name in self.acceptors:
-                            charge, sigma, epsilon = D_parms
-                        else: # atom not a protonatable H or dummy
-                            continue
+    # def _setup_donor_acceptor_parms(self, H_parms, D_parms):
+    #         for force in self.system.getForces():
+    #             if type(force).__name__ == "NonbondedForce":
+    #                 for atom in self.residue.atoms():
+    #                     # print(atom)
+    #                     # print(H_parms)
+    #                     # print(D_parms)
+    #                     idx = atom.index
+    #                     if atom.name  in self.donors:
+    #                         charge, sigma, epsilon = H_parms
+    #                     elif atom.name in self.acceptors:
+    #                         charge, sigma, epsilon = D_parms
+    #                     else: # atom not a protonatable H or dummy
+    #                         continue
 
-                        force.setParticleParameters(idx, charge, sigma, epsilon)
+    #                     force.setParticleParameters(idx, charge, sigma, epsilon)
 
     # @property
     # def update_resname(self):
@@ -211,7 +212,7 @@ class Residue:
 
     @property
     def possible_modes(self) -> bool:
-        """Determines which modes the current residue has.
+        """Determines which modes the current residue can have.
 
         It depends on if the residue is currently OAC (acceptor) or HOAC (donor).
 
@@ -779,7 +780,7 @@ class Residue:
     def _get_offset_thole(self, name):
         # get offset for atom idx for thole parameters
         force_name = "DrudeForceThole"
-        print(self.parameters[name])
+        #print(self.parameters[name])
         return min(
             itertools.chain(
                 *[query_parm[0:2] for query_parm in self.parameters[name][force_name]]

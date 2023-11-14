@@ -431,6 +431,13 @@ class ProtexSystem:
             simulation, from_pickle[0], simulation_for_parameters
         )
         protex_system.residues = from_pickle[1]
+        # TODO maybe do setup_donors_acceptors here
+        # print("loading residues")
+        # for i in range(10):
+        #     print(protex_system.residues[i].current_name, protex_system.residues[i].donors)
+        # print("loading done")
+        # for resi, protexresi in zip(protex_system.topology.residues(), protex_system.residues):
+        #     resi.name = protexresi.current_name
         return protex_system
 
     def __init__(
@@ -439,7 +446,7 @@ class ProtexSystem:
         templates: ProtexTemplates,
         simulation_for_parameters: openmm.app.simulation.Simulation = None,
         real_Hs: list[tuple[str,str]] = [("H2O", "H1"), ("H2O", "H2"), ("OH", "H1"), ("H3O", "H1"), ("H3O", "H2"), ("H3O", "H3")],
-        fast: bool = True, # TODO turn back to True
+        fast: bool = True, 
     ) -> None:
         self.system: openmm.openmm.System = simulation.system
         self.topology: openmm.app.topology.Topology = simulation.topology
@@ -454,6 +461,7 @@ class ProtexSystem:
         self.boxlength: openmm.Quantity = (
             simulation.context.getState().getPeriodicBoxVectors()[0][0]
         )  # NOTE: supports only cubic boxes
+        # TODO maybe do setup_donors_acceptors here
 
     def dump(self, fname: str) -> None:
         """Pickle the current ProtexSystem object.
