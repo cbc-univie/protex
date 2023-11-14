@@ -446,7 +446,7 @@ class ProtexSystem:
         templates: ProtexTemplates,
         simulation_for_parameters: openmm.app.simulation.Simulation = None,
         real_Hs: list[tuple[str,str]] = [("H2O", "H1"), ("H2O", "H2"), ("OH", "H1"), ("H3O", "H1"), ("H3O", "H2"), ("H3O", "H3")],
-        fast: bool = True, 
+        fast: bool = True,
     ) -> None:
         self.system: openmm.openmm.System = simulation.system
         self.topology: openmm.app.topology.Topology = simulation.topology

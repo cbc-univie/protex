@@ -160,7 +160,7 @@ class Update(ABC):
             self.ionic_liquid.templates.set_update_value_for(
                 update_set, "prob", new_prob
             )
-           
+
             print(f"New Prob for {update_set}: {new_prob}")
 
 
@@ -197,7 +197,7 @@ class KeepHUpdate(Update):
 
     def _update(self, candidates: list[tuple], nr_of_steps: int) -> None:
         logger.info("called _update")
-        
+
         # get current state
         state = self.ionic_liquid.simulation.context.getState(getEnergy=True)
         # get initial energy
@@ -228,7 +228,7 @@ class KeepHUpdate(Update):
                     ######################
                     acceptor.update(force_to_be_updated, lamb)
 
-                
+
             # update the context to include the new parameters (do this in every lambda step)
             for force_to_be_updated in self.allowed_forces:
                 self.ionic_liquid.update_context(force_to_be_updated)
@@ -240,7 +240,7 @@ class KeepHUpdate(Update):
                 raise RuntimeError(f"Energy is {new_e}")
 
             self.ionic_liquid.simulation.step(1)
-        
+
         # update names and involved atoms after last lambda step
         for candidate in candidates:
             donor, acceptor = candidate
@@ -280,7 +280,7 @@ class KeepHUpdate(Update):
             #     assert len(acceptor.donors) == 1
             #     assert len(acceptor.acceptors) == 3
             # assert (donor.used_atom in donor.donors and acceptor.used_atom in acceptor.acceptors)
-            
+
             # NOTE this works with deepcopy, why doesn't it work without copy, like the current_name?
             ddonors = copy.deepcopy(donor.donors)
             dacceptors = copy.deepcopy(donor.acceptors)
@@ -290,7 +290,7 @@ class KeepHUpdate(Update):
             donor.acceptors = dacceptors
 
             adonors = copy.deepcopy(acceptor.donors)
-            aacceptors = copy.deepcopy((acceptor.acceptors))
+            aacceptors = copy.deepcopy(acceptor.acceptors)
             adonors.append(acceptor.used_atom)
             aacceptors.remove(acceptor.used_atom)
             acceptor.donors = adonors
@@ -407,7 +407,7 @@ class NaiveMCUpdate(Update):
                 candidate1_residue, candidate2_residue = sorted(
                     candidate, key=lambda candidate: candidate.current_name
                 )
-                
+
                 print(
                     f"{lamb}: candiadate_1: {candidate1_residue.current_name}; charge:{candidate1_residue.current_charge}: candiadate_2: {candidate2_residue.current_name}; charge:{candidate2_residue.current_charge}"
                 )
@@ -681,7 +681,7 @@ class StateUpdate:
                 assert len(donor.donors) == 3
                 assert len(donor.acceptors) == 1
                 assert donor.possible_modes == ("donor")
-            
+
             acceptor = acceptor_resis_list[candidate_idx2]
             assert (acceptor.current_name == "OH" or acceptor.current_name == "H2O")
             if acceptor.current_name == "H2O":
@@ -753,7 +753,7 @@ class StateUpdate:
                     acceptor.used_atom = acceptor_names_list[candidate_idx2]
                     acceptor.mode_in_last_transfer = "acceptor"
                     proposed_candidate_pair_sets.append(set(proposed_candidate_pair))
-                    
+
                     print(
                         f"{donor.current_name}:{donor.residue.id}:{charge_candidate_idx1}:{acceptor.current_name}:{acceptor.residue.id}:{charge_candidate_idx2} pair accepted ..."
                     )
@@ -766,7 +766,7 @@ class StateUpdate:
             self.history.append([])
         else:
             self.history.append(proposed_candidate_pair_sets)
-        
+
 
         return proposed_candidate_pairs
 
