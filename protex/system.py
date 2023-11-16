@@ -401,7 +401,7 @@ class ProtexSystem:
             raise ProtexException(
                 f"{name} is not yet covered in Protex. Please write an issue on Github."
             )
-    
+
 
     @staticmethod
     def load(
@@ -428,7 +428,7 @@ class ProtexSystem:
         """
         with open(fname, "rb") as inp:
             from_pickle = pickle.load(inp)  # ensure correct order of arguments
-        
+
         system = from_pickle[0]
         templates = from_pickle[1]
         residues = from_pickle[2]
@@ -447,7 +447,7 @@ class ProtexSystem:
         templates: ProtexTemplates,
         simulation_for_parameters: openmm.app.simulation.Simulation = None,
         real_Hs: list[tuple[str,str]] = [("H2O", "H1"), ("H2O", "H2"), ("OH", "H1"), ("H3O", "H1"), ("H3O", "H2"), ("H3O", "H3"), ("HOAC", "H"), ("IM1H", "H7")],
-        fast: bool = True, 
+        fast: bool = True,
     ) -> None:
         self.system: openmm.openmm.System = simulation.system
         self.topology: openmm.app.topology.Topology = simulation.topology
