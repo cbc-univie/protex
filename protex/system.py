@@ -445,7 +445,7 @@ class ProtexSystem:
         simulation: openmm.app.simulation.Simulation,
         templates: ProtexTemplates,
         simulation_for_parameters: openmm.app.simulation.Simulation = None,
-        real_Hs: list[tuple[str,str]] = [("H2O", "H1"), ("H2O", "H2"), ("OH", "H1"), ("H3O", "H1"), ("H3O", "H2"), ("H3O", "H3")],
+        real_Hs: list[tuple[str,str]] = [("TOH2", "H1"), ("TOH2", "H2"), ("TOH3", "H1"), ("TOH3", "H2"), ("TOH3", "H3")],
         fast: bool = True,
     ) -> None:
         self.system: openmm.openmm.System = simulation.system
@@ -462,7 +462,7 @@ class ProtexSystem:
             simulation.context.getState().getPeriodicBoxVectors()[0][0]
         )  # NOTE: supports only cubic boxes
         # TODO maybe do setup_donors_acceptors here
-
+        #logger.debug(self.residues: list[Residue])
     def dump(self, fname: str) -> None:
         """Pickle the current ProtexSystem object.
 
@@ -926,6 +926,7 @@ class ProtexSystem:
             for oname in ordered_names:
                 templates[oname] = self._extract_templates(oname)
                 H_templates[oname] = self._extract_H_templates(oname)
+                logger.debug(H_templates[oname])
 
         for r in self.topology.residues():
             atom_idxs = [atom.index for atom in r.atoms()]
@@ -944,9 +945,16 @@ class ProtexSystem:
                 assert name in ordered_names
                 parameters = {}
                 H_parameters = {}
+                logger.debug(templates[oname])
+                logger.debug(H_templates[oname])
                 for oname in ordered_names:
                     parameters[oname] = templates[oname]
                     H_parameters[oname] = H_templates[oname]
+                    logger.debug(H_parameters[oname])
+                    logger.debug(parameters[oname])
+                # logger.debug("########################################")
+                # logger.debug(parameters)
+                # logger.debug("########################################")
 
                 # check that we have the same number of parameters
                 for name1, name2 in itertools.combinations(parameters, 2):
@@ -989,7 +997,9 @@ class ProtexSystem:
                         self.templates.get_starting_donors_for(name),
                         self.templates.get_starting_acceptors_for(name),
                     )
+                    logger.debug(new_res)
                 residues.append(new_res)
+                logger.debug(new_res)
                 # residues[
                 #     -1
                 # ].current_name = (
@@ -998,6 +1008,7 @@ class ProtexSystem:
             else:
                 parameters_state1 = templates[name]
                 r = Residue(r, None, self.system, parameters_state1, None, None, None, None, None, None, None, None)
+                logger.debug(r)
                 # the residue is not part of any proton transfers,
                 # we still need it in the residue list for the parmed hack...
                 # there we need the current_name attribute, hence give it to the residue
@@ -1009,7 +1020,7 @@ class ProtexSystem:
             #    )  # we want to ignore meoh, doesn't work the way it actually is
 
         return residues
-
+        logger.debug(residues)
     # def save_donors_acceptors(self, file: str) -> None:
     #     """
     #     Save a file with the current Hs and Ds for each residue.

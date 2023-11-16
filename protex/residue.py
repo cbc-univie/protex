@@ -133,9 +133,13 @@ class Residue:
         self.atom_idxs = [atom.index for atom in residue.atoms()]
         self.atom_names = [atom.name for atom in residue.atoms()]
         self.parameters = parameters
+        logger.debug("########################################")
+        logger.debug(self.parameters)
+        logger.debug("########################################")
+
         self.H_parameters = H_parameters
-        # self.record_charge_state = []
-        # self.record_charge_state.append(self.endstate_charge)  # Not used anywhere?
+        self.record_charge_state = []
+        self.record_charge_state.append(self.endstate_charge)  
         self.modes_dict = modes_dict
         self.starting_donors = starting_donors
         self.starting_acceptors = starting_acceptors
@@ -675,13 +679,14 @@ class Residue:
 
         nonbonded_parm_old = self.parameters[current_name]["NonbondedForce"][idx]
 
-        #logger.debug(nonbonded_parm_old)
+        logger.debug(nonbonded_parm_old)
 
         if mode == "acceptor": # used_atom changes from D to H
             nonbonded_parm_new = self.H_parameters[new_name]["NonbondedForce"]
         elif mode == "donor": # used_atom changes from H to D
             nonbonded_parm_new = [unit.quantity.Quantity(value=0.0, unit=unit.elementary_charge), unit.quantity.Quantity(value=0.0, unit=unit.nanometer), unit.quantity.Quantity(value=0.0, unit=unit.kilojoule_per_mole)]
 
+        logger.debug(nonbonded_parm_new)
         charge_old, sigma_old, epsilon_old = nonbonded_parm_old
         charge_new, sigma_new, epsilon_new = nonbonded_parm_new
 
@@ -1144,17 +1149,30 @@ class Residue:
     @property
     def endstate_charge(self) -> int:
         """Charge of the residue at the endstate (will be int)."""
-        charge = int(
-            np.round(
-                sum(
-                    [
-                        parm[0]._value
-                        for parm in self.parameters[self.current_name]["NonbondedForce"]
-                    ]
-                ),
-                4,
+        try:
+            charge = int(
+                np.round(
+                    sum(
+                        [
+                            parm[0]._value
+                            for parm in self.parameters[self.current_name]["NonbondedForce"]
+                        ]
+                    ),
+                    4,
+                )
             )
-        )
+        except TypeError: #non protexable resi, only 1 set of parameters
+            charge = int(
+                np.round(
+                    sum(
+                        [
+                            parm[0]._value
+                            for parm in self.parameters["NonbondedForce"]
+                        ]
+                    ),
+                    4,
+                )
+            )
         return charge
 
     @property

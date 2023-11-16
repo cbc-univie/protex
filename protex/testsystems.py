@@ -8,6 +8,7 @@ try:  # Syntax changed in OpenMM 7.6
     from openmm import (
         Context,
         DrudeNoseHooverIntegrator,
+        MonteCarloBarostat,
         OpenMMException,
         Platform,
         XmlSerializer,
@@ -20,12 +21,13 @@ try:  # Syntax changed in OpenMM 7.6
         HBonds,
         Simulation,
     )
-    from openmm.unit import angstroms, kelvin, picoseconds
+    from openmm.unit import angstroms, atmosphere, kelvin, picoseconds
 except ImportError:
     import simtk.openmm as mm
     from simtk.openmm import (
         Context,
         DrudeNoseHooverIntegrator,
+        MonteCarloBarostat,
         OpenMMException,
         Platform,
         XmlSerializer,
@@ -38,7 +40,7 @@ except ImportError:
         HBonds,
         Simulation,
     )
-    from simtk.unit import angstroms, kelvin, picoseconds
+    from simtk.unit import angstroms, atmosphere, kelvin, picoseconds
 
 
 # general functions
@@ -64,6 +66,7 @@ def setup_system(
     dummy_atom_type: str = "DUMH",
     cutoff: float = 11.0,
     switch: float = 10.0,
+    ensemble = "nVT"
 ):
     if dummy_atom_type is not None:
         # print(params.atom_types_str["DUM"].epsilon)
@@ -104,6 +107,10 @@ def setup_system(
         print(
             "Only contraints=None or constraints=HBonds (given as string in function call) implemented"
         )
+    
+    if ensemble == "npT":
+        barostat = MonteCarloBarostat(1*atmosphere, 300*kelvin)
+        system.addForce(barostat)
 
     for force in system.getForces():
         if type(force).__name__ == "CMMotionRemover":
@@ -414,8 +421,8 @@ def generate_h2o_system(
         params,
         constraints=constraints,
         dummy_atom_type=dummy_atom_type,
-        cutoff=3,
-        switch=2,
+       # cutoff=3,
+       # switch=2,
     )
 
     # if restart_file is None:
@@ -441,15 +448,16 @@ def generate_toh2_system(
     crd_file: str = None,
     restart_file: str = None,
     constraints: str = None,
-    boxl: float = 32.0,
+    boxl: float = 40.6,
     para_files: list[str] = None,
     coll_freq: int = 10,
     drude_coll_freq: int = 100,
     dummy_atom_type: str = "DUMH",
-    dummies: list[tuple[str, str]] = [("OH", "H2"), ("OH", "H3"), ("OH", "H4"), ("H2O", "H3"), ("H2O", "H4"), ("H3O", "H4")], # NOTE: simulation created at start of every run, won't work like this
+    dummies: list[tuple[str, str]] = [("OH", "H2"), ("OH", "H3"), ("OH", "H4"), ("TOH2", "H3"), ("TOH2", "H4"), ("TOH3", "H4")], # NOTE: simulation created at start of every run, won't work like this
     use_plugin: bool = True,
     platformname="CUDA",
     cuda_precision="single",
+    ensemble = "nVT"
 ):
     """Set up a solvated and parametrized system for OH/H2O/H3O."""
     base = f"{protex.__path__[0]}/forcefield"
@@ -467,7 +475,7 @@ def generate_toh2_system(
             "na_d.str",
         ]
         para_files = [f"{base}/toh2/toppar/{para_files}" for para_files in PARA_FILES]
-#khdufdfliuvf
+
     if restart_file is None:
         restart_file = f"{base}/toh2/h2o_npt_7.rst"
 
@@ -482,8 +490,9 @@ def generate_toh2_system(
         params,
         constraints=constraints,
         dummy_atom_type=dummy_atom_type,
-        cutoff=3,
-        switch=2,
+        #cutoff=3,
+        #switch=2,
+        ensemble=ensemble
     )
 
     simulation = setup_simulation(
@@ -1029,6 +1038,11 @@ OH_H2O_H3O =  {
     "OH":  {"starting_donors" : ["H1"], "starting_acceptors" : ["H2", "H3", "H4"], "possible_modes" : ("acceptor")},
     "H2O": {"starting_donors" : ["H1", "H2"], "starting_acceptors" : ["H3", "H4"], "possible_modes" : ("acceptor", "donor")},
     "H3O": {"starting_donors" : ["H1", "H2", "H3"], "starting_acceptors" : ["H4"], "possible_modes" : ("donor")},
+}
+
+H2O_H3O =  {
+    "TOH2": {"starting_donors" : ["H1", "H2"], "starting_acceptors" : ["H3", "H4"], "possible_modes" : ("acceptor")},
+    "TOH3": {"starting_donors" : ["H1", "H2", "H3"], "starting_acceptors" : ["H4"], "possible_modes" : ("donor")},
 }
 
 # CLA = {"CLA": {"starting_donors" : [], "starting_acceptors" : [], "modes" : ()}}
