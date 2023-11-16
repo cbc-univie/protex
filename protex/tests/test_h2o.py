@@ -861,11 +861,11 @@ def test_pickle_residues_save_load(tmp_path):
     simulation_for_parameters = generate_toh2_system(use_plugin=False)
 
     ionic_liquid2 = ProtexSystem.load(f"{tmp_path}/system.pkl", simulation, simulation_for_parameters)
-    
+
     # print("####### after load #########")
     # for i in range(10):
     #     print(ionic_liquid2.residues[i].current_name, ionic_liquid2.residues[i].donors, ionic_liquid2.residues[i].mode_in_last_transfer)
-    
+
     ionic_liquid2.loadState(f"{tmp_path}/state.rst")
     ionic_liquid2.loadCheckpoint(f"{tmp_path}/checkpoint.rst")
 
