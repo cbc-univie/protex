@@ -401,6 +401,7 @@ class ProtexSystem:
             raise ProtexException(
                 f"{name} is not yet covered in Protex. Please write an issue on Github."
             )
+    
 
     @staticmethod
     def load(
@@ -427,17 +428,17 @@ class ProtexSystem:
         """
         with open(fname, "rb") as inp:
             from_pickle = pickle.load(inp)  # ensure correct order of arguments
+        
+        system = from_pickle[0]
+        templates = from_pickle[1]
+        residues = from_pickle[2]
+
         protex_system = ProtexSystem(
-            simulation, from_pickle[0], simulation_for_parameters
+            simulation, templates, simulation_for_parameters
         )
-        protex_system.residues = from_pickle[1]
-        # TODO maybe do setup_donors_acceptors here
-        # print("loading residues")
-        # for i in range(10):
-        #     print(protex_system.residues[i].current_name, protex_system.residues[i].donors)
-        # print("loading done")
-        # for resi, protexresi in zip(protex_system.topology.residues(), protex_system.residues):
-        #     resi.name = protexresi.current_name
+        protex_system.simulation.system = system
+        protex_system.residues = residues
+
         return protex_system
 
     def __init__(
@@ -445,7 +446,7 @@ class ProtexSystem:
         simulation: openmm.app.simulation.Simulation,
         templates: ProtexTemplates,
         simulation_for_parameters: openmm.app.simulation.Simulation = None,
-        real_Hs: list[tuple[str,str]] = [("H2O", "H1"), ("H2O", "H2"), ("OH", "H1"), ("H3O", "H1"), ("H3O", "H2"), ("H3O", "H3")],
+        real_Hs: list[tuple[str,str]] = [("H2O", "H1"), ("H2O", "H2"), ("OH", "H1"), ("H3O", "H1"), ("H3O", "H2"), ("H3O", "H3"), ("HOAC", "H"), ("IM1H", "H7")],
         fast: bool = True, 
     ) -> None:
         self.system: openmm.openmm.System = simulation.system
@@ -461,7 +462,7 @@ class ProtexSystem:
         self.boxlength: openmm.Quantity = (
             simulation.context.getState().getPeriodicBoxVectors()[0][0]
         )  # NOTE: supports only cubic boxes
-        # TODO maybe do setup_donors_acceptors here
+
 
     def dump(self, fname: str) -> None:
         """Pickle the current ProtexSystem object.
@@ -471,10 +472,10 @@ class ProtexSystem:
         fname : str
             The file name to store the object
         """
-        to_pickle = [self.templates, self.residues]  # ensure correct order of arguments
+        to_pickle = [self.system, self.templates, self.residues]  # ensure correct order of arguments
         with open(fname, "wb") as outp:
             pickle.dump(to_pickle, outp, pickle.HIGHEST_PROTOCOL)
-        # NOTE if residues are pickled here, can we just use this to adapt donors and acceptors?
+
 
     def _detect_forces(self) -> set[str]:
         def _is_populated(force):
@@ -996,8 +997,9 @@ class ProtexSystem:
                 #     name  # Why, isnt it done in the initializer of Residue?
                 # )
             else:
-                parameters_state1 = templates[name]
-                r = Residue(r, None, self.system, parameters_state1, None, None, None, None, None, None, None, None)
+                parameters = {name: templates[name]}
+                # parameters_state1 = templates[name]
+                r = Residue(r, None, self.system, parameters, None, None, None, None, None, None, None, None)
                 # the residue is not part of any proton transfers,
                 # we still need it in the residue list for the parmed hack...
                 # there we need the current_name attribute, hence give it to the residue

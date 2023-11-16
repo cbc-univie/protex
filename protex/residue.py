@@ -134,8 +134,8 @@ class Residue:
         self.atom_names = [atom.name for atom in residue.atoms()]
         self.parameters = parameters
         self.H_parameters = H_parameters
-        # self.record_charge_state = []
-        # self.record_charge_state.append(self.endstate_charge)  # Not used anywhere?
+        self.record_charge_state = []
+        self.record_charge_state.append(self.endstate_charge)
         self.modes_dict = modes_dict
         self.starting_donors = starting_donors
         self.starting_acceptors = starting_acceptors

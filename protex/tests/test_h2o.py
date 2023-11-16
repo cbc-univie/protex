@@ -838,7 +838,18 @@ def test_pickle_residues_save_load(tmp_path):
     #ionic_liquid.simulation.step(50)
     state_update.update(2)
 
-    before_loading = [[ionic_liquid.residues[i].current_name, ionic_liquid.residues[i].donors, ionic_liquid.residues[i].mode_in_last_transfer] for i in range(10)]
+    # before_loading = [[ionic_liquid.residues[i].current_name, ionic_liquid.residues[i].donors, ionic_liquid.residues[i].mode_in_last_transfer] for i in range(10)]
+    forces_dict = {}
+    for i in range(10):
+        residue = ionic_liquid.residues[i]
+        atom_idxs = [atom.index for atom in residue.residue.atoms()]
+        for force in simulation.system.getForces():
+            forcename = type(force).__name__
+            if forcename == "NonbondedForce":
+                forces_dict[i] = [
+                    force.getParticleParameters(idx) for idx in atom_idxs
+                ]
+    before_loading = forces_dict
     # for i in range(10):
     #     print(ionic_liquid.residues[i].current_name, ionic_liquid.residues[i].donors, ionic_liquid.residues[i].mode_in_last_transfer)
 
@@ -858,9 +869,29 @@ def test_pickle_residues_save_load(tmp_path):
     ionic_liquid2.loadState(f"{tmp_path}/state.rst")
     ionic_liquid2.loadCheckpoint(f"{tmp_path}/checkpoint.rst")
 
-    after_loading = [[ionic_liquid.residues[i].current_name, ionic_liquid.residues[i].donors, ionic_liquid.residues[i].mode_in_last_transfer] for i in range(10)]
+    # after_loading = [[ionic_liquid.residues[i].current_name, ionic_liquid.residues[i].donors, ionic_liquid.residues[i].mode_in_last_transfer] for i in range(10)]
+    forces_dict = {}
+    for i in range(10):
+        residue = ionic_liquid.residues[i]
+        atom_idxs = [atom.index for atom in residue.residue.atoms()]
+        for force in simulation.system.getForces():
+            forcename = type(force).__name__
+            if forcename == "NonbondedForce":
+                forces_dict[i] = [
+                    force.getParticleParameters(idx) for idx in atom_idxs
+                ]
+    after_loading = forces_dict
+
+    # for i in range(10):
+    #     if before_loading[i] != after_loading[i]:
+    #         print(i)
+    # for i in range(10):
+    #     if before_loading[i] != after_loading[i]:
+    #         print(before_loading[i])
+    #         print(after_loading[i])
 
     assert before_loading == after_loading
+   
 
 
 #####################
