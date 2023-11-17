@@ -70,7 +70,6 @@ def setup_system(
     cutoff: float = 11.0,
     switch: float = 10.0,
     ensemble = "nVT"
-    ensemble = "nVT"
 ):
     if dummy_atom_type is not None:
         # print(params.atom_types_str["DUM"].epsilon)
