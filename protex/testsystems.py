@@ -453,7 +453,7 @@ def generate_toh2_system(
     coll_freq: int = 10,
     drude_coll_freq: int = 100,
     dummy_atom_type: str = "DUMH",
-    dummies: list[tuple[str, str]] = [("OH", "H2"), ("OH", "H3"), ("OH", "H4"), ("TOH2", "H3"), ("TOH2", "H4"), ("TOH3", "H4")], 
+    dummies: list[tuple[str, str]] = [("OH", "H2"), ("OH", "H3"), ("OH", "H4"), ("TOH2", "H3"), ("TOH2", "H4"), ("TOH3", "H4")],
     use_plugin: bool = True,
     platformname="CUDA",
     cuda_precision="single",
