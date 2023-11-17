@@ -103,7 +103,7 @@ class ProtexTemplates:
         )  # also what about duplicates
         self.ordered_names: list[
             tuple[str,...]
-        ] = self._setup_ordered_names()  # TODO, needed?
+        ] = self._setup_ordered_names()  
         self.allowed_updates: dict[frozenset[str], dict[str, float]] = allowed_updates
         self.overall_max_distance: float = max(
             [value["r_max"] for value in self.allowed_updates.values()]
@@ -446,7 +446,7 @@ class ProtexSystem:
         simulation: openmm.app.simulation.Simulation,
         templates: ProtexTemplates,
         simulation_for_parameters: openmm.app.simulation.Simulation = None,
-        real_Hs: list[tuple[str,str]] = [("H2O", "H1"), ("H2O", "H2"), ("OH", "H1"), ("H3O", "H1"), ("H3O", "H2"), ("H3O", "H3"), ("HOAC", "H"), ("IM1H", "H7")],
+        real_Hs: list[tuple[str,str]] = [("TOH2", "H1"), ("TOH2", "H2"), ("OH", "H1"), ("TOH3", "H1"), ("TOH3", "H2"), ("TOH3", "H3"), ("HOAC", "H"), ("IM1H", "H7")],
         fast: bool = True, 
     ) -> None:
         self.system: openmm.openmm.System = simulation.system
@@ -1040,10 +1040,6 @@ class ProtexSystem:
     #         residue.donors = donor
     #         residue.acceptors = acceptor
 
-    # TODO use these functions to set donors and acceptors at the start of each new run
-        # write function to update atom parameters
-        # try to use ProtexSystem.load first to load full residues
-
     # not used
     # def report_states(self) -> None:
     #     """
@@ -1051,6 +1047,8 @@ class ProtexSystem:
     #     """
     #     pass
 
+
+    # NOTE saving psfs is deprecated with pickling protex system
     def _adapt_parmed_psf_file(
         self,
         psf: parmed.charmm.CharmmPsfFile,
@@ -1201,6 +1199,7 @@ class ProtexSystem:
 
         return psf
 
+    # NOTE saving psfs is deprecated with pickling protex system
     def write_psf(
         self,
         old_psf_infname: str,

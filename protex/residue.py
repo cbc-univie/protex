@@ -255,7 +255,7 @@ class Residue:
         return new_name
 
     def get_mode_in_last_transfer_for(self) -> str:
-        # TODO do we need this?
+        # TODO do we need this? (generally, when do we have getters and setters vs direct access vs properties)
         """Return the mode of the current resname and atom_name.
 
         Parameters
