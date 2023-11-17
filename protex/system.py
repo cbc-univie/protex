@@ -401,7 +401,7 @@ class ProtexSystem:
             raise ProtexException(
                 f"{name} is not yet covered in Protex. Please write an issue on Github."
             )
-    
+
 
     @staticmethod
     def load(
@@ -428,7 +428,7 @@ class ProtexSystem:
         """
         with open(fname, "rb") as inp:
             from_pickle = pickle.load(inp)  # ensure correct order of arguments
-        
+
         system = from_pickle[0]
         templates = from_pickle[1]
         residues = from_pickle[2]
