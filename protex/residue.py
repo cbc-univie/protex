@@ -139,7 +139,7 @@ class Residue:
 
         self.H_parameters = H_parameters
         self.record_charge_state = []
-        self.record_charge_state.append(self.endstate_charge)  
+        self.record_charge_state.append(self.endstate_charge)
         self.modes_dict = modes_dict
         self.starting_donors = starting_donors
         self.starting_acceptors = starting_acceptors

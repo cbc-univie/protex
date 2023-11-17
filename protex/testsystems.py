@@ -9,6 +9,7 @@ try:  # Syntax changed in OpenMM 7.6
         Context,
         DrudeNoseHooverIntegrator,
         MonteCarloBarostat,
+        MonteCarloBarostat,
         OpenMMException,
         Platform,
         XmlSerializer,
@@ -22,11 +23,13 @@ try:  # Syntax changed in OpenMM 7.6
         Simulation,
     )
     from openmm.unit import angstroms, atmosphere, kelvin, picoseconds
+    from openmm.unit import angstroms, atmosphere, kelvin, picoseconds
 except ImportError:
     import simtk.openmm as mm
     from simtk.openmm import (
         Context,
         DrudeNoseHooverIntegrator,
+        MonteCarloBarostat,
         MonteCarloBarostat,
         OpenMMException,
         Platform,
@@ -66,6 +69,7 @@ def setup_system(
     dummy_atom_type: str = "DUMH",
     cutoff: float = 11.0,
     switch: float = 10.0,
+    ensemble = "nVT"
     ensemble = "nVT"
 ):
     if dummy_atom_type is not None:
@@ -107,7 +111,7 @@ def setup_system(
         print(
             "Only contraints=None or constraints=HBonds (given as string in function call) implemented"
         )
-    
+
     if ensemble == "npT":
         barostat = MonteCarloBarostat(1*atmosphere, 300*kelvin)
         system.addForce(barostat)
@@ -704,6 +708,7 @@ def generate_im1h_oac_dummy_system(
     dummy_atom_type: str = "DUMH",
     dummies: list[tuple[str, str]] = [("IM1", "H7"), ("OAC", "H")],
     use_plugin: bool = True,
+    ensemble = "nVT"
 ):
     """Set up a solvated and parametrized system for IM1H/OAC."""
     base = f"{protex.__path__[0]}/forcefield"
@@ -728,7 +733,7 @@ def generate_im1h_oac_dummy_system(
         boxl=boxl,
     )
     system = setup_system(
-        psf, params, constraints=constraints, dummy_atom_type=dummy_atom_type
+        psf, params, constraints=constraints, dummy_atom_type=dummy_atom_type, ensemble=ensemble
     )
 
     simulation = setup_simulation(
