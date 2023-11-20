@@ -103,7 +103,7 @@ class ProtexTemplates:
         )  # also what about duplicates
         self.ordered_names: list[
             tuple[str,...]
-        ] = self._setup_ordered_names()  
+        ] = self._setup_ordered_names()
         self.allowed_updates: dict[frozenset[str], dict[str, float]] = allowed_updates
         self.overall_max_distance: float = max(
             [value["r_max"] for value in self.allowed_updates.values()]
@@ -447,7 +447,7 @@ class ProtexSystem:
         templates: ProtexTemplates,
         simulation_for_parameters: openmm.app.simulation.Simulation = None,
         real_Hs: list[tuple[str,str]] = [("TOH2", "H1"), ("TOH2", "H2"), ("OH", "H1"), ("TOH3", "H1"), ("TOH3", "H2"), ("TOH3", "H3"), ("HOAC", "H"), ("IM1H", "H7")],
-        fast: bool = True, 
+        fast: bool = True,
     ) -> None:
         self.system: openmm.openmm.System = simulation.system
         self.topology: openmm.app.topology.Topology = simulation.topology
