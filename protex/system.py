@@ -543,34 +543,34 @@ class ProtexSystem:
             if type(force).__name__ == name:
                 force.updateParametersInContext(self.simulation.context)
 
-    # TODO we have something better in newer versions
-    def _build_exclusion_list(self, topology):
-        pair_12_set = set()
-        pair_13_set = set()
-        for bond in topology.bonds():
-            a1, a2 = bond.atom1, bond.atom2
-            if "H" not in a1.name and "H" not in a2.name:
-                pair = (
-                    min(a1.index, a2.index),
-                    max(a1.index, a2.index),
-                )
-                pair_12_set.add(pair)
-        for a in pair_12_set:
-            for b in pair_12_set:
-                shared = set(a).intersection(set(b))
-                if len(shared) == 1:
-                    pair = tuple(sorted(set(list(a) + list(b)) - shared))
-                    pair_13_set.add(pair)
-                    # there were duplicates in pair_13_set, e.g. (1,3) and (3,1), needs to be sorted
+    # deprecated
+    # def _build_exclusion_list(self, topology):
+    #     pair_12_set = set()
+    #     pair_13_set = set()
+    #     for bond in topology.bonds():
+    #         a1, a2 = bond.atom1, bond.atom2
+    #         if "H" not in a1.name and "H" not in a2.name:
+    #             pair = (
+    #                 min(a1.index, a2.index),
+    #                 max(a1.index, a2.index),
+    #             )
+    #             pair_12_set.add(pair)
+    #     for a in pair_12_set:
+    #         for b in pair_12_set:
+    #             shared = set(a).intersection(set(b))
+    #             if len(shared) == 1:
+    #                 pair = tuple(sorted(set(list(a) + list(b)) - shared))
+    #                 pair_13_set.add(pair)
+    #                 # there were duplicates in pair_13_set, e.g. (1,3) and (3,1), needs to be sorted
 
-        # self.pair_12_list = list(sorted(pair_12_set))
-        # self.pair_13_list = list(sorted(pair_13_set - pair_12_set))
-        # self.pair_12_13_list = self.pair_12_list + self.pair_13_list
-        # change to return the list and set the parameters in the init method?
-        pair_12_list = list(sorted(pair_12_set))
-        pair_13_list = list(sorted(pair_13_set - pair_12_set))
-        pair_12_13_list = pair_12_list + pair_13_list
-        return pair_12_13_list
+    #     # self.pair_12_list = list(sorted(pair_12_set))
+    #     # self.pair_13_list = list(sorted(pair_13_set - pair_12_set))
+    #     # self.pair_12_13_list = self.pair_12_list + self.pair_13_list
+    #     # change to return the list and set the parameters in the init method?
+    #     pair_12_list = list(sorted(pair_12_set))
+    #     pair_13_list = list(sorted(pair_13_set - pair_12_set))
+    #     pair_12_13_list = pair_12_list + pair_13_list
+    #     return pair_12_13_list
 
     def _extract_templates(self, query_name: str) -> defaultdict:
         # returns the forces for the residue name
@@ -906,7 +906,7 @@ class ProtexSystem:
         For each ionic liquid residue in the system the protonation state
         is interfered from the provided openMM system object and the protonation site is defined.
         """
-        pair_12_13_list = self._build_exclusion_list(self.topology) # TODO: old code, find out how we managed to do it better
+        #pair_12_13_list = self._build_exclusion_list(self.topology) # deprecated
 
         residues = []
         templates = dict()
@@ -966,7 +966,6 @@ class ProtexSystem:
                         self.system,
                         parameters,
                         H_parameters,
-                        pair_12_13_list,
                         self.templates.get_all_states_for(name),
                         self.templates.get_possible_modes_for(name),
                         self.templates.get_starting_donors_for(name),
@@ -982,7 +981,6 @@ class ProtexSystem:
                         self.system,
                         parameters,
                         H_parameters,
-                        pair_12_13_list,
                         self.templates.get_all_states_for(name),
                         self.templates.get_possible_modes_for(name),
                         self.templates.get_starting_donors_for(name),

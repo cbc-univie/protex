@@ -116,8 +116,8 @@ class Residue:
         system,
         parameters,
         H_parameters,
-        pair_12_13_exclusion_list,
-        states,
+        # pair_12_13_exclusion_list, # deprecated
+        states, # do we need this?
         modes_dict,
         starting_donors,
         starting_acceptors,
@@ -142,8 +142,8 @@ class Residue:
         self.donors = donors
         self.acceptors = acceptors
         self.force_idxs = force_idxs
-        self.pair_12_13_list = pair_12_13_exclusion_list
-        self.states = states
+        # self.pair_12_13_list = pair_12_13_exclusion_list
+        self.states = states # do we need this?
         self.used_atom = None
         self.mode_in_last_transfer = None
         #self._setup_donors_acceptors()
