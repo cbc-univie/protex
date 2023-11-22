@@ -393,13 +393,14 @@ class ProtexSystem:
         self.simulation: openmm.app.simulation.Simulation = simulation
         self.templates: ProtexTemplates = templates
         self.simulation_for_parameters = simulation_for_parameters
+        self.ensemble = "nVT"
         self._check_forces()
         self.detected_forces: set[str] = self._detect_forces()
         self.fast: bool = fast
         self.residues: list[Residue] = self._set_initial_states()
         self.boxlength: openmm.Quantity = (
-            simulation.context.getState().getPeriodicBoxVectors()[0][0]
-        )  # NOTE: supports only cubic boxes
+            simulation.context.getState().getPeriodicBoxVectors()[0][0] # NOTE: supports only cubic boxes and nVT -> changed in update.py to get at every step for npT
+        )
 
     def dump(self, fname: str) -> None:
         """Pickle the current ProtexSystem object.
@@ -450,6 +451,8 @@ class ProtexSystem:
         """Will fail if a force is not covered."""
         for force in self.system.getForces():
             self.force_is_valid(type(force).__name__)
+            if type(force).__name__ == "MonteCarloBarostat": # find out if we have a barostat (maybe not the best place to do it?)
+                self.ensemble = "npT"
         if self.simulation_for_parameters is not None:
             for force in self.simulation_for_parameters.system.getForces():
                 self.force_is_valid(type(force).__name__)
@@ -607,14 +610,10 @@ class ProtexSystem:
                 logger.critical(len(forces_state1[force_name]))
                 logger.critical(len(forces_state2[force_name]))
 
-                for (
-                    b1,
-                    b2,
-                ) in zip(
-                    forces_state1[force_name],
-                    forces_state2[force_name],
-                ):
+                for b1 in forces_state1[force_name]:
                     logger.critical(f"{name}:{b1}")
+
+                for b2 in forces_state2[force_name]:
                     logger.critical(f"{name_of_paired_ion}:{b2}")
 
                 logger.critical(f"{name}:{forces_state1[force_name][-1]}")
@@ -741,6 +740,7 @@ class ProtexSystem:
             if name in self.residue_templates:  # or name_of_paired_ion in templates:
                 return
             self.residue_templates[name] = self._extract_templates(name)
+
 
     def _set_initial_states(self) -> list:
         """set_initial_states.

@@ -55,12 +55,14 @@ class Update(ABC):
         all_forces: bool,
         include_equivalent_atom: bool,
         reorient: bool,
+        K:int = 300,
     ) -> None:
         self.ionic_liquid: ProtexSystem = ionic_liquid
         self.to_adapt: list[tuple[str, int, frozenset[str]]] = to_adapt
         self.include_equivalent_atom: bool = include_equivalent_atom
         self.reorient: bool = reorient
         self.all_forces: bool = all_forces
+        self.K = K
         allowed_forces: list[str] = [  # change charges only
             "NonbondedForce",  # BUG: Charge stored in the DrudeForce does NOT get updated, probably you want to allow DrudeForce as well!
             "CustomNonbondedForce",  # NEW
@@ -102,7 +104,7 @@ class Update(ABC):
         pass
 
     def _adapt_probabilities(
-        self, to_adapt=list[tuple[str, int, frozenset[str]]]
+        self, to_adapt=list[tuple[str, int, frozenset[str]]], K=int
     ) -> None:
         """Adapt the probability for certain events depending on the current equilibrium, in order to stay close to a given reference
         i.e. prob_neu = prob_orig + K*( x(t) - x(eq) )^3 where x(t) is the current percentage in the system of one species.
@@ -119,7 +121,7 @@ class Update(ABC):
             len([e for e, c in counts.items() if c > 1]) == 0
         ), "No duplicates for the transfer reactions allowed!"
 
-        K = 300
+
         current_numbers: dict[
             str, int
         ] = self.ionic_liquid.get_current_number_of_each_residue_type()
@@ -182,9 +184,10 @@ class KeepHUpdate(Update):
         to_adapt: list[tuple[str, int, frozenset[str]]] or None = None,
         include_equivalent_atom: bool = False,
         reorient: bool = False,
+        K: int = 300
     ) -> None:
         super().__init__(
-            ionic_liquid, to_adapt, all_forces, include_equivalent_atom, reorient
+            ionic_liquid, to_adapt, all_forces, include_equivalent_atom, reorient, K
         )
 
     def dump(self, fname: str) -> None:
@@ -216,12 +219,18 @@ class KeepHUpdate(Update):
                 )
 
                 pos_atom = positions_copy[atom_idx]
-                print(f"{pos_atom=}")
+                #print(f"{pos_atom=}")
                 pos_equivalent = positions_copy[equivalent_idx]
-                print(f"{pos_equivalent=}")
+                #print(f"{pos_equivalent=}")
 
                 positions[atom_idx] = pos_equivalent
                 positions[equivalent_idx] = pos_atom
+
+                # TODO include this part again when relevant
+                # quick fix to allow 2 dummy Hs in D2OAC: also change position of dummy with Os
+                # if resi.current_name == "OAC":
+                #     idx_dummy = resi.get_idx_for_atom_name("HO1")
+                #     positions[idx_dummy] = positions_copy[resi.get_idx_for_atom_name("HO2")]
 
                 # if resi.current_name == "OAC": # also exchange lone pairs and drudes
                 #     pos_atom_d = positions_copy[atom_idx+1] # got atom idxes from psf
@@ -237,9 +246,9 @@ class KeepHUpdate(Update):
                 #     positions[atom_idx+6] = pos_equivalent_lp12
                 #     positions[equivalent_idx+5] = pos_atom_lp21
                 #     positions[equivalent_idx+6] = pos_atom_lp22
-                print(
-                    f"setting position of {self.ionic_liquid.templates.get_atom_name_for(resi.current_name)} to {positions[atom_idx]} and {self.ionic_liquid.templates.get_equivalent_atom_for(resi.current_name)} to {positions[equivalent_idx]}"
-                )
+                # print(
+                #     f"setting position of {self.ionic_liquid.templates.get_atom_name_for(resi.current_name)} to {positions[atom_idx]} and {self.ionic_liquid.templates.get_equivalent_atom_for(resi.current_name)} to {positions[equivalent_idx]}"
+                # )
 
         # set new H position:
         if "H" in self.ionic_liquid.templates.get_atom_name_for(
@@ -283,26 +292,32 @@ class KeepHUpdate(Update):
                 self.ionic_liquid.templates.get_atom_name_for(acceptor.current_name)
             )
 
-        # account for PBC
-        boxl_vec = (
-            self.ionic_liquid.boxlength
-        )  # changed to store boxl as quantity in system class
-
         pos_acceptor_atom = positions_copy[idx_acceptor_atom]
         pos_donated_H = positions_copy[idx_donated_H]
 
         for i in range(0, 3):
             if (
-                abs(pos_acceptor_atom[i] - pos_donated_H[i]) > boxl_vec / 2
+                abs(pos_acceptor_atom[i] - pos_donated_H[i]) > self.boxl_vec / 2
             ):  # could also be some other value
+                print("PBC CORRECTION PERFORMED")
+                print(f"{pos_acceptor_atom=}")
+                print(f"{pos_donated_H=}")
                 if pos_acceptor_atom[i] > pos_donated_H[i]:
-                    pos_donated_H[i] = pos_donated_H[i] + boxl_vec
+                    pos_donated_H[i] = pos_donated_H[i] + self.boxl_vec
                 else:
-                    pos_donated_H[i] = pos_donated_H[i] - boxl_vec
+                    pos_donated_H[i] = pos_donated_H[i] - self.boxl_vec
 
-        pos_accepted_H = pos_donated_H - 0.33 * (
+        # set position at exactly 1A from acceptor if r > 1.1A, otherwise at 90% of the distance
+        # NOTE we may have to adjust the criterion (is H-DUMH distance large enough?)
+        dist = np.sqrt((pos_donated_H[0] - pos_acceptor_atom[0])**2+(pos_donated_H[1] - pos_acceptor_atom[1])**2+(pos_donated_H[2] - pos_acceptor_atom[2])**2)
+        if dist > 0.11:
+            newbond_factor = (dist - 0.1)/dist
+        else:
+            newbond_factor = 0.1
+
+        pos_accepted_H = pos_donated_H - newbond_factor * (
             pos_donated_H - pos_acceptor_atom
-        )  # set position at ca. 1 angstrom from acceptor -> more stable
+        )
 
         # atom name of acceptor alternative is the H that used to be the dummy H
         idx_accepted_H = acceptor.get_idx_for_atom_name(
@@ -327,6 +342,15 @@ class KeepHUpdate(Update):
         initial_e = state.getPotentialEnergy()
         if np.isnan(initial_e._value):
             raise RuntimeError(f"Energy is {initial_e}")
+
+        # get the boxlength depending on ensemble
+        if self.ionic_liquid.ensemble == "nVT":
+            self.boxl_vec = (
+                self.ionic_liquid.boxlength
+            )  # changed to store boxl as quantity in system class
+        elif self.ionic_liquid.ensemble == "npT":
+            self.boxl_vec = self.ionic_liquid.simulation.context.getState().getPeriodicBoxVectors()[0][0]
+        self.boxl = self.boxl_vec.value_in_unit(nanometers)
 
         logger.info("Start changing states ...")
         assert nr_of_steps > 1, "Use an update step number of at least 2."
@@ -373,12 +397,13 @@ class KeepHUpdate(Update):
 
         for candidate in candidates:
             candidate1_residue, candidate2_residue = candidate
-            print(f"candidate pair {candidates.index(candidate)}")
+            #print(f"candidate pair {candidates.index(candidate)}")
             print(
                 f"candidate1 used equivalent atom: {candidate1_residue.used_equivalent_atom}, candidate2 used equivalent atom: {candidate2_residue.used_equivalent_atom}"
             )
 
-            positions = self._reorient_atoms(candidate, positions, positions_copy)
+            if self.reorient:
+                positions = self._reorient_atoms(candidate, positions, positions_copy)
 
             #### update refactor orig
             #    self._reorient_atoms(candidate2_residue, positions) #from update refactor orig
@@ -548,7 +573,7 @@ class NaiveMCUpdate(Update):
 
 
 class StateUpdate:
-    """Controls the update sheme and proposes the residues that need an update."""
+    """Controls the update scheme and proposes the residues that need an update."""
 
     @staticmethod
     def load(fname: str, updateMethod: Update) -> StateUpdate:
@@ -571,13 +596,15 @@ class StateUpdate:
             from_pickle = pickle.load(inp)  # ensure correct order of arguments
         state_update.history = from_pickle[0]
         state_update.update_trial = from_pickle[1]
+        state_update.prob_function = from_pickle[2]
         return state_update
 
-    def __init__(self, updateMethod: Update) -> None:
+    def __init__(self, updateMethod: Update, prob_function: str = None) -> None:
         self.updateMethod: Update = updateMethod
         self.ionic_liquid: ProtexSystem = self.updateMethod.ionic_liquid
         self.history: deque = deque(maxlen=10)
         self.update_trial: int = 0
+        self.prob_function = prob_function
 
     def dump(self, fname: str) -> None:
         """Pickle the StateUpdate instance.
@@ -590,6 +617,7 @@ class StateUpdate:
         to_pickle = [
             self.history,
             self.update_trial,
+            self.prob_function
         ]  # enusre correct order of arguments
         with open(fname, "wb") as outp:
             pickle.dump(to_pickle, outp, pickle.HIGHEST_PROTOCOL)
@@ -688,6 +716,16 @@ class StateUpdate:
         list[tuple[Residue, Residue]]
             A list with all the updated residue tuples
         """
+        # get the boxlength depending on ensemble
+        if self.ionic_liquid.ensemble == "nVT":
+            self.boxl_vec = (
+                self.ionic_liquid.boxlength
+            )  # changed to store boxl as quantity in system class
+        elif self.ionic_liquid.ensemble == "npT":
+            self.boxl_vec = self.ionic_liquid.simulation.context.getState().getPeriodicBoxVectors()[0][0]
+        self.boxl = self.boxl_vec.value_in_unit(nanometers)
+        print(f"{self.boxl=}")
+
         # calculate the distance betwen updateable residues
         pos_list, res_list = self._get_positions_for_mutation_sites()
         # propose the update candidates based on distances
@@ -706,7 +744,7 @@ class StateUpdate:
         self.update_trial += 1
 
         if self.updateMethod.to_adapt is not None:
-            self.updateMethod._adapt_probabilities(self.updateMethod.to_adapt)
+            self.updateMethod._adapt_probabilities(self.updateMethod.to_adapt, self.updateMethod.K)
 
         self._print_stop()
 
@@ -723,7 +761,8 @@ class StateUpdate:
         from scipy.spatial.distance import cdist
 
         def _rPBC(
-            coor1, coor2, boxl=self.ionic_liquid.boxlength.value_in_unit(nanometers)
+            #coor1, coor2, boxl=self.ionic_liquid.boxlength.value_in_unit(nanometers)
+            coor1, coor2, boxl=self.boxl
         ):
             dx = abs(coor1[0] - coor2[0])
             if dx > boxl / 2:
@@ -735,6 +774,12 @@ class StateUpdate:
             if dz > boxl / 2:
                 dz = boxl - dz
             return np.sqrt(dx * dx + dy * dy + dz * dz)
+
+        def distance_based_probability(r, r_min, r_max, prob):
+            if self.prob_function == "linear":
+                return -(prob/(r_max-r_min))*r+prob*r_max/(r_max-r_min)
+            elif self.prob_function == "cosine":
+                return (prob/2)*np.cos(np.pi/(r_max-r_min)*r-np.pi*r_min/(r_max-r_min))+prob/2
 
         # calculate distance matrix between the two molecules
         if use_pbc:
@@ -774,12 +819,27 @@ class StateUpdate:
                 prob = self.ionic_liquid.templates.allowed_updates[
                     frozenset([residue1.current_name, residue2.current_name])
                 ]["prob"]
-                logger.debug(f"{r_max=}, {prob=}")
                 r = distance[candidate_idx1, candidate_idx2]
+                if self.prob_function is None:
+                    dist_prob = prob
+                    logger.debug(f"{r=}, {r_max=}, {prob=}")
+                else:
+                    r_min = self.ionic_liquid.templates.allowed_updates[
+                    frozenset([residue1.current_name, residue2.current_name])
+                    ]["r_min"]
+                    if r < r_min:
+                        dist_prob = prob
+                    elif r <= r_max:
+                        dist_prob = distance_based_probability(r, r_min, r_max, prob)
+                    else:
+                        dist_prob = 0
+                    logger.debug(f"{r=}, {r_min=}, {r_max=}, {prob=}, {dist_prob=}, {self.prob_function=}")
+                #print(f"{r=}, {r_min=}, {r_max=}, {prob=}, {dist_prob=}, {self.prob_function=}")
+
                 # break for loop if no pair can fulfill distance condition
                 if r > self.ionic_liquid.templates.overall_max_distance:
                     break
-                elif r <= r_max and random.random() <= prob:  # random enough?
+                elif r <= r_max and random.random() <= dist_prob:  # random enough?
                     charge_candidate_idx1 = residue1.endstate_charge
                     charge_candidate_idx2 = residue2.endstate_charge
 
@@ -823,6 +883,7 @@ class StateUpdate:
                     print(
                         f"{residue1.current_name}:{residue1.residue.id}:{charge_candidate_idx1}-{residue2.current_name}:{residue2.residue.id}:{charge_candidate_idx2} pair accepted ..."
                     )
+                    print(f"{r=}")
                     # residue.index 0-based through whole topology
                     print(
                         f"UpdatePair:{residue1.current_name}:{residue1.residue.index}:{charge_candidate_idx1}:{residue2.current_name}:{residue2.residue.index}:{charge_candidate_idx2}"

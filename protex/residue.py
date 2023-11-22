@@ -81,6 +81,12 @@ class Residue:
     def __str__(self) -> str:
         return f"Residue {self.current_name}, {self.residue}"
 
+    def __eq__(self, other) -> bool:
+        return self.residue.index == other.residue.index
+
+    def __hash__(self):
+        return hash(self.residue.index)
+
     @property
     def has_equivalent_atom(self) -> bool:
         """Determines if the current residue has an equivalent atom defined.
@@ -500,7 +506,7 @@ class Residue:
     def _get_offset_thole(self, name):
         # get offset for atom idx for thole parameters
         force_name = "DrudeForceThole"
-        print(self.parameters[name])
+        #print(self.parameters[name])
         return min(
             itertools.chain(
                 *[query_parm[0:2] for query_parm in self.parameters[name][force_name]]
