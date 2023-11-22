@@ -104,7 +104,7 @@ class Update(ABC):
         pass
 
     def _adapt_probabilities(
-        self, to_adapt=list[tuple[str, int, frozenset[str]]], K=int
+        self, to_adapt=list[tuple[str, int, frozenset[str]]]
     ) -> None:
         """Adapt the probability for certain events depending on the current equilibrium, in order to stay close to a given reference
         i.e. prob_neu = prob_orig + K*( x(t) - x(eq) )^3 where x(t) is the current percentage in the system of one species.
@@ -143,7 +143,7 @@ class Update(ABC):
                 f"{res_name=}, {initial_number=}, {current_number=}, {update_set=}"
             )
             perc_change = current_number / initial_number
-            factor = K * (perc_change - 1) ** 3
+            factor = self.K * (perc_change - 1) ** 3
             logger.debug(f"{perc_change=}, {factor=}")
             new_prob = (
                 self.ionic_liquid.templates.get_update_value_for(update_set, "prob")
@@ -744,7 +744,7 @@ class StateUpdate:
         self.update_trial += 1
 
         if self.updateMethod.to_adapt is not None:
-            self.updateMethod._adapt_probabilities(self.updateMethod.to_adapt, self.updateMethod.K)
+            self.updateMethod._adapt_probabilities(self.updateMethod.to_adapt)
 
         self._print_stop()
 
