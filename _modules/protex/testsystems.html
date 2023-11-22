@@ -84,6 +84,7 @@
     <span class="kn">from</span> <span class="nn">openmm</span> <span class="kn">import</span> <span class="p">(</span>
         <span class="n">Context</span><span class="p">,</span>
         <span class="n">DrudeNoseHooverIntegrator</span><span class="p">,</span>
+        <span class="n">MonteCarloBarostat</span><span class="p">,</span>
         <span class="n">OpenMMException</span><span class="p">,</span>
         <span class="n">Platform</span><span class="p">,</span>
         <span class="n">XmlSerializer</span><span class="p">,</span>
@@ -96,7 +97,7 @@
         <span class="n">HBonds</span><span class="p">,</span>
         <span class="n">Simulation</span><span class="p">,</span>
     <span class="p">)</span>
-    <span class="kn">from</span> <span class="nn">openmm.unit</span> <span class="kn">import</span> <span class="n">angstroms</span><span class="p">,</span> <span class="n">kelvin</span><span class="p">,</span> <span class="n">picoseconds</span>
+    <span class="kn">from</span> <span class="nn">openmm.unit</span> <span class="kn">import</span> <span class="n">angstroms</span><span class="p">,</span> <span class="n">atmosphere</span><span class="p">,</span> <span class="n">kelvin</span><span class="p">,</span> <span class="n">picoseconds</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">simtk.openmm</span> <span class="k">as</span> <span class="nn">mm</span>
     <span class="kn">from</span> <span class="nn">simtk.openmm</span> <span class="kn">import</span> <span class="p">(</span>
@@ -140,6 +141,7 @@
     <span class="n">dummy_atom_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;DUMH&quot;</span><span class="p">,</span>
     <span class="n">cutoff</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">11.0</span><span class="p">,</span>
     <span class="n">switch</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10.0</span><span class="p">,</span>
+    <span class="n">ensemble</span> <span class="o">=</span> <span class="s2">&quot;nVT&quot;</span>
 <span class="p">):</span>
     <span class="k">if</span> <span class="n">dummy_atom_type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="c1"># print(params.atom_types_str[&quot;DUM&quot;].epsilon)</span>
@@ -180,6 +182,11 @@
         <span class="nb">print</span><span class="p">(</span>
             <span class="s2">&quot;Only contraints=None or constraints=HBonds (given as string in function call) implemented&quot;</span>
         <span class="p">)</span>
+
+
+    <span class="k">if</span> <span class="n">ensemble</span> <span class="o">==</span> <span class="s2">&quot;npT&quot;</span><span class="p">:</span>
+        <span class="n">barostat</span> <span class="o">=</span> <span class="n">MonteCarloBarostat</span><span class="p">(</span><span class="mi">1</span><span class="o">*</span><span class="n">atmosphere</span><span class="p">,</span> <span class="mi">300</span><span class="o">*</span><span class="n">kelvin</span><span class="p">)</span>
+        <span class="n">system</span><span class="o">.</span><span class="n">addForce</span><span class="p">(</span><span class="n">barostat</span><span class="p">)</span>
 
     <span class="k">for</span> <span class="n">force</span> <span class="ow">in</span> <span class="n">system</span><span class="o">.</span><span class="n">getForces</span><span class="p">():</span>
         <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">force</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;CMMotionRemover&quot;</span><span class="p">:</span>
@@ -312,6 +319,7 @@
     <span class="n">dummy_atom_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">dummies</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]],</span>
     <span class="n">use_plugin</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+    <span class="n">ensemble</span> <span class="o">=</span> <span class="s2">&quot;nVT&quot;</span>
 <span class="p">):</span>
     <span class="n">psf</span><span class="p">,</span> <span class="n">crd</span><span class="p">,</span> <span class="n">params</span> <span class="o">=</span> <span class="n">load_charmm_files</span><span class="p">(</span>
         <span class="n">psf_file</span><span class="o">=</span><span class="n">psf_file</span><span class="p">,</span>
@@ -320,7 +328,7 @@
         <span class="n">boxl</span><span class="o">=</span><span class="n">boxl</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">system</span> <span class="o">=</span> <span class="n">setup_system</span><span class="p">(</span>
-        <span class="n">psf</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">constraints</span><span class="o">=</span><span class="n">constraints</span><span class="p">,</span> <span class="n">dummy_atom_type</span><span class="o">=</span><span class="n">dummy_atom_type</span>
+        <span class="n">psf</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">constraints</span><span class="o">=</span><span class="n">constraints</span><span class="p">,</span> <span class="n">dummy_atom_type</span><span class="o">=</span><span class="n">dummy_atom_type</span><span class="p">,</span> <span class="n">ensemble</span><span class="o">=</span><span class="n">ensemble</span>
     <span class="p">)</span>
 
     <span class="n">simulation</span> <span class="o">=</span> <span class="n">setup_simulation</span><span class="p">(</span>
@@ -397,10 +405,11 @@
     <span class="n">coll_freq</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
     <span class="n">drude_coll_freq</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
     <span class="n">dummy_atom_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;DUMH&quot;</span><span class="p">,</span>
-    <span class="n">dummies</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">&quot;IM1&quot;</span><span class="p">,</span> <span class="s2">&quot;H7&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;OAC&quot;</span><span class="p">,</span> <span class="s2">&quot;H&quot;</span><span class="p">)],</span>
+    <span class="n">dummies</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">&quot;IM1&quot;</span><span class="p">,</span> <span class="s2">&quot;H7&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;OAC&quot;</span><span class="p">,</span> <span class="s2">&quot;HO1&quot;</span><span class="p">)],</span>
     <span class="n">use_plugin</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">platformname</span><span class="o">=</span><span class="s2">&quot;CUDA&quot;</span><span class="p">,</span>
     <span class="n">cuda_precision</span><span class="o">=</span><span class="s2">&quot;single&quot;</span><span class="p">,</span>
+    <span class="n">ensemble</span> <span class="o">=</span> <span class="s2">&quot;nVT&quot;</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Set up a solvated and parametrized system for IM1H/OAC.&quot;&quot;&quot;</span>
     <span class="n">base</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">protex</span><span class="o">.</span><span class="n">__path__</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">/forcefield/&quot;</span>
@@ -425,7 +434,7 @@
         <span class="n">boxl</span><span class="o">=</span><span class="n">boxl</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">system</span> <span class="o">=</span> <span class="n">setup_system</span><span class="p">(</span>
-        <span class="n">psf</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">constraints</span><span class="o">=</span><span class="n">constraints</span><span class="p">,</span> <span class="n">dummy_atom_type</span><span class="o">=</span><span class="n">dummy_atom_type</span>
+        <span class="n">psf</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">constraints</span><span class="o">=</span><span class="n">constraints</span><span class="p">,</span> <span class="n">dummy_atom_type</span><span class="o">=</span><span class="n">dummy_atom_type</span><span class="p">,</span> <span class="n">ensemble</span><span class="o">=</span><span class="n">ensemble</span>
     <span class="p">)</span>
 
     <span class="k">if</span> <span class="n">restart_file</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -461,6 +470,7 @@
     <span class="n">use_plugin</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">platformname</span><span class="o">=</span><span class="s2">&quot;CUDA&quot;</span><span class="p">,</span>
     <span class="n">cuda_precision</span><span class="o">=</span><span class="s2">&quot;single&quot;</span><span class="p">,</span>
+    <span class="n">ensemble</span> <span class="o">=</span> <span class="s2">&quot;nVT&quot;</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Set up a solvated and parametrized system for IM1H/OAC.&quot;&quot;&quot;</span>
     <span class="n">base</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">protex</span><span class="o">.</span><span class="n">__path__</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">/forcefield/&quot;</span>
@@ -492,6 +502,7 @@
         <span class="n">dummy_atom_type</span><span class="o">=</span><span class="n">dummy_atom_type</span><span class="p">,</span>
         <span class="n">cutoff</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
         <span class="n">switch</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="n">ensemble</span><span class="o">=</span><span class="n">ensemble</span>
     <span class="p">)</span>
 
     <span class="c1"># if restart_file is None:</span>
@@ -526,6 +537,7 @@
     <span class="n">dummies</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">&quot;IM1&quot;</span><span class="p">,</span> <span class="s2">&quot;H7&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;OAC&quot;</span><span class="p">,</span> <span class="s2">&quot;H&quot;</span><span class="p">)],</span>
     <span class="n">use_plugin</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">tfa_percent</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
+    <span class="n">ensemble</span> <span class="o">=</span> <span class="s2">&quot;nVT&quot;</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Set up a solvated and parametrized system for IM1H/OAC with tfa.&quot;&quot;&quot;</span>
     <span class="n">base</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">protex</span><span class="o">.</span><span class="n">__path__</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">/forcefield/&quot;</span>
@@ -551,7 +563,7 @@
         <span class="n">boxl</span><span class="o">=</span><span class="n">boxl</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">system</span> <span class="o">=</span> <span class="n">setup_system</span><span class="p">(</span>
-        <span class="n">psf</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">constraints</span><span class="o">=</span><span class="n">constraints</span><span class="p">,</span> <span class="n">dummy_atom_type</span><span class="o">=</span><span class="n">dummy_atom_type</span>
+        <span class="n">psf</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">constraints</span><span class="o">=</span><span class="n">constraints</span><span class="p">,</span> <span class="n">dummy_atom_type</span><span class="o">=</span><span class="n">dummy_atom_type</span><span class="p">,</span> <span class="n">ensemble</span><span class="o">=</span><span class="n">ensemble</span>
     <span class="p">)</span>
 
     <span class="k">if</span> <span class="n">restart_file</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -586,6 +598,7 @@
     <span class="n">use_plugin</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">platformname</span><span class="o">=</span><span class="s2">&quot;CUDA&quot;</span><span class="p">,</span>
     <span class="n">cuda_precision</span><span class="o">=</span><span class="s2">&quot;single&quot;</span><span class="p">,</span>
+    <span class="n">ensemble</span> <span class="o">=</span> <span class="s2">&quot;nVT&quot;</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Set up a solvated and parametrized system for IM1H/OAC.&quot;&quot;&quot;</span>
     <span class="nb">print</span><span class="p">(</span>
@@ -613,7 +626,7 @@
         <span class="n">boxl</span><span class="o">=</span><span class="n">boxl</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">system</span> <span class="o">=</span> <span class="n">setup_system</span><span class="p">(</span>
-        <span class="n">psf</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">constraints</span><span class="o">=</span><span class="n">constraints</span><span class="p">,</span> <span class="n">dummy_atom_type</span><span class="o">=</span><span class="n">dummy_atom_type</span>
+        <span class="n">psf</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">constraints</span><span class="o">=</span><span class="n">constraints</span><span class="p">,</span> <span class="n">dummy_atom_type</span><span class="o">=</span><span class="n">dummy_atom_type</span><span class="p">,</span> <span class="n">ensemble</span><span class="o">=</span><span class="n">ensemble</span>
     <span class="p">)</span>
 
     <span class="n">simulation</span> <span class="o">=</span> <span class="n">setup_simulation</span><span class="p">(</span>
@@ -646,6 +659,7 @@
     <span class="n">use_plugin</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">platformname</span><span class="o">=</span><span class="s2">&quot;CUDA&quot;</span><span class="p">,</span>
     <span class="n">cuda_precision</span><span class="o">=</span><span class="s2">&quot;single&quot;</span><span class="p">,</span>
+    <span class="n">ensemble</span> <span class="o">=</span> <span class="s2">&quot;nVT&quot;</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Set up a system with 1 IM1H, 1OAC, 1IM1 and 1 HOAC.</span>
 
@@ -676,7 +690,7 @@
         <span class="n">boxl</span><span class="o">=</span><span class="n">boxl</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">system</span> <span class="o">=</span> <span class="n">setup_system</span><span class="p">(</span>
-        <span class="n">psf</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">constraints</span><span class="o">=</span><span class="n">constraints</span><span class="p">,</span> <span class="n">dummy_atom_type</span><span class="o">=</span><span class="n">dummy_atom_type</span>
+        <span class="n">psf</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">constraints</span><span class="o">=</span><span class="n">constraints</span><span class="p">,</span> <span class="n">dummy_atom_type</span><span class="o">=</span><span class="n">dummy_atom_type</span><span class="p">,</span> <span class="n">ensemble</span><span class="o">=</span><span class="n">ensemble</span>
     <span class="p">)</span>
 
     <span class="n">simulation</span> <span class="o">=</span> <span class="n">setup_simulation</span><span class="p">(</span>
@@ -705,8 +719,9 @@
     <span class="n">coll_freq</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
     <span class="n">drude_coll_freq</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
     <span class="n">dummy_atom_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;DUMH&quot;</span><span class="p">,</span>
-    <span class="n">dummies</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">&quot;IM1&quot;</span><span class="p">,</span> <span class="s2">&quot;H7&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;OAC&quot;</span><span class="p">,</span> <span class="s2">&quot;H&quot;</span><span class="p">)],</span>
+    <span class="n">dummies</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">&quot;IM1&quot;</span><span class="p">,</span> <span class="s2">&quot;H7&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;OAC&quot;</span><span class="p">,</span> <span class="s2">&quot;HO1&quot;</span><span class="p">)],</span>
     <span class="n">use_plugin</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">ensemble</span> <span class="o">=</span> <span class="s2">&quot;nVT&quot;</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Set up a solvated and parametrized system for IM1H/OAC.&quot;&quot;&quot;</span>
     <span class="n">base</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">protex</span><span class="o">.</span><span class="n">__path__</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">/forcefield&quot;</span>
@@ -731,7 +746,7 @@
         <span class="n">boxl</span><span class="o">=</span><span class="n">boxl</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">system</span> <span class="o">=</span> <span class="n">setup_system</span><span class="p">(</span>
-        <span class="n">psf</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">constraints</span><span class="o">=</span><span class="n">constraints</span><span class="p">,</span> <span class="n">dummy_atom_type</span><span class="o">=</span><span class="n">dummy_atom_type</span>
+        <span class="n">psf</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">constraints</span><span class="o">=</span><span class="n">constraints</span><span class="p">,</span> <span class="n">dummy_atom_type</span><span class="o">=</span><span class="n">dummy_atom_type</span><span class="p">,</span> <span class="n">ensemble</span><span class="o">=</span><span class="n">ensemble</span>
     <span class="p">)</span>
 
     <span class="n">simulation</span> <span class="o">=</span> <span class="n">setup_simulation</span><span class="p">(</span>
@@ -761,6 +776,7 @@
     <span class="n">dummy_atom_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;DUMH&quot;</span><span class="p">,</span>
     <span class="n">dummies</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">&quot;IM1&quot;</span><span class="p">,</span> <span class="s2">&quot;H7&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;OAC&quot;</span><span class="p">,</span> <span class="s2">&quot;H&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;HPTS&quot;</span><span class="p">,</span> <span class="s2">&quot;H7&quot;</span><span class="p">)],</span>
     <span class="n">use_plugin</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">ensemble</span> <span class="o">=</span> <span class="s2">&quot;nVT&quot;</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Set up a solvated and parametrized system for IM1H/OAC/HPTS.&quot;&quot;&quot;</span>
     <span class="n">base</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">protex</span><span class="o">.</span><span class="n">__path__</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">/forcefield/&quot;</span>
@@ -787,7 +803,7 @@
         <span class="n">boxl</span><span class="o">=</span><span class="n">boxl</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">system</span> <span class="o">=</span> <span class="n">setup_system</span><span class="p">(</span>
-        <span class="n">psf</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">constraints</span><span class="o">=</span><span class="n">constraints</span><span class="p">,</span> <span class="n">dummy_atom_type</span><span class="o">=</span><span class="n">dummy_atom_type</span>
+        <span class="n">psf</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">constraints</span><span class="o">=</span><span class="n">constraints</span><span class="p">,</span> <span class="n">dummy_atom_type</span><span class="o">=</span><span class="n">dummy_atom_type</span><span class="p">,</span> <span class="n">ensemble</span><span class="o">=</span><span class="n">ensemble</span>
     <span class="p">)</span>
 
     <span class="k">if</span> <span class="n">restart_file</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -813,18 +829,19 @@
     <span class="n">crd_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">restart_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">constraints</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">boxl</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">70.0</span><span class="p">,</span>
+    <span class="n">boxl</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">40.0</span><span class="p">,</span>
     <span class="n">para_files</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">coll_freq</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
     <span class="n">drude_coll_freq</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
     <span class="n">dummy_atom_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;DUMH&quot;</span><span class="p">,</span>
     <span class="n">dummies</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[</span>
         <span class="p">(</span><span class="s2">&quot;IM1&quot;</span><span class="p">,</span> <span class="s2">&quot;H7&quot;</span><span class="p">),</span>
-        <span class="p">(</span><span class="s2">&quot;OAC&quot;</span><span class="p">,</span> <span class="s2">&quot;H&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;OAC&quot;</span><span class="p">,</span> <span class="s2">&quot;HO2&quot;</span><span class="p">),</span>
         <span class="p">(</span><span class="s2">&quot;HPTS&quot;</span><span class="p">,</span> <span class="s2">&quot;H7&quot;</span><span class="p">),</span>
         <span class="p">(</span><span class="s2">&quot;MEOH&quot;</span><span class="p">,</span> <span class="s2">&quot;HO2&quot;</span><span class="p">),</span>
     <span class="p">],</span>
     <span class="n">use_plugin</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">ensemble</span> <span class="o">=</span> <span class="s2">&quot;nVT&quot;</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Set up a solvated and parametrized system for IM1H/OAC/HPTS/MEOH.&quot;&quot;&quot;</span>
     <span class="n">base</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">protex</span><span class="o">.</span><span class="n">__path__</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">/forcefield/&quot;</span>
@@ -853,7 +870,7 @@
         <span class="n">boxl</span><span class="o">=</span><span class="n">boxl</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">system</span> <span class="o">=</span> <span class="n">setup_system</span><span class="p">(</span>
-        <span class="n">psf</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">constraints</span><span class="o">=</span><span class="n">constraints</span><span class="p">,</span> <span class="n">dummy_atom_type</span><span class="o">=</span><span class="n">dummy_atom_type</span>
+        <span class="n">psf</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">constraints</span><span class="o">=</span><span class="n">constraints</span><span class="p">,</span> <span class="n">dummy_atom_type</span><span class="o">=</span><span class="n">dummy_atom_type</span><span class="p">,</span> <span class="n">ensemble</span><span class="o">=</span><span class="n">ensemble</span>
     <span class="p">)</span>
 
     <span class="n">simulation</span> <span class="o">=</span> <span class="n">setup_simulation</span><span class="p">(</span>
@@ -875,18 +892,19 @@
     <span class="n">crd_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">restart_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">constraints</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">boxl</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">70.0</span><span class="p">,</span>
+    <span class="n">boxl</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">40.0</span><span class="p">,</span>
     <span class="n">para_files</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">coll_freq</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
     <span class="n">drude_coll_freq</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
     <span class="n">dummy_atom_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;DUMH&quot;</span><span class="p">,</span>
     <span class="n">dummies</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[</span>
         <span class="p">(</span><span class="s2">&quot;IM1&quot;</span><span class="p">,</span> <span class="s2">&quot;H7&quot;</span><span class="p">),</span>
-        <span class="p">(</span><span class="s2">&quot;OAC&quot;</span><span class="p">,</span> <span class="s2">&quot;H&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;OAC&quot;</span><span class="p">,</span> <span class="s2">&quot;HO1&quot;</span><span class="p">),</span>
         <span class="p">(</span><span class="s2">&quot;HPTS&quot;</span><span class="p">,</span> <span class="s2">&quot;H7&quot;</span><span class="p">),</span>
         <span class="p">(</span><span class="s2">&quot;MEOH&quot;</span><span class="p">,</span> <span class="s2">&quot;HO2&quot;</span><span class="p">),</span>
     <span class="p">],</span>
     <span class="n">use_plugin</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">ensemble</span> <span class="o">=</span> <span class="s2">&quot;nVT&quot;</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Set up a solvated and parametrized system for IM1H/OAC/HPTS/MEOH.&quot;&quot;&quot;</span>
     <span class="n">base</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">protex</span><span class="o">.</span><span class="n">__path__</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">/forcefield/&quot;</span>
@@ -915,7 +933,63 @@
         <span class="n">boxl</span><span class="o">=</span><span class="n">boxl</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">system</span> <span class="o">=</span> <span class="n">setup_system</span><span class="p">(</span>
-        <span class="n">psf</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">constraints</span><span class="o">=</span><span class="n">constraints</span><span class="p">,</span> <span class="n">dummy_atom_type</span><span class="o">=</span><span class="n">dummy_atom_type</span>
+        <span class="n">psf</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">constraints</span><span class="o">=</span><span class="n">constraints</span><span class="p">,</span> <span class="n">dummy_atom_type</span><span class="o">=</span><span class="n">dummy_atom_type</span><span class="p">,</span> <span class="n">ensemble</span><span class="o">=</span><span class="n">ensemble</span>
+    <span class="p">)</span>
+
+    <span class="n">simulation</span> <span class="o">=</span> <span class="n">setup_simulation</span><span class="p">(</span>
+        <span class="n">psf</span><span class="p">,</span>
+        <span class="n">crd</span><span class="p">,</span>
+        <span class="n">system</span><span class="p">,</span>
+        <span class="n">restart_file</span><span class="o">=</span><span class="n">restart_file</span><span class="p">,</span>
+        <span class="n">coll_freq</span><span class="o">=</span><span class="n">coll_freq</span><span class="p">,</span>
+        <span class="n">drude_coll_freq</span><span class="o">=</span><span class="n">drude_coll_freq</span><span class="p">,</span>
+        <span class="n">dummies</span><span class="o">=</span><span class="n">dummies</span><span class="p">,</span>
+        <span class="n">use_plugin</span><span class="o">=</span><span class="n">use_plugin</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">simulation</span></div>
+
+<div class="viewcode-block" id="generate_im1h_fora_system"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.testsystems.generate_im1h_fora_system.html#protex.testsystems.generate_im1h_fora_system">[docs]</a><span class="k">def</span> <span class="nf">generate_im1h_fora_system</span><span class="p">(</span>
+    <span class="n">psf_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">crd_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">restart_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">constraints</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">boxl</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">45.0</span><span class="p">,</span>
+    <span class="n">para_files</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">coll_freq</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+    <span class="n">drude_coll_freq</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+    <span class="n">dummy_atom_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;DUMH&quot;</span><span class="p">,</span>
+    <span class="n">dummies</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="s2">&quot;IM1&quot;</span><span class="p">,</span> <span class="s2">&quot;H7&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;FORA&quot;</span><span class="p">,</span> <span class="s2">&quot;HO1&quot;</span><span class="p">),</span>
+    <span class="p">],</span>
+    <span class="n">use_plugin</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">ensemble</span> <span class="o">=</span> <span class="s2">&quot;nVT&quot;</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Set up a solvated and parametrized system for IM1H/FORA.&quot;&quot;&quot;</span>
+    <span class="n">base</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">protex</span><span class="o">.</span><span class="n">__path__</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">/forcefield/&quot;</span>
+    <span class="k">if</span> <span class="n">psf_file</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">psf_file</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">base</span><span class="si">}</span><span class="s2">/forh.psf&quot;</span>
+    <span class="k">if</span> <span class="n">crd_file</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">crd_file</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">base</span><span class="si">}</span><span class="s2">/forh.crd&quot;</span>
+    <span class="k">if</span> <span class="n">para_files</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">PARA_FILES</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s2">&quot;toppar_drude_master_protein_2013f_lj04_formate.str&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;im1h.str&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;im1.str&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;forh.str&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;fora.str&quot;</span><span class="p">,</span>
+        <span class="p">]</span>
+        <span class="n">para_files</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">base</span><span class="si">}</span><span class="s2">/toppar/</span><span class="si">{</span><span class="n">para_files</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">para_files</span> <span class="ow">in</span> <span class="n">PARA_FILES</span><span class="p">]</span>
+
+    <span class="n">psf</span><span class="p">,</span> <span class="n">crd</span><span class="p">,</span> <span class="n">params</span> <span class="o">=</span> <span class="n">load_charmm_files</span><span class="p">(</span>
+        <span class="n">psf_file</span><span class="o">=</span><span class="n">psf_file</span><span class="p">,</span>
+        <span class="n">crd_file</span><span class="o">=</span><span class="n">crd_file</span><span class="p">,</span>
+        <span class="n">para_files</span><span class="o">=</span><span class="n">para_files</span><span class="p">,</span>
+        <span class="n">boxl</span><span class="o">=</span><span class="n">boxl</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">system</span> <span class="o">=</span> <span class="n">setup_system</span><span class="p">(</span>
+        <span class="n">psf</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">constraints</span><span class="o">=</span><span class="n">constraints</span><span class="p">,</span> <span class="n">dummy_atom_type</span><span class="o">=</span><span class="n">dummy_atom_type</span><span class="p">,</span> <span class="n">ensemble</span><span class="o">=</span><span class="n">ensemble</span>
     <span class="p">)</span>
 
     <span class="n">simulation</span> <span class="o">=</span> <span class="n">setup_simulation</span><span class="p">(</span>
@@ -950,6 +1024,7 @@
         <span class="p">(</span><span class="s2">&quot;MEOH&quot;</span><span class="p">,</span> <span class="s2">&quot;HO2&quot;</span><span class="p">),</span>
     <span class="p">],</span>
     <span class="n">use_plugin</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">ensemble</span> <span class="o">=</span> <span class="s2">&quot;nVT&quot;</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Set up a solvated and parametrized system for IM1H/OAC.&quot;&quot;&quot;</span>
     <span class="nb">print</span><span class="p">(</span>
@@ -981,7 +1056,7 @@
         <span class="n">boxl</span><span class="o">=</span><span class="n">boxl</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">system</span> <span class="o">=</span> <span class="n">setup_system</span><span class="p">(</span>
-        <span class="n">psf</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">constraints</span><span class="o">=</span><span class="n">constraints</span><span class="p">,</span> <span class="n">dummy_atom_type</span><span class="o">=</span><span class="n">dummy_atom_type</span>
+        <span class="n">psf</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">constraints</span><span class="o">=</span><span class="n">constraints</span><span class="p">,</span> <span class="n">dummy_atom_type</span><span class="o">=</span><span class="n">dummy_atom_type</span><span class="p">,</span> <span class="n">ensemble</span><span class="o">=</span><span class="n">ensemble</span>
     <span class="p">)</span>
 
     <span class="n">simulation</span> <span class="o">=</span> <span class="n">setup_simulation</span><span class="p">(</span>
@@ -1013,7 +1088,7 @@
         <span class="s2">&quot;equivalent_atom&quot;</span><span class="p">:</span> <span class="s2">&quot;O1&quot;</span><span class="p">,</span>
     <span class="p">},</span>
     <span class="s2">&quot;HOAC&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;atom_name&quot;</span><span class="p">:</span> <span class="s2">&quot;H&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;atom_name&quot;</span><span class="p">:</span> <span class="s2">&quot;HO1&quot;</span><span class="p">,</span>
     <span class="p">},</span>
 <span class="p">}</span>
 
@@ -1035,6 +1110,16 @@
     <span class="s2">&quot;MEOH2&quot;</span><span class="p">:</span> <span class="p">{</span>
         <span class="s2">&quot;atom_name&quot;</span><span class="p">:</span> <span class="s2">&quot;HO2&quot;</span><span class="p">,</span>
         <span class="s2">&quot;equivalent_atom&quot;</span><span class="p">:</span> <span class="s2">&quot;HO1&quot;</span><span class="p">,</span>
+    <span class="p">},</span>
+<span class="p">}</span>
+
+<span class="n">FORH_FORA</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;FORH&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;atom_name&quot;</span><span class="p">:</span> <span class="s2">&quot;HO1&quot;</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;FORA&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;atom_name&quot;</span><span class="p">:</span> <span class="s2">&quot;O1&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;equivalent_atom&quot;</span><span class="p">:</span> <span class="s2">&quot;O2&quot;</span><span class="p">,</span>
     <span class="p">},</span>
 <span class="p">}</span>
 </pre></div>

@@ -132,12 +132,14 @@
         <span class="n">all_forces</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
         <span class="n">include_equivalent_atom</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
         <span class="n">reorient</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+        <span class="n">K</span><span class="p">:</span><span class="nb">int</span> <span class="o">=</span> <span class="mi">300</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ionic_liquid</span><span class="p">:</span> <span class="n">ProtexSystem</span> <span class="o">=</span> <span class="n">ionic_liquid</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">to_adapt</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]]]</span> <span class="o">=</span> <span class="n">to_adapt</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">include_equivalent_atom</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">include_equivalent_atom</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reorient</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">reorient</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">all_forces</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">all_forces</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">K</span> <span class="o">=</span> <span class="n">K</span>
         <span class="n">allowed_forces</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>  <span class="c1"># change charges only</span>
             <span class="s2">&quot;NonbondedForce&quot;</span><span class="p">,</span>  <span class="c1"># BUG: Charge stored in the DrudeForce does NOT get updated, probably you want to allow DrudeForce as well!</span>
             <span class="s2">&quot;CustomNonbondedForce&quot;</span><span class="p">,</span>  <span class="c1"># NEW</span>
@@ -179,7 +181,7 @@
         <span class="k">pass</span>
 
     <span class="k">def</span> <span class="nf">_adapt_probabilities</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">to_adapt</span><span class="o">=</span><span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]]]</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">to_adapt</span><span class="o">=</span><span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]]],</span> <span class="n">K</span><span class="o">=</span><span class="nb">int</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Adapt the probability for certain events depending on the current equilibrium, in order to stay close to a given reference</span>
 <span class="sd">        i.e. prob_neu = prob_orig + K*( x(t) - x(eq) )^3 where x(t) is the current percentage in the system of one species.</span>
@@ -196,7 +198,7 @@
             <span class="nb">len</span><span class="p">([</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">counts</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">c</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span>
         <span class="p">),</span> <span class="s2">&quot;No duplicates for the transfer reactions allowed!&quot;</span>
 
-        <span class="n">K</span> <span class="o">=</span> <span class="mi">300</span>
+
         <span class="n">current_numbers</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span>
             <span class="nb">str</span><span class="p">,</span> <span class="nb">int</span>
         <span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ionic_liquid</span><span class="o">.</span><span class="n">get_current_number_of_each_residue_type</span><span class="p">()</span>
@@ -259,9 +261,10 @@
         <span class="n">to_adapt</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]]]</span> <span class="ow">or</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">include_equivalent_atom</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">reorient</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">K</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">300</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
-            <span class="n">ionic_liquid</span><span class="p">,</span> <span class="n">to_adapt</span><span class="p">,</span> <span class="n">all_forces</span><span class="p">,</span> <span class="n">include_equivalent_atom</span><span class="p">,</span> <span class="n">reorient</span>
+            <span class="n">ionic_liquid</span><span class="p">,</span> <span class="n">to_adapt</span><span class="p">,</span> <span class="n">all_forces</span><span class="p">,</span> <span class="n">include_equivalent_atom</span><span class="p">,</span> <span class="n">reorient</span><span class="p">,</span> <span class="n">K</span>
         <span class="p">)</span>
 
 <div class="viewcode-block" id="KeepHUpdate.dump"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.update.KeepHUpdate.html#protex.update.KeepHUpdate.dump">[docs]</a>    <span class="k">def</span> <span class="nf">dump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fname</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -293,12 +296,18 @@
                 <span class="p">)</span>
 
                 <span class="n">pos_atom</span> <span class="o">=</span> <span class="n">positions_copy</span><span class="p">[</span><span class="n">atom_idx</span><span class="p">]</span>
-                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">pos_atom</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="c1">#print(f&quot;{pos_atom=}&quot;)</span>
                 <span class="n">pos_equivalent</span> <span class="o">=</span> <span class="n">positions_copy</span><span class="p">[</span><span class="n">equivalent_idx</span><span class="p">]</span>
-                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">pos_equivalent</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="c1">#print(f&quot;{pos_equivalent=}&quot;)</span>
 
                 <span class="n">positions</span><span class="p">[</span><span class="n">atom_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">pos_equivalent</span>
                 <span class="n">positions</span><span class="p">[</span><span class="n">equivalent_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">pos_atom</span>
+
+                <span class="c1"># TODO include this part again when relevant</span>
+                <span class="c1"># quick fix to allow 2 dummy Hs in D2OAC: also change position of dummy with Os</span>
+                <span class="c1"># if resi.current_name == &quot;OAC&quot;:</span>
+                <span class="c1">#     idx_dummy = resi.get_idx_for_atom_name(&quot;HO1&quot;)</span>
+                <span class="c1">#     positions[idx_dummy] = positions_copy[resi.get_idx_for_atom_name(&quot;HO2&quot;)]</span>
 
                 <span class="c1"># if resi.current_name == &quot;OAC&quot;: # also exchange lone pairs and drudes</span>
                 <span class="c1">#     pos_atom_d = positions_copy[atom_idx+1] # got atom idxes from psf</span>
@@ -314,9 +323,9 @@
                 <span class="c1">#     positions[atom_idx+6] = pos_equivalent_lp12</span>
                 <span class="c1">#     positions[equivalent_idx+5] = pos_atom_lp21</span>
                 <span class="c1">#     positions[equivalent_idx+6] = pos_atom_lp22</span>
-                <span class="nb">print</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;setting position of </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">ionic_liquid</span><span class="o">.</span><span class="n">templates</span><span class="o">.</span><span class="n">get_atom_name_for</span><span class="p">(</span><span class="n">resi</span><span class="o">.</span><span class="n">current_name</span><span class="p">)</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">positions</span><span class="p">[</span><span class="n">atom_idx</span><span class="p">]</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">ionic_liquid</span><span class="o">.</span><span class="n">templates</span><span class="o">.</span><span class="n">get_equivalent_atom_for</span><span class="p">(</span><span class="n">resi</span><span class="o">.</span><span class="n">current_name</span><span class="p">)</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">positions</span><span class="p">[</span><span class="n">equivalent_idx</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
-                <span class="p">)</span>
+                <span class="c1"># print(</span>
+                <span class="c1">#     f&quot;setting position of {self.ionic_liquid.templates.get_atom_name_for(resi.current_name)} to {positions[atom_idx]} and {self.ionic_liquid.templates.get_equivalent_atom_for(resi.current_name)} to {positions[equivalent_idx]}&quot;</span>
+                <span class="c1"># )</span>
 
         <span class="c1"># set new H position:</span>
         <span class="k">if</span> <span class="s2">&quot;H&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ionic_liquid</span><span class="o">.</span><span class="n">templates</span><span class="o">.</span><span class="n">get_atom_name_for</span><span class="p">(</span>
@@ -360,26 +369,32 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">ionic_liquid</span><span class="o">.</span><span class="n">templates</span><span class="o">.</span><span class="n">get_atom_name_for</span><span class="p">(</span><span class="n">acceptor</span><span class="o">.</span><span class="n">current_name</span><span class="p">)</span>
             <span class="p">)</span>
 
-        <span class="c1"># account for PBC</span>
-        <span class="n">boxl_vec</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">ionic_liquid</span><span class="o">.</span><span class="n">boxlength</span>
-        <span class="p">)</span>  <span class="c1"># changed to store boxl as quantity in system class</span>
-
         <span class="n">pos_acceptor_atom</span> <span class="o">=</span> <span class="n">positions_copy</span><span class="p">[</span><span class="n">idx_acceptor_atom</span><span class="p">]</span>
         <span class="n">pos_donated_H</span> <span class="o">=</span> <span class="n">positions_copy</span><span class="p">[</span><span class="n">idx_donated_H</span><span class="p">]</span>
 
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">):</span>
             <span class="k">if</span> <span class="p">(</span>
-                <span class="nb">abs</span><span class="p">(</span><span class="n">pos_acceptor_atom</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">pos_donated_H</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">&gt;</span> <span class="n">boxl_vec</span> <span class="o">/</span> <span class="mi">2</span>
+                <span class="nb">abs</span><span class="p">(</span><span class="n">pos_acceptor_atom</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">pos_donated_H</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">boxl_vec</span> <span class="o">/</span> <span class="mi">2</span>
             <span class="p">):</span>  <span class="c1"># could also be some other value</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;PBC CORRECTION PERFORMED&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">pos_acceptor_atom</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">pos_donated_H</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">pos_acceptor_atom</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">pos_donated_H</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
-                    <span class="n">pos_donated_H</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">pos_donated_H</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">boxl_vec</span>
+                    <span class="n">pos_donated_H</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">pos_donated_H</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">boxl_vec</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">pos_donated_H</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">pos_donated_H</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">boxl_vec</span>
+                    <span class="n">pos_donated_H</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">pos_donated_H</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">boxl_vec</span>
 
-        <span class="n">pos_accepted_H</span> <span class="o">=</span> <span class="n">pos_donated_H</span> <span class="o">-</span> <span class="mf">0.33</span> <span class="o">*</span> <span class="p">(</span>
+        <span class="c1"># set position at exactly 1A from acceptor if r &gt; 1.1A, otherwise at 90% of the distance</span>
+        <span class="c1"># NOTE we may have to adjust the criterion (is H-DUMH distance large enough?)</span>
+        <span class="n">dist</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="n">pos_donated_H</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">pos_acceptor_atom</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">**</span><span class="mi">2</span><span class="o">+</span><span class="p">(</span><span class="n">pos_donated_H</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">pos_acceptor_atom</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">**</span><span class="mi">2</span><span class="o">+</span><span class="p">(</span><span class="n">pos_donated_H</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">pos_acceptor_atom</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">dist</span> <span class="o">&gt;</span> <span class="mf">0.11</span><span class="p">:</span>
+            <span class="n">newbond_factor</span> <span class="o">=</span> <span class="p">(</span><span class="n">dist</span> <span class="o">-</span> <span class="mf">0.1</span><span class="p">)</span><span class="o">/</span><span class="n">dist</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">newbond_factor</span> <span class="o">=</span> <span class="mf">0.1</span>
+
+        <span class="n">pos_accepted_H</span> <span class="o">=</span> <span class="n">pos_donated_H</span> <span class="o">-</span> <span class="n">newbond_factor</span> <span class="o">*</span> <span class="p">(</span>
             <span class="n">pos_donated_H</span> <span class="o">-</span> <span class="n">pos_acceptor_atom</span>
-        <span class="p">)</span>  <span class="c1"># set position at ca. 1 angstrom from acceptor -&gt; more stable</span>
+        <span class="p">)</span>
 
         <span class="c1"># atom name of acceptor alternative is the H that used to be the dummy H</span>
         <span class="n">idx_accepted_H</span> <span class="o">=</span> <span class="n">acceptor</span><span class="o">.</span><span class="n">get_idx_for_atom_name</span><span class="p">(</span>
@@ -404,6 +419,15 @@
         <span class="n">initial_e</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">getPotentialEnergy</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">initial_e</span><span class="o">.</span><span class="n">_value</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Energy is </span><span class="si">{</span><span class="n">initial_e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># get the boxlength depending on ensemble</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ionic_liquid</span><span class="o">.</span><span class="n">ensemble</span> <span class="o">==</span> <span class="s2">&quot;nVT&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">boxl_vec</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ionic_liquid</span><span class="o">.</span><span class="n">boxlength</span>
+            <span class="p">)</span>  <span class="c1"># changed to store boxl as quantity in system class</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">ionic_liquid</span><span class="o">.</span><span class="n">ensemble</span> <span class="o">==</span> <span class="s2">&quot;npT&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">boxl_vec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ionic_liquid</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">getState</span><span class="p">()</span><span class="o">.</span><span class="n">getPeriodicBoxVectors</span><span class="p">()[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">boxl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">boxl_vec</span><span class="o">.</span><span class="n">value_in_unit</span><span class="p">(</span><span class="n">nanometers</span><span class="p">)</span>
 
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Start changing states ...&quot;</span><span class="p">)</span>
         <span class="k">assert</span> <span class="n">nr_of_steps</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;Use an update step number of at least 2.&quot;</span>
@@ -450,12 +474,13 @@
 
         <span class="k">for</span> <span class="n">candidate</span> <span class="ow">in</span> <span class="n">candidates</span><span class="p">:</span>
             <span class="n">candidate1_residue</span><span class="p">,</span> <span class="n">candidate2_residue</span> <span class="o">=</span> <span class="n">candidate</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;candidate pair </span><span class="si">{</span><span class="n">candidates</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">candidate</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="c1">#print(f&quot;candidate pair {candidates.index(candidate)}&quot;)</span>
             <span class="nb">print</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">&quot;candidate1 used equivalent atom: </span><span class="si">{</span><span class="n">candidate1_residue</span><span class="o">.</span><span class="n">used_equivalent_atom</span><span class="si">}</span><span class="s2">, candidate2 used equivalent atom: </span><span class="si">{</span><span class="n">candidate2_residue</span><span class="o">.</span><span class="n">used_equivalent_atom</span><span class="si">}</span><span class="s2">&quot;</span>
             <span class="p">)</span>
 
-            <span class="n">positions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reorient_atoms</span><span class="p">(</span><span class="n">candidate</span><span class="p">,</span> <span class="n">positions</span><span class="p">,</span> <span class="n">positions_copy</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">reorient</span><span class="p">:</span>
+                <span class="n">positions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reorient_atoms</span><span class="p">(</span><span class="n">candidate</span><span class="p">,</span> <span class="n">positions</span><span class="p">,</span> <span class="n">positions_copy</span><span class="p">)</span>
 
             <span class="c1">#### update refactor orig</span>
             <span class="c1">#    self._reorient_atoms(candidate2_residue, positions) #from update refactor orig</span>
@@ -625,7 +650,7 @@
 
 
 <div class="viewcode-block" id="StateUpdate"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.update.StateUpdate.html#protex.update.StateUpdate">[docs]</a><span class="k">class</span> <span class="nc">StateUpdate</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Controls the update sheme and proposes the residues that need an update.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Controls the update scheme and proposes the residues that need an update.&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="StateUpdate.load"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.update.StateUpdate.html#protex.update.StateUpdate.load">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="n">fname</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">updateMethod</span><span class="p">:</span> <span class="n">Update</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StateUpdate</span><span class="p">:</span>
@@ -648,13 +673,15 @@
             <span class="n">from_pickle</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">inp</span><span class="p">)</span>  <span class="c1"># ensure correct order of arguments</span>
         <span class="n">state_update</span><span class="o">.</span><span class="n">history</span> <span class="o">=</span> <span class="n">from_pickle</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">state_update</span><span class="o">.</span><span class="n">update_trial</span> <span class="o">=</span> <span class="n">from_pickle</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">state_update</span><span class="o">.</span><span class="n">prob_function</span> <span class="o">=</span> <span class="n">from_pickle</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">state_update</span></div>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">updateMethod</span><span class="p">:</span> <span class="n">Update</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">updateMethod</span><span class="p">:</span> <span class="n">Update</span><span class="p">,</span> <span class="n">prob_function</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">updateMethod</span><span class="p">:</span> <span class="n">Update</span> <span class="o">=</span> <span class="n">updateMethod</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ionic_liquid</span><span class="p">:</span> <span class="n">ProtexSystem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">updateMethod</span><span class="o">.</span><span class="n">ionic_liquid</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="p">:</span> <span class="n">deque</span> <span class="o">=</span> <span class="n">deque</span><span class="p">(</span><span class="n">maxlen</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">update_trial</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prob_function</span> <span class="o">=</span> <span class="n">prob_function</span>
 
 <div class="viewcode-block" id="StateUpdate.dump"><a class="viewcode-back" href="../../documentation_pages/autosummary/protex.update.StateUpdate.html#protex.update.StateUpdate.dump">[docs]</a>    <span class="k">def</span> <span class="nf">dump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fname</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Pickle the StateUpdate instance.</span>
@@ -667,6 +694,7 @@
         <span class="n">to_pickle</span> <span class="o">=</span> <span class="p">[</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">history</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">update_trial</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">prob_function</span>
         <span class="p">]</span>  <span class="c1"># enusre correct order of arguments</span>
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">outp</span><span class="p">:</span>
             <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">to_pickle</span><span class="p">,</span> <span class="n">outp</span><span class="p">,</span> <span class="n">pickle</span><span class="o">.</span><span class="n">HIGHEST_PROTOCOL</span><span class="p">)</span></div>
@@ -765,6 +793,16 @@
 <span class="sd">        list[tuple[Residue, Residue]]</span>
 <span class="sd">            A list with all the updated residue tuples</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># get the boxlength depending on ensemble</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ionic_liquid</span><span class="o">.</span><span class="n">ensemble</span> <span class="o">==</span> <span class="s2">&quot;nVT&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">boxl_vec</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ionic_liquid</span><span class="o">.</span><span class="n">boxlength</span>
+            <span class="p">)</span>  <span class="c1"># changed to store boxl as quantity in system class</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">ionic_liquid</span><span class="o">.</span><span class="n">ensemble</span> <span class="o">==</span> <span class="s2">&quot;npT&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">boxl_vec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ionic_liquid</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">getState</span><span class="p">()</span><span class="o">.</span><span class="n">getPeriodicBoxVectors</span><span class="p">()[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">boxl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">boxl_vec</span><span class="o">.</span><span class="n">value_in_unit</span><span class="p">(</span><span class="n">nanometers</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">boxl</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
+
         <span class="c1"># calculate the distance betwen updateable residues</span>
         <span class="n">pos_list</span><span class="p">,</span> <span class="n">res_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_positions_for_mutation_sites</span><span class="p">()</span>
         <span class="c1"># propose the update candidates based on distances</span>
@@ -783,7 +821,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">update_trial</span> <span class="o">+=</span> <span class="mi">1</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">updateMethod</span><span class="o">.</span><span class="n">to_adapt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">updateMethod</span><span class="o">.</span><span class="n">_adapt_probabilities</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">updateMethod</span><span class="o">.</span><span class="n">to_adapt</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">updateMethod</span><span class="o">.</span><span class="n">_adapt_probabilities</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">updateMethod</span><span class="o">.</span><span class="n">to_adapt</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">updateMethod</span><span class="o">.</span><span class="n">K</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_print_stop</span><span class="p">()</span>
 
@@ -800,7 +838,8 @@
         <span class="kn">from</span> <span class="nn">scipy.spatial.distance</span> <span class="kn">import</span> <span class="n">cdist</span>
 
         <span class="k">def</span> <span class="nf">_rPBC</span><span class="p">(</span>
-            <span class="n">coor1</span><span class="p">,</span> <span class="n">coor2</span><span class="p">,</span> <span class="n">boxl</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ionic_liquid</span><span class="o">.</span><span class="n">boxlength</span><span class="o">.</span><span class="n">value_in_unit</span><span class="p">(</span><span class="n">nanometers</span><span class="p">)</span>
+            <span class="c1">#coor1, coor2, boxl=self.ionic_liquid.boxlength.value_in_unit(nanometers)</span>
+            <span class="n">coor1</span><span class="p">,</span> <span class="n">coor2</span><span class="p">,</span> <span class="n">boxl</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">boxl</span>
         <span class="p">):</span>
             <span class="n">dx</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">coor1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">coor2</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
             <span class="k">if</span> <span class="n">dx</span> <span class="o">&gt;</span> <span class="n">boxl</span> <span class="o">/</span> <span class="mi">2</span><span class="p">:</span>
@@ -812,6 +851,12 @@
             <span class="k">if</span> <span class="n">dz</span> <span class="o">&gt;</span> <span class="n">boxl</span> <span class="o">/</span> <span class="mi">2</span><span class="p">:</span>
                 <span class="n">dz</span> <span class="o">=</span> <span class="n">boxl</span> <span class="o">-</span> <span class="n">dz</span>
             <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">dx</span> <span class="o">*</span> <span class="n">dx</span> <span class="o">+</span> <span class="n">dy</span> <span class="o">*</span> <span class="n">dy</span> <span class="o">+</span> <span class="n">dz</span> <span class="o">*</span> <span class="n">dz</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">distance_based_probability</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">r_min</span><span class="p">,</span> <span class="n">r_max</span><span class="p">,</span> <span class="n">prob</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">prob_function</span> <span class="o">==</span> <span class="s2">&quot;linear&quot;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="o">-</span><span class="p">(</span><span class="n">prob</span><span class="o">/</span><span class="p">(</span><span class="n">r_max</span><span class="o">-</span><span class="n">r_min</span><span class="p">))</span><span class="o">*</span><span class="n">r</span><span class="o">+</span><span class="n">prob</span><span class="o">*</span><span class="n">r_max</span><span class="o">/</span><span class="p">(</span><span class="n">r_max</span><span class="o">-</span><span class="n">r_min</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">prob_function</span> <span class="o">==</span> <span class="s2">&quot;cosine&quot;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">(</span><span class="n">prob</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="p">(</span><span class="n">r_max</span><span class="o">-</span><span class="n">r_min</span><span class="p">)</span><span class="o">*</span><span class="n">r</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">r_min</span><span class="o">/</span><span class="p">(</span><span class="n">r_max</span><span class="o">-</span><span class="n">r_min</span><span class="p">))</span><span class="o">+</span><span class="n">prob</span><span class="o">/</span><span class="mi">2</span>
 
         <span class="c1"># calculate distance matrix between the two molecules</span>
         <span class="k">if</span> <span class="n">use_pbc</span><span class="p">:</span>
@@ -851,12 +896,27 @@
                 <span class="n">prob</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ionic_liquid</span><span class="o">.</span><span class="n">templates</span><span class="o">.</span><span class="n">allowed_updates</span><span class="p">[</span>
                     <span class="nb">frozenset</span><span class="p">([</span><span class="n">residue1</span><span class="o">.</span><span class="n">current_name</span><span class="p">,</span> <span class="n">residue2</span><span class="o">.</span><span class="n">current_name</span><span class="p">])</span>
                 <span class="p">][</span><span class="s2">&quot;prob&quot;</span><span class="p">]</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">r_max</span><span class="si">=}</span><span class="s2">, </span><span class="si">{</span><span class="n">prob</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
                 <span class="n">r</span> <span class="o">=</span> <span class="n">distance</span><span class="p">[</span><span class="n">candidate_idx1</span><span class="p">,</span> <span class="n">candidate_idx2</span><span class="p">]</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">prob_function</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">dist_prob</span> <span class="o">=</span> <span class="n">prob</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">r</span><span class="si">=}</span><span class="s2">, </span><span class="si">{</span><span class="n">r_max</span><span class="si">=}</span><span class="s2">, </span><span class="si">{</span><span class="n">prob</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">r_min</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ionic_liquid</span><span class="o">.</span><span class="n">templates</span><span class="o">.</span><span class="n">allowed_updates</span><span class="p">[</span>
+                    <span class="nb">frozenset</span><span class="p">([</span><span class="n">residue1</span><span class="o">.</span><span class="n">current_name</span><span class="p">,</span> <span class="n">residue2</span><span class="o">.</span><span class="n">current_name</span><span class="p">])</span>
+                    <span class="p">][</span><span class="s2">&quot;r_min&quot;</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">r</span> <span class="o">&lt;</span> <span class="n">r_min</span><span class="p">:</span>
+                        <span class="n">dist_prob</span> <span class="o">=</span> <span class="n">prob</span>
+                    <span class="k">elif</span> <span class="n">r</span> <span class="o">&lt;=</span> <span class="n">r_max</span><span class="p">:</span>
+                        <span class="n">dist_prob</span> <span class="o">=</span> <span class="n">distance_based_probability</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">r_min</span><span class="p">,</span> <span class="n">r_max</span><span class="p">,</span> <span class="n">prob</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">dist_prob</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">r</span><span class="si">=}</span><span class="s2">, </span><span class="si">{</span><span class="n">r_min</span><span class="si">=}</span><span class="s2">, </span><span class="si">{</span><span class="n">r_max</span><span class="si">=}</span><span class="s2">, </span><span class="si">{</span><span class="n">prob</span><span class="si">=}</span><span class="s2">, </span><span class="si">{</span><span class="n">dist_prob</span><span class="si">=}</span><span class="s2">, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">prob_function</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="c1">#print(f&quot;{r=}, {r_min=}, {r_max=}, {prob=}, {dist_prob=}, {self.prob_function=}&quot;)</span>
+
                 <span class="c1"># break for loop if no pair can fulfill distance condition</span>
                 <span class="k">if</span> <span class="n">r</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">ionic_liquid</span><span class="o">.</span><span class="n">templates</span><span class="o">.</span><span class="n">overall_max_distance</span><span class="p">:</span>
                     <span class="k">break</span>
-                <span class="k">elif</span> <span class="n">r</span> <span class="o">&lt;=</span> <span class="n">r_max</span> <span class="ow">and</span> <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&lt;=</span> <span class="n">prob</span><span class="p">:</span>  <span class="c1"># random enough?</span>
+                <span class="k">elif</span> <span class="n">r</span> <span class="o">&lt;=</span> <span class="n">r_max</span> <span class="ow">and</span> <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&lt;=</span> <span class="n">dist_prob</span><span class="p">:</span>  <span class="c1"># random enough?</span>
                     <span class="n">charge_candidate_idx1</span> <span class="o">=</span> <span class="n">residue1</span><span class="o">.</span><span class="n">endstate_charge</span>
                     <span class="n">charge_candidate_idx2</span> <span class="o">=</span> <span class="n">residue2</span><span class="o">.</span><span class="n">endstate_charge</span>
 
@@ -900,6 +960,7 @@
                     <span class="nb">print</span><span class="p">(</span>
                         <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">residue1</span><span class="o">.</span><span class="n">current_name</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">residue1</span><span class="o">.</span><span class="n">residue</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">charge_candidate_idx1</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">residue2</span><span class="o">.</span><span class="n">current_name</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">residue2</span><span class="o">.</span><span class="n">residue</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">charge_candidate_idx2</span><span class="si">}</span><span class="s2"> pair accepted ...&quot;</span>
                     <span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">r</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
                     <span class="c1"># residue.index 0-based through whole topology</span>
                     <span class="nb">print</span><span class="p">(</span>
                         <span class="sa">f</span><span class="s2">&quot;UpdatePair:</span><span class="si">{</span><span class="n">residue1</span><span class="o">.</span><span class="n">current_name</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">residue1</span><span class="o">.</span><span class="n">residue</span><span class="o">.</span><span class="n">index</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">charge_candidate_idx1</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">residue2</span><span class="o">.</span><span class="n">current_name</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">residue2</span><span class="o">.</span><span class="n">residue</span><span class="o">.</span><span class="n">index</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">charge_candidate_idx2</span><span class="si">}</span><span class="s2">&quot;</span>
