@@ -119,7 +119,7 @@ class Residue:
         # pair_12_13_exclusion_list, # deprecated
         states, # do we need this?
         modes_dict,
-        starting_donors,
+        starting_donors, # is this still needed?
         starting_acceptors,
         donors,
         acceptors,
@@ -536,7 +536,7 @@ class Residue:
                         idx2,
                         idx3,
                         idx4,
-                        idx5,
+                        idx5, 
                     ) in lst:
                         charge, pol, aniso12, aniso14 = parms_pol.popleft()
                         force.setParticleParameters(
@@ -551,6 +551,7 @@ class Residue:
                             aniso12,
                             aniso14,
                         )
+                        particle_map[drude_idx] = idx1
                 except KeyError:
                     for drude_idx in range(force.getNumParticles()):
                         f = force.getParticleParameters(drude_idx)
@@ -570,12 +571,12 @@ class Residue:
                                 aniso14,
                             )
                         particle_map[drude_idx] = idx1
-                try:
+                try: # TODO this part does not work if there are molecules with and without screened pairs (no screened pairs in water)
                     lst = self.force_idxs[fgroup]["DrudeForceThole"]
                     for thole_idx, idx1, idx2 in lst:
                         thole = parms_thole.popleft()
                         force.setScreenedPairParameters(thole_idx, idx1, idx2, thole)
-                except KeyError:
+                except KeyError: 
                     for drude_idx in range(force.getNumScreenedPairs()):
                         f = force.getScreenedPairParameters(drude_idx)
                         idx1, idx2 = f[0], f[1]
