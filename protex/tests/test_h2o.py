@@ -49,8 +49,11 @@ import protex
 
 from ..system import ProtexSystem, ProtexTemplates
 from ..testsystems import (
-    OH_H2O_H3O, IM1H_IM1, OAC_HOAC, #CLA, SOD,
-    generate_toh2_system, generate_small_box
+    IM1H_IM1,
+    OAC_HOAC,
+    OH_H2O_H3O,  #CLA, SOD,
+    generate_small_box,
+    generate_toh2_system,
 )
 from ..update import KeepHUpdate, NaiveMCUpdate, StateUpdate
 

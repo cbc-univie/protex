@@ -536,7 +536,7 @@ class Residue:
                         idx2,
                         idx3,
                         idx4,
-                        idx5, 
+                        idx5,
                     ) in lst:
                         charge, pol, aniso12, aniso14 = parms_pol.popleft()
                         force.setParticleParameters(
@@ -576,7 +576,7 @@ class Residue:
                     for thole_idx, idx1, idx2 in lst:
                         thole = parms_thole.popleft()
                         force.setScreenedPairParameters(thole_idx, idx1, idx2, thole)
-                except KeyError: 
+                except KeyError:
                     for drude_idx in range(force.getNumScreenedPairs()):
                         f = force.getScreenedPairParameters(drude_idx)
                         idx1, idx2 = f[0], f[1]
