@@ -501,13 +501,13 @@ class ProtexSystem:
                 return force.getNumTorsions() > 0
             else:
                 raise ProtexException(f"This force should be covered here: {type(force).__name__}: {force}")
-            
+
         # NOTE is there a more elegant way of finding out if a force exists in a residue?
-        def _is_populated_in_residue(force, residue): 
+        def _is_populated_in_residue(force, residue):
             if type(force).__name__ in self.IGNORED_FORCES:
                 return False
             atom_idxes  = [atom.index for atom in residue.atoms()]
-            
+
             if isinstance(force, openmm.NonbondedForce):
                 val = False
                 for idx in atom_idxes:
@@ -517,7 +517,7 @@ class ProtexSystem:
                     except:
                         continue
                 return val
-            
+
             elif isinstance(force, openmm.HarmonicBondForce):
                 for bond_id in range(force.getNumBonds()):  # iterate over all bonds
                     f = force.getBondParameters(bond_id)
@@ -533,7 +533,7 @@ class ProtexSystem:
                         if atom_idx in f[0:3]:
                             return True # force exists if there is an entry involving the atom index
                 return False
-                
+
             elif isinstance(force, openmm.PeriodicTorsionForce):
                 for torsion_id in range(force.getNumTorsions()):  # iterate over all dihedrals
                     f = force.getTorsionParameters(torsion_id)
@@ -541,7 +541,7 @@ class ProtexSystem:
                         if atom_idx in f[0:4]:
                             return True # force exists if there is an entry involving the atom index
                 return False
-                
+
             elif isinstance(force, openmm.CustomTorsionForce):
                 for torsion_id in range(force.getNumTorsions()):  # iterate over all dihedrals
                     f = force.getTorsionParameters(torsion_id)
@@ -549,7 +549,7 @@ class ProtexSystem:
                         if atom_idx in f[0:4]:
                             return True # force exists if there is an entry involving the atom index
                 return False
-            
+
             elif isinstance(force, openmm.DrudeForce):
                 for drude_id in range(force.getNumParticles()):  # iterate over all drudes TODO still need to handle Thole screening (is workaround in residue.py okay?)
                     f = force.getParticleParameters(drude_id)
@@ -557,7 +557,7 @@ class ProtexSystem:
                         if atom_idx == f[0]:
                             return True # force exists if there is an entry involving the atom index of the drude
                 return False
-                
+
             elif isinstance(force, openmm.CustomNonbondedForce):
                 val = False
                 for idx in atom_idxes:
@@ -568,7 +568,7 @@ class ProtexSystem:
                         logger.debug("no customnbforce found")
                         continue
                 return val
-                    
+
             elif isinstance(force, openmm.CMAPTorsionForce):
                 for torsion_id in range(force.getNumTorsions()):  # iterate over all dihedrals
                     f = force.getTorsionParameters(torsion_id)
@@ -576,7 +576,7 @@ class ProtexSystem:
                         if atom_idx in f[1:9]:
                             return True # force exists if there is an entry involving the atom index
                 return False
-            
+
             else:
                 raise ProtexException(f"This force should be covered here: {type(force).__name__}: {force}")
 
@@ -592,8 +592,8 @@ class ProtexSystem:
                     for force in self.simulation_for_parameters.system.getForces():
                         if _is_populated_in_residue(force, residue):
                             detected_forces[residue.name].append(type(force).__name__)
-        
-        
+
+
             detected_forces[residue.name] = set(detected_forces[residue.name]) # remove doubles caused by simulation_for_parameters
         # logger.debug(detected_forces)
         return detected_forces
@@ -825,7 +825,7 @@ class ProtexSystem:
                             for i in range(len(atom_names)):
                                 assert (forces_dict[forcename][0][0], forces_dict[forcename][0][1], forces_dict[forcename][0][2]) == (forces_dict[forcename][i][0], forces_dict[forcename][i][1], forces_dict[forcename][i][2])
                             forces_dict[forcename] = forces_dict[forcename][0]
-                
+
                 break  # do this only for the relevant residue once
         else:
             raise RuntimeError("residue not found")
