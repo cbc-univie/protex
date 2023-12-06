@@ -950,8 +950,8 @@ def test_imac_pickle_residues_save_load(tmp_path):
     ionic_liquid.saveCheckpoint(f"{tmp_path}/checkpoint.rst")
     ionic_liquid.dump(f"{tmp_path}/system.pkl")
 
-    simulation = generate_toh2_system(use_plugin=False)
-    simulation_for_parameters = generate_toh2_system(use_plugin=False)
+    simulation = generate_small_box(use_plugin=False)
+    simulation_for_parameters = generate_small_box(use_plugin=False)
 
     ionic_liquid2 = ProtexSystem.load(f"{tmp_path}/system.pkl", simulation, simulation_for_parameters)
 

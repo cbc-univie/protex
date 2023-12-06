@@ -446,7 +446,7 @@ class ProtexSystem:
         simulation: openmm.app.simulation.Simulation,
         templates: ProtexTemplates,
         simulation_for_parameters: openmm.app.simulation.Simulation = None,
-        real_Hs: list[tuple[str,str]] = [("TOH2", "H1"), ("TOH2", "H2"), ("OH", "H1"), ("TOH3", "H1"), ("TOH3", "H2"), ("TOH3", "H3"), ("HOAC", "H"), ("IM1H", "H7")],
+        real_Hs: list[tuple[str,str]] = [("TOH2", "H1"), ("TOH2", "H2"), ("H2O", "H1"), ("H2O", "H2"), ("OH", "H1"), ("TOH3", "H1"), ("TOH3", "H2"), ("TOH3", "H3"), ("H3O", "H1"), ("H3O", "H2"), ("H3O", "H3"), ("HOAC", "H"), ("IM1H", "H7")],
         fast: bool = True,
     ) -> None:
         self.system: openmm.openmm.System = simulation.system
@@ -477,8 +477,10 @@ class ProtexSystem:
             pickle.dump(to_pickle, outp, pickle.HIGHEST_PROTOCOL)
 
 
+    # TODO there are some forces that are not present in e.g. water (Thole, PeriodicTorsion, ?)
+    # find a way to handle them if only present in some molecules (detected / allowed forces as dictionary?)
     def _detect_forces(self) -> set[str]:
-        def _is_populated(force):
+        def _is_populated(force): # deprecated
             if type(force).__name__ in self.IGNORED_FORCES:
                 return False
             if isinstance(force, openmm.NonbondedForce):
@@ -499,16 +501,102 @@ class ProtexSystem:
                 return force.getNumTorsions() > 0
             else:
                 raise ProtexException(f"This force should be covered here: {type(force).__name__}: {force}")
+            
+        # NOTE is there a more elegant way of finding out if a force exists in a residue?
+        def _is_populated_in_residue(force, residue): 
+            if type(force).__name__ in self.IGNORED_FORCES:
+                return False
+            atom_idxes  = [atom.index for atom in residue.atoms()]
+            
+            if isinstance(force, openmm.NonbondedForce):
+                val = False
+                for idx in atom_idxes:
+                    try:
+                        force_entry = force.getParticleParameters(idx)
+                        val = True # force exists if we can get parameters for atoms in resi
+                    except:
+                        continue
+                return val
+            
+            elif isinstance(force, openmm.HarmonicBondForce):
+                for bond_id in range(force.getNumBonds()):  # iterate over all bonds
+                    f = force.getBondParameters(bond_id)
+                    for atom_idx in atom_idxes:
+                        if atom_idx in f[0:2]:
+                            return True # force exists if there is an entry involving the atom index
+                return False
 
-        detected_forces: list = []
-        for force in self.system.getForces():
-            if _is_populated(force):
-                detected_forces.append(type(force).__name__)
-        if self.simulation_for_parameters is not None:
-            for force in self.simulation_for_parameters.system.getForces():
-                if _is_populated(force):
-                    detected_forces.append(type(force).__name__)
-        return set(detected_forces)
+            elif isinstance(force, openmm.HarmonicAngleForce):
+                for angle_id in range(force.getNumAngles()):  # iterate over all angles
+                    f = force.getAngleParameters(angle_id)
+                    for atom_idx in atom_idxes:
+                        if atom_idx in f[0:3]:
+                            return True # force exists if there is an entry involving the atom index
+                return False
+                
+            elif isinstance(force, openmm.PeriodicTorsionForce):
+                for torsion_id in range(force.getNumTorsions()):  # iterate over all dihedrals
+                    f = force.getTorsionParameters(torsion_id)
+                    for atom_idx in atom_idxes:
+                        if atom_idx in f[0:4]:
+                            return True # force exists if there is an entry involving the atom index
+                return False
+                
+            elif isinstance(force, openmm.CustomTorsionForce):
+                for torsion_id in range(force.getNumTorsions()):  # iterate over all dihedrals
+                    f = force.getTorsionParameters(torsion_id)
+                    for atom_idx in atom_idxes:
+                        if atom_idx in f[0:4]:
+                            return True # force exists if there is an entry involving the atom index
+                return False
+            
+            elif isinstance(force, openmm.DrudeForce):
+                for drude_id in range(force.getNumParticles()):  # iterate over all drudes TODO still need to handle Thole screening (is workaround in residue.py okay?)
+                    f = force.getParticleParameters(drude_id)
+                    for atom_idx in atom_idxes:
+                        if atom_idx == f[0]:
+                            return True # force exists if there is an entry involving the atom index of the drude
+                return False
+                
+            elif isinstance(force, openmm.CustomNonbondedForce):
+                val = False
+                for idx in atom_idxes:
+                    try:
+                        force_entry = force.getParticleParameters(idx)
+                        val = True # force exists if we can get parameters for atoms in resi
+                    except:
+                        logger.debug("no customnbforce found")
+                        continue
+                return val
+                    
+            elif isinstance(force, openmm.CMAPTorsionForce):
+                for torsion_id in range(force.getNumTorsions()):  # iterate over all dihedrals
+                    f = force.getTorsionParameters(torsion_id)
+                    for atom_idx in atom_idxes:
+                        if atom_idx in f[1:9]:
+                            return True # force exists if there is an entry involving the atom index
+                return False
+            
+            else:
+                raise ProtexException(f"This force should be covered here: {type(force).__name__}: {force}")
+
+        # make a dictionary of forces present in each residue
+        detected_forces: dict = {}
+        for residue in self.topology.residues():
+            if residue.name not in detected_forces.keys():
+                detected_forces[residue.name] = []
+                for force in self.system.getForces():
+                    if _is_populated_in_residue(force, residue):
+                        detected_forces[residue.name].append(type(force).__name__)
+                if self.simulation_for_parameters is not None:
+                    for force in self.simulation_for_parameters.system.getForces():
+                        if _is_populated_in_residue(force, residue):
+                            detected_forces[residue.name].append(type(force).__name__)
+        
+        
+            detected_forces[residue.name] = set(detected_forces[residue.name]) # remove doubles caused by simulation_for_parameters
+        # logger.debug(detected_forces)
+        return detected_forces
 
     def _check_forces(self) -> None:
         """Will fail if a force is not covered."""
@@ -609,7 +697,7 @@ class ProtexSystem:
                         #index is position, but what about previous ones?
                         # BUG problem with slow method: need every atom idx for exceptions, now only from 1 residue
                         # TODO normalize / offset etc for each residue
-                        logger.debug(force)
+                        # logger.debug(force)
                         forces_dict[forcename] = [force.getParticleParameters(idx) for idx in atom_idxs]
                         # Also add exclusions
                         for exc_id in range(force.getNumExclusions()):
@@ -737,6 +825,7 @@ class ProtexSystem:
                             for i in range(len(atom_names)):
                                 assert (forces_dict[forcename][0][0], forces_dict[forcename][0][1], forces_dict[forcename][0][2]) == (forces_dict[forcename][i][0], forces_dict[forcename][i][1], forces_dict[forcename][i][2])
                             forces_dict[forcename] = forces_dict[forcename][0]
+                
                 break  # do this only for the relevant residue once
         else:
             raise RuntimeError("residue not found")
@@ -927,6 +1016,8 @@ class ProtexSystem:
             for oname in ordered_names:
                 templates[oname] = self._extract_templates(oname)
                 H_templates[oname] = self._extract_H_templates(oname)
+
+            # logger.debug(H_templates)
 
         for r in self.topology.residues():
             atom_idxs = [atom.index for atom in r.atoms()]
