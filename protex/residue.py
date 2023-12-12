@@ -116,7 +116,7 @@ class Residue:
         system,
         parameters,
         H_parameters,
-        pair_12_13_exclusion_list,
+    #    pair_12_13_exclusion_list,
         states,
         modes_dict,
         starting_donors,
@@ -133,9 +133,6 @@ class Residue:
         self.atom_idxs = [atom.index for atom in residue.atoms()]
         self.atom_names = [atom.name for atom in residue.atoms()]
         self.parameters = parameters
-        logger.debug("########################################")
-        logger.debug(self.parameters)
-        logger.debug("########################################")
 
         self.H_parameters = H_parameters
         self.record_charge_state = []
@@ -146,7 +143,7 @@ class Residue:
         self.donors = donors
         self.acceptors = acceptors
         self.force_idxs = force_idxs
-        self.pair_12_13_list = pair_12_13_exclusion_list
+#        self.pair_12_13_list = pair_12_13_exclusion_list
         self.states = states
         self.used_atom = None
         self.mode_in_last_transfer = None
@@ -555,6 +552,7 @@ class Residue:
                             aniso12,
                             aniso14,
                         )
+                        particle_map[drude_idx] = idx1
                 except KeyError:
                     for drude_idx in range(force.getNumParticles()):
                         f = force.getParticleParameters(drude_idx)
@@ -679,14 +677,13 @@ class Residue:
 
         nonbonded_parm_old = self.parameters[current_name]["NonbondedForce"][idx]
 
-        logger.debug(nonbonded_parm_old)
+        #logger.debug(nonbonded_parm_old)
 
         if mode == "acceptor": # used_atom changes from D to H
             nonbonded_parm_new = self.H_parameters[new_name]["NonbondedForce"]
         elif mode == "donor": # used_atom changes from H to D
             nonbonded_parm_new = [unit.quantity.Quantity(value=0.0, unit=unit.elementary_charge), unit.quantity.Quantity(value=0.0, unit=unit.nanometer), unit.quantity.Quantity(value=0.0, unit=unit.kilojoule_per_mole)]
 
-        logger.debug(nonbonded_parm_new)
         charge_old, sigma_old, epsilon_old = nonbonded_parm_old
         charge_new, sigma_new, epsilon_new = nonbonded_parm_new
 
@@ -870,7 +867,7 @@ class Residue:
                 }:
                     if old_idx != new_idx:
                         raise RuntimeError(
-                            "Odering of angle parameters is different between the two topologies."
+                            "Odering of angle parameters is different between the two topologies. \n {self.current_name=}, {old_idx=}, {old_parm=}, {new_idx=}, {new_parm=}"
                         )
 
                     parms_old.append(old_parm)
@@ -1149,30 +1146,17 @@ class Residue:
     @property
     def endstate_charge(self) -> int:
         """Charge of the residue at the endstate (will be int)."""
-        try:
-            charge = int(
-                np.round(
-                    sum(
-                        [
-                            parm[0]._value
-                            for parm in self.parameters[self.current_name]["NonbondedForce"]
-                        ]
-                    ),
-                    4,
-                )
+        charge = int(
+            np.round(
+                sum(
+                    [
+                        parm[0]._value
+                        for parm in self.parameters[self.current_name]["NonbondedForce"]
+                    ]
+                ),
+                4,
             )
-        except TypeError: #non protexable resi, only 1 set of parameters
-            charge = int(
-                np.round(
-                    sum(
-                        [
-                            parm[0]._value
-                            for parm in self.parameters["NonbondedForce"]
-                        ]
-                    ),
-                    4,
-                )
-            )
+        )
         return charge
 
     @property

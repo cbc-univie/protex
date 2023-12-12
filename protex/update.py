@@ -672,22 +672,22 @@ class StateUpdate:
         # check if charge transfer is possible
         for candidate_idx1, candidate_idx2 in idx:
             donor = donor_resis_list[candidate_idx1]
-            assert (donor.current_name == "TOH3")
+            # assert (donor.current_name == "TOH3")
             # if donor.current_name == "TOH2":
             #     assert len(donor.donors) == 2
             #     assert len(donor.acceptors) == 2
             #     assert donor.possible_modes == ("acceptor", "donor")
-            if donor.current_name == "TOH3":
-                assert len(donor.donors) == 3
-                assert len(donor.acceptors) == 1
-                assert donor.possible_modes == ("donor")
+            # if donor.current_name == "TOH3":
+            #    assert len(donor.donors) == 3
+            #    assert len(donor.acceptors) == 1
+            #    assert donor.possible_modes == ("donor")
 
             acceptor = acceptor_resis_list[candidate_idx2]
-            assert (acceptor.current_name == "TOH2")
-            if acceptor.current_name == "TOH2":
-                assert len(acceptor.donors) == 2
-                assert len(acceptor.acceptors) == 2
-                assert acceptor.possible_modes == ("acceptor")
+            # assert (acceptor.current_name == "TOH2")
+            # if acceptor.current_name == "TOH2":
+            #    assert len(acceptor.donors) == 2
+            #    assert len(acceptor.acceptors) == 2
+            #    assert acceptor.possible_modes == ("acceptor")
             # if acceptor.current_name == "OH":
             #     assert len(acceptor.donors) == 1
             #     assert len(acceptor.acceptors) == 3
@@ -793,14 +793,14 @@ class StateUpdate:
             if residue.current_name in self.ionic_liquid.templates.names:
                 #logger.debug(residue.donors)
                 #logger.debug(residue.acceptors)
-                if residue.current_name == "TOH2":
-                    assert len(residue.donors) == 2
-                    assert len(residue.acceptors) == 2
-                    assert residue.possible_modes == ("acceptor")
-                if residue.current_name == "TOH3":
-                    assert len(residue.donors) == 3
-                    assert len(residue.acceptors) == 1
-                    assert residue.possible_modes == ("donor")
+               # if residue.current_name == "TOH2":
+               #     assert len(residue.donors) == 2
+               #     assert len(residue.acceptors) == 2
+               #     assert residue.possible_modes == ("acceptor")
+               # if residue.current_name == "TOH3":
+               #     assert len(residue.donors) == 3
+               #     assert len(residue.acceptors) == 1
+               #     assert residue.possible_modes == ("donor")
                # if residue.current_name == "OH":
                #     assert len(residue.donors) == 1
                #     assert len(residue.acceptors) == 3
@@ -827,10 +827,10 @@ class StateUpdate:
         # logger.debug(acceptor_resis_list)
         # logger.debug(donor_resis_list)
 
-        current_numbers: dict[
-            str, int
-        ] = self.ionic_liquid.get_current_number_of_each_residue_type()
-        assert len(donor_atoms_list) == len(donor_names_list) == len(donor_resis_list) == current_numbers["TOH3"]*3
-        assert len(acceptor_atoms_list) == len(acceptor_names_list) == len(acceptor_resis_list) == current_numbers["TOH2"]*2
+      # current_numbers: dict[
+      #     str, int
+      # ] = self.ionic_liquid.get_current_number_of_each_residue_type()
+       # assert len(donor_atoms_list) == len(donor_names_list) == len(donor_resis_list) == current_numbers["TOH3"]*3
+       # assert len(acceptor_atoms_list) == len(acceptor_names_list) == len(acceptor_resis_list) == current_numbers["TOH2"]*2
 
         return donor_atoms_list, donor_resis_list, donor_names_list, acceptor_atoms_list, acceptor_resis_list, acceptor_names_list

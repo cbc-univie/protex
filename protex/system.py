@@ -103,7 +103,7 @@ class ProtexTemplates:
         )  # also what about duplicates
         self.ordered_names: list[
             tuple[str,...]
-        ] = self._setup_ordered_names()  # TODO, needed?
+        ] = self._setup_ordered_names()
         self.allowed_updates: dict[frozenset[str], dict[str, float]] = allowed_updates
         self.overall_max_distance: float = max(
             [value["r_max"] for value in self.allowed_updates.values()]
@@ -446,7 +446,7 @@ class ProtexSystem:
         simulation: openmm.app.simulation.Simulation,
         templates: ProtexTemplates,
         simulation_for_parameters: openmm.app.simulation.Simulation = None,
-        real_Hs: list[tuple[str,str]] = [("TOH2", "H1"), ("TOH2", "H2"), ("TOH3", "H1"), ("TOH3", "H2"), ("TOH3", "H3")],
+        real_Hs: list[tuple[str,str]] = [("TOH2", "H1"), ("TOH2", "H2"), ("TOH3", "H1"), ("TOH3", "H2"), ("TOH3", "H3"), ("HSP", "HE2")],
         fast: bool = True,
     ) -> None:
         self.system: openmm.openmm.System = simulation.system
@@ -500,15 +500,110 @@ class ProtexSystem:
             else:
                 raise ProtexException(f"This force should be covered here: {type(force).__name__}: {force}")
 
-        detected_forces: list = []
-        for force in self.system.getForces():
-            if _is_populated(force):
-                detected_forces.append(type(force).__name__)
-        if self.simulation_for_parameters is not None:
-            for force in self.simulation_for_parameters.system.getForces():
-                if _is_populated(force):
-                    detected_forces.append(type(force).__name__)
-        return set(detected_forces)
+        # NOTE is there a more elegant way of finding out if a force exists in a residue?
+        def _is_populated_in_residue(force, residue):
+            if type(force).__name__ in self.IGNORED_FORCES:
+                return False
+            atom_idxes  = [atom.index for atom in residue.atoms()]
+
+            if isinstance(force, openmm.NonbondedForce):
+                val = False
+                for idx in atom_idxes:
+                    try:
+                        force_entry = force.getParticleParameters(idx)
+                        val = True # force exists if we can get parameters for atoms in resi
+                    except:
+                        continue
+                return val
+
+            elif isinstance(force, openmm.HarmonicBondForce):
+                for bond_id in range(force.getNumBonds()):  # iterate over all bonds
+                    f = force.getBondParameters(bond_id)
+                    for atom_idx in atom_idxes:
+                        if atom_idx in f[0:2]:
+                            return True # force exists if there is an entry involving the atom index
+                return False
+
+            elif isinstance(force, openmm.HarmonicAngleForce):
+                for angle_id in range(force.getNumAngles()):  # iterate over all angles
+                    f = force.getAngleParameters(angle_id)
+                    for atom_idx in atom_idxes:
+                        if atom_idx in f[0:3]:
+                            return True # force exists if there is an entry involving the atom index
+                return False
+
+            elif isinstance(force, openmm.PeriodicTorsionForce):
+                for torsion_id in range(force.getNumTorsions()):  # iterate over all dihedrals
+                    f = force.getTorsionParameters(torsion_id)
+                    for atom_idx in atom_idxes:
+                        if atom_idx in f[0:4]:
+                            return True # force exists if there is an entry involving the atom index
+                return False
+
+            elif isinstance(force, openmm.CustomTorsionForce):
+                for torsion_id in range(force.getNumTorsions()):  # iterate over all dihedrals
+                    f = force.getTorsionParameters(torsion_id)
+                    for atom_idx in atom_idxes:
+                        if atom_idx in f[0:4]:
+                            return True # force exists if there is an entry involving the atom index
+                return False
+
+            elif isinstance(force, openmm.DrudeForce):
+                for drude_id in range(force.getNumParticles()):  # iterate over all drudes TODO still need to handle Thole screening (is workaround in residue.py okay?)
+                    f = force.getParticleParameters(drude_id)
+                    for atom_idx in atom_idxes:
+                        if atom_idx == f[0]:
+                            return True # force exists if there is an entry involving the atom index of the drude
+                return False
+
+            elif isinstance(force, openmm.CustomNonbondedForce):
+                val = False
+                for idx in atom_idxes:
+                    try:
+                        force_entry = force.getParticleParameters(idx)
+                        val = True # force exists if we can get parameters for atoms in resi
+                    except:
+                        logger.debug("no customnbforce found")
+                        continue
+                return val
+
+            elif isinstance(force, openmm.CMAPTorsionForce):
+                for torsion_id in range(force.getNumTorsions()):  # iterate over all dihedrals
+                    f = force.getTorsionParameters(torsion_id)
+                    for atom_idx in atom_idxes:
+                        if atom_idx in f[1:9]:
+                            return True # force exists if there is an entry involving the atom index
+                return False
+
+            else:
+                raise ProtexException(f"This force should be covered here: {type(force).__name__}: {force}")
+
+        # make a dictionary of forces present in each residue
+        detected_forces: dict = {}
+        for residue in self.topology.residues():
+            if residue.name not in detected_forces.keys():
+                detected_forces[residue.name] = []
+                for force in self.system.getForces():
+                    if _is_populated_in_residue(force, residue):
+                        detected_forces[residue.name].append(type(force).__name__)
+                if self.simulation_for_parameters is not None:
+                    for force in self.simulation_for_parameters.system.getForces():
+                        if _is_populated_in_residue(force, residue):
+                            detected_forces[residue.name].append(type(force).__name__)
+
+
+            detected_forces[residue.name] = set(detected_forces[residue.name]) # remove doubles caused by simulation_for_parameters
+        # logger.debug(detected_forces)
+        return detected_forces
+#        detected_forces: list = []
+#        for force in self.system.getForces():
+#            if _is_populated(force):
+#                detected_forces.append(type(force).__name__)
+#        if self.simulation_for_parameters is not None:
+#            for force in self.simulation_for_parameters.system.getForces():
+#                if _is_populated(force):
+#                    detected_forces.append(type(force).__name__)
+#        return set(detected_forces)
 
     def _check_forces(self) -> None:
         """Will fail if a force is not covered."""
@@ -544,33 +639,33 @@ class ProtexSystem:
                 force.updateParametersInContext(self.simulation.context)
 
     # TODO we have something better in newer versions
-    def _build_exclusion_list(self, topology):
-        pair_12_set = set()
-        pair_13_set = set()
-        for bond in topology.bonds():
-            a1, a2 = bond.atom1, bond.atom2
-            if "H" not in a1.name and "H" not in a2.name:
-                pair = (
-                    min(a1.index, a2.index),
-                    max(a1.index, a2.index),
-                )
-                pair_12_set.add(pair)
-        for a in pair_12_set:
-            for b in pair_12_set:
-                shared = set(a).intersection(set(b))
-                if len(shared) == 1:
-                    pair = tuple(sorted(set(list(a) + list(b)) - shared))
-                    pair_13_set.add(pair)
-                    # there were duplicates in pair_13_set, e.g. (1,3) and (3,1), needs to be sorted
-
+  #  def _build_exclusion_list(self, topology):
+  #      pair_12_set = set()
+  #      pair_13_set = set()
+  #      for bond in topology.bonds():
+  #          a1, a2 = bond.atom1, bond.atom2
+  #          if "H" not in a1.name and "H" not in a2.name:
+  #              pair = (
+  #                  min(a1.index, a2.index),
+  #                  max(a1.index, a2.index),
+  #              )
+  #              pair_12_set.add(pair)
+  #      for a in pair_12_set:
+  #          for b in pair_12_set:
+  #              shared = set(a).intersection(set(b))
+  #              if len(shared) == 1:
+  #                  pair = tuple(sorted(set(list(a) + list(b)) - shared))
+  #                  pair_13_set.add(pair)
+  #                  # there were duplicates in pair_13_set, e.g. (1,3) and (3,1), needs to be sorted
+#
         # self.pair_12_list = list(sorted(pair_12_set))
-        # self.pair_13_list = list(sorted(pair_13_set - pair_12_set))
-        # self.pair_12_13_list = self.pair_12_list + self.pair_13_list
-        # change to return the list and set the parameters in the init method?
-        pair_12_list = list(sorted(pair_12_set))
-        pair_13_list = list(sorted(pair_13_set - pair_12_set))
-        pair_12_13_list = pair_12_list + pair_13_list
-        return pair_12_13_list
+#        # self.pair_13_list = list(sorted(pair_13_set - pair_12_set))
+#        # self.pair_12_13_list = self.pair_12_list + self.pair_13_list
+#        # change to return the list and set the parameters in the init method?
+#        pair_12_list = list(sorted(pair_12_set))
+#        pair_13_list = list(sorted(pair_13_set - pair_12_set))
+#        pair_12_13_list = pair_12_list + pair_13_list
+#        return pair_12_13_list
 
     def _extract_templates(self, query_name: str) -> defaultdict:
         # returns the forces for the residue name
@@ -609,7 +704,7 @@ class ProtexSystem:
                         #index is position, but what about previous ones?
                         # BUG problem with slow method: need every atom idx for exceptions, now only from 1 residue
                         # TODO normalize / offset etc for each residue
-                        logger.debug(force)
+                        # logger.debug(force)
                         forces_dict[forcename] = [force.getParticleParameters(idx) for idx in atom_idxs]
                         # Also add exclusions
                         for exc_id in range(force.getNumExclusions()):
@@ -819,8 +914,8 @@ class ProtexSystem:
                     maxi = max(idx1, idx2)
                     self._add_force(fgroup, "NonbondedForceExceptions", maxi, value)
             elif forcename == "CustomNonbondedForce":
-                for excl_idx in range(force.getNumExclusions()):
-                    f = force.getExclusionParticles(excl_idx)
+                for exc_idx in range(force.getNumExclusions()):
+                    f = force.getExclusionParticles(exc_idx)
                     idx1, idx2 = f[0], f[1]
                     value = (exc_idx, idx1, idx2)
                     maxi = max(idx1, idx2)
@@ -844,6 +939,7 @@ class ProtexSystem:
                     value = (drude_idx, idx1, idx2)
                     maxi = max(drude1, drude2)
                     self._add_force(fgroup, "DrudeForceThole", maxi, value)
+                    #print("THOLE", value)
             elif forcename == "HarmonicBondForce":
                 for bond_idx in range(force.getNumBonds()):
                     f = force.getBondParameters(bond_idx)
@@ -872,6 +968,7 @@ class ProtexSystem:
                     value = (ctorsion_idx, idx1, idx2, idx3, idx4)
                     maxi = max(idx1, idx2, idx3, idx4)
                     self._add_force(fgroup, "CustomTorsionForce", maxi, value)
+            #print(self.per_residue_forces)
 
     # def _fill_residue_templates(self, name): # not used anymore?
     #     if name in self.templates.names:
@@ -906,7 +1003,7 @@ class ProtexSystem:
         For each ionic liquid residue in the system the protonation state
         is interfered from the provided openMM system object and the protonation site is defined.
         """
-        pair_12_13_list = self._build_exclusion_list(self.topology) # TODO: old code, find out how we managed to do it better
+        #pair_12_13_list = self._build_exclusion_list(self.topology) # TODO: old code, find out how we managed to do it better
 
         residues = []
         templates = dict()
@@ -927,7 +1024,6 @@ class ProtexSystem:
             for oname in ordered_names:
                 templates[oname] = self._extract_templates(oname)
                 H_templates[oname] = self._extract_H_templates(oname)
-                logger.debug(H_templates[oname])
 
         for r in self.topology.residues():
             atom_idxs = [atom.index for atom in r.atoms()]
@@ -946,16 +1042,9 @@ class ProtexSystem:
                 assert name in ordered_names
                 parameters = {}
                 H_parameters = {}
-                logger.debug(templates[oname])
-                logger.debug(H_templates[oname])
                 for oname in ordered_names:
                     parameters[oname] = templates[oname]
                     H_parameters[oname] = H_templates[oname]
-                    logger.debug(H_parameters[oname])
-                    logger.debug(parameters[oname])
-                # logger.debug("########################################")
-                # logger.debug(parameters)
-                # logger.debug("########################################")
 
                 # check that we have the same number of parameters
                 for name1, name2 in itertools.combinations(parameters, 2):
@@ -974,7 +1063,6 @@ class ProtexSystem:
                         self.system,
                         parameters,
                         H_parameters,
-                        pair_12_13_list,
                         self.templates.get_all_states_for(name),
                         self.templates.get_possible_modes_for(name),
                         self.templates.get_starting_donors_for(name),
@@ -990,7 +1078,6 @@ class ProtexSystem:
                         self.system,
                         parameters,
                         H_parameters,
-                        pair_12_13_list,
                         self.templates.get_all_states_for(name),
                         self.templates.get_possible_modes_for(name),
                         self.templates.get_starting_donors_for(name),
@@ -998,9 +1085,7 @@ class ProtexSystem:
                         self.templates.get_starting_donors_for(name),
                         self.templates.get_starting_acceptors_for(name),
                     )
-                    logger.debug(new_res)
                 residues.append(new_res)
-                logger.debug(new_res)
                 # residues[
                 #     -1
                 # ].current_name = (
@@ -1021,7 +1106,6 @@ class ProtexSystem:
             #    )  # we want to ignore meoh, doesn't work the way it actually is
 
         return residues
-        logger.debug(residues)
     # def save_donors_acceptors(self, file: str) -> None:
     #     """
     #     Save a file with the current Hs and Ds for each residue.
@@ -1049,10 +1133,6 @@ class ProtexSystem:
     #     for residue, donor, acceptor in zip(self.residues, residue_donors, residue_acceptors):
     #         residue.donors = donor
     #         residue.acceptors = acceptor
-
-    # TODO use these functions to set donors and acceptors at the start of each new run
-        # write function to update atom parameters
-        # try to use ProtexSystem.load first to load full residues
 
     # not used
     # def report_states(self) -> None:
