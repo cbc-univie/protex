@@ -385,7 +385,7 @@ def generate_h2o_system(
     psf_file: str = None,
     crd_file: str = None,
     restart_file: str = None,
-    constraints: str = None,
+    constraints: str = "HBonds", # simulate water with SHAKE as standard
     boxl: float = 10.0,
     para_files: list[str] = None,
     coll_freq: int = 10,
@@ -450,8 +450,8 @@ def generate_toh2_system(
     psf_file: str = None,
     crd_file: str = None,
     restart_file: str = None,
-    constraints: str = None,
-    boxl: float = 40.6,
+    constraints: str = "HBonds", # simulate water with SHAKE as standard
+    boxl: float = 32.0,
     para_files: list[str] = None,
     coll_freq: int = 10,
     drude_coll_freq: int = 100,
@@ -460,6 +460,7 @@ def generate_toh2_system(
     use_plugin: bool = True,
     platformname="CUDA",
     cuda_precision="single",
+    ensemble = "nVT"
     ensemble = "nVT"
 ):
     """Set up a solvated and parametrized system for OH/H2O/H3O."""
@@ -1098,7 +1099,6 @@ MEOH_MEOH2 = {
 }
 
 # NOTE: take care whether we want to use H2O or SWM4, SPCE etc. for residue name
-# TODO: at the moment fixed atom names, will revert to this at the beginning of each run -> reformulate so that donors and acceptors are filled based on atom type (should be ok with pickling residues)
 
 OH_H2O_H3O =  {
     "OH":  {"starting_donors" : ["H1"], "starting_acceptors" : ["H2", "H3", "H4"], "possible_modes" : ("acceptor")},
@@ -1119,15 +1119,3 @@ HSP_HSD =  {
 # CLA = {"CLA": {"starting_donors" : [], "starting_acceptors" : [], "modes" : ()}}
 
 # SOD = {"SOD": {"starting_donors" : [], "starting_acceptors" : [], "modes" : ()}}
-
-# TODO:
-# keep track of which H is real at the moment: like "donors" : (), "acceptors" : ()
-    # caution: will have to change how we write the psf as well
-        # new idea: write pasf as usual, save donors and acceptors, adjust at setup
-# get atom index or something like that in the update step and swap H to D and vice versa
-# switch parameters around to get the parameter sets for each possible state
-    # at the moment only nonbonded parameters change, all possible donors and acceptors in a single molecule are equivalent (i.e. no two different acidic side chains)
-        # update like now
-        # set parameters for H and D that were used extra
-            # D: force.setParticleParameters(atomidx, 0, 0, 0]
-            # H: extract nonbonded parameters from template first

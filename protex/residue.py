@@ -119,7 +119,7 @@ class Residue:
     #    pair_12_13_exclusion_list,
         states,
         modes_dict,
-        starting_donors,
+        starting_donors, # is this still needed?
         starting_acceptors,
         donors,
         acceptors,
@@ -256,7 +256,7 @@ class Residue:
         return new_name
 
     def get_mode_in_last_transfer_for(self) -> str:
-        # TODO do we need this?
+        # TODO do we need this? (generally, when do we have getters and setters vs direct access vs properties)
         """Return the mode of the current resname and atom_name.
 
         Parameters
@@ -572,7 +572,7 @@ class Residue:
                                 aniso14,
                             )
                         particle_map[drude_idx] = idx1
-                try:
+                try: # TODO this part does not work if there are molecules with and without screened pairs (no screened pairs in water)
                     lst = self.force_idxs[fgroup]["DrudeForceThole"]
                     for thole_idx, idx1, idx2 in lst:
                         thole = parms_thole.popleft()
@@ -669,6 +669,8 @@ class Residue:
     def _get_H_D_NonbondedForce_parameters_at_lambda(self,  lamb: float
     ) -> list[list[float]]:
 
+        # logger.debug(self.H_parameters)
+
         assert lamb >= 0 and lamb <= 1
         current_name = self.current_name
         new_name = self.alternativ_resname
@@ -676,13 +678,16 @@ class Residue:
         mode = self.mode_in_last_transfer
 
         nonbonded_parm_old = self.parameters[current_name]["NonbondedForce"][idx]
-
-        #logger.debug(nonbonded_parm_old)
+        # logger.debug(nonbonded_parm_old)
+        # logger.debug(current_name)
+        # logger.debug(new_name)
+        # logger.debug(mode)
 
         if mode == "acceptor": # used_atom changes from D to H
             nonbonded_parm_new = self.H_parameters[new_name]["NonbondedForce"]
         elif mode == "donor": # used_atom changes from H to D
             nonbonded_parm_new = [unit.quantity.Quantity(value=0.0, unit=unit.elementary_charge), unit.quantity.Quantity(value=0.0, unit=unit.nanometer), unit.quantity.Quantity(value=0.0, unit=unit.kilojoule_per_mole)]
+        # logger.debug(nonbonded_parm_new)
 
         charge_old, sigma_old, epsilon_old = nonbonded_parm_old
         charge_new, sigma_new, epsilon_new = nonbonded_parm_new
