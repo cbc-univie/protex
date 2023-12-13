@@ -575,7 +575,7 @@ class Residue:
                             )
                         particle_map[drude_idx] = idx1
                         #print(f"added {drude_idx} to map via exception")
-                try: 
+                try:
                     lst = self.force_idxs[fgroup]["DrudeForceThole"]
                     #print(f"{lst=}")
                     for thole_idx, idx1, idx2 in lst:
@@ -597,7 +597,7 @@ class Residue:
                                 )
                                 #print(f"set thole exception parameters for {idx1}, {idx2} via exception")
                     except:
-                        continue 
+                        continue
                         # hopefully skipping residues without thole screening only
                         # TODO test
 
