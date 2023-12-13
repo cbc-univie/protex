@@ -679,7 +679,7 @@ class Residue:
 
     def _get_H_D_NonbondedForce_parameters_at_lambda(self,  lamb: float
     ) -> list[list[float]]:
-        
+
         # logger.debug(self.H_parameters)
 
         assert lamb >= 0 and lamb <= 1
@@ -699,7 +699,7 @@ class Residue:
         elif mode == "donor": # used_atom changes from H to D
             nonbonded_parm_new = [unit.quantity.Quantity(value=0.0, unit=unit.elementary_charge), unit.quantity.Quantity(value=0.0, unit=unit.nanometer), unit.quantity.Quantity(value=0.0, unit=unit.kilojoule_per_mole)]
         # logger.debug(nonbonded_parm_new)
-        
+
         charge_old, sigma_old, epsilon_old = nonbonded_parm_old
         charge_new, sigma_new, epsilon_new = nonbonded_parm_new
 
