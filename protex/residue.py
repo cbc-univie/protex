@@ -521,12 +521,14 @@ class Residue:
                                 torsion_idx, idx1, idx2, idx3, idx4, (k, psi0)
                             )
 
-    def _set_DrudeForce_parameters(self, parms) -> None:  # noqa: N802
+    def _set_DrudeForce_parameters(self, parms) -> None:  # noqa: N802 # NOTE maybe split DrudeForce and DrudeForceThole? (thole not always present)
+        #print(f"setting drudes for {self.current_name}")
         parms_pol = deque(parms[0])
         parms_thole = deque(parms[1])
         particle_map = {}
         for force in self.system.getForces():
             if type(force).__name__ == "DrudeForce":
+                #print(f"{force.getForceGroup()=}, {force.getNumParticles()=}")
                 fgroup = force.getForceGroup()
                 try:
                     lst = self.force_idxs[fgroup]["DrudeForce"]
@@ -552,6 +554,7 @@ class Residue:
                             aniso14,
                         )
                         particle_map[drude_idx] = idx1
+                        #print(f"added {drude_idx} to map normally")
                 except KeyError:
                     for drude_idx in range(force.getNumParticles()):
                         f = force.getParticleParameters(drude_idx)
@@ -571,23 +574,32 @@ class Residue:
                                 aniso14,
                             )
                         particle_map[drude_idx] = idx1
-                try: # TODO this part does not work if there are molecules with and without screened pairs (no screened pairs in water)
+                        #print(f"added {drude_idx} to map via exception")
+                try: 
                     lst = self.force_idxs[fgroup]["DrudeForceThole"]
+                    #print(f"{lst=}")
                     for thole_idx, idx1, idx2 in lst:
                         thole = parms_thole.popleft()
                         force.setScreenedPairParameters(thole_idx, idx1, idx2, thole)
+                        #print(f"set thole exception parameters for {idx1}, {idx2} normally")
                 except KeyError:
-                    for drude_idx in range(force.getNumScreenedPairs()):
-                        f = force.getScreenedPairParameters(drude_idx)
-                        idx1, idx2 = f[0], f[1]
-                        drude1, drude2 = particle_map[idx1], particle_map[idx2]
-                        # parent1, parent2 = self.pair_12_13_list[drude_idx]
-                        # drude1, drude2 = parent1 + 1, parent2 + 1
-                        if drude1 in self.atom_idxs and drude2 in self.atom_idxs:
-                            thole = parms_thole.popleft()
-                            force.setScreenedPairParameters(
-                                drude_idx, idx1, idx2, thole
-                            )
+                    try:
+                        for drude_idx in range(force.getNumScreenedPairs()):
+                            f = force.getScreenedPairParameters(drude_idx)
+                            idx1, idx2 = f[0], f[1]
+                            drude1, drude2 = particle_map[idx1], particle_map[idx2]
+                            # parent1, parent2 = self.pair_12_13_list[drude_idx]
+                            # drude1, drude2 = parent1 + 1, parent2 + 1
+                            if drude1 in self.atom_idxs and drude2 in self.atom_idxs:
+                                thole = parms_thole.popleft()
+                                force.setScreenedPairParameters(
+                                    drude_idx, idx1, idx2, thole
+                                )
+                                #print(f"set thole exception parameters for {idx1}, {idx2} via exception")
+                    except:
+                        continue 
+                        # hopefully skipping residues without thole screening only
+                        # TODO test
 
     def _get_NonbondedForce_parameters_at_lambda(  # noqa: N802
         self, lamb: float

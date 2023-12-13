@@ -446,7 +446,11 @@ class ProtexSystem:
         simulation: openmm.app.simulation.Simulation,
         templates: ProtexTemplates,
         simulation_for_parameters: openmm.app.simulation.Simulation = None,
-        real_Hs: list[tuple[str,str]] = [("TOH2", "H1"), ("TOH2", "H2"), ("H2O", "H1"), ("H2O", "H2"), ("OH", "H1"), ("TOH3", "H1"), ("TOH3", "H2"), ("TOH3", "H3"), ("H3O", "H1"), ("H3O", "H2"), ("H3O", "H3"), ("HOAC", "H"), ("IM1H", "H7")],
+        real_Hs: list[tuple[str,str]] = [("TOH2", "H1"), ("TOH2", "H2"), ("H2O", "H1"), ("H2O", "H2"), ("OH", "H1"), 
+                                         ("TOH3", "H1"), ("TOH3", "H2"), ("TOH3", "H3"), ("H3O", "H1"), ("H3O", "H2"), ("H3O", "H3"), 
+                                         ("HOAC", "HO2"), ("IM1H", "H7"),
+                                         ("ULF", "HD1"), ("ULF", "HE2"), ("UDO", "HD1")
+                                         ],
         fast: bool = True,
     ) -> None:
         self.system: openmm.openmm.System = simulation.system
@@ -581,21 +585,28 @@ class ProtexSystem:
                 raise ProtexException(f"This force should be covered here: {type(force).__name__}: {force}")
 
         # make a dictionary of forces present in each residue
-        detected_forces: dict = {}
-        for residue in self.topology.residues():
-            if residue.name not in detected_forces.keys():
-                detected_forces[residue.name] = []
-                for force in self.system.getForces():
-                    if _is_populated_in_residue(force, residue):
-                        detected_forces[residue.name].append(type(force).__name__)
-                if self.simulation_for_parameters is not None:
+        if self.simulation_for_parameters is not None:
+            detected_forces: dict = {}
+            for residue in self.simulation_for_parameters.topology.residues():
+                if residue.name not in detected_forces.keys():
+                    detected_forces[residue.name] = []
                     for force in self.simulation_for_parameters.system.getForces():
                         if _is_populated_in_residue(force, residue):
                             detected_forces[residue.name].append(type(force).__name__)
+            detected_forces[residue.name] = set(detected_forces[residue.name]) # remove duplicates
+
+        else:
+            detected_forces: dict = {}
+            for residue in self.topology.residues():
+                if residue.name not in detected_forces.keys():
+                    detected_forces[residue.name] = []
+                    for force in self.system.getForces():
+                        if _is_populated_in_residue(force, residue):
+                            detected_forces[residue.name].append(type(force).__name__)        
         
-        
-            detected_forces[residue.name] = set(detected_forces[residue.name]) # remove doubles caused by simulation_for_parameters
+            detected_forces[residue.name] = set(detected_forces[residue.name]) # remove duplicates
         # logger.debug(detected_forces)
+        print(detected_forces)
         return detected_forces
 
     def _check_forces(self) -> None:
@@ -885,10 +896,18 @@ class ProtexSystem:
                         insert_values
                     )
                 except KeyError:
-                    self.per_residue_forces[tuple_item][fgroup] = {}
-                    self.per_residue_forces[tuple_item][fgroup][forcename] = [
-                        insert_values
-                    ]
+                    # different force names can belong to same fgroup (e.g. DrudeForce and DrudeForceThole)
+                    # force names were overwritten with the old method
+                    try: 
+                        self.per_residue_forces[tuple_item][fgroup][forcename] = {}
+                        self.per_residue_forces[tuple_item][fgroup][forcename] = [
+                            insert_values
+                        ]
+                    except KeyError:
+                        self.per_residue_forces[tuple_item][fgroup] = {}
+                        self.per_residue_forces[tuple_item][fgroup][forcename] = [
+                            insert_values
+                        ]
 
     def _create_force_idx_dict(self) -> None:
         """Create a dictionary containig all the indices to the forces.
@@ -908,8 +927,8 @@ class ProtexSystem:
                     maxi = max(idx1, idx2)
                     self._add_force(fgroup, "NonbondedForceExceptions", maxi, value)
             elif forcename == "CustomNonbondedForce":
-                for excl_idx in range(force.getNumExclusions()):
-                    f = force.getExclusionParticles(excl_idx)
+                for exc_idx in range(force.getNumExclusions()):
+                    f = force.getExclusionParticles(exc_idx)
                     idx1, idx2 = f[0], f[1]
                     value = (exc_idx, idx1, idx2)
                     maxi = max(idx1, idx2)
@@ -932,7 +951,7 @@ class ProtexSystem:
                     drude2 = particle_map[idx2]
                     value = (drude_idx, idx1, idx2)
                     maxi = max(drude1, drude2)
-                    self._add_force(fgroup, "DrudeForceThole", maxi, value)
+                    self._add_force(fgroup, "DrudeForceThole", maxi, value) # BUG both DrudeForce and DrudeForceThole are in fgroup 7 -> overwritten
             elif forcename == "HarmonicBondForce":
                 for bond_idx in range(force.getNumBonds()):
                     f = force.getBondParameters(bond_idx)
@@ -1028,6 +1047,7 @@ class ProtexSystem:
         if self.fast:
             # this takes some time, but the update calls on the residues are then much faster
             self._force_idx_dict = self._create_force_idx_dict()
+            
 
         for r in self.topology.residues():
             name = r.name

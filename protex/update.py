@@ -80,10 +80,13 @@ class Update(ABC):
         )
         self.allowed_forces = {}
         for resname in self.ionic_liquid.detected_forces:
+            print(resname)
             self.allowed_forces[resname] = list(set(allowed_forces).intersection(self.ionic_liquid.detected_forces[resname]))
             discarded = set(allowed_forces).difference(self.ionic_liquid.detected_forces[resname])
             if discarded:
-                print(f"Discarded the following forces, becuase they are not in the system: {', '.join(discarded)}")
+                print(f"Discarded the following forces, becuase they are not in {resname}: {', '.join(discarded)}")
+            else:
+                print(f"Nothing discarded in {resname}")
             available = set(self.ionic_liquid.detected_forces[resname]).difference(set(allowed_forces))
             if available:
                 print(f"The following forces are available but not updated: {', '.join(available)}")

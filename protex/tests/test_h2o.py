@@ -51,9 +51,11 @@ from ..system import ProtexSystem, ProtexTemplates
 from ..testsystems import (
     IM1H_IM1,
     OAC_HOAC,
-    OH_H2O_H3O,  #CLA, SOD,
+    OH_H2O_H3O, 
+    H2O_H3O, #CLA, SOD,
     generate_small_box,
     generate_toh2_system,
+    generate_ac_toh2_system
 )
 from ..update import KeepHUpdate, NaiveMCUpdate, StateUpdate
 
@@ -901,25 +903,27 @@ def test_pickle_residues_save_load(tmp_path):
 @pytest.mark.skipif(os.getenv("CI") == "true",
     reason="Will fail sporadicaly.",
 )
-def test_imac_pickle_residues_save_load(tmp_path):
-    # simulation = generate_im1h_oac_system()
-    simulation = generate_small_box(use_plugin=False)
-    simulation_for_parameters = generate_small_box(use_plugin=False)
+def test_ac_toh2_pickle_residues_save_load(tmp_path):
+    simulation = generate_ac_toh2_system(use_plugin=False)
+    psf_for_parameters = f"{protex.__path__[0]}/forcefield/toh2/psf_for_parameters.psf"
+    crdfor_parameters = f"{protex.__path__[0]}/forcefield/toh2/psf_for_parameters.crd"
+    simulation_for_parameters = generate_ac_toh2_system(crd_file=crdfor_parameters, psf_file=psf_for_parameters , use_plugin=False)
     # get ionic liquid templates
     allowed_updates = {}
     # allowed updates according to simple protonation scheme
-    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
-    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
-    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 1}
-    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["TOH3", "OAC"])] = {"r_max": 0.2, "prob": 1}
+    allowed_updates[frozenset(["HOAC", "TOH2"])] = {"r_max": 0.2, "prob": 1}
+    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.2, "prob": 1}
+    allowed_updates[frozenset(["TOH3", "TOH2"])] = {"r_max": 0.2, "prob": 1}
     print(allowed_updates.keys())
     templates = ProtexTemplates(
         # [OAC_HOAC_chelpg, IM1H_IM1_chelpg], (set(["IM1H", "OAC"]), set(["IM1", "HOAC"]))
-        [OAC_HOAC, IM1H_IM1],
+        [OAC_HOAC, H2O_H3O],
         (allowed_updates),
     )
     # wrap system in IonicLiquidSystem
     ionic_liquid = ProtexSystem(simulation, templates, simulation_for_parameters)
+
     # initialize update method
     update = KeepHUpdate(ionic_liquid)#, include_equivalent_atom=False, reorient=False)
     # initialize state update class
