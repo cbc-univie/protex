@@ -446,8 +446,8 @@ class ProtexSystem:
         simulation: openmm.app.simulation.Simulation,
         templates: ProtexTemplates,
         simulation_for_parameters: openmm.app.simulation.Simulation = None,
-        real_Hs: list[tuple[str,str]] = [("TOH2", "H1"), ("TOH2", "H2"), ("H2O", "H1"), ("H2O", "H2"), ("OH", "H1"), 
-                                         ("TOH3", "H1"), ("TOH3", "H2"), ("TOH3", "H3"), ("H3O", "H1"), ("H3O", "H2"), ("H3O", "H3"), 
+        real_Hs: list[tuple[str,str]] = [("TOH2", "H1"), ("TOH2", "H2"), ("H2O", "H1"), ("H2O", "H2"), ("OH", "H1"),
+                                         ("TOH3", "H1"), ("TOH3", "H2"), ("TOH3", "H3"), ("H3O", "H1"), ("H3O", "H2"), ("H3O", "H3"),
                                          ("HOAC", "HO2"), ("IM1H", "H7"),
                                          ("ULF", "HD1"), ("ULF", "HE2"), ("UDO", "HD1")
                                          ],
@@ -896,7 +896,7 @@ class ProtexSystem:
                 except KeyError:
                     # different force names can belong to same fgroup (e.g. DrudeForce and DrudeForceThole)
                     # force names were overwritten with the old method
-                    try: 
+                    try:
                         self.per_residue_forces[tuple_item][fgroup][forcename] = {}
                         self.per_residue_forces[tuple_item][fgroup][forcename] = [
                             insert_values
@@ -1045,7 +1045,7 @@ class ProtexSystem:
         if self.fast:
             # this takes some time, but the update calls on the residues are then much faster
             self._force_idx_dict = self._create_force_idx_dict()
-            
+
 
         for r in self.topology.residues():
             name = r.name
