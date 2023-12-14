@@ -481,8 +481,6 @@ class ProtexSystem:
             pickle.dump(to_pickle, outp, pickle.HIGHEST_PROTOCOL)
 
 
-    # TODO there are some forces that are not present in e.g. water (Thole, PeriodicTorsion, ?)
-    # find a way to handle them if only present in some molecules (detected / allowed forces as dictionary?)
     def _detect_forces(self) -> set[str]:
         def _is_populated(force): # deprecated
             if type(force).__name__ in self.IGNORED_FORCES:
@@ -593,7 +591,7 @@ class ProtexSystem:
                     for force in self.simulation_for_parameters.system.getForces():
                         if _is_populated_in_residue(force, residue):
                             detected_forces[residue.name].append(type(force).__name__)
-            detected_forces[residue.name] = set(detected_forces[residue.name]) # remove duplicates
+                    detected_forces[residue.name] = set(detected_forces[residue.name]) # remove duplicates
 
         else:
             detected_forces: dict = {}
@@ -602,9 +600,9 @@ class ProtexSystem:
                     detected_forces[residue.name] = []
                     for force in self.system.getForces():
                         if _is_populated_in_residue(force, residue):
-                            detected_forces[residue.name].append(type(force).__name__)        
+                            detected_forces[residue.name].append(type(force).__name__)       
+                    detected_forces[residue.name] = set(detected_forces[residue.name]) # remove duplicates
         
-            detected_forces[residue.name] = set(detected_forces[residue.name]) # remove duplicates
         # logger.debug(detected_forces)
         print(detected_forces)
         return detected_forces

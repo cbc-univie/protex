@@ -80,7 +80,6 @@ class Update(ABC):
         )
         self.allowed_forces = {}
         for resname in self.ionic_liquid.detected_forces:
-            print(resname)
             self.allowed_forces[resname] = list(set(allowed_forces).intersection(self.ionic_liquid.detected_forces[resname]))
             discarded = set(allowed_forces).difference(self.ionic_liquid.detected_forces[resname])
             if discarded:
