@@ -600,9 +600,9 @@ class ProtexSystem:
                     detected_forces[residue.name] = []
                     for force in self.system.getForces():
                         if _is_populated_in_residue(force, residue):
-                            detected_forces[residue.name].append(type(force).__name__)       
+                            detected_forces[residue.name].append(type(force).__name__)
                     detected_forces[residue.name] = set(detected_forces[residue.name]) # remove duplicates
-        
+
         # logger.debug(detected_forces)
         print(detected_forces)
         return detected_forces
