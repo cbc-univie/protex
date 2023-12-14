@@ -424,8 +424,8 @@ def generate_h2o_system(
         params,
         constraints=constraints,
         dummy_atom_type=dummy_atom_type,
-       # cutoff=3,
-       # switch=2,
+        cutoff=3,
+        switch=2,
     )
 
     # if restart_file is None:
@@ -460,7 +460,6 @@ def generate_toh2_system(
     use_plugin: bool = True,
     platformname="CUDA",
     cuda_precision="single",
-    ensemble = "nVT"
     ensemble = "nVT"
 ):
     """Set up a solvated and parametrized system for OH/H2O/H3O."""
