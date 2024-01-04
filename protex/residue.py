@@ -142,6 +142,8 @@ class Residue:
         self.donors = donors
         self.acceptors = acceptors
         self.force_idxs = force_idxs
+        # print(self.current_name) # for debugging
+        # print(f"{self.force_idxs=}")
         # self.pair_12_13_list = pair_12_13_exclusion_list
         self.states = states # do we need this?
         self.used_atom = None
@@ -376,11 +378,19 @@ class Residue:
                             )
 
     def _set_CustomNonbondedForce_parameters(self, parms) -> None:  # noqa: N802
-        # logger.debug(parms)
+        print(f"{parms=}")
         parms_nonb = deque(parms[0])
-        #logger.debug(parms_nonb)
-        parms_exclusions = deque(parms[1])
-        #logger.debug(parms_exclusions)
+        print(f"{parms_nonb=}")
+        parms_exclusions = deque(parms[1]) # NOTE all entries are in here twice, why???
+        print(f"{parms_exclusions=}")
+        for force in self.system.getForces():
+            print(force) 
+            if type(force).__name__ == "CustomNonbondedForce":
+                print(force.getNumParticles())
+            # there are two CustomNonbondedForces in the list, why? 
+            # you can add multiple force objects, where do extras get added?
+            # where does the customnonbonded force come from? (present in every residue)
+            #-> would explain popping from empty deque
         for force in self.system.getForces():
             fgroup = force.getForceGroup()
             if type(force).__name__ == "CustomNonbondedForce":
@@ -388,6 +398,7 @@ class Residue:
                     force.setParticleParameters(idx, parms_nonbonded)
                 try:  # use the fast way
                     lst = self.force_idxs[fgroup]["CustomNonbondedForceExclusions"]
+                    print(f"{lst=}")
                     for exc_idx, idx1, idx2 in lst:
                         excl_idx1, excl_idx2 = parms_exclusions.popleft()
                         force.setExclusionParticles(

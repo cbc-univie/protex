@@ -53,9 +53,11 @@ from ..testsystems import (
     IM1H_IM1,
     OAC_HOAC,
     OH_H2O_H3O,
+    HSP_HSD,
     generate_ac_toh2_system,
     generate_small_box,
     generate_toh2_system,
+    generate_m2_toh2_system
 )
 from ..update import KeepHUpdate, NaiveMCUpdate, StateUpdate
 
@@ -928,6 +930,105 @@ def test_ac_toh2_pickle_residues_save_load(tmp_path):
     update = KeepHUpdate(ionic_liquid)#, include_equivalent_atom=False, reorient=False)
     # initialize state update class
     state_update = StateUpdate(update)
+
+    for i in range(10):
+        print(ionic_liquid.residues[i].current_name, ionic_liquid.residues[i].donors)
+
+    #ionic_liquid.simulation.step(50)
+    state_update.update(2)
+    
+    # before_loading = [[ionic_liquid.residues[i].current_name, ionic_liquid.residues[i].donors, ionic_liquid.residues[i].mode_in_last_transfer] for i in range(10)]
+    forces_dict = {}
+    for i in range(10):
+        residue = ionic_liquid.residues[i]
+        atom_idxs = [atom.index for atom in residue.residue.atoms()]
+        for force in simulation.system.getForces():
+            forcename = type(force).__name__
+            if forcename == "NonbondedForce":
+                forces_dict[i] = [
+                    force.getParticleParameters(idx) for idx in atom_idxs
+                ]
+    before_loading = forces_dict
+    # for i in range(10):
+    #     print(ionic_liquid.residues[i].current_name, ionic_liquid.residues[i].donors, ionic_liquid.residues[i].mode_in_last_transfer)
+
+    ionic_liquid.saveState(f"{tmp_path}/state.rst")
+    ionic_liquid.saveCheckpoint(f"{tmp_path}/checkpoint.rst")
+    ionic_liquid.dump(f"{tmp_path}/system.pkl")
+
+    simulation = generate_small_box(use_plugin=False)
+    simulation_for_parameters = generate_small_box(use_plugin=False)
+
+    ionic_liquid2 = ProtexSystem.load(f"{tmp_path}/system.pkl", simulation, simulation_for_parameters)
+
+    # print("####### after load #########")
+    # for i in range(10):
+    #     print(ionic_liquid2.residues[i].current_name, ionic_liquid2.residues[i].donors, ionic_liquid2.residues[i].mode_in_last_transfer)
+
+    ionic_liquid2.loadState(f"{tmp_path}/state.rst")
+    ionic_liquid2.loadCheckpoint(f"{tmp_path}/checkpoint.rst")
+
+    # after_loading = [[ionic_liquid.residues[i].current_name, ionic_liquid.residues[i].donors, ionic_liquid.residues[i].mode_in_last_transfer] for i in range(10)]
+    forces_dict = {}
+    for i in range(10):
+        residue = ionic_liquid.residues[i]
+        atom_idxs = [atom.index for atom in residue.residue.atoms()]
+        for force in simulation.system.getForces():
+            forcename = type(force).__name__
+            if forcename == "NonbondedForce":
+                forces_dict[i] = [
+                    force.getParticleParameters(idx) for idx in atom_idxs
+                ]
+    after_loading = forces_dict
+
+    # for i in range(10):
+    #     if before_loading[i] != after_loading[i]:
+    #         print(i)
+    # for i in range(10):
+    #     if before_loading[i] != after_loading[i]:
+    #         print(before_loading[i])
+    #         print(after_loading[i])
+
+    assert before_loading == after_loading
+
+@pytest.mark.skipif(os.getenv("CI") == "true",
+    reason="Will fail sporadicaly.",
+)
+def test_m2_toh2_pickle_residues_save_load(tmp_path):
+
+    base = "/site/raid5/marta/simulations/test_m2"
+    psf_for_parameters = f"{base}/pph2o.psf"
+    crdfor_parameters = f"{base}/pph2o.crd"
+    npt_rst = f"{base}/pph2o_npt_7.rst"
+
+    simulation = generate_m2_toh2_system(crd_file=crdfor_parameters, psf_file=psf_for_parameters, restart_file = npt_rst, use_plugin=False)
+    simulation_for_parameters = generate_m2_toh2_system(crd_file=crdfor_parameters, psf_file=psf_for_parameters , use_plugin=False)
+    # get ionic liquid templates
+    allowed_updates = {}
+    # allowed updates according to simple protonation scheme
+    allowed_updates[frozenset(["TOH3", "TOH2"])] = {"r_min": 0.100, "r_max": 0.130, "prob": 1.000} 
+    allowed_updates[frozenset(["TOH3", "UDO"])] = {"r_min": 0.100, "r_max": 0.130, "prob": 1.000} 
+    allowed_updates[frozenset(["TOH2", "ULF"])] = {"r_min": 0.100, "r_max": 0.130, "prob": 1.000}
+    print(allowed_updates.keys())
+    templates = ProtexTemplates(
+        # [OAC_HOAC_chelpg, IM1H_IM1_chelpg], (set(["IM1H", "OAC"]), set(["IM1", "HOAC"]))
+        [H2O_H3O, HSP_HSD],
+        (allowed_updates),
+    )
+    # wrap system in IonicLiquidSystem
+    ionic_liquid = ProtexSystem(simulation, templates, simulation_for_parameters)
+
+    # initialize update method
+    update = KeepHUpdate(ionic_liquid)#, include_equivalent_atom=False, reorient=False)
+    # initialize state update class
+    state_update = StateUpdate(update)
+
+    for force in ionic_liquid.system.getForces():
+        if type(force).__name__ == "HarmonicBondForce":
+            print(force.getNumBonds())
+            # print(force.getNumExclusions())
+        
+    raise AssertionError("here")
 
     for i in range(10):
         print(ionic_liquid.residues[i].current_name, ionic_liquid.residues[i].donors)

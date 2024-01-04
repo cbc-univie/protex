@@ -591,7 +591,7 @@ class ProtexSystem:
                     for force in self.simulation_for_parameters.system.getForces():
                         if _is_populated_in_residue(force, residue):
                             detected_forces[residue.name].append(type(force).__name__)
-                    detected_forces[residue.name] = set(detected_forces[residue.name]) # remove duplicates
+                    #detected_forces[residue.name] = set(detected_forces[residue.name]) # remove duplicates
 
         else:
             detected_forces: dict = {}
@@ -604,7 +604,7 @@ class ProtexSystem:
                     detected_forces[residue.name] = set(detected_forces[residue.name]) # remove duplicates
         
         # logger.debug(detected_forces)
-        print(detected_forces)
+        print(f"{detected_forces=}")
         return detected_forces
 
     def _check_forces(self) -> None:
@@ -683,7 +683,7 @@ class ProtexSystem:
         for residue in sim.topology.residues():
             if query_name == residue.name:
                 atom_idxs = [atom.index for atom in residue.atoms()]
-                atom_names = [atom.name for atom in residue.atoms()]
+                # atom_names = [atom.name for atom in residue.atoms()]
                 # logger.debug(atom_idxs)
                 # logger.debug(atom_names)
 
@@ -698,7 +698,7 @@ class ProtexSystem:
                             f = force.getExceptionParameters(exc_id)
                             idx1 = f[0]
                             idx2 = f[1]
-                            if idx1 in atom_idxs and idx2 in atom_idxs:
+                            if idx1 in atom_idxs or idx2 in atom_idxs:
                                 forces_dict[forcename + "Exceptions"].append(f)
 
                     elif forcename == "CustomNonbondedForce":
@@ -713,7 +713,7 @@ class ProtexSystem:
                             f = force.getExclusionParticles(exc_id)
                             idx1 = f[0]
                             idx2 = f[1]
-                            if idx1 in atom_idxs and idx2 in atom_idxs:
+                            if idx1 in atom_idxs or idx2 in atom_idxs:
                                 forces_dict[forcename + "Exclusions"].append(f)
 
                     elif forcename == "HarmonicBondForce":
@@ -721,7 +721,10 @@ class ProtexSystem:
                             f = force.getBondParameters(bond_id)
                             idx1 = f[0]
                             idx2 = f[1]
-                            if idx1 in atom_idxs and idx2 in atom_idxs:
+                            # changed bonds, angles, dihedrals etc. to check for at least 1 atom belinging to residue (in protein residues are connected)
+                            # TODO now forces can belong to multiple residues -> what happens at update? (esp. if we update 2 neighbouring resis)
+                            # TODO update force_idx_dict as well? (now maxi can be in the next residue, force is ignored for the first one)
+                            if idx1 in atom_idxs or idx2 in atom_idxs: 
                                 forces_dict[forcename].append(f)
 
                     elif forcename == "HarmonicAngleForce":
@@ -729,8 +732,8 @@ class ProtexSystem:
                             f = force.getAngleParameters(angle_id)
                             if (
                                 f[0] in atom_idxs
-                                and f[1] in atom_idxs
-                                and f[2] in atom_idxs
+                                or f[1] in atom_idxs
+                                or f[2] in atom_idxs
                             ):
                                 forces_dict[forcename].append(f)
 
@@ -739,9 +742,9 @@ class ProtexSystem:
                             f = force.getTorsionParameters(torsion_id)
                             if (
                                 f[0] in atom_idxs
-                                and f[1] in atom_idxs
-                                and f[2] in atom_idxs
-                                and f[3] in atom_idxs
+                                or f[1] in atom_idxs
+                                or f[2] in atom_idxs
+                                or f[3] in atom_idxs
                             ):
                                 forces_dict[forcename].append(f)
 
@@ -751,9 +754,9 @@ class ProtexSystem:
 
                             if (
                                 f[0] in atom_idxs
-                                and f[1] in atom_idxs
-                                and f[2] in atom_idxs
-                                and f[3] in atom_idxs
+                                or f[1] in atom_idxs
+                                or f[2] in atom_idxs
+                                or f[3] in atom_idxs
                             ):
                                 forces_dict[forcename].append(f)
 
@@ -778,7 +781,7 @@ class ProtexSystem:
                             # get the drude idxs in the system
                             drude1 = particle_map[idx1]
                             drude2 = particle_map[idx2]
-                            if drude1 in atom_idxs and drude2 in atom_idxs:
+                            if drude1 in atom_idxs or drude2 in atom_idxs:
                                 forces_dict[forcename + "Thole"].append(f)
                 break  # do this only for the relevant residue once
         else:
@@ -826,6 +829,7 @@ class ProtexSystem:
                         #         forces_dict[forcename + "Exceptions"].append(f)
 
                         # double-checking for molecules with multiple equivalent atoms, then use one set of parameters only (we assume here that all acidic Hs in the residue are the same, e.g. MeOH2, H2O, H2OAc)
+                            # TODO expand this part to cover multiple different acidic Hs, e.g. couple parameters to atom names
                         elif len(atom_names) > 1:
                             forces_dict[forcename] = [
                                 force.getParticleParameters(idx) for idx in atom_idxs
@@ -917,7 +921,7 @@ class ProtexSystem:
             forcename = type(force).__name__
             fgroup = force.getForceGroup()
             if forcename == "NonbondedForce":
-                # only treat exceptions
+                # only treat exceptions # why???
                 for exc_idx in range(force.getNumExceptions()):
                     f = force.getExceptionParameters(exc_idx)
                     idx1, idx2 = f[0], f[1]
@@ -949,7 +953,7 @@ class ProtexSystem:
                     drude2 = particle_map[idx2]
                     value = (drude_idx, idx1, idx2)
                     maxi = max(drude1, drude2)
-                    self._add_force(fgroup, "DrudeForceThole", maxi, value) # BUG both DrudeForce and DrudeForceThole are in fgroup 7 -> overwritten
+                    self._add_force(fgroup, "DrudeForceThole", maxi, value) # BUG both DrudeForce and DrudeForceThole are in fgroup 7 -> overwritten -> hopefully fixed now
             elif forcename == "HarmonicBondForce":
                 for bond_idx in range(force.getNumBonds()):
                     f = force.getBondParameters(bond_idx)
@@ -1045,8 +1049,9 @@ class ProtexSystem:
         if self.fast:
             # this takes some time, but the update calls on the residues are then much faster
             self._force_idx_dict = self._create_force_idx_dict()
+            #print(f"{self.per_residue_forces=}")
 
-
+        handled_resis = [] # for debugging
         for r in self.topology.residues():
             name = r.name
             if name in self.templates.names:
@@ -1083,6 +1088,11 @@ class ProtexSystem:
                         self.templates.get_starting_acceptors_for(name),
                         force_idxs=self.per_residue_forces[minmax],
                     )
+                    if name not in handled_resis: # for debugging
+                        print(f"{name}: {self.per_residue_forces[minmax]}")
+                        print(f"{name}: {len(self.per_residue_forces[minmax][0]['HarmonicBondForce'])+len(self.per_residue_forces[minmax][3]['HarmonicBondForce'])}")
+                        print((new_res.parameters[name]['HarmonicBondForce']))
+                        handled_resis.append(name)
                 else:
                     new_res = Residue(
                         r,
