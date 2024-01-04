@@ -384,10 +384,10 @@ class Residue:
         parms_exclusions = deque(parms[1]) # NOTE all entries are in here twice, why???
         print(f"{parms_exclusions=}")
         for force in self.system.getForces():
-            print(force) 
+            print(force)
             if type(force).__name__ == "CustomNonbondedForce":
                 print(force.getNumParticles())
-            # there are two CustomNonbondedForces in the list, why? 
+            # there are two CustomNonbondedForces in the list, why?
             # you can add multiple force objects, where do extras get added?
             # where does the customnonbonded force come from? (present in every residue)
             #-> would explain popping from empty deque

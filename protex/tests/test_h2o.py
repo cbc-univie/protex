@@ -50,14 +50,14 @@ import protex
 from ..system import ProtexSystem, ProtexTemplates
 from ..testsystems import (
     H2O_H3O,  #CLA, SOD,
+    HSP_HSD,
     IM1H_IM1,
     OAC_HOAC,
     OH_H2O_H3O,
-    HSP_HSD,
     generate_ac_toh2_system,
+    generate_m2_toh2_system,
     generate_small_box,
     generate_toh2_system,
-    generate_m2_toh2_system
 )
 from ..update import KeepHUpdate, NaiveMCUpdate, StateUpdate
 
@@ -936,7 +936,7 @@ def test_ac_toh2_pickle_residues_save_load(tmp_path):
 
     #ionic_liquid.simulation.step(50)
     state_update.update(2)
-    
+
     # before_loading = [[ionic_liquid.residues[i].current_name, ionic_liquid.residues[i].donors, ionic_liquid.residues[i].mode_in_last_transfer] for i in range(10)]
     forces_dict = {}
     for i in range(10):
@@ -1006,8 +1006,8 @@ def test_m2_toh2_pickle_residues_save_load(tmp_path):
     # get ionic liquid templates
     allowed_updates = {}
     # allowed updates according to simple protonation scheme
-    allowed_updates[frozenset(["TOH3", "TOH2"])] = {"r_min": 0.100, "r_max": 0.130, "prob": 1.000} 
-    allowed_updates[frozenset(["TOH3", "UDO"])] = {"r_min": 0.100, "r_max": 0.130, "prob": 1.000} 
+    allowed_updates[frozenset(["TOH3", "TOH2"])] = {"r_min": 0.100, "r_max": 0.130, "prob": 1.000}
+    allowed_updates[frozenset(["TOH3", "UDO"])] = {"r_min": 0.100, "r_max": 0.130, "prob": 1.000}
     allowed_updates[frozenset(["TOH2", "ULF"])] = {"r_min": 0.100, "r_max": 0.130, "prob": 1.000}
     print(allowed_updates.keys())
     templates = ProtexTemplates(
@@ -1027,7 +1027,7 @@ def test_m2_toh2_pickle_residues_save_load(tmp_path):
         if type(force).__name__ == "HarmonicBondForce":
             print(force.getNumBonds())
             # print(force.getNumExclusions())
-        
+
     raise AssertionError("here")
 
     for i in range(10):
