@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+import copy
 import itertools
 import logging
-import copy
 from collections import deque
 
 try:
@@ -381,7 +381,7 @@ class Residue:
         #print(f"{parms=}")
         parms_nonb = deque(parms[0])
         #print(f"{parms_nonb=}")
-        parms_exclusions = deque(parms[1]) 
+        parms_exclusions = deque(parms[1])
         parms_exclusions_copy = copy.deepcopy(parms_exclusions)
         #print(f"{parms_exclusions=}")
         for force in self.system.getForces():
@@ -401,7 +401,7 @@ class Residue:
                         # HACK for the moment: keep CNBFs from NBFIX and NBTHOLE together
                             # we will use up the exclusions for the first type, continue with the copy for the second type
                             # TODO can there be even more instances of CNBF? maybe check for their number somewhere and adapt accordingly
-                        except IndexError: 
+                        except IndexError:
                             excl_idx1, excl_idx2 = parms_exclusions_copy.popleft()
                             force.setExclusionParticles(
                                 exc_idx, excl_idx1, excl_idx2
@@ -729,9 +729,9 @@ class Residue:
     #             charge_interpolated = (1 - lamb) * charge_old + lamb * charge_new
     #             sigma_interpolated = (1 - lamb) * sigma_old + lamb * sigma_new
     #             epsilon_interpolated = (1 - lamb) * epsilon_old + lamb * epsilon_new
-            
+
     #             parms_interpolated[atom] = [charge_interpolated, sigma_interpolated, epsilon_interpolated]
-                
+
 
     #     # # leave exceptions to be handled by the general nonbonded force update for the moment
     #     # force_name = "NonbondedForceExceptions"

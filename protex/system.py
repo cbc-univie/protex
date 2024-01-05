@@ -452,7 +452,7 @@ class ProtexSystem:
                                          ("HOAC", "HO2"), ("IM1H", "H7"),
                                          ("ULF", "HD1"), ("ULF", "HE2"), ("UDO", "HD1")
                                          ],
-        dummies: list[tuple[str, str]] = [("HSD", "HE2"), ("UDO", "HE2"), ("TOH2", "H3"), ("TOH2", "H4"), ("TOH3", "H4")],                               
+        dummies: list[tuple[str, str]] = [("HSD", "HE2"), ("UDO", "HE2"), ("TOH2", "H3"), ("TOH2", "H4"), ("TOH3", "H4")],
         fast: bool = True,
     ) -> None:
         self.system: openmm.openmm.System = simulation.system
@@ -594,11 +594,11 @@ class ProtexSystem:
                     for force in self.simulation_for_parameters.system.getForces():
                         if _is_populated_in_residue(force, residue):
                             detected_forces[residue.name].append(type(force).__name__)
-                    # detected_forces[residue.name] = set(detected_forces[residue.name]) 
+                    # detected_forces[residue.name] = set(detected_forces[residue.name])
                     # TODO do we want to keep or remove duplicates for update?
                     # there are different forcegroups with same name, but we iterate over all of them at the same time
                     # we use intersection with update - allowed forces anyway
-                    
+
 
         else:
             detected_forces: dict = {}
@@ -723,7 +723,7 @@ class ProtexSystem:
                             # do something similar to DrudeForce/Thole to distinguish NBFIX and NBTHOLE CustomNonbondedForces and their exclusions
                                 # idea (not very elegant): length of entry (1: adjusted LJ from NBFIX, 3: NBTHOLE)
                             # -> fixed for the moment by copying exclusions, as they are the same
-                        
+
                         # logger.debug(force)
                         forces_dict[forcename] = [force.getParticleParameters(idx) for idx in atom_idxs]
                         # Also add exclusions
@@ -900,7 +900,7 @@ class ProtexSystem:
             raise RuntimeError("residue not found")
         # logger.debug(forces_dict)
         return forces_dict
-    
+
     def _extract_D_templates(self, query_name: str) -> defaultdict:
         # returns the nonbonded parameters of real Hs for the residue name
         # FIXME if there are NBFIX terms, OpenMM adds CustomNonbondedForce for all particles
@@ -1242,7 +1242,7 @@ class ProtexSystem:
                         self.templates.get_starting_acceptors_for(name),
                         force_idxs=self.per_residue_forces[minmax],
                     )
-                    
+
                 else:
                     new_res = Residue(
                         r,
