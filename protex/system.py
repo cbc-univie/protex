@@ -742,7 +742,7 @@ class ProtexSystem:
                             # changed bonds, angles, dihedrals etc. to check for at least 1 atom belonging to residue (in protein, residues are connected)
                             # TODO now forces can belong to multiple residues -> what happens at update? (esp. if we update 2 neighbouring resis)
                             # TODO update force_idx_dict as well? (now maxi can be in the next residue, force is ignored for the first one)
-                            if idx1 in atom_idxs or idx2 in atom_idxs: 
+                            if idx1 in atom_idxs or idx2 in atom_idxs:
                                 forces_dict[forcename].append(f)
 
                     elif forcename == "HarmonicAngleForce":
