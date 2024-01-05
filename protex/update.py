@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import copy
 import logging
+import warnings
 import pickle
 import random
 from abc import ABC, abstractmethod
@@ -81,9 +82,13 @@ class Update(ABC):
         self.allowed_forces = {}
         for resname in self.ionic_liquid.detected_forces:
             self.allowed_forces[resname] = list(set(allowed_forces).intersection(self.ionic_liquid.detected_forces[resname]))
+            if "CustomNonBondedForce" in self.allowed_forces[resname]:
+                warnings.warn(
+                    "At the moment, Lennard-Jones parameters stored in CustomNonBondedForce (because of NBFIX) cannot be interpolated. They will be switched after lambda=0.5."
+                )
             discarded = set(allowed_forces).difference(self.ionic_liquid.detected_forces[resname])
             if discarded:
-                print(f"Discarded the following forces, becuase they are not in {resname}: {', '.join(discarded)}")
+                print(f"Discarded the following forces, because they are not in {resname}: {', '.join(discarded)}")
             else:
                 print(f"Nothing discarded in {resname}")
             available = set(self.ionic_liquid.detected_forces[resname]).difference(set(allowed_forces))
@@ -216,6 +221,23 @@ class KeepHUpdate(Update):
             for candidate in candidates:
                 donor, acceptor = candidate
 
+                if lamb == 0:
+                    # NOTE this works with deepcopy, why doesn't it work without copy, like the current_name?
+                    # change mode of used atom before updating forces, to know which atom is H and which is D
+                    ddonors = copy.deepcopy(donor.donors)
+                    dacceptors = copy.deepcopy(donor.acceptors)
+                    ddonors.remove(donor.used_atom)
+                    dacceptors.append(donor.used_atom)
+                    donor.donors = ddonors
+                    donor.acceptors = dacceptors
+
+                    adonors = copy.deepcopy(acceptor.donors)
+                    aacceptors = copy.deepcopy(acceptor.acceptors)
+                    adonors.append(acceptor.used_atom)
+                    aacceptors.remove(acceptor.used_atom)
+                    acceptor.donors = adonors
+                    acceptor.acceptors = aacceptors
+
                 print(
                     f"{lamb}: donor: {donor.current_name}; charge:{donor.current_charge}: acceptor: {acceptor.current_name}; charge:{acceptor.current_charge}"
                 )
@@ -288,21 +310,6 @@ class KeepHUpdate(Update):
             #     assert len(acceptor.donors) == 1
             #     assert len(acceptor.acceptors) == 3
             # assert (donor.used_atom in donor.donors and acceptor.used_atom in acceptor.acceptors)
-
-            # NOTE this works with deepcopy, why doesn't it work without copy, like the current_name?
-            ddonors = copy.deepcopy(donor.donors)
-            dacceptors = copy.deepcopy(donor.acceptors)
-            ddonors.remove(donor.used_atom)
-            dacceptors.append(donor.used_atom)
-            donor.donors = ddonors
-            donor.acceptors = dacceptors
-
-            adonors = copy.deepcopy(acceptor.donors)
-            aacceptors = copy.deepcopy(acceptor.acceptors)
-            adonors.append(acceptor.used_atom)
-            aacceptors.remove(acceptor.used_atom)
-            acceptor.donors = adonors
-            acceptor.acceptors = aacceptors
 
             donor.current_name = donor.alternativ_resname
             acceptor.current_name = acceptor.alternativ_resname

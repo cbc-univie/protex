@@ -1023,12 +1023,43 @@ def test_m2_toh2_pickle_residues_save_load(tmp_path):
     # initialize state update class
     state_update = StateUpdate(update)
 
-    for force in ionic_liquid.system.getForces():
-        if type(force).__name__ == "HarmonicBondForce":
-            print(force.getNumBonds())
-            # print(force.getNumExclusions())
+    # first_done = False
+    # first = []
+    # second = []
+    # for force in ionic_liquid.system.getForces():
+    #     if type(force).__name__ == "CustomNonbondedForce":
+    #     # if type(force).__name__ == "NonbondedForce":
+    #         print(force.getNumParticles())
+    #         print(force.getNumExclusions())
+    #         print(force.getForceGroup())
+    #         print(force.getParticleParameters(25370))
+    #         print(force.getParticleParameters(25373))
+    #         print(force.getNumTabulatedFunctions())
+    #         # func = force.getTabulatedFunction(0)
+    #         # print(func.getFunctionParameters())
+    #         # print(len(func.getFunctionParameters()[-1]))
+    #         # func = force.getTabulatedFunction(1)
+    #         # print(func.getFunctionParameters())
+    #         # print(len(func.getFunctionParameters()[-1]))
+    #         # for i in range(force.getNumExclusions()):
+    #         #     if not first_done:
+    #         #         first.append(force.getExclusionParticles(i))
+    #         #     else:
+    #         #         second.append(force.getExclusionParticles(i))
+    #         # first_done = True
+    #         # print(first == second)
+
+    
+    # # for force in ionic_liquid.system.getForces():
+    # #     #if type(force).__name__ == "CustomNonbondedForce":
+    # #     if type(force).__name__ == "HarmonicBondForce":
+    # #         print(force.getNumBonds())
+    # #         for i in range(10):
+    # #             print(force.getBondParameters(i))            
+           
+
         
-    raise AssertionError("here")
+    # raise AssertionError("here")
 
     for i in range(10):
         print(ionic_liquid.residues[i].current_name, ionic_liquid.residues[i].donors)

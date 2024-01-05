@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import itertools
 import logging
+import copy
 from collections import deque
 
 try:
@@ -116,6 +117,7 @@ class Residue:
         system,
         parameters,
         H_parameters,
+        D_parameters,
         # pair_12_13_exclusion_list, # deprecated
         states, # do we need this?
         modes_dict,
@@ -134,6 +136,7 @@ class Residue:
         self.atom_names = [atom.name for atom in residue.atoms()]
         self.parameters = parameters
         self.H_parameters = H_parameters
+        self.D_parameters = D_parameters
         self.record_charge_state = []
         self.record_charge_state.append(self.endstate_charge)
         self.modes_dict = modes_dict
@@ -320,8 +323,8 @@ class Residue:
         """
         if force_name == "NonbondedForce":
             parms = self._get_NonbondedForce_parameters_at_lambda(lamb)
-            H_D_parms = self._get_H_D_NonbondedForce_parameters_at_lambda(lamb)
-            self._set_NonbondedForce_parameters(parms, H_D_parms)
+            #H_D_parms = self._get_H_D_NonbondedForce_parameters_at_lambda(lamb)
+            self._set_NonbondedForce_parameters(parms)
         elif force_name == "CustomNonbondedForce":
             parms = self._get_CustomNonbondedForce_parameters_at_lambda(lamb)
             self._set_CustomNonbondedForce_parameters(parms)
@@ -342,22 +345,19 @@ class Residue:
             self._set_DrudeForce_parameters(parms)
         else:
             raise RuntimeWarning(
-                "Force name {force_name=} is not covered, no updates will happen on this one!"
+                f"Force name {force_name} is not covered, no updates will happen on this one!"
             )
 
-    def _set_NonbondedForce_parameters(self, parms, H_D_parms) -> None:  # noqa: N802
+    # getting H/D parameters correctly should be handled by _get_NonbondedForce_parameters_at_lambda now
+        # can set them here without making distinctions
+    def _set_NonbondedForce_parameters(self, parms) -> None:  # noqa: N802
         parms_nonb = deque(parms[0])
         parms_exceptions = deque(parms[1])
         for force in self.system.getForces():
             fgroup = force.getForceGroup()
             if type(force).__name__ == "NonbondedForce":
-                for idx in self.atom_idxs:
-                    if idx == self.get_idx_for_atom_name(self.used_atom):
-                        charge, sigma, epsilon = H_D_parms
-                        # update the used atom extra with the corresponding H or D parameters
-                    else:
-                        charge, sigma, epsilon = parms_nonb[self.atom_idxs.index(idx)]
-                        # update other atoms with the parameters from the new residue
+                for parms_nonbonded, idx in zip(parms_nonb, self.atom_idxs):
+                    charge, sigma, epsilon = parms_nonbonded
                     force.setParticleParameters(idx, charge, sigma, epsilon)
                 try:  # use the fast way
                     lst = self.force_idxs[fgroup]["NonbondedForceExceptions"]
@@ -378,19 +378,12 @@ class Residue:
                             )
 
     def _set_CustomNonbondedForce_parameters(self, parms) -> None:  # noqa: N802
-        print(f"{parms=}")
+        #print(f"{parms=}")
         parms_nonb = deque(parms[0])
-        print(f"{parms_nonb=}")
-        parms_exclusions = deque(parms[1]) # NOTE all entries are in here twice, why???
-        print(f"{parms_exclusions=}")
-        for force in self.system.getForces():
-            print(force) 
-            if type(force).__name__ == "CustomNonbondedForce":
-                print(force.getNumParticles())
-            # there are two CustomNonbondedForces in the list, why? 
-            # you can add multiple force objects, where do extras get added?
-            # where does the customnonbonded force come from? (present in every residue)
-            #-> would explain popping from empty deque
+        #print(f"{parms_nonb=}")
+        parms_exclusions = deque(parms[1]) 
+        parms_exclusions_copy = copy.deepcopy(parms_exclusions)
+        #print(f"{parms_exclusions=}")
         for force in self.system.getForces():
             fgroup = force.getForceGroup()
             if type(force).__name__ == "CustomNonbondedForce":
@@ -398,12 +391,21 @@ class Residue:
                     force.setParticleParameters(idx, parms_nonbonded)
                 try:  # use the fast way
                     lst = self.force_idxs[fgroup]["CustomNonbondedForceExclusions"]
-                    print(f"{lst=}")
+                    #print(f"{lst=}")
                     for exc_idx, idx1, idx2 in lst:
-                        excl_idx1, excl_idx2 = parms_exclusions.popleft()
-                        force.setExclusionParticles(
-                            exc_idx, excl_idx1, excl_idx2
-                        )
+                        try:
+                            excl_idx1, excl_idx2 = parms_exclusions.popleft()
+                            force.setExclusionParticles(
+                                exc_idx, excl_idx1, excl_idx2
+                            )
+                        # HACK for the moment: keep CNBFs from NBFIX and NBTHOLE together
+                            # we will use up the exclusions for the first type, continue with the copy for the second type
+                            # TODO can there be even more instances of CNBF? maybe check for their number somewhere and adapt accordingly
+                        except IndexError: 
+                            excl_idx1, excl_idx2 = parms_exclusions_copy.popleft()
+                            force.setExclusionParticles(
+                                exc_idx, excl_idx1, excl_idx2
+                            )
                 except KeyError:  # use the old slow way
                     #logger.debug(force.getNumExclusions())
                     #logger.debug(len(parms_exclusions))
@@ -626,6 +628,17 @@ class Residue:
         nonbonded_parm_new = [
             parm for parm in self.parameters[new_name]["NonbondedForce"]
         ]
+        # NOTE idea: instead of getting H/D parms extra, replace parameters of Hs and Ds here?
+            # could do the same with CNBF, take care with extra entries
+        ##################### like this:
+        for atom in self.atom_names:
+            if atom in self.acceptors:
+                nonbonded_parm_new[self.atom_names.index(atom)] = self.D_parameters[new_name]["NonbondedForce"]
+            elif atom in self.donors:
+                nonbonded_parm_new[self.atom_names.index(atom)] = self.H_parameters[new_name]["NonbondedForce"]
+        ###############
+
+
         assert len(nonbonded_parm_old) == len(nonbonded_parm_new)
         parm_interpolated = []
 
@@ -688,90 +701,87 @@ class Residue:
 
         return [parm_interpolated, exceptions_interpolated]
 
-    def _get_H_D_NonbondedForce_parameters_at_lambda(self,  lamb: float
-    ) -> list[list[float]]:
+    # deprecated?
+    # def _get_H_D_NonbondedForce_parameters_at_lambda(self,  lamb: float
+    # ) -> list[list[float]]:
 
-        # logger.debug(self.H_parameters)
+    #     # logger.debug(self.H_parameters)
 
-        assert lamb >= 0 and lamb <= 1
-        current_name = self.current_name
-        new_name = self.alternativ_resname
-        idx = self.atom_names.index(self.used_atom)
-        mode = self.mode_in_last_transfer
+    #     assert lamb >= 0 and lamb <= 1
+    #     current_name = self.current_name
+    #     new_name = self.alternativ_resname
 
-        nonbonded_parm_old = self.parameters[current_name]["NonbondedForce"][idx]
-        # logger.debug(nonbonded_parm_old)
-        # logger.debug(current_name)
-        # logger.debug(new_name)
-        # logger.debug(mode)
+    #     parms_interpolated = {}
 
-        if mode == "acceptor": # used_atom changes from D to H
-            nonbonded_parm_new = self.H_parameters[new_name]["NonbondedForce"]
-        elif mode == "donor": # used_atom changes from H to D
-            nonbonded_parm_new = [unit.quantity.Quantity(value=0.0, unit=unit.elementary_charge), unit.quantity.Quantity(value=0.0, unit=unit.nanometer), unit.quantity.Quantity(value=0.0, unit=unit.kilojoule_per_mole)]
-        # logger.debug(nonbonded_parm_new)
+    #     for atom in self.atom_names:
+    #         if atom not in self.acceptors and atom not in self.donors:
+    #             continue
+    #         else:
+    #             idx = self.atom_names.index(atom)
+    #             nonbonded_parm_old = self.parameters[current_name]["NonbondedForce"][idx]
+    #             if atom in self.acceptors:
+    #                 nonbonded_parm_new = [unit.quantity.Quantity(value=0.0, unit=unit.elementary_charge), unit.quantity.Quantity(value=0.0, unit=unit.nanometer), unit.quantity.Quantity(value=0.0, unit=unit.kilojoule_per_mole)]
+    #             elif atom in self.donors:
+    #                 nonbonded_parm_new = self.H_parameters[new_name]["NonbondedForce"]
 
-        charge_old, sigma_old, epsilon_old = nonbonded_parm_old
-        charge_new, sigma_new, epsilon_new = nonbonded_parm_new
+    #             charge_old, sigma_old, epsilon_old = nonbonded_parm_old
+    #             charge_new, sigma_new, epsilon_new = nonbonded_parm_new
+    #             charge_interpolated = (1 - lamb) * charge_old + lamb * charge_new
+    #             sigma_interpolated = (1 - lamb) * sigma_old + lamb * sigma_new
+    #             epsilon_interpolated = (1 - lamb) * epsilon_old + lamb * epsilon_new
+            
+    #             parms_interpolated[atom] = [charge_interpolated, sigma_interpolated, epsilon_interpolated]
+                
 
-        charge_interpolated = (1 - lamb) * charge_old + lamb * charge_new
-        sigma_interpolated = (1 - lamb) * sigma_old + lamb * sigma_new
-        epsilon_interpolated = (1 - lamb) * epsilon_old + lamb * epsilon_new
+    #     # # leave exceptions to be handled by the general nonbonded force update for the moment
+    #     # force_name = "NonbondedForceExceptions"
+    #     # new_parms_offset = self._get_offset(new_name)
+    #     # old_parms_offset = self._get_offset(current_name)
 
-        # test only charge transfer, no sigma, epsilon:
-        # sigma_interpolated = sigma_old
-        # epsilon_interpolated = epsilon_old
-        # charge_interpolated = charge_old
+    #     # # match parameters
+    #     # parms_old = []
+    #     # parms_new = []
+    #     # for old_idx, old_parm in enumerate(self.parameters[current_name][force_name]):
+    #     #     idx1, idx2 = old_parm[0], old_parm[1]
+    #     #     for new_idx, new_parm in enumerate(self.parameters[new_name][force_name]):
+    #     #         if {new_parm[0] - new_parms_offset, new_parm[1] - new_parms_offset} == {
+    #     #             idx1 - old_parms_offset,
+    #     #             idx2 - old_parms_offset,
+    #     #         }:
+    #     #             if old_idx != new_idx:
+    #     #                 raise RuntimeError(
+    #     #                     "Odering of Nonbonded Exception parameters is different between the two topologies."
+    #     #                 )
+    #     #             parms_old.append(old_parm)
+    #     #             parms_new.append(new_parm)
+    #     #             break
+    #     #     else:
+    #     #         raise RuntimeError()
 
-        parm_interpolated = [charge_interpolated, sigma_interpolated, epsilon_interpolated]
+    #     # # interpolate parameters
+    #     # exceptions_interpolated = []
+    #     # for parm_old_i, parm_new_i in zip(parms_old, parms_new):
+    #     #     chargeprod_old, sigma_old, epsilon_old = parm_old_i[-3:]
+    #     #     chargeprod_new, sigma_new, epsilon_new = parm_new_i[-3:]
+    #     #     chargeprod_interpolated = (
+    #     #         1 - lamb
+    #     #     ) * chargeprod_old + lamb * chargeprod_new
+    #     #     sigma_interpolated = (1 - lamb) * sigma_old + lamb * sigma_new
+    #     #     epsilon_interpolated = (1 - lamb) * epsilon_old + lamb * epsilon_new
 
-        # # leave exceptions to be handled by the general nonbonded force update for the moment
-        # force_name = "NonbondedForceExceptions"
-        # new_parms_offset = self._get_offset(new_name)
-        # old_parms_offset = self._get_offset(current_name)
+    #     #     exceptions_interpolated.append(
+    #     #         [chargeprod_interpolated, sigma_interpolated, epsilon_interpolated]
+    #     #     )
 
-        # # match parameters
-        # parms_old = []
-        # parms_new = []
-        # for old_idx, old_parm in enumerate(self.parameters[current_name][force_name]):
-        #     idx1, idx2 = old_parm[0], old_parm[1]
-        #     for new_idx, new_parm in enumerate(self.parameters[new_name][force_name]):
-        #         if {new_parm[0] - new_parms_offset, new_parm[1] - new_parms_offset} == {
-        #             idx1 - old_parms_offset,
-        #             idx2 - old_parms_offset,
-        #         }:
-        #             if old_idx != new_idx:
-        #                 raise RuntimeError(
-        #                     "Odering of Nonbonded Exception parameters is different between the two topologies."
-        #                 )
-        #             parms_old.append(old_parm)
-        #             parms_new.append(new_parm)
-        #             break
-        #     else:
-        #         raise RuntimeError()
-
-        # # interpolate parameters
-        # exceptions_interpolated = []
-        # for parm_old_i, parm_new_i in zip(parms_old, parms_new):
-        #     chargeprod_old, sigma_old, epsilon_old = parm_old_i[-3:]
-        #     chargeprod_new, sigma_new, epsilon_new = parm_new_i[-3:]
-        #     chargeprod_interpolated = (
-        #         1 - lamb
-        #     ) * chargeprod_old + lamb * chargeprod_new
-        #     sigma_interpolated = (1 - lamb) * sigma_old + lamb * sigma_new
-        #     epsilon_interpolated = (1 - lamb) * epsilon_old + lamb * epsilon_new
-
-        #     exceptions_interpolated.append(
-        #         [chargeprod_interpolated, sigma_interpolated, epsilon_interpolated]
-        #     )
-
-        # return [parm_interpolated, exceptions_interpolated]
-        return parm_interpolated
+    #     # return [parm_interpolated, exceptions_interpolated]
+    #     return parms_interpolated
 
     def _get_CustomNonbondedForce_parameters_at_lambda(  # noqa: N802
         self, lamb: float
     ) -> list[list[int]]:
-        # we cover the Customnonbonded force wihich depends on atom type, this is not interpolateable, hence it is just switched after lamb > 0.5
+        # we cover the Customnonbonded force which depends on atom type, this is not interpolatable, hence it is just switched after lamb > 0.5
+        # TODO CNBF can hold LJ parameters if there are NBFIX present -> should we interpolate them?
+            # there are multiple types of CNBF (e.g. from NBFIX, NBTHOLE)
         assert lamb >= 0 and lamb <= 1
         #what we need to set are the types and exclusions
 
@@ -793,6 +803,17 @@ class Residue:
             cnb_exclusions = [
                 parm for parm in self.parameters[new_name]["CustomNonbondedForceExclusions"]
             ]
+            # need to set CNB parameters extra for Hs and Ds, as they can contain LJ parameters
+            # NOTE leaving exclusions to be done by the main updater
+            # NOTE can't be interpolated at the moment
+            # NOTE have to take care with different CNBFs, call the one from NBTHOLE CNBFThole (this one comes first in the list, at least up until now...)
+            for atom in self.atom_names:
+                if atom in self.acceptors:
+                    cnb_parm[self.atom_names.index(atom)+len(self.atom_idxs)] = self.D_parameters[new_name]["CustomNonbondedForce"]
+                    cnb_parm[self.atom_names.index(atom)] = self.D_parameters[new_name]["CustomNonbondedForceThole"]
+                elif atom in self.donors:
+                    cnb_parm[self.atom_names.index(atom)+len(self.atom_idxs)] = self.H_parameters[new_name]["CustomNonbondedForce"]
+                    cnb_parm[self.atom_names.index(atom)] = self.H_parameters[new_name]["CustomNonbondedForceThole"]
 
         return [cnb_parm, cnb_exclusions]
 
