@@ -734,7 +734,7 @@ class ProtexSystem:
                             idx2 = f[1]
                             if idx1 in atom_idxs or idx2 in atom_idxs:
                                 forces_dict[forcename + "Exclusions"].append(f)
-                    
+
                     elif forcename == "CustomNonbondedForce" and len(force.getParticleParameters(0)) == 3: # q, alpha, thole
                         forcename = f"{forcename}Thole"
                         # logger.debug(force)
@@ -840,7 +840,7 @@ class ProtexSystem:
             if query_name == residue.name:
                 # logger.debug(residue.name)
                 # logger.debug(self.real_Hs)
-                atom_names = [self.real_Hs[i][1] for i in range(len(self.real_Hs)) if self.real_Hs[i][0] == residue.name] 
+                atom_names = [self.real_Hs[i][1] for i in range(len(self.real_Hs)) if self.real_Hs[i][0] == residue.name]
                 atom_idxs_all = [atom.index for atom in residue.atoms()] # indices of all atoms in residue
                 atom_names_all = [atom.name for atom in residue.atoms()]
                 atom_idxs = [atom_idxs_all[i] for i in range(len(atom_idxs_all)) if atom_names_all[i] in atom_names] # indices of donor Hs
@@ -1059,7 +1059,7 @@ class ProtexSystem:
         for tuple_item in self.per_residue_forces.keys():
             start, end = tuple_item
             resi_atoms = range(start, end+1)
-            if set(resi_atoms).intersection(set(atoms)): 
+            if set(resi_atoms).intersection(set(atoms)):
                 # TODO now adding force to residue if either atom is within residue, so we add the same force to different residues. Is this OK?
                 # TODO we probably need to separate the 2 CNBFs
                 try:
@@ -1079,7 +1079,7 @@ class ProtexSystem:
                         self.per_residue_forces[tuple_item][fgroup][forcename] = [
                             insert_values
                         ]
-                    
+
 
     def _create_force_idx_dict(self) -> None:
         """Create a dictionary containig all the indices to the forces.

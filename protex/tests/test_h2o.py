@@ -1062,7 +1062,7 @@ def test_m2_toh2_pickle_residues_save_load(tmp_path):
     #         # print(len(func.getFunctionParameters()[-1]))
     #         for i in range(force.getNumExceptions()):
     #             NBex.append(force.getExceptionParameters(i))
-        
+
     # print(first == second)
     # print(first == NBex)
 

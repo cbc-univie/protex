@@ -279,7 +279,7 @@ class KeepHUpdate(Update):
                     print(force.getNumExceptions())
                     for i in range(force.getNumExceptions()):
                         NBex.append(force.getExceptionParameters(i))
-                
+
             assert(first == second)
             #print(first == NBex)
 
@@ -289,7 +289,7 @@ class KeepHUpdate(Update):
                 if i != first[NBexparticles.index(i)]:
                     print(i, first[NBexparticles.index(i)])
 
-            assert(first == NBexparticles)   
+            assert(first == NBexparticles)
             ##### debugging end
 
             # update the context to include the new parameters (do this in every lambda step)

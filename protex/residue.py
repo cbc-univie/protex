@@ -394,7 +394,7 @@ class Residue:
                 for parms_nonbonded, idx in zip(parms_nonb, self.atom_idxs):
                     force.setParticleParameters(idx, parms_nonbonded)
                 try:  # use the fast way
-                    lst = self.force_idxs[fgroup]["CustomNonbondedForceExclusions"] 
+                    lst = self.force_idxs[fgroup]["CustomNonbondedForceExclusions"]
                     print(f"{len(lst)=}")
                     for exc_idx, idx1, idx2 in lst:
                         excl_idx1, excl_idx2 = parms_exclusions.popleft()
@@ -421,7 +421,7 @@ class Residue:
                 for parms_nonbonded, idx in zip(parms_nonb_thole, self.atom_idxs):
                     force.setParticleParameters(idx, parms_nonbonded)
                 try:  # use the fast way
-                    lst = self.force_idxs[fgroup]["CustomNonbondedForceTholeExclusions"] 
+                    lst = self.force_idxs[fgroup]["CustomNonbondedForceTholeExclusions"]
                     print(f"{len(lst)=}")
                     for exc_idx, idx1, idx2 in lst:
                         excl_idx1, excl_idx2 = parms_exclusions_thole.popleft()
@@ -705,7 +705,7 @@ class Residue:
                     break
             else:
                 raise RuntimeError()
-            
+
         # update parameters for Hs and Ds extra
             # something like this
             # BUG still won't work, have to juggle around atom indices more (keep parameters and index that is not of the H/D, exchange idx of the H/D)
@@ -717,7 +717,7 @@ class Residue:
                     parms_new[parms_old.index(parm)] = self.D_parameters["NonbondedForceExceptions"][parms_old.index(parm)]
                 elif atom in self.donors:
                     parms_new[parms_old.index(parm)] = self.H_parameters["NonbondedForceExceptions"][parms_old.index(parm)]
-                
+
         # interpolate parameters
         exceptions_interpolated = []
         for parm_old_i, parm_new_i in zip(parms_old, parms_new):
