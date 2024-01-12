@@ -645,6 +645,7 @@ class ProtexSystem:
         """
         for force in self.system.getForces():
             if type(force).__name__ == name:
+                logger.debug(force)
                 force.updateParametersInContext(self.simulation.context)
 
     # deprecated
@@ -708,7 +709,7 @@ class ProtexSystem:
                             if idx1 in atom_idxs or idx2 in atom_idxs:
                                 forces_dict[forcename + "Exceptions"].append(f)
 
-                    elif forcename == "CustomNonbondedForce":
+                    elif forcename == "CustomNonbondedForce" and len(force.getParticleParameters(0)) == 1: # tabulated functions for LJ
                         # lookup indices of the tabulated table (?)
                         #index is position, but what about previous ones?
                         # BUG problem with slow method: need every atom idx for exceptions, now only from 1 residue
@@ -724,6 +725,18 @@ class ProtexSystem:
                                 # idea (not very elegant): length of entry (1: adjusted LJ from NBFIX, 3: NBTHOLE)
                             # -> fixed for the moment by copying exclusions, as they are the same
 
+                        # logger.debug(force)
+                        forces_dict[forcename] = [force.getParticleParameters(idx) for idx in atom_idxs]
+                        # Also add exclusions
+                        for exc_id in range(force.getNumExclusions()):
+                            f = force.getExclusionParticles(exc_id)
+                            idx1 = f[0]
+                            idx2 = f[1]
+                            if idx1 in atom_idxs or idx2 in atom_idxs:
+                                forces_dict[forcename + "Exclusions"].append(f)
+                    
+                    elif forcename == "CustomNonbondedForce" and len(force.getParticleParameters(0)) == 3: # q, alpha, thole
+                        forcename = f"{forcename}Thole"
                         # logger.debug(force)
                         forces_dict[forcename] = [force.getParticleParameters(idx) for idx in atom_idxs]
                         # Also add exclusions
@@ -827,10 +840,10 @@ class ProtexSystem:
             if query_name == residue.name:
                 # logger.debug(residue.name)
                 # logger.debug(self.real_Hs)
-                atom_names = [self.real_Hs[i][1] for i in range(len(self.real_Hs)) if self.real_Hs[i][0] == residue.name]
-                atom_idxs_all = [atom.index for atom in residue.atoms()]
+                atom_names = [self.real_Hs[i][1] for i in range(len(self.real_Hs)) if self.real_Hs[i][0] == residue.name] 
+                atom_idxs_all = [atom.index for atom in residue.atoms()] # indices of all atoms in residue
                 atom_names_all = [atom.name for atom in residue.atoms()]
-                atom_idxs = [atom_idxs_all[i] for i in range(len(atom_idxs_all)) if atom_names_all[i] in atom_names]
+                atom_idxs = [atom_idxs_all[i] for i in range(len(atom_idxs_all)) if atom_names_all[i] in atom_names] # indices of donor Hs
                 # logger.debug(atom_idxs)
                 # logger.debug(atom_names)
 
@@ -842,17 +855,20 @@ class ProtexSystem:
                             idx = atom_idxs[0]
                             forces_dict[forcename] = force.getParticleParameters(idx)
 
-                        # # Also add exceptions TODO: what do we do with these? they need atom idxes and can be applied to e.g H1 and H2. is there a difference with dummies?
-                        # # will probably leave them out for the moment. the number of bonds is the same with H and D, nonbonded exceptions should still apply
-                        # for exc_id in range(force.getNumExceptions()):
-                        #     f = force.getExceptionParameters(exc_id)
-                        #     idx1 = f[0]
-                        #     idx2 = f[1]
-                        #     if (idx1 in atom_idxs and idx2 in atom_idxs_all) or (idx2 in atom_idxs and idx1 in atom_idxs_all):
-                        #         forces_dict[forcename + "Exceptions"].append(f)
+                            # Also add exceptions (contains modified 1-4 LJ parameters, need to update extra)
+                            # FIXME how to get correct indices at the update -> idea: use atom names
+                            for exc_id in range(force.getNumExceptions()):
+                                f = force.getExceptionParameters(exc_id)
+                                idx1 = f[0]
+                                idx2 = f[1]
+                                name1 = atom_names_all[atom_idxs_all.index(idx1)]
+                                name2 = atom_names_all[atom_idxs_all.index(idx2)]
+                                if (idx1 in atom_idxs and idx2 in atom_idxs_all) or (idx2 in atom_idxs and idx1 in atom_idxs_all):
+                                    #f_names = [name1, name2, f[2], f[3], f[4]]
+                                    forces_dict[forcename + "Exceptions"].append(f)
 
                         # double-checking for molecules with multiple equivalent atoms, then use one set of parameters only (we assume here that all acidic Hs in the residue are the same, e.g. MeOH2, H2O, H2OAc)
-                            # TODO expand this part to cover multiple different acidic Hs, e.g. couple parameters to atom names
+                            # TODO expand this part to cover multiple different acidic Hs, e.g. couple parameters to atom names (group them first somehow)
                         elif len(atom_names) > 1:
                             forces_dict[forcename] = [
                                 force.getParticleParameters(idx) for idx in atom_idxs
@@ -1025,7 +1041,7 @@ class ProtexSystem:
                 )
 
     def _add_force(
-        self, fgroup: int, forcename: str, max_value: int, insert_values: tuple[int]
+        self, fgroup: int, forcename: str, atoms: tuple[int], insert_values: tuple[int]
     ) -> None:
         """Add the values of a force to the per_residue_forces dict.
 
@@ -1042,7 +1058,10 @@ class ProtexSystem:
         """
         for tuple_item in self.per_residue_forces.keys():
             start, end = tuple_item
-            if start <= max_value <= end:
+            resi_atoms = range(start, end+1)
+            if set(resi_atoms).intersection(set(atoms)): 
+                # TODO now adding force to residue if either atom is within residue, so we add the same force to different residues. Is this OK?
+                # TODO we probably need to separate the 2 CNBFs
                 try:
                     self.per_residue_forces[tuple_item][fgroup][forcename].append(
                         insert_values
@@ -1060,6 +1079,7 @@ class ProtexSystem:
                         self.per_residue_forces[tuple_item][fgroup][forcename] = [
                             insert_values
                         ]
+                    
 
     def _create_force_idx_dict(self) -> None:
         """Create a dictionary containig all the indices to the forces.
@@ -1076,25 +1096,32 @@ class ProtexSystem:
                     f = force.getExceptionParameters(exc_idx)
                     idx1, idx2 = f[0], f[1]
                     value = (exc_idx, idx1, idx2)
-                    maxi = max(idx1, idx2)
-                    self._add_force(fgroup, "NonbondedForceExceptions", maxi, value)
-            elif forcename == "CustomNonbondedForce":
+                    atoms = (idx1, idx2)
+                    self._add_force(fgroup, "NonbondedForceExceptions", atoms, value)
+            elif forcename == "CustomNonbondedForce" and len(force.getParticleParameters(0)) == 1:
                 for exc_idx in range(force.getNumExclusions()):
                     f = force.getExclusionParticles(exc_idx)
                     idx1, idx2 = f[0], f[1]
                     value = (exc_idx, idx1, idx2)
-                    maxi = max(idx1, idx2)
-                    self._add_force(fgroup, "CustomNonbondedForceExclusions", maxi, value)
+                    atoms = (idx1, idx2)
+                    self._add_force(fgroup, "CustomNonbondedForceExclusions", atoms, value)
+            elif forcename == "CustomNonbondedForce" and len(force.getParticleParameters(0)) == 3:
+                for exc_idx in range(force.getNumExclusions()):
+                    f = force.getExclusionParticles(exc_idx)
+                    idx1, idx2 = f[0], f[1]
+                    value = (exc_idx, idx1, idx2)
+                    atoms = (idx1, idx2)
+                    self._add_force(fgroup, "CustomNonbondedForceTholeExclusions", atoms, value)
             elif forcename == "DrudeForce":
                 particle_map = {}
                 for drude_idx in range(force.getNumParticles()):
                     f = force.getParticleParameters(drude_idx)
                     idx1, idx2, idx3, idx4, idx5 = f[0], f[1], f[2], f[3], f[4]
                     value = (drude_idx, idx1, idx2, idx3, idx4, idx5)
-                    maxi = max(
+                    atoms = (
                         idx1, idx2
                     )  # drude and parent is enough, we do not need the anisotropy stuff for this here
-                    self._add_force(fgroup, "DrudeForce", maxi, value)
+                    self._add_force(fgroup, "DrudeForce", atoms, value)
                     particle_map[drude_idx] = idx1
                 for drude_idx in range(force.getNumScreenedPairs()):
                     f = force.getScreenedPairParameters(drude_idx)
@@ -1102,36 +1129,36 @@ class ProtexSystem:
                     drude1 = particle_map[idx1]
                     drude2 = particle_map[idx2]
                     value = (drude_idx, idx1, idx2)
-                    maxi = max(drude1, drude2)
-                    self._add_force(fgroup, "DrudeForceThole", maxi, value) # BUG both DrudeForce and DrudeForceThole are in fgroup 7 -> overwritten -> hopefully fixed now
+                    atoms = (drude1, drude2)
+                    self._add_force(fgroup, "DrudeForceThole", atoms, value) # BUG both DrudeForce and DrudeForceThole are in fgroup 7 -> overwritten -> hopefully fixed now
             elif forcename == "HarmonicBondForce":
                 for bond_idx in range(force.getNumBonds()):
                     f = force.getBondParameters(bond_idx)
                     idx1, idx2 = f[0], f[1]
                     value = (bond_idx, idx1, idx2)
-                    maxi = max(idx1, idx2)
-                    self._add_force(fgroup, "HarmonicBondForce", maxi, value)
+                    atoms = (idx1, idx2)
+                    self._add_force(fgroup, "HarmonicBondForce", atoms, value)
             elif forcename == "HarmonicAngleForce":
                 for angle_idx in range(force.getNumAngles()):
                     f = force.getAngleParameters(angle_idx)
                     idx1, idx2, idx3 = f[0], f[1], f[2]
                     value = (angle_idx, idx1, idx2, idx3)
-                    maxi = max(idx1, idx2, idx3)
-                    self._add_force(fgroup, "HarmonicAngleForce", maxi, value)
+                    atoms = (idx1, idx2, idx3)
+                    self._add_force(fgroup, "HarmonicAngleForce", atoms, value)
             elif forcename == "PeriodicTorsionForce":
                 for torsion_idx in range(force.getNumTorsions()):
                     f = force.getTorsionParameters(torsion_idx)
                     idx1, idx2, idx3, idx4 = f[0], f[1], f[2], f[3]
                     value = (torsion_idx, idx1, idx2, idx3, idx4)
-                    maxi = max(idx1, idx2, idx3, idx4)
-                    self._add_force(fgroup, "PeriodicTorsionForce", maxi, value)
+                    atoms = (idx1, idx2, idx3, idx4)
+                    self._add_force(fgroup, "PeriodicTorsionForce", atoms, value)
             elif forcename == "CustomTorsionForce":
                 for ctorsion_idx in range(force.getNumTorsions()):
                     f = force.getTorsionParameters(ctorsion_idx)
                     idx1, idx2, idx3, idx4 = f[0], f[1], f[2], f[3]
                     value = (ctorsion_idx, idx1, idx2, idx3, idx4)
-                    maxi = max(idx1, idx2, idx3, idx4)
-                    self._add_force(fgroup, "CustomTorsionForce", maxi, value)
+                    atoms = (idx1, idx2, idx3, idx4)
+                    self._add_force(fgroup, "CustomTorsionForce", atoms, value)
 
     # def _fill_residue_templates(self, name): # not used anymore?
     #     if name in self.templates.names:

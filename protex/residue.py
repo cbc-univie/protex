@@ -382,31 +382,53 @@ class Residue:
         parms_nonb = deque(parms[0])
         #print(f"{parms_nonb=}")
         parms_exclusions = deque(parms[1])
-        parms_exclusions_copy = copy.deepcopy(parms_exclusions)
-        #print(f"{parms_exclusions=}")
+        parms_nonb_thole = deque(parms[2])
+        parms_exclusions_thole = deque(parms[3])
+        # NOTE take care with order of parameters
+        # now including 2 CustomNonbondedForces (from NBFIX and NBTHOLE)
+        # TODO what happens if there are more? can there be more?
+        print(f"{len(parms_exclusions)=}")
         for force in self.system.getForces():
             fgroup = force.getForceGroup()
-            if type(force).__name__ == "CustomNonbondedForce":
+            if type(force).__name__ == "CustomNonbondedForce" and len(force.getParticleParameters(0)) == 1: # from NBFIX, tabulated
                 for parms_nonbonded, idx in zip(parms_nonb, self.atom_idxs):
                     force.setParticleParameters(idx, parms_nonbonded)
                 try:  # use the fast way
-                    lst = self.force_idxs[fgroup]["CustomNonbondedForceExclusions"]
-                    #print(f"{lst=}")
+                    lst = self.force_idxs[fgroup]["CustomNonbondedForceExclusions"] 
+                    print(f"{len(lst)=}")
                     for exc_idx, idx1, idx2 in lst:
-                        try:
-                            excl_idx1, excl_idx2 = parms_exclusions.popleft()
+                        excl_idx1, excl_idx2 = parms_exclusions.popleft()
+                        force.setExclusionParticles(
+                            exc_idx, excl_idx1, excl_idx2
+                        )
+                except KeyError:  # use the old slow way # NOTE probably doesn't work anymore
+                    #logger.debug(force.getNumExclusions())
+                    #logger.debug(len(parms_exclusions))
+                    for exc_idx in range(force.getNumExclusions()):
+                        f = force.getExclusionParticles(exc_idx)
+                        #logger.debug(f)
+                        idx1 = f[0]
+                        idx2 = f[1]
+                        if idx1 in self.atom_idxs and idx2 in self.atom_idxs:
+                            idxs = (idx1, idx2)
+                            #logger.debug(idxs)
+                            excl1, excl2 = parms_exclusions.popleft()
                             force.setExclusionParticles(
-                                exc_idx, excl_idx1, excl_idx2
+                                exc_idx, excl1,excl2
                             )
-                        # HACK for the moment: keep CNBFs from NBFIX and NBTHOLE together
-                            # we will use up the exclusions for the first type, continue with the copy for the second type
-                            # TODO can there be even more instances of CNBF? maybe check for their number somewhere and adapt accordingly
-                        except IndexError:
-                            excl_idx1, excl_idx2 = parms_exclusions_copy.popleft()
-                            force.setExclusionParticles(
-                                exc_idx, excl_idx1, excl_idx2
-                            )
-                except KeyError:  # use the old slow way
+
+            if type(force).__name__ == "CustomNonbondedForce" and len(force.getParticleParameters(0)) == 3: # from NBTHOLE
+                for parms_nonbonded, idx in zip(parms_nonb_thole, self.atom_idxs):
+                    force.setParticleParameters(idx, parms_nonbonded)
+                try:  # use the fast way
+                    lst = self.force_idxs[fgroup]["CustomNonbondedForceTholeExclusions"] 
+                    print(f"{len(lst)=}")
+                    for exc_idx, idx1, idx2 in lst:
+                        excl_idx1, excl_idx2 = parms_exclusions_thole.popleft()
+                        force.setExclusionParticles(
+                            exc_idx, excl_idx1, excl_idx2
+                        )
+                except KeyError:  # use the old slow way # NOTE probably doesn't work anymore
                     #logger.debug(force.getNumExclusions())
                     #logger.debug(len(parms_exclusions))
                     for exc_idx in range(force.getNumExclusions()):
@@ -683,7 +705,19 @@ class Residue:
                     break
             else:
                 raise RuntimeError()
-
+            
+        # update parameters for Hs and Ds extra
+            # something like this
+            # BUG still won't work, have to juggle around atom indices more (keep parameters and index that is not of the H/D, exchange idx of the H/D)
+        for atom in self.atom_names:
+            idx = self.get_idx_for_atom_name(atom)
+            used_parms_old = [parm for parm in parms_old if (parm[0] - old_parms_offset == idx or parm[1] - old_parms_offset == idx) ]
+            for parm in used_parms_old:
+                if atom in self.acceptors:
+                    parms_new[parms_old.index(parm)] = self.D_parameters["NonbondedForceExceptions"][parms_old.index(parm)]
+                elif atom in self.donors:
+                    parms_new[parms_old.index(parm)] = self.H_parameters["NonbondedForceExceptions"][parms_old.index(parm)]
+                
         # interpolate parameters
         exceptions_interpolated = []
         for parm_old_i, parm_new_i in zip(parms_old, parms_new):
@@ -794,6 +828,12 @@ class Residue:
             cnb_exclusions = [
                 parm for parm in self.parameters[current_name]["CustomNonbondedForceExclusions"]
             ]
+            cnb_parm_thole = [
+                parm for parm in self.parameters[current_name]["CustomNonbondedForceThole"]
+            ]
+            cnb_exclusions_thole = [
+                parm for parm in self.parameters[current_name]["CustomNonbondedForceTholeExclusions"]
+            ]
         else: #lamb >= 0.5
             #new
             new_name = self.alternativ_resname
@@ -803,19 +843,25 @@ class Residue:
             cnb_exclusions = [
                 parm for parm in self.parameters[new_name]["CustomNonbondedForceExclusions"]
             ]
+            cnb_parm_thole = [
+                parm for parm in self.parameters[new_name]["CustomNonbondedForceThole"]
+            ]
+            cnb_exclusions_thole = [
+                parm for parm in self.parameters[new_name]["CustomNonbondedForceTholeExclusions"]
+            ]
             # need to set CNB parameters extra for Hs and Ds, as they can contain LJ parameters
-            # NOTE leaving exclusions to be done by the main updater
+            # FIXME leaving exclusions to be done by the main updater (not correct, esp. for NBF) -> need to calculate new chargeprod and sigma
             # NOTE can't be interpolated at the moment
             # NOTE have to take care with different CNBFs, call the one from NBTHOLE CNBFThole (this one comes first in the list, at least up until now...)
             for atom in self.atom_names:
                 if atom in self.acceptors:
-                    cnb_parm[self.atom_names.index(atom)+len(self.atom_idxs)] = self.D_parameters[new_name]["CustomNonbondedForce"]
+                    cnb_parm_thole[self.atom_names.index(atom)] = self.D_parameters[new_name]["CustomNonbondedForce"]
                     cnb_parm[self.atom_names.index(atom)] = self.D_parameters[new_name]["CustomNonbondedForceThole"]
                 elif atom in self.donors:
-                    cnb_parm[self.atom_names.index(atom)+len(self.atom_idxs)] = self.H_parameters[new_name]["CustomNonbondedForce"]
-                    cnb_parm[self.atom_names.index(atom)] = self.H_parameters[new_name]["CustomNonbondedForceThole"]
+                    cnb_parm[self.atom_names.index(atom)] = self.H_parameters[new_name]["CustomNonbondedForce"]
+                    cnb_parm_thole[self.atom_names.index(atom)] = self.H_parameters[new_name]["CustomNonbondedForceThole"]
 
-        return [cnb_parm, cnb_exclusions]
+        return [cnb_parm, cnb_exclusions, cnb_parm_thole, cnb_exclusions_thole]
 
     def _get_offset(self, name, force_name=None):
         # get offset for atom idx

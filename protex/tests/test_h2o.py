@@ -1026,38 +1026,54 @@ def test_m2_toh2_pickle_residues_save_load(tmp_path):
     # first_done = False
     # first = []
     # second = []
+    # NBex = []
     # for force in ionic_liquid.system.getForces():
     #     if type(force).__name__ == "CustomNonbondedForce":
     #     # if type(force).__name__ == "NonbondedForce":
+    #         print(force)
     #         print(force.getNumParticles())
     #         print(force.getNumExclusions())
-    #         print(force.getForceGroup())
-    #         print(force.getParticleParameters(25370))
-    #         print(force.getParticleParameters(25373))
-    #         print(force.getNumTabulatedFunctions())
+    #         #print(force.getForceGroup())
+    #         #print(force.getNumTabulatedFunctions())
     #         # func = force.getTabulatedFunction(0)
     #         # print(func.getFunctionParameters())
     #         # print(len(func.getFunctionParameters()[-1]))
     #         # func = force.getTabulatedFunction(1)
     #         # print(func.getFunctionParameters())
     #         # print(len(func.getFunctionParameters()[-1]))
-    #         # for i in range(force.getNumExclusions()):
-    #         #     if not first_done:
-    #         #         first.append(force.getExclusionParticles(i))
-    #         #     else:
-    #         #         second.append(force.getExclusionParticles(i))
-    #         # first_done = True
-    #         # print(first == second)
+    #         for i in range(force.getNumExclusions()):
+    #             if not first_done:
+    #                 first.append(force.getExclusionParticles(i))
+    #             else:
+    #                 second.append(force.getExclusionParticles(i))
+    #         first_done = True
 
+    #     if type(force).__name__ == "NonbondedForce":
+    #         print(force)
+    #         print(force.getNumParticles())
+    #         print(force.getNumExceptions())
+    #         #print(force.getForceGroup())
+    #         #print(force.getNumTabulatedFunctions())
+    #         # func = force.getTabulatedFunction(0)
+    #         # print(func.getFunctionParameters())
+    #         # print(len(func.getFunctionParameters()[-1]))
+    #         # func = force.getTabulatedFunction(1)
+    #         # print(func.getFunctionParameters())
+    #         # print(len(func.getFunctionParameters()[-1]))
+    #         for i in range(force.getNumExceptions()):
+    #             NBex.append(force.getExceptionParameters(i))
+        
+    # print(first == second)
+    # print(first == NBex)
 
-    # # for force in ionic_liquid.system.getForces():
-    # #     #if type(force).__name__ == "CustomNonbondedForce":
-    # #     if type(force).__name__ == "HarmonicBondForce":
-    # #         print(force.getNumBonds())
-    # #         for i in range(10):
-    # #             print(force.getBondParameters(i))
+    # NBexparticles = [i[0:2] for i in NBex]
 
+    # print(first == NBexparticles)
 
+    # print(first[0:10])
+    # print(NBexparticles[0:10])
+    # print("#############")
+    # print(NBex[0:10])
 
     # raise AssertionError("here")
 
