@@ -44,7 +44,7 @@ Please see the [documentation](https://florianjoerg.github.io/protex) for usage 
 
 ### Copyright
 
-:copyright: 2023, Florian Joerg & Marcus Wieder
+:copyright: 2024, Florian Joerg & Marcus Wieder
 
 
 #### Acknowledgements
