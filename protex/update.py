@@ -4,6 +4,7 @@ import copy
 import logging
 import pickle
 import random
+import warnings
 from abc import ABC, abstractmethod
 from collections import Counter, deque
 
@@ -11,9 +12,11 @@ import numpy as np
 from scipy.spatial import distance_matrix
 
 try:
-    from openmm.unit import nanometers
+    import openmm.unit as unit
+    from openmm.unit import nanometers, nanometer
 except ImportError:
-    from simtk.unit import nanometers
+    from simtk.unit import nanometers, nanometer
+    import simtk.unit as unit
 
 from protex.residue import Residue
 from protex.system import ProtexSystem
@@ -80,13 +83,22 @@ class Update(ABC):
         self.reject_length: int = (
             10  # specify the number of update steps the same residue will be rejected
         )
-        self.allowed_forces = list(set(allowed_forces).intersection(self.ionic_liquid.detected_forces))
-        discarded = set(allowed_forces).difference(self.ionic_liquid.detected_forces)
-        if discarded:
-            print(f"Discarded the following forces, becuase they are not in the system: {', '.join(discarded)}")
-        available = set(self.ionic_liquid.detected_forces).difference(set(allowed_forces))
-        if available:
-            print(f"The following forces are available but not updated: {', '.join(available)}")
+        # include checking available forces per residue from tetr_marta for EMIM BF4
+        self.allowed_forces = {}
+        for resname in self.ionic_liquid.detected_forces:
+            self.allowed_forces[resname] = list(set(allowed_forces).intersection(self.ionic_liquid.detected_forces[resname]))
+            if "CustomNonBondedForce" in self.allowed_forces[resname]:
+                warnings.warn(
+                    "At the moment, Lennard-Jones parameters stored in CustomNonBondedForce (because of NBFIX) cannot be interpolated. They will be switched after lambda=0.5."
+                )
+            discarded = set(allowed_forces).difference(self.ionic_liquid.detected_forces[resname])
+            if discarded:
+                print(f"Discarded the following forces, because they are not in {resname}: {', '.join(discarded)}")
+            else:
+                print(f"Nothing discarded in {resname}")
+            available = set(self.ionic_liquid.detected_forces[resname]).difference(set(allowed_forces))
+            if available:
+                print(f"The following forces are available but not updated: {', '.join(available)}")
 
     @abstractmethod
     def dump(self, fname: str) -> None:
@@ -366,19 +378,23 @@ class KeepHUpdate(Update):
                     f"{lamb}: candiadate_1: {candidate1_residue.current_name}; charge:{candidate1_residue.current_charge}: candiadate_2: {candidate2_residue.current_name}; charge:{candidate2_residue.current_charge}"
                 )
 
-                for force_to_be_updated in self.allowed_forces:
+                for force_to_be_updated in self.allowed_forces[candidate1_residue.current_name]:
                     ######################
                     # candidate1
                     ######################
                     candidate1_residue.update(force_to_be_updated, lamb)
 
+                for force_to_be_updated in self.allowed_forces[candidate2_residue.current_name]:
                     ######################
                     # candidate2
                     ######################
                     candidate2_residue.update(force_to_be_updated, lamb)
 
             # update the context to include the new parameters
-            for force_to_be_updated in self.allowed_forces:
+            all_allowed_forces = []
+            for resname in self.allowed_forces:
+                all_allowed_forces = all_allowed_forces + self.allowed_forces[resname]
+            for force_to_be_updated in set(all_allowed_forces):
                 self.ionic_liquid.update_context(force_to_be_updated)
 
             # get new energy
@@ -657,19 +673,23 @@ class OnlyCTUpdate(Update):
                     f"{lamb}: candiadate_1: {candidate1_residue.current_name}; charge:{candidate1_residue.current_charge}: candiadate_2: {candidate2_residue.current_name}; charge:{candidate2_residue.current_charge}"
                 )
 
-                for force_to_be_updated in self.allowed_forces:
+                for force_to_be_updated in self.allowed_forces[candidate1_residue.current_name]:
                     ######################
                     # candidate1
                     ######################
                     candidate1_residue.update(force_to_be_updated, lamb)
 
+                for force_to_be_updated in self.allowed_forces[candidate2_residue.current_name]:
                     ######################
                     # candidate2
                     ######################
                     candidate2_residue.update(force_to_be_updated, lamb)
 
             # update the context to include the new parameters
-            for force_to_be_updated in self.allowed_forces:
+            all_allowed_forces = []
+            for resname in self.allowed_forces:
+                all_allowed_forces = all_allowed_forces + self.allowed_forces[resname]
+            for force_to_be_updated in set(all_allowed_forces):
                 self.ionic_liquid.update_context(force_to_be_updated)
 
             # get new energy
@@ -1077,8 +1097,31 @@ class StateUpdate:
                         )  # add second time the residue to have same length of pos_list and res_list
             
         elif transfer == "charge":
-            # NOTE now getting positions of everything and calculating distance between all atoms
-            # TODO maybe change to COM/COG
+            # # getting positions of everything and calculating distance between all atoms
+            # pos = self.ionic_liquid.simulation.context.getState(
+            #     getPositions=True
+            # ).getPositions(asNumpy=True)
+
+            # # fill in the positions for each species
+            # pos_list = []
+            # res_list = []
+
+            # # loop over all residues and add the positions of the atoms that can be updated to the pos_dict
+            # for residue in self.ionic_liquid.residues:
+            #     # assert residue.current_name in self.ionic_liquid.templates.names
+            #     if residue.current_name in self.ionic_liquid.templates.names:
+            #         for atom in self.ionic_liquid.templates.get_atom_names_for(residue.current_name):
+            #             pos_list.append(
+            #                 pos[
+            #                     residue.get_idx_for_atom_name(atom)
+            #                     # this needs the atom idx to be the same for both topologies
+            #                     # TODO: maybe get rid of this caveat
+            #                     # maybe some mapping between possible residue states and corresponding atom positions
+            #                 ]
+            #             )
+            #             res_list.append(residue)
+
+
             pos = self.ionic_liquid.simulation.context.getState(
                 getPositions=True
             ).getPositions(asNumpy=True)
@@ -1087,19 +1130,24 @@ class StateUpdate:
             pos_list = []
             res_list = []
 
-            # loop over all residues and add the positions of the atoms that can be updated to the pos_dict
+            # loop over all residues and add the COG to the pos_dict
+            # TODO change for COM
             for residue in self.ionic_liquid.residues:
-                # assert residue.current_name in self.ionic_liquid.templates.names
                 if residue.current_name in self.ionic_liquid.templates.names:
-                    for atom in self.ionic_liquid.templates.get_atom_names_for(residue.current_name):
-                        pos_list.append(
-                            pos[
-                                residue.get_idx_for_atom_name(atom)
-                                # this needs the atom idx to be the same for both topologies
-                                # TODO: maybe get rid of this caveat
-                                # maybe some mapping between possible residue states and corresponding atom positions
-                            ]
-                        )
-                        res_list.append(residue)
-
+                    coordinates = []
+                    for atom in residue.atom_idxs:
+                        coordinates.append(pos[atom])
+                    # print(coordinates)
+                    n = len(coordinates)
+                    com = [0, 0, 0]
+                    for i in range(0, n):
+                        for j in range(0,3):
+                            #print("1145", com[j])
+                            #print(coordinates[i]._value[j])
+                            com[j] = com[j]+coordinates[i]._value[j]/n
+                            #print("1148", com[j])
+                    com = unit.quantity.Quantity(value=np.asarray(com), unit=nanometer)
+                    pos_list.append(com)
+                    res_list.append(residue)
+        assert len(pos_list) == len(res_list)
         return pos_list, res_list

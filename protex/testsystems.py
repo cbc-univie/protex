@@ -999,8 +999,8 @@ def generate_emim_bf4_077_system(
     para_files: list[str] = None,
     coll_freq=10,
     drude_coll_freq=100,
-    dummy_atom_type: str = "DUMH",
-    dummies: list[tuple[str, str]] = [],
+    dummy_atom_type: str = None, #"DUMH",
+    dummies: list[tuple[str, str]] = None, # [],
     use_plugin: bool = True,
     ensemble = "nVT"
 ):

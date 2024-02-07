@@ -154,7 +154,7 @@ class Residue:
             self._set_DrudeForce_parameters(parms)
         else:
             raise RuntimeWarning(
-                "Force name {force_name=} is not covered, no updates will happen on this one!"
+                f"Force name {force_name=} is not covered, no updates will happen on this one!"
             )
 
     def _set_NonbondedForce_parameters(self, parms) -> None:  # noqa: N802
@@ -185,26 +185,67 @@ class Residue:
                             )
 
     def _set_CustomNonbondedForce_parameters(self, parms) -> None:  # noqa: N802
+        #print(f"{parms=}")
         parms_nonb = deque(parms[0])
+        #print(f"{parms_nonb=}")
         parms_exclusions = deque(parms[1])
+        parms_nonb_thole = deque(parms[2])
+        parms_exclusions_thole = deque(parms[3])
+        # NOTE take care with order of parameters
+        # now including 2 CustomNonbondedForces (from NBFIX and NBTHOLE)
+        # TODO what happens if there are more? can there be more?
+        print(f"{len(parms_exclusions)=}")
         for force in self.system.getForces():
             fgroup = force.getForceGroup()
-            if type(force).__name__ == "CustomNonbondedForce":
+            if type(force).__name__ == "CustomNonbondedForce" and len(force.getParticleParameters(0)) == 1: # from NBFIX, tabulated
                 for parms_nonbonded, idx in zip(parms_nonb, self.atom_idxs):
                     force.setParticleParameters(idx, parms_nonbonded)
                 try:  # use the fast way
                     lst = self.force_idxs[fgroup]["CustomNonbondedForceExclusions"]
+                    print(f"{len(lst)=}")
                     for exc_idx, idx1, idx2 in lst:
                         excl_idx1, excl_idx2 = parms_exclusions.popleft()
                         force.setExclusionParticles(
                             exc_idx, excl_idx1, excl_idx2
                         )
-                except KeyError:  # use the old slow way
+                except KeyError:  # use the old slow way # NOTE probably doesn't work anymore
+                    #logger.debug(force.getNumExclusions())
+                    #logger.debug(len(parms_exclusions))
                     for exc_idx in range(force.getNumExclusions()):
                         f = force.getExclusionParticles(exc_idx)
+                        #logger.debug(f)
                         idx1 = f[0]
                         idx2 = f[1]
                         if idx1 in self.atom_idxs and idx2 in self.atom_idxs:
+                            idxs = (idx1, idx2)
+                            #logger.debug(idxs)
+                            excl1, excl2 = parms_exclusions.popleft()
+                            force.setExclusionParticles(
+                                exc_idx, excl1,excl2
+                            )
+
+            if type(force).__name__ == "CustomNonbondedForce" and len(force.getParticleParameters(0)) == 3: # from NBTHOLE
+                for parms_nonbonded, idx in zip(parms_nonb_thole, self.atom_idxs):
+                    force.setParticleParameters(idx, parms_nonbonded)
+                try:  # use the fast way
+                    lst = self.force_idxs[fgroup]["CustomNonbondedForceTholeExclusions"]
+                    print(f"{len(lst)=}")
+                    for exc_idx, idx1, idx2 in lst:
+                        excl_idx1, excl_idx2 = parms_exclusions_thole.popleft()
+                        force.setExclusionParticles(
+                            exc_idx, excl_idx1, excl_idx2
+                        )
+                except KeyError:  # use the old slow way # NOTE probably doesn't work anymore
+                    #logger.debug(force.getNumExclusions())
+                    #logger.debug(len(parms_exclusions))
+                    for exc_idx in range(force.getNumExclusions()):
+                        f = force.getExclusionParticles(exc_idx)
+                        #logger.debug(f)
+                        idx1 = f[0]
+                        idx2 = f[1]
+                        if idx1 in self.atom_idxs and idx2 in self.atom_idxs:
+                            idxs = (idx1, idx2)
+                            #logger.debug(idxs)
                             excl1, excl2 = parms_exclusions.popleft()
                             force.setExclusionParticles(
                                 exc_idx, excl1,excl2
@@ -468,7 +509,9 @@ class Residue:
     def _get_CustomNonbondedForce_parameters_at_lambda(  # noqa: N802
         self, lamb: float
     ) -> list[list[int]]:
-        # we cover the Customnonbonded force wihich depends on atom type, this is not interpolateable, hence it is just switched after lamb > 0.5
+        # we cover the Customnonbonded force which depends on atom type, this is not interpolatable, hence it is just switched after lamb > 0.5
+        # TODO CNBF can hold LJ parameters if there are NBFIX present -> should we interpolate them?
+            # there are multiple types of CNBF (e.g. from NBFIX, NBTHOLE)
         assert lamb >= 0 and lamb <= 1
         #what we need to set are the types and exclusions
 
@@ -481,17 +524,29 @@ class Residue:
             cnb_exclusions = [
                 parm for parm in self.parameters[current_name]["CustomNonbondedForceExclusions"]
             ]
+            cnb_parm_thole = [
+                parm for parm in self.parameters[current_name]["CustomNonbondedForceThole"]
+            ]
+            cnb_exclusions_thole = [
+                parm for parm in self.parameters[current_name]["CustomNonbondedForceTholeExclusions"]
+            ]
         else: #lamb >= 0.5
             #new
-            new_name = self.alternativ_name
+            new_name = self.alternativ_resname
             cnb_parm = [
                 parm for parm in self.parameters[new_name]["CustomNonbondedForce"]
             ]
             cnb_exclusions = [
                 parm for parm in self.parameters[new_name]["CustomNonbondedForceExclusions"]
             ]
+            cnb_parm_thole = [
+                parm for parm in self.parameters[new_name]["CustomNonbondedForceThole"]
+            ]
+            cnb_exclusions_thole = [
+                parm for parm in self.parameters[new_name]["CustomNonbondedForceTholeExclusions"]
+            ]
 
-        return [cnb_parm, cnb_exclusions]
+        return [cnb_parm, cnb_exclusions, cnb_parm_thole, cnb_exclusions_thole]
 
     def _get_offset(self, name, force_name=None):
         # get offset for atom idx
@@ -730,21 +785,37 @@ class Residue:
         for old_idx, old_parm in enumerate(self.parameters[old_name][force_name]):
             idx1, idx2, idx3, idx4 = old_parm[0], old_parm[1], old_parm[2], old_parm[3]
             for new_idx, new_parm in enumerate(self.parameters[new_name][force_name]):
-                if {
+                # there can be multiple impropers with the same atoms, set does not work
+                if [
                     new_parm[0] - new_parms_offset,
                     new_parm[1] - new_parms_offset,
                     new_parm[2] - new_parms_offset,
                     new_parm[3] - new_parms_offset,
-                } == {
+                ] == [
                     idx1 - old_parms_offset,
                     idx2 - old_parms_offset,
                     idx3 - old_parms_offset,
                     idx4 - old_parms_offset,
-                }:
+                ]:
+                    # print(new_idx, new_parm[0] - new_parms_offset,
+                    #     new_parm[1] - new_parms_offset,
+                    #     new_parm[2] - new_parms_offset,
+                    #     new_parm[3] - new_parms_offset,)
+                    # print(old_idx, idx1 - old_parms_offset,
+                    #     idx2 - old_parms_offset,
+                    #     idx3 - old_parms_offset,
+                    #     idx4 - old_parms_offset,)
                     if old_idx != new_idx:
+                        # print(f"{new_idx=}, {new_parm=}")
+                        # print(f"{old_idx=}, {old_parm=}")
+                        # print(f"{new_parms_offset=}")
+                        # print(f"{old_parms_offset=}")
+                        # print(f"{self.parameters[old_name][force_name]=}")
+                        # print(f"{self.parameters[new_name][force_name]=}")
                         raise RuntimeError(
                             "Odering of improper parameters is different between the two topologies."
                         )
+                        
                     parms_old.append(old_parm)
                     parms_new.append(new_parm)
                     break
@@ -868,9 +939,9 @@ class Residue:
 
     @property
     def endstate_charge(self) -> int:
-        """Charge of the residue at the endstate (will be int)."""
-        charge = int(
-            np.round(
+        """Charge of the residue at the endstate."""
+        # used to be int, need noninteger charges for charge transfer
+        charge = np.round(
                 sum(
                     [
                         parm[0]._value
@@ -879,7 +950,6 @@ class Residue:
                 ),
                 4,
             )
-        )
         return charge
 
     @property
