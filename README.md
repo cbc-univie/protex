@@ -1,5 +1,5 @@
 [//]: # (Badges)
-[![GitHub Actions Build Status](https://github.com/cbc-univie/protex/workflows/CI/badge.svg)](https://github.com/cbc-univie/protex/actions?query=workflow%3ACI)
+[![CI](https://github.com/cbc-univie/protex/actions/workflows/CI.yaml/badge.svg)](https://github.com/cbc-univie/protex/actions/workflows/CI.yaml)
 [![codecov](https://codecov.io/gh/florianjoerg/protex/branch/main/graph/badge.svg?token=ddqu0BzewU)](https://codecov.io/gh/florianjoerg/protex)
 [![Github release](https://badgen.net/github/release/cbc-univie/protex)](https://github.com/cbc-univie/protex/releases/)
 [![GitHub license](https://img.shields.io/github/license/florianjoerg/protex?color=green)](https://github.com/florianjoerg/protex/blob/main/LICENSE)
@@ -7,6 +7,7 @@
 [![docs stable](https://img.shields.io/badge/docs-stable-5077AB.svg?logo=read%20the%20docs)](https://cbc-univie.github.io/protex/)
 [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/protex.svg)](https://anaconda.org/conda-forge/protex)
 
+[//]: <[![GitHub Actions Build Status](https://github.com/cbc-univie/protex/workflows/CI/badge.svg)](https://github.com/cbc-univie/protex/actions?query=workflow%3ACI)>
 [//]: <[![GitHub forks](https://img.shields.io/github/forks/florianj77/protex)](https://github.com/florianj77/protex/network)>
 [//]: <[![Github tag](https://badgen.net/github/tag/florianj77/protex)](https://github.com/florianj77/protex/tags/)>
 [//]: <[![GitHub issues](https://img.shields.io/github/issues/florianj77/protex?style=flat)](https://github.com/florianj77/protex/issues)>
