@@ -30,7 +30,7 @@ conda install protex -c conda-forge
 ```
 Alternatively clone this repo and install from source:
 ```
-git clone https://github.com/florianjoerg/protex.git
+git clone https://github.com/cbc-univie/protex.git
 cd protex
 pip install .
 ```
