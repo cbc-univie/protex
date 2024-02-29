@@ -974,6 +974,7 @@ def test_dry_updates(caplog):
     update = NaiveMCUpdate(ionic_liquid)
     # initialize state update class
     state_update = StateUpdate(update)
+    state_update.boxl = ionic_liquid.boxlength.value_in_unit(nanometers)
     ionic_liquid.simulation.minimizeEnergy(maxIterations=200)
     ionic_liquid.simulation.step(200)
 
