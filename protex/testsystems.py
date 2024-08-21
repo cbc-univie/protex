@@ -131,6 +131,8 @@ def setup_simulation(
     use_plugin: bool = True,
     platformname: str = "CUDA",
     cuda_precision: str = "single",
+    temperature: float = 300,
+    acc: float = None # cosine acceleration for calculating viscosity
 ):
     if use_plugin and platformname != "CUDA":
         assert "Plugin only available with CUDA"
@@ -141,7 +143,7 @@ def setup_simulation(
 
         # temperature grouped nose hoover thermostat
         integrator = VVIntegrator(
-            300 * kelvin,
+            temperature * kelvin,
             coll_freq / picoseconds,
             1 * kelvin,
             drude_coll_freq / picoseconds,
@@ -150,7 +152,7 @@ def setup_simulation(
         print("Using VVIntegrator Plugin")
     else:
         integrator = DrudeNoseHooverIntegrator(
-            300 * kelvin,
+            temperature * kelvin,
             coll_freq / picoseconds,
             1 * kelvin,
             drude_coll_freq / picoseconds,
@@ -163,6 +165,13 @@ def setup_simulation(
     #    f"{coll_freq=}, {drude_coll_freq=}"
     # )  # tested with 20, 40, 80, 100, 120, 140, 160: 20,40 bad; 80 - 120 good; 140, 160 crashed
     integrator.setMaxDrudeDistance(0.25 * angstroms)
+
+    if acc:
+        if use_plugin:
+            integrator.setCosAcceleration(acc)
+        else:
+            assert "Viscosity calculation only available with VVI plugin!"
+
     try:
         platform = Platform.getPlatformByName(platformname)
         if platformname == "CUDA":
@@ -642,9 +651,11 @@ def generate_im1h_oac_dummy_system(
     coll_freq=10,
     drude_coll_freq=100,
     dummy_atom_type: str = "DUMH",
-    dummies: list[tuple[str, str]] = [("IM1", "H7"), ("OAC", "HO1")],
+    dummies: list[tuple[str, str]] = [("IM1", "H7"), ("OAC", "H")],
     use_plugin: bool = True,
-    ensemble = "nVT"
+    ensemble = "nVT",
+    temperature: float = 300,
+    acc: float = None # cosine acceleration for viscosity calculation
 ):
     """Set up a solvated and parametrized system for IM1H/OAC."""
     base = f"{protex.__path__[0]}/forcefield"
@@ -681,6 +692,8 @@ def generate_im1h_oac_dummy_system(
         drude_coll_freq=drude_coll_freq,
         dummies=dummies,
         use_plugin=use_plugin,
+        temperature=temperature,
+        acc=acc
     )
 
     return simulation
