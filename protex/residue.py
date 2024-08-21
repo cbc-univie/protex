@@ -417,7 +417,7 @@ class Residue:
                                 exc_idx, excl1,excl2
                             )
 
-            if type(force).__name__ == "CustomNonbondedForce" and len(force.getParticleParameters(0)) == 3: # from NBTHOLE
+            elif type(force).__name__ == "CustomNonbondedForce" and len(force.getParticleParameters(0)) == 3: # from NBTHOLE
                 for parms_nonbonded, idx in zip(parms_nonb_thole, self.atom_idxs):
                     force.setParticleParameters(idx, parms_nonbonded)
                 try:  # use the fast way

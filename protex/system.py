@@ -856,13 +856,15 @@ class ProtexSystem:
                             forces_dict[forcename] = force.getParticleParameters(idx)
 
                             # Also add exceptions (contains modified 1-4 LJ parameters, need to update extra)
-                            # FIXME how to get correct indices at the update -> idea: use atom names
+                            # NOTE how to get correct indices at the update 
+                                # seem to be the same for H-D, D-D, H-H, leave them as they are for the moment
                             for exc_id in range(force.getNumExceptions()):
                                 f = force.getExceptionParameters(exc_id)
+                               # print(f)
                                 idx1 = f[0]
                                 idx2 = f[1]
-                                name1 = atom_names_all[atom_idxs_all.index(idx1)]
-                                name2 = atom_names_all[atom_idxs_all.index(idx2)]
+                                # name1 = atom_names_all[atom_idxs_all.index(idx1)] # need something like this if we want to update exceptions
+                                # name2 = atom_names_all[atom_idxs_all.index(idx2)]
                                 if (idx1 in atom_idxs and idx2 in atom_idxs_all) or (idx2 in atom_idxs and idx1 in atom_idxs_all):
                                     #f_names = [name1, name2, f[2], f[3], f[4]]
                                     forces_dict[forcename + "Exceptions"].append(f)
@@ -878,10 +880,17 @@ class ProtexSystem:
                                 assert forces_dict[forcename][0] == forces_dict[forcename][i]
                             forces_dict[forcename] = forces_dict[forcename][0]
 
+                    # CNBForce Exclusions? how many, what type, what to do with them?
+                    # exclusions atm between H/D-H/D (probably because 1-3)
+                    # maybe we can leave it for the main updater
                     elif forcename == "CustomNonbondedForce" and len(force.getParticleParameters(0)) == 1: # tabulated functions for LJ
+                        print("tabulated LJ exclusions")
+                        for idx in range(force.getNumExclusions()):
+                            print(force.getExclusionParticles(idx))
                         if len(atom_names) == 1:
                             idx = atom_idxs[0]
                             forces_dict[forcename] = force.getParticleParameters(idx)
+                            
 
                         # double-checking for molecules with multiple equivalent atoms, then use one set of parameters only (we assume here that all acidic Hs in the residue are the same, e.g. MeOH2, H2O, H2OAc)
                             # TODO expand this part to cover multiple different acidic Hs, e.g. couple parameters to atom names
@@ -895,6 +904,9 @@ class ProtexSystem:
                             forces_dict[forcename] = forces_dict[forcename][0]
 
                     elif forcename == "CustomNonbondedForce" and len(force.getParticleParameters(0)) == 3: # q, alpha, thole
+                        print("Thole exclusions")
+                        for idx in range(force.getNumExclusions()):
+                            print(force.getExclusionParticles(idx))
                         forcename = f"{forcename}Thole"
                         if len(atom_names) == 1:
                             idx = atom_idxs[0]

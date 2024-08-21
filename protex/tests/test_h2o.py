@@ -266,6 +266,8 @@ def test_create_IonicLiquid():
     count = defaultdict(int)
     ionic_liquid = ProtexSystem(simulation, templates, simulation_for_parameters)
 
+    raise AssertionError("want to stop here")
+
     assert len(ionic_liquid.residues) == 942
     for idx, residue in enumerate(ionic_liquid.residues):
         # print(f"{idx} : {residue.original_name}")
