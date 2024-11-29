@@ -900,7 +900,9 @@ def generate_im1h_fora_system(
         ("FORA", "HO1"),
     ],
     use_plugin: bool = True,
-    ensemble = "nVT"
+    ensemble = "nVT",
+    temperature: float = 300,
+    acc: float = None # cosine acceleration for viscosity calculation
 ):
     """Set up a solvated and parametrized system for IM1H/FORA."""
     base = f"{protex.__path__[0]}/forcefield/"
@@ -937,6 +939,8 @@ def generate_im1h_fora_system(
         drude_coll_freq=drude_coll_freq,
         dummies=dummies,
         use_plugin=use_plugin,
+        temperature=temperature,
+        acc=acc
     )
 
     return simulation
