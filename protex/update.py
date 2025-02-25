@@ -196,7 +196,8 @@ class KeepHUpdate(Update):
             self.to_adapt,
             self.include_equivalent_atom,
             self.reorient,
-        ]  # enusre correct order of arguments
+            self.K
+        ]  # ensure correct order of arguments
         with open(fname, "wb") as outp:
             pickle.dump(to_pickle, outp, pickle.HIGHEST_PROTOCOL)
 

@@ -642,7 +642,7 @@ def generate_im1h_oac_dummy_system(
     coll_freq=10,
     drude_coll_freq=100,
     dummy_atom_type: str = "DUMH",
-    dummies: list[tuple[str, str]] = [("IM1", "H7"), ("OAC", "HO1")],
+    dummies: list[tuple[str, str]] = [("IM1", "H7"), ("OAC", "H")], # NOTE: take care if it is H or HO1 
     use_plugin: bool = True,
     ensemble = "nVT"
 ):
@@ -1010,12 +1010,12 @@ def generate_im1h_buta_system(
     if para_files is None:
         PARA_FILES = [
             "toppar_drude_master_protein_2019g_lj04_buta.str",
-            "im1h.str",
-            "im1.str",
+            "im1h_d.str",
+            "im1_dummy_d.str",
             "buth.str",
             "buta.str",
         ]
-        para_files = [f"{base}/toppar/{para_files}" for para_files in PARA_FILES]
+        para_files = [f"{base}toppar/{para_files}" for para_files in PARA_FILES]
 
     psf, crd, params = load_charmm_files(
         psf_file=psf_file,

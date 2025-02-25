@@ -6,7 +6,9 @@ import pickle
 import warnings
 from collections import ChainMap, defaultdict
 
-import parmed
+# import parmed
+# NOTE trying to get away from parmed
+# use pickled system, don't write any more psfs
 import yaml
 
 try:
@@ -410,7 +412,7 @@ class ProtexSystem:
         fname : str
             The file name to store the object
         """
-        to_pickle = [self.templates, self.residues]  # enusre correct order of arguments
+        to_pickle = [self.templates, self.residues]  # ensure correct order of arguments
         with open(fname, "wb") as outp:
             pickle.dump(to_pickle, outp, pickle.HIGHEST_PROTOCOL)
 
@@ -527,12 +529,14 @@ class ProtexSystem:
                                 forces_dict[forcename + "Exclusions"].append(f)
 
                     elif forcename == "HarmonicBondForce":
+                        # logger.debug(residue)
                         for bond_id in range(force.getNumBonds()):
                             f = force.getBondParameters(bond_id)
                             idx1 = f[0]
                             idx2 = f[1]
                             if idx1 in atom_idxs and idx2 in atom_idxs:
                                 forces_dict[forcename].append(f)
+                                # logger.debug(f)
 
                     elif forcename == "HarmonicAngleForce":
                         for angle_id in range(force.getNumAngles()):
@@ -859,200 +863,202 @@ class ProtexSystem:
     #     """
     #     pass
 
-    def _adapt_parmed_psf_file(
-        self,
-        psf: parmed.charmm.CharmmPsfFile,
-        parameters: parmed.charmm.CharmmPsfFile,
-    ) -> parmed.charmm.CharmmPsfFile:
-        """Helper function to adapt the psf."""
-        print(len(self.residues), len(psf.residues))
-        assert len(self.residues) == len(psf.residues)
+    # should be deprecated with saving system
+    # def _adapt_parmed_psf_file(
+    #     self,
+    #     psf: parmed.charmm.CharmmPsfFile,
+    #     parameters: parmed.charmm.CharmmPsfFile,
+    # ) -> parmed.charmm.CharmmPsfFile:
+    #     """Helper function to adapt the psf."""
+    #     print(len(self.residues), len(psf.residues))
+    #     assert len(self.residues) == len(psf.residues)
 
-        # make a dict with parmed representations of each residue, use it to assign the opposite one if a transfer occured
-        pm_unique_residues: dict[str, parmed.Residue] = {}
-        # incremented by one each time it is used to track the current residue number
-        residue_counts: dict[str, int] = {}
+    #     # make a dict with parmed representations of each residue, use it to assign the opposite one if a transfer occured
+    #     pm_unique_residues: dict[str, parmed.Residue] = {}
+    #     # incremented by one each time it is used to track the current residue number
+    #     residue_counts: dict[str, int] = {}
 
-        for pm_residue in parameters.residues:
-            if pm_residue.name in pm_unique_residues:
-                continue
-            else:
-                pm_unique_residues[pm_residue.name] = pm_residue
-                residue_counts[pm_residue.name] = 1
+    #     for pm_residue in parameters.residues:
+    #         if pm_residue.name in pm_unique_residues:
+    #             continue
+    #         else:
+    #             pm_unique_residues[pm_residue.name] = pm_residue
+    #             residue_counts[pm_residue.name] = 1
 
-        # get offset for lonepairs which are defined differently.
-        # dict with lists for each LocalCoordinates frame, there is one for each LP in the residue
-        differences_dict: dict[tuple[str], list[list[int]]] = {}
-        for pair in self.templates.pairs:
-            name1, name2 = pair
-            pm_res1 = pm_unique_residues[name1]
-            pm_res2 = pm_unique_residues[name2]
-            # get first index to get relative difference
-            at1_idx1 = pm_res1.atoms[0].idx
-            at2_idx1 = pm_res2.atoms[0].idx
+    #     # get offset for lonepairs which are defined differently.
+    #     # dict with lists for each LocalCoordinates frame, there is one for each LP in the residue
+    #     differences_dict: dict[tuple[str], list[list[int]]] = {}
+    #     for pair in self.templates.pairs:
+    #         name1, name2 = pair
+    #         pm_res1 = pm_unique_residues[name1]
+    #         pm_res2 = pm_unique_residues[name2]
+    #         # get first index to get relative difference
+    #         at1_idx1 = pm_res1.atoms[0].idx
+    #         at2_idx1 = pm_res2.atoms[0].idx
 
-            differences_dict[tuple([name1, name2])] = []
-            differences_dict[tuple([name2, name1])] = []
+    #         differences_dict[tuple([name1, name2])] = []
+    #         differences_dict[tuple([name2, name1])] = []
 
-            for at1, at2 in zip(pm_res1, pm_res2):
-                if isinstance(at1, parmed.topologyobjects.ExtraPoint) and isinstance(
-                    at1.frame_type, parmed.topologyobjects.LocalCoordinatesFrame
-                ):
-                    frame_hosts1 = [
-                        fatom
-                        for fatom in at1.frame_type.get_atoms()[
-                            : at1.frame_type.frame_size
-                        ]
-                    ]
-                    frame_hosts2 = [
-                        fatom
-                        for fatom in at2.frame_type.get_atoms()[
-                            : at2.frame_type.frame_size
-                        ]
-                    ]
-                    relative_pos1 = [fatom.idx - at1_idx1 for fatom in frame_hosts1]
-                    relative_pos2 = [fatom.idx - at2_idx1 for fatom in frame_hosts2]
-                    differences = [
-                        p1 - p2 for p1, p2 in zip(relative_pos1, relative_pos2)
-                    ]
-                    # Depending on the direction of the tranfer we either need the positive or negative value
-                    differences_dict[tuple([name1, name2])].append(differences)
-                    differences_dict[tuple([name2, name1])].append(
-                        [-d for d in differences]
-                    )
+    #         for at1, at2 in zip(pm_res1, pm_res2):
+    #             if isinstance(at1, parmed.topologyobjects.ExtraPoint) and isinstance(
+    #                 at1.frame_type, parmed.topologyobjects.LocalCoordinatesFrame
+    #             ):
+    #                 frame_hosts1 = [
+    #                     fatom
+    #                     for fatom in at1.frame_type.get_atoms()[
+    #                         : at1.frame_type.frame_size
+    #                     ]
+    #                 ]
+    #                 frame_hosts2 = [
+    #                     fatom
+    #                     for fatom in at2.frame_type.get_atoms()[
+    #                         : at2.frame_type.frame_size
+    #                     ]
+    #                 ]
+    #                 relative_pos1 = [fatom.idx - at1_idx1 for fatom in frame_hosts1]
+    #                 relative_pos2 = [fatom.idx - at2_idx1 for fatom in frame_hosts2]
+    #                 differences = [
+    #                     p1 - p2 for p1, p2 in zip(relative_pos1, relative_pos2)
+    #                 ]
+    #                 # Depending on the direction of the tranfer we either need the positive or negative value
+    #                 differences_dict[tuple([name1, name2])].append(differences)
+    #                 differences_dict[tuple([name2, name1])].append(
+    #                     [-d for d in differences]
+    #                 )
 
-        # either it is the same or just one group will be assumed. -> Not best for proteins, but hopefully Parmed will release new version soon, so that we do not need all this hacks.
-        n_residue_is_n_groups = len(psf.groups) == len(psf.residues)
-        group_iter = iter(psf.groups)
-        for residue, pm_residue in zip(self.residues, psf.residues):
-            # if the new residue (residue.current_name) is different than the original one from the old psf (pm_residue.name)
-            # a proton transfer occured and we want to change this in the new psf, which means overwriting the parmed residue instance
-            # with the new information
-            # if residue.current_name != pm_residue.name:
-            # do changes
-            name = residue.current_name
-            name_change: tuple[str] = tuple([name, pm_residue.name])
-            # get the differences in LP position, make an iterator to yiled the next as needed
-            diff_iter = None
-            if name_change in differences_dict.keys():
-                differences_list = differences_dict[name_change]
-                diff_iter = iter(differences_list)
-            pm_residue.name = name
-            pm_residue.chain = name
-            pm_residue.segid = name
-            pm_residue.number = residue_counts[name]
-            for unique_atom, pm_atom in zip(
-                pm_unique_residues[name].atoms, pm_residue.atoms
-            ):
-                pm_atom._charge = unique_atom._charge
-                pm_atom.type = unique_atom.type
-                pm_atom.props = unique_atom.props
-                # NUMLP NUMLPH lonepair section update
-                if isinstance(
-                    unique_atom, parmed.topologyobjects.ExtraPoint
-                ) and isinstance(
-                    unique_atom.frame_type, parmed.topologyobjects.LocalCoordinatesFrame
-                ):
-                    pm_atom.frame_type.distance = unique_atom.frame_type.distance
-                    pm_atom.frame_type.angle = unique_atom.frame_type.angle
-                    pm_atom.frame_type.dihedral = unique_atom.frame_type.dihedral
-                    # if the positioning of the lonepair changes, update the corresponding atoms in the LocalCoordinateFrame
-                    if diff_iter:
-                        differences = next(diff_iter)
-                        first_idx = pm_residue.atoms[0].idx
+    #     # either it is the same or just one group will be assumed. -> Not best for proteins, but hopefully Parmed will release new version soon, so that we do not need all this hacks.
+    #     n_residue_is_n_groups = len(psf.groups) == len(psf.residues)
+    #     group_iter = iter(psf.groups)
+    #     for residue, pm_residue in zip(self.residues, psf.residues):
+    #         # if the new residue (residue.current_name) is different than the original one from the old psf (pm_residue.name)
+    #         # a proton transfer occured and we want to change this in the new psf, which means overwriting the parmed residue instance
+    #         # with the new information
+    #         # if residue.current_name != pm_residue.name:
+    #         # do changes
+    #         name = residue.current_name
+    #         name_change: tuple[str] = tuple([name, pm_residue.name])
+    #         # get the differences in LP position, make an iterator to yiled the next as needed
+    #         diff_iter = None
+    #         if name_change in differences_dict.keys():
+    #             differences_list = differences_dict[name_change]
+    #             diff_iter = iter(differences_list)
+    #         pm_residue.name = name
+    #         pm_residue.chain = name
+    #         pm_residue.segid = name
+    #         pm_residue.number = residue_counts[name]
+    #         for unique_atom, pm_atom in zip(
+    #             pm_unique_residues[name].atoms, pm_residue.atoms
+    #         ):
+    #             pm_atom._charge = unique_atom._charge
+    #             pm_atom.type = unique_atom.type
+    #             pm_atom.props = unique_atom.props
+    #             # NUMLP NUMLPH lonepair section update
+    #             if isinstance(
+    #                 unique_atom, parmed.topologyobjects.ExtraPoint
+    #             ) and isinstance(
+    #                 unique_atom.frame_type, parmed.topologyobjects.LocalCoordinatesFrame
+    #             ):
+    #                 pm_atom.frame_type.distance = unique_atom.frame_type.distance
+    #                 pm_atom.frame_type.angle = unique_atom.frame_type.angle
+    #                 pm_atom.frame_type.dihedral = unique_atom.frame_type.dihedral
+    #                 # if the positioning of the lonepair changes, update the corresponding atoms in the LocalCoordinateFrame
+    #                 if diff_iter:
+    #                     differences = next(diff_iter)
+    #                     first_idx = pm_residue.atoms[0].idx
 
-                        # normalize to the first idx in the list of atoms for one residue
-                        current_idx1 = pm_atom.frame_type.atom1.idx
-                        # print(f"{current_idx1=}")
-                        # print(f"{differences[0]=}")
-                        pm_atom.frame_type.atom1 = pm_residue.atoms[
-                            current_idx1 - first_idx + differences[0]
-                        ]
-                        current_idx2 = pm_atom.frame_type.atom2.idx
-                        # print(f"{current_idx2=}")
-                        # print(f"{differences[1]=}")
-                        pm_atom.frame_type.atom2 = pm_residue.atoms[
-                            current_idx2 - first_idx + differences[1]
-                        ]
-                        current_idx3 = pm_atom.frame_type.atom3.idx
-                        # print(f"{current_idx3=}")
-                        # print(f"{differences[2]=}")
-                        pm_atom.frame_type.atom3 = pm_residue.atoms[
-                            current_idx3 - first_idx + differences[2]
-                        ]
+    #                     # normalize to the first idx in the list of atoms for one residue
+    #                     current_idx1 = pm_atom.frame_type.atom1.idx
+    #                     # print(f"{current_idx1=}")
+    #                     # print(f"{differences[0]=}")
+    #                     pm_atom.frame_type.atom1 = pm_residue.atoms[
+    #                         current_idx1 - first_idx + differences[0]
+    #                     ]
+    #                     current_idx2 = pm_atom.frame_type.atom2.idx
+    #                     # print(f"{current_idx2=}")
+    #                     # print(f"{differences[1]=}")
+    #                     pm_atom.frame_type.atom2 = pm_residue.atoms[
+    #                         current_idx2 - first_idx + differences[1]
+    #                     ]
+    #                     current_idx3 = pm_atom.frame_type.atom3.idx
+    #                     # print(f"{current_idx3=}")
+    #                     # print(f"{differences[2]=}")
+    #                     pm_atom.frame_type.atom3 = pm_residue.atoms[
+    #                         current_idx3 - first_idx + differences[2]
+    #                     ]
 
-                # NUMANISO Section update
-                if isinstance(unique_atom, parmed.topologyobjects.DrudeAtom):
-                    if unique_atom.anisotropy is None:
-                        continue
-                    pm_atom.anisotropy.params["k11"] = unique_atom.anisotropy.params[
-                        "k11"
-                    ]
-                    pm_atom.anisotropy.params["k22"] = unique_atom.anisotropy.params[
-                        "k22"
-                    ]
-                    pm_atom.anisotropy.params["k33"] = unique_atom.anisotropy.params[
-                        "k33"
-                    ]
-            residue_counts[name] += 1
+    #             # NUMANISO Section update
+    #             if isinstance(unique_atom, parmed.topologyobjects.DrudeAtom):
+    #                 if unique_atom.anisotropy is None:
+    #                     continue
+    #                 pm_atom.anisotropy.params["k11"] = unique_atom.anisotropy.params[
+    #                     "k11"
+    #                 ]
+    #                 pm_atom.anisotropy.params["k22"] = unique_atom.anisotropy.params[
+    #                     "k22"
+    #                 ]
+    #                 pm_atom.anisotropy.params["k33"] = unique_atom.anisotropy.params[
+    #                     "k33"
+    #                 ]
+    #         residue_counts[name] += 1
 
-            if n_residue_is_n_groups:
-                group = next(group_iter)
-                typ = 1 if abs(sum(a.charge for a in pm_residue.atoms)) < 1e-4 else 2
-                group.type = typ
+    #         if n_residue_is_n_groups:
+    #             group = next(group_iter)
+    #             typ = 1 if abs(sum(a.charge for a in pm_residue.atoms)) < 1e-4 else 2
+    #             group.type = typ
 
-        if not n_residue_is_n_groups:
-            # Maybe a bit hacky to get Parmed to use all atoms as 1 group
-            # https://github.com/ParmEd/ParmEd/blob/master/parmed/formats/psf.py#L250
-            psf.groups = []
+    #     if not n_residue_is_n_groups:
+    #         # Maybe a bit hacky to get Parmed to use all atoms as 1 group
+    #         # https://github.com/ParmEd/ParmEd/blob/master/parmed/formats/psf.py#L250
+    #         psf.groups = []
 
-        return psf
+    #     return psf
 
-    def write_psf(
-        self,
-        old_psf_infname: str,
-        new_psf_outfname: str,
-        psf_for_parameters: str = None,
-    ) -> None:
-        """Write a new psf file, which reflects the occured transfer events and changed residues
-        to load the written psf create a new ionic_liquid instance and load the new psf via OpenMM.
-
-        Parameters
-        ----------
-        old_psf_infname:
-            Name of the old psf_file, which serves for the basic strucutre, same number of atoms, same bonds, angles, ...
-        new_psf_outfname:
-            Name of the new psf that will be written
-        psf_for_parameters:
-            Optional psf file which contains all possible molecules/states, if they are not represented by the old_psf_infname.
-            I.e. one species gets protonated and is not present anymore, this file can be used to have all potential states.
-
-        Returns
-        -------
-        None
-        """
-        if psf_for_parameters is None:
-            psf_for_parameters = old_psf_infname
-
-        pm_old_psf = parmed.charmm.CharmmPsfFile(old_psf_infname)
-        # copying parmed structure did not work
-        # pm_old_psf_copy = parmed.charmm.CharmmPsfFile(old_psf_infname)
-        pm_parameters = parmed.charmm.CharmmPsfFile(psf_for_parameters)
-        pm_new_psf = self._adapt_parmed_psf_file(pm_old_psf, pm_parameters)
-        pm_new_psf.write_psf(new_psf_outfname)
-
-    # possibly in future when parmed and openmm drude connection is working
-    # def write_psf_notworking(
-    #     self, fname: str, format=None, overwrite=False, **kwargs
+    # should be deprecated with saving system
+    # def write_psf(
+    #     self,
+    #     old_psf_infname: str,
+    #     new_psf_outfname: str,
+    #     psf_for_parameters: str = None,
     # ) -> None:
-    #     """
-    #     Write a psf file from the current topology.
-    #     In principle any file that parmeds struct.save method supports can be written.
-    #     """
-    #     import parmed
+    #     """Write a new psf file, which reflects the occured transfer events and changed residues
+    #     to load the written psf create a new ionic_liquid instance and load the new psf via OpenMM.
 
-    #     struct = parmed.openmm.load_topology(self.topology, self.system)
-    #     struct.save(fname, format=None, overwrite=False, **kwargs)
+    #     Parameters
+    #     ----------
+    #     old_psf_infname:
+    #         Name of the old psf_file, which serves for the basic strucutre, same number of atoms, same bonds, angles, ...
+    #     new_psf_outfname:
+    #         Name of the new psf that will be written
+    #     psf_for_parameters:
+    #         Optional psf file which contains all possible molecules/states, if they are not represented by the old_psf_infname.
+    #         I.e. one species gets protonated and is not present anymore, this file can be used to have all potential states.
+
+    #     Returns
+    #     -------
+    #     None
+    #     """
+    #     if psf_for_parameters is None:
+    #         psf_for_parameters = old_psf_infname
+
+    #     pm_old_psf = parmed.charmm.CharmmPsfFile(old_psf_infname)
+    #     # copying parmed structure did not work
+    #     # pm_old_psf_copy = parmed.charmm.CharmmPsfFile(old_psf_infname)
+    #     pm_parameters = parmed.charmm.CharmmPsfFile(psf_for_parameters)
+    #     pm_new_psf = self._adapt_parmed_psf_file(pm_old_psf, pm_parameters)
+    #     pm_new_psf.write_psf(new_psf_outfname)
+
+    # # possibly in future when parmed and openmm drude connection is working
+    # # def write_psf_notworking(
+    # #     self, fname: str, format=None, overwrite=False, **kwargs
+    # # ) -> None:
+    # #     """
+    # #     Write a psf file from the current topology.
+    # #     In principle any file that parmeds struct.save method supports can be written.
+    # #     """
+    # #     import parmed
+
+    # #     struct = parmed.openmm.load_topology(self.topology, self.system)
+    # #     struct.save(fname, format=None, overwrite=False, **kwargs)
 
     def saveCheckpoint(self, file) -> None:
         """Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object.
