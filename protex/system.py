@@ -380,7 +380,21 @@ class ProtexSystem:
         protex_system = ProtexSystem(
             simulation, from_pickle[0], simulation_for_parameters
         )
-        protex_system.residues = from_pickle[1]
+        residues = from_pickle[1]
+        # update parameters for residues where name in psf doesn't match name in pickled residues
+        # TODO test
+        
+        for resi_pickled, resi_current in zip(residues, protex_system.residues):
+            if resi_current.current_name != resi_pickled.current_name: # resi_current was set up from original psf -> has original (potentially wrong parameters)
+                for force_to_be_updated in ProtexSystem.COVERED_FORCES:
+                    resi_current.update(force_to_be_updated, 1)
+                resi_current.current_name = resi_current.alternativ_name
+
+        for force_to_be_updated in ProtexSystem.COVERED_FORCES:
+            protex_system.update_context(force_to_be_updated)
+
+        # protex_system.residues = residues # do we need this if everything is done previously?
+
         return protex_system
 
     def __init__(
