@@ -1150,6 +1150,18 @@ OAC_HOAC = {
     },
 }
 
+OAC_HOAC_H2OAC = {
+    "OAC": {
+        "starting_donors": [], "starting_acceptors": ["HO1", "HO2"], "possible_modes": ("acceptor",)
+    },
+    "HOAC": {
+        "starting_donors": ["HO1"], "starting_acceptors": ["HO2"], "possible_modes": ("donor", "acceptor")
+    },
+    "H2OAC": {
+        "starting_donors": ["HO1", "HO2"], "starting_acceptors": [], "possible_modes": ("donor",)
+    },
+}
+
 HPTSH_HPTS = {
     "HPTSH": {
         "starting_donors": ["H7"], "starting_acceptors": [], "possible_modes": ("donor",)
@@ -1186,11 +1198,7 @@ H2O_H3O =  {
 #     "HSD": {"starting_donors": [], "starting_acceptors" : ["HE2"], "possible_modes" : ("acceptor")},
 # }
 
-HSP_HSD =  {
-    "ULF": {"starting_donors": ["HE2"], "starting_acceptors" : [], "possible_modes" : ("donor")},
-    "UDO": {"starting_donors": [], "starting_acceptors" : ["HE2"], "possible_modes" : ("acceptor")},
-}
-
+# ions should be ignored in general and not set up here
 # CLA = {"CLA": {"starting_donors" : [], "starting_acceptors" : [], "modes" : ()}}
 
 # SOD = {"SOD": {"starting_donors" : [], "starting_acceptors" : [], "modes" : ()}}

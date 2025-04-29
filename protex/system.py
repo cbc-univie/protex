@@ -428,16 +428,21 @@ class ProtexSystem:
         """
         with open(fname, "rb") as inp:
             from_pickle = pickle.load(inp)  # ensure correct order of arguments
-
-        system = from_pickle[0]
-        templates = from_pickle[1]
-        residues = from_pickle[2]
-
         protex_system = ProtexSystem(
-            simulation, templates, simulation_for_parameters
+            simulation, from_pickle[0], simulation_for_parameters
         )
-        protex_system.simulation.system = system
-        protex_system.residues = residues
+        residues = from_pickle[1]
+        # update parameters for residues where name in psf doesn't match name in pickled residues
+        # TODO test
+        
+        for resi_pickled, resi_current in zip(residues, protex_system.residues):
+            if resi_current.current_name != resi_pickled.current_name: # resi_current was set up from original psf -> has original (potentially wrong parameters)
+                for force_to_be_updated in ProtexSystem.COVERED_FORCES:
+                    resi_current.update(force_to_be_updated, 1)
+                resi_current.current_name = resi_current.alternativ_name
+
+        for force_to_be_updated in ProtexSystem.COVERED_FORCES:
+            protex_system.update_context(force_to_be_updated)
 
         return protex_system
 
@@ -479,7 +484,7 @@ class ProtexSystem:
         fname : str
             The file name to store the object
         """
-        to_pickle = [self.system, self.templates, self.residues]  # ensure correct order of arguments
+        to_pickle = [self.templates, self.residues]  # ensure correct order of arguments
         with open(fname, "wb") as outp:
             pickle.dump(to_pickle, outp, pickle.HIGHEST_PROTOCOL)
 
