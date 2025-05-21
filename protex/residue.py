@@ -660,7 +660,6 @@ class Residue:
                 nonbonded_parm_new[self.atom_names.index(atom)] = self.H_parameters[new_name]["NonbondedForce"]
         ###############
 
-
         assert len(nonbonded_parm_old) == len(nonbonded_parm_new)
         parm_interpolated = []
 
@@ -706,17 +705,19 @@ class Residue:
             else:
                 raise RuntimeError()
 
-        # update parameters for Hs and Ds extra
-            # something like this
-            # BUG still won't work, have to juggle around atom indices more (keep parameters and index that is not of the H/D, exchange idx of the H/D)
-        for atom in self.atom_names:
-            idx = self.get_idx_for_atom_name(atom)
-            used_parms_old = [parm for parm in parms_old if (parm[0] - old_parms_offset == idx or parm[1] - old_parms_offset == idx) ]
-            for parm in used_parms_old:
-                if atom in self.acceptors:
-                    parms_new[parms_old.index(parm)] = self.D_parameters["NonbondedForceExceptions"][parms_old.index(parm)]
-                elif atom in self.donors:
-                    parms_new[parms_old.index(parm)] = self.H_parameters["NonbondedForceExceptions"][parms_old.index(parm)]
+        # FIXME do we need to update exceptions for Hs and Ds extra?
+            # ignore for now, should not make a large difference
+            # otherwise something like this
+                # BUG still won't work, have to juggle around atom indices more (keep parameters and index that is not of the H/D, exchange idx of the H/D)
+        
+        # for atom in self.atom_names:
+        #     idx = self.get_idx_for_atom_name(atom)
+        #     used_parms_old = [parm for parm in parms_old if (parm[0] - old_parms_offset == idx or parm[1] - old_parms_offset == idx) ] # find parameters of this atom (old)
+        #     for parm in used_parms_old:
+        #         if atom in self.acceptors:
+        #             parms_new[parms_old.index(parm)] = self.D_parameters["NonbondedForceExceptions"][parms_old.index(parm)] # replace parameters at found indices with H/D params, gives KeyError
+        #         elif atom in self.donors:
+        #             parms_new[parms_old.index(parm)] = self.H_parameters["NonbondedForceExceptions"][parms_old.index(parm)]
 
         # interpolate parameters
         exceptions_interpolated = []

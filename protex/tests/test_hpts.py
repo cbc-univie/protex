@@ -51,9 +51,10 @@ from ..testsystems import (  # generate_single_hpts_system,
     HPTSH_HPTS,
     IM1H_IM1,
     MEOH_MEOH2,
-    OAC_HOAC,
+    OAC_HOAC_H2OAC,
     generate_hpts_meoh_system,
     generate_single_hpts_meoh_system,
+    generate_hpts_meoh_h2oac_system
 )
 from ..update import KeepHUpdate, NaiveMCUpdate, StateUpdate
 
@@ -202,7 +203,7 @@ def test_create_IonicLiquidTemplate():
     allowed_updates[frozenset(["MEOH2", "OAC"])] = {"r_max": 0.155, "prob": 1.000}
 
     templates = ProtexTemplates(
-        [OAC_HOAC, IM1H_IM1, HPTSH_HPTS, MEOH_MEOH2], (allowed_updates)
+        [OAC_HOAC_H2OAC, IM1H_IM1, HPTSH_HPTS, MEOH_MEOH2], (allowed_updates)
     )
 
     r = templates.get_residue_name_for_coupled_state("OAC")
@@ -773,7 +774,7 @@ def test_write_psf_save_load(tmp_path):
 def test_updates(caplog, tmp_path):
     caplog.set_level(logging.DEBUG)
 
-    psf_for_parameters = f"{protex.__path__[0]}/forcefield/hpts_single/hpts_single.psf"
+    psf_for_parameters = f"{protex.__path__[0]}/forcefield/hpts_single/hpts_h2oac.psf"
     # f"{protex.__path__[0]}/forcefield/crd_for_parameters.crd"
     # f"{protex.__path__[0]}/forcefield/hpts.psf"
     # f"{protex.__path__[0]}/forcefield/traj/hpts_npt_7.rst"
@@ -783,29 +784,31 @@ def test_updates(caplog, tmp_path):
     #    psf_file=psf_for_parameters, crd_file=crd_for_parameters
     # )
 
-    simulation = generate_single_hpts_meoh_system()
-    simulation_for_parameters = generate_single_hpts_meoh_system()
+    simulation = generate_hpts_meoh_h2oac_system()
+    simulation_for_parameters = generate_hpts_meoh_h2oac_system()
 
     allowed_updates = {}
-    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
-    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
-    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 0.201}  # 1+2
-    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 0.684}  # 3+4
-    allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000}
-    allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
-    allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000}
-    allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
-    allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
-    # allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
-    # allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
-    # allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
-    allowed_updates[frozenset(["HPTSH", "MEOH"])] = {"r_max": 0.155, "prob": 1.000}
-    allowed_updates[frozenset(["MEOH2", "MEOH"])] = {"r_max": 0.155, "prob": 1.000}
-    allowed_updates[frozenset(["MEOH2", "IM1"])] = {"r_max": 0.155, "prob": 1.000}
-    allowed_updates[frozenset(["MEOH2", "OAC"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates = {}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_min": 0.14, "r_max": 0.167, "prob": 0.994}  # r_max in nanometer, prob zwischen 0 und 1
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_min": 0.14, "r_max": 0.159, "prob": 0.098} 
+    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_min": 0.14, "r_max": 0.158, "prob": 0.201} 
+    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_min": 0.14, "r_max": 0.167, "prob": 0.684} 
+    allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_min": 0.14, "r_max": 0.189, "prob": 1.000} 
+    allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_min": 0.14, "r_max": 0.177, "prob": 1.000}
+    allowed_updates[frozenset(["HPTSH", "HOAC"])] = {"r_min": 0.14, "r_max": 0.196, "prob": 1.000} 
+    allowed_updates[frozenset(["HPTSH", "MEOH"])] = {"r_min": 0.14, "r_max": 0.174, "prob": 1.000} 
+    allowed_updates[frozenset(["MEOH2", "MEOH"])] = {"r_min": 0.14, "r_max": 0.159, "prob": 1.000} # TODO: prob
+    allowed_updates[frozenset(["MEOH2", "IM1"])] = {"r_min": 0.14, "r_max": 0.156, "prob": 1.000} 
+    allowed_updates[frozenset(["MEOH2", "OAC"])] = {"r_min": 0.14, "r_max": 0.165, "prob": 1.000} 
+    allowed_updates[frozenset(["MEOH2", "HOAC"])] = {"r_min": 0.14, "r_max": 0.171, "prob": 0.49} # from Phiphob
+    allowed_updates[frozenset(["H2OAC", "MEOH"])] = {"r_min": 0.14, "r_max": 0.161, "prob": 1.000} # from Phiphob
+    allowed_updates[frozenset(["H2OAC", "IM1"])] = {"r_min": 0.14, "r_max": 0.159, "prob": 1.000} 
+    allowed_updates[frozenset(["H2OAC", "OAC"])] = {"r_min": 0.14, "r_max": 0.161, "prob": 1.000} 
+    allowed_updates[frozenset(["H2OAC", "HOAC"])] = {"r_min": 0.14, "r_max": 0.171, "prob": 1.000} # TODO: prob
+
 
     templates = ProtexTemplates(
-        [OAC_HOAC, IM1H_IM1, HPTSH_HPTS, MEOH_MEOH2], (allowed_updates)
+        [OAC_HOAC_H2OAC, IM1H_IM1, HPTSH_HPTS, MEOH_MEOH2], (allowed_updates)
     )
     # wrap system in IonicLiquidSystem
     ionic_liquid = ProtexSystem(simulation, templates, simulation_for_parameters)
@@ -824,7 +827,7 @@ def test_updates(caplog, tmp_path):
         print(candidate_pairs)
 
     # test whether the update changed the psf
-    old_psf_file = f"{protex.__path__[0]}/forcefield/hpts_single/hpts_single.psf"
+    old_psf_file = f"{protex.__path__[0]}/forcefield/hpts_single/hpts_h2oac.psf"
     ionic_liquid.write_psf(old_psf_file, f"{tmp_path}/hpts_new.psf", psf_for_parameters)
 
 
