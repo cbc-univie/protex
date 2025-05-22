@@ -1173,7 +1173,7 @@ IM1H_IM1 = {
     },
 }
 
-EMH_EIM = {
+EIMH_EIM = {
     "EIMH": {
         "atom_name": "H4",
     },
