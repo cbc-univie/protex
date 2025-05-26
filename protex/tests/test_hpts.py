@@ -774,18 +774,35 @@ def test_write_psf_save_load(tmp_path):
 def test_updates(caplog, tmp_path):
     caplog.set_level(logging.DEBUG)
 
-    psf_for_parameters = f"{protex.__path__[0]}/forcefield/hpts_single/hpts_h2oac.psf"
-    # f"{protex.__path__[0]}/forcefield/crd_for_parameters.crd"
-    # f"{protex.__path__[0]}/forcefield/hpts.psf"
-    # f"{protex.__path__[0]}/forcefield/traj/hpts_npt_7.rst"
+    psf_for_parameters = f"{protex.__path__[0]}/forcefield/h2oac/psf_for_parameters.psf"
+    crd_for_parameters = f"{protex.__path__[0]}/forcefield/h2oac/crd_for_parameters.crd"
+    crd_file = f"{protex.__path__[0]}/forcefield/h2oac/hpts.crd"
+    psf_file = f"{protex.__path__[0]}/forcefield/h2oac/hpts.psf"
+    restart_file = f"{protex.__path__[0]}/forcefield/h2oac/traj/hpts_npt_7.rst"
+
+    PARA_FILES = [
+                "toppar_drude_master_protein_2013f_lj04_modhpts_chelpg.str",
+                "hoac.str",
+                "im1h.str",
+                "im1.str",
+                "oac.str",
+                "hptsh.str",
+                "hpts.str",
+                "meoh.str",
+                "meoh2.str",
+                "na.str",
+                "h2oac.str"
+            ]
+    para_files = [f"{protex.__path__[0]}/forcefield/h2oac/toppar/{para_file}" for para_file in PARA_FILES]
+
 
     # simulation = generate_hpts_meoh_system(psf_file=psf_file, restart_file=restart_file)
     # simulation_for_parameters = generate_hpts_meoh_system(
     #    psf_file=psf_for_parameters, crd_file=crd_for_parameters
     # )
 
-    simulation = generate_hpts_meoh_h2oac_system()
-    simulation_for_parameters = generate_hpts_meoh_h2oac_system()
+    simulation = generate_hpts_meoh_h2oac_system(psf_file=psf_file, crd_file=crd_file, restart_file=restart_file, para_files=para_files, use_plugin=False)
+    simulation_for_parameters = generate_hpts_meoh_h2oac_system(psf_file=psf_for_parameters, crd_file=crd_for_parameters, para_files=para_files, use_plugin=False)
 
     allowed_updates = {}
     allowed_updates = {}
@@ -813,7 +830,7 @@ def test_updates(caplog, tmp_path):
     # wrap system in IonicLiquidSystem
     ionic_liquid = ProtexSystem(simulation, templates, simulation_for_parameters)
     pars = []
-    update = NaiveMCUpdate(ionic_liquid)
+    update = KeepHUpdate(ionic_liquid)
     # initialize state update class
     state_update = StateUpdate(update)
     # ionic_liquid.simulation.minimizeEnergy(maxIterations=200)

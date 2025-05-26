@@ -257,39 +257,39 @@ class KeepHUpdate(Update):
 
 
             #### debugging
-            first_done = False
-            first = []
-            second = []
-            NBex = []
-            for force in self.ionic_liquid.system.getForces():
-                if type(force).__name__ == "CustomNonbondedForce":
-                    print(force)
-                    print(force.getNumParticles())
-                    print(force.getNumExclusions())
-                    for i in range(force.getNumExclusions()):
-                        if not first_done:
-                            first.append(force.getExclusionParticles(i))
-                        else:
-                            second.append(force.getExclusionParticles(i))
-                    first_done = True
+            # first_done = False
+            # first = []
+            # second = []
+            # NBex = []
+            # for force in self.ionic_liquid.system.getForces():
+            #     if type(force).__name__ == "CustomNonbondedForce":
+            #         print(force)
+            #         print(force.getNumParticles())
+            #         print(force.getNumExclusions())
+            #         for i in range(force.getNumExclusions()):
+            #             if not first_done:
+            #                 first.append(force.getExclusionParticles(i))
+            #             else:
+            #                 second.append(force.getExclusionParticles(i))
+            #         first_done = True
 
-                if type(force).__name__ == "NonbondedForce":
-                    print(force)
-                    print(force.getNumParticles())
-                    print(force.getNumExceptions())
-                    for i in range(force.getNumExceptions()):
-                        NBex.append(force.getExceptionParameters(i))
+            #     if type(force).__name__ == "NonbondedForce":
+            #         print(force)
+            #         print(force.getNumParticles())
+            #         print(force.getNumExceptions())
+            #         for i in range(force.getNumExceptions()):
+            #             NBex.append(force.getExceptionParameters(i))
 
-            assert(first == second)
-            #print(first == NBex)
+            # assert(first == second)
+            # #print(first == NBex)
 
-            NBexparticles = [i[0:2] for i in NBex]
+            # NBexparticles = [i[0:2] for i in NBex]
 
-            for i in NBexparticles:
-                if i != first[NBexparticles.index(i)]:
-                    print(i, first[NBexparticles.index(i)])
+            # for i in NBexparticles:
+            #     if i != first[NBexparticles.index(i)]:
+            #         print(i, first[NBexparticles.index(i)])
 
-            assert(first == NBexparticles)
+            # assert(first == NBexparticles)
             ##### debugging end
 
             # update the context to include the new parameters (do this in every lambda step)

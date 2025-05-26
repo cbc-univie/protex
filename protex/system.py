@@ -630,7 +630,7 @@ class ProtexSystem:
                     # detected_forces[residue.name] = set(detected_forces[residue.name]) # remove duplicates
 
         # logger.debug(detected_forces)
-        print(f"{detected_forces=}")
+        # print(f"{detected_forces=}")
         return detected_forces
 
     def _check_forces(self) -> None:
@@ -1158,7 +1158,7 @@ class ProtexSystem:
             forcename = type(force).__name__
             fgroup = force.getForceGroup()
             if forcename == "NonbondedForce":
-                # only treat exceptions # why???
+                # only treat exceptions (normal NBF is set directly via particle index)
                 for exc_idx in range(force.getNumExceptions()):
                     f = force.getExceptionParameters(exc_idx)
                     idx1, idx2 = f[0], f[1]
@@ -1267,7 +1267,7 @@ class ProtexSystem:
         H_templates = dict()
         D_templates = dict()
         # this will become a dict of the form:
-        # self.per_residue_forces[(min,max tuple of the atom idxs for each residue)][forcegroup][forcename]: list of the idxs of this force for this residue
+        # self.per_residue_forces[(min,max tuple of the atom idxs for each residue)][forcegroup][forcename]: [(force idx, atom idx1, atom idx2,...),...]
         self.per_residue_forces = {}
         # for each residue type get forces
 
@@ -1286,8 +1286,8 @@ class ProtexSystem:
 
             # logger.debug(H_templates)
             # logger.debug(D_templates)
-            print(H_templates)
-            print(D_templates)
+            # print(H_templates)
+            # print(D_templates)
 
         for r in self.topology.residues():
             atom_idxs = [atom.index for atom in r.atoms()]
@@ -1298,7 +1298,7 @@ class ProtexSystem:
         if self.fast:
             # this takes some time, but the update calls on the residues are then much faster
             self._force_idx_dict = self._create_force_idx_dict()
-            #print(f"{self.per_residue_forces=}")
+            # print(f"{self.per_residue_forces=}")
 
         for r in self.topology.residues():
             name = r.name

@@ -366,7 +366,9 @@ class Residue:
                         force.setExceptionParameters(
                             exc_idx, idx1, idx2, chargeprod, sigma, epsilon
                         )
+                        # print("fast way used")
                 except KeyError:  # use the old slow way
+                    # print("slow way used")
                     for exc_idx in range(force.getNumExceptions()):
                         f = force.getExceptionParameters(exc_idx)
                         idx1 = f[0]
@@ -705,19 +707,78 @@ class Residue:
             else:
                 raise RuntimeError()
 
-        # FIXME do we need to update exceptions for Hs and Ds extra?
-            # ignore for now, should not make a large difference
-            # otherwise something like this
-                # BUG still won't work, have to juggle around atom indices more (keep parameters and index that is not of the H/D, exchange idx of the H/D)
+
+        # updating parameters for H/D extra
+        # BUG we get "openmm.OpenMMException: updateParametersInContext: The set of non-excluded exceptions has changed"
+            # seems to be a problem with setting chargeprod and epsilon to/from 0.0, but it worked up until now
+                # see also: https://github.com/cbc-univie/protex/pull/96/commits/15963d0166e335a1da4fe48fac11754701cd967a
+            # could also be a problem of the force_idx_dict, or what we do here
+        # FIXME this is a lot of ugly hardcoding to get our systems to work
+            # don't know how to get this info from the force field at this point nicer, OpenMM forgets atomtypes after simulation setup
+
+        e14fac = 1.0 # NOTE this is standard, but will be a problem, if we have something else
+        nbxmod = 5 # NOTE this is standard, but will be a problem, if we have something else
+
+        # CD2O3A  0.0  -0.0564  1.6500  !  0.0  -0.13  2.2  !  MAS,  ACEH  PEML
+        # CD33A  0.0  -0.0337  2.0400  0.0  -0.01  1.9  !  ETHA,  ethane,  4/98,  yin,  adm  jr.
+        # CD33G  0.0  -0.0513  2.0400  0.0  -0.01  1.9  !  from  CD33A,  flo
+
+        special_parms = {"HOAC": {"C1": [-0.13, 2.2]},
+                         "H2OAC": {"C1": [-0.13, 2.2]},
+                         "OAC": {"C2": [-0.01, 1.9]},
+                         }
         
-        # for atom in self.atom_names:
-        #     idx = self.get_idx_for_atom_name(atom)
-        #     used_parms_old = [parm for parm in parms_old if (parm[0] - old_parms_offset == idx or parm[1] - old_parms_offset == idx) ] # find parameters of this atom (old)
-        #     for parm in used_parms_old:
-        #         if atom in self.acceptors:
-        #             parms_new[parms_old.index(parm)] = self.D_parameters["NonbondedForceExceptions"][parms_old.index(parm)] # replace parameters at found indices with H/D params, gives KeyError
-        #         elif atom in self.donors:
-        #             parms_new[parms_old.index(parm)] = self.H_parameters["NonbondedForceExceptions"][parms_old.index(parm)]
+        for atom in self.atom_names:
+            if atom in self.acceptors or atom in self.donors:
+                idx1 = self.atom_names.index(atom)
+                # print(f"{atom=}, {idx1=}")
+                used_parms_old = [parm for parm in parms_old if (parm[0] - old_parms_offset == idx1 or parm[1] - old_parms_offset == idx1) ] # find parameters of this atom (old) and index where to replace new parms
+                for parm in used_parms_old:
+                    if parm[0] - old_parms_offset == idx1:
+                        idx2 = parm[1] - old_parms_offset
+                    elif parm[1] - old_parms_offset == idx1:
+                        idx2 = parm[0] - old_parms_offset
+
+                    # get nb params for idx1 and idx2
+                    # -offset: start counting from first atom in residue -> get NB parameters
+                    # do everything via offset, set_NBF will take care of indices with force_idxes (hopefully)
+                    # FIXME this way of getting parameters from the systems seems too convoluted to me, could it be easier?
+                    for force in self.system.getForces():
+                        forcename = type(force).__name__
+                        if forcename == "NonbondedForce":
+                            q1, sigma1, epsilon1 = nonbonded_parm_new[idx1]
+                            # get special parameters for given atom types
+                            try:
+                                sigma2, epsilon2 = special_parms[new_name][self.atom_names.index[idx2]]
+                                q2 = nonbonded_parm_new[idx2][0]
+                            except:
+                                q2, sigma2, epsilon2 = nonbonded_parm_new[idx2]
+
+                            # print(f"{idx1=}, {self.atom_names[idx1]}, {q1=}, {sigma1=}, {epsilon1=}") # new parms
+                            # print(f"{idx1=}, {self.atom_names[idx1]}, {nonbonded_parm_old[idx1]=}") # old parms
+                            # print(f"{idx2=}, {self.atom_names[idx2]}, {q2=}, {sigma2=}, {epsilon2=}")
+
+                    # calculate new params for parm
+                    if nbxmod == 4:
+                        if parm[0] - old_parms_offset == idx1:
+                            parm_new = [idx1, idx2, 0.0, 0.1, 0.0]
+                        elif parm[1] - old_parms_offset == idx1:
+                            parm_new = [idx2, idx1, 0.0, 0.1, 0.0]
+                    
+                    elif nbxmod == 5:
+                        chargeprod = q1*q2*e14fac
+                        sigma = (sigma1+sigma2)/2
+                        epsilon = np.sqrt(epsilon1*epsilon2)
+                        # it is probably not relevant which index is first, but let's keep it like this
+                        if parm[0] - old_parms_offset == idx1:
+                            parm_new = [idx1, idx2, chargeprod, sigma, epsilon]
+                        elif parm[1] - old_parms_offset == idx1:
+                            parm_new = [idx2, idx1, chargeprod, sigma, epsilon]
+
+                    # print(f"{parm=}")
+                    # print(f"{parm_new=}")
+                    
+                    parms_new[parms_old.index(parm)] = parm_new
 
         # interpolate parameters
         exceptions_interpolated = []
@@ -735,81 +796,8 @@ class Residue:
             )
 
         return [parm_interpolated, exceptions_interpolated]
+        # we only give on parameters, not indices, force_idxes need to handle the rest, the only important thing is that the order is correct 
 
-    # deprecated?
-    # def _get_H_D_NonbondedForce_parameters_at_lambda(self,  lamb: float
-    # ) -> list[list[float]]:
-
-    #     # logger.debug(self.H_parameters)
-
-    #     assert lamb >= 0 and lamb <= 1
-    #     current_name = self.current_name
-    #     new_name = self.alternativ_resname
-
-    #     parms_interpolated = {}
-
-    #     for atom in self.atom_names:
-    #         if atom not in self.acceptors and atom not in self.donors:
-    #             continue
-    #         else:
-    #             idx = self.atom_names.index(atom)
-    #             nonbonded_parm_old = self.parameters[current_name]["NonbondedForce"][idx]
-    #             if atom in self.acceptors:
-    #                 nonbonded_parm_new = [unit.quantity.Quantity(value=0.0, unit=unit.elementary_charge), unit.quantity.Quantity(value=0.0, unit=unit.nanometer), unit.quantity.Quantity(value=0.0, unit=unit.kilojoule_per_mole)]
-    #             elif atom in self.donors:
-    #                 nonbonded_parm_new = self.H_parameters[new_name]["NonbondedForce"]
-
-    #             charge_old, sigma_old, epsilon_old = nonbonded_parm_old
-    #             charge_new, sigma_new, epsilon_new = nonbonded_parm_new
-    #             charge_interpolated = (1 - lamb) * charge_old + lamb * charge_new
-    #             sigma_interpolated = (1 - lamb) * sigma_old + lamb * sigma_new
-    #             epsilon_interpolated = (1 - lamb) * epsilon_old + lamb * epsilon_new
-
-    #             parms_interpolated[atom] = [charge_interpolated, sigma_interpolated, epsilon_interpolated]
-
-
-    #     # # leave exceptions to be handled by the general nonbonded force update for the moment
-    #     # force_name = "NonbondedForceExceptions"
-    #     # new_parms_offset = self._get_offset(new_name)
-    #     # old_parms_offset = self._get_offset(current_name)
-
-    #     # # match parameters
-    #     # parms_old = []
-    #     # parms_new = []
-    #     # for old_idx, old_parm in enumerate(self.parameters[current_name][force_name]):
-    #     #     idx1, idx2 = old_parm[0], old_parm[1]
-    #     #     for new_idx, new_parm in enumerate(self.parameters[new_name][force_name]):
-    #     #         if {new_parm[0] - new_parms_offset, new_parm[1] - new_parms_offset} == {
-    #     #             idx1 - old_parms_offset,
-    #     #             idx2 - old_parms_offset,
-    #     #         }:
-    #     #             if old_idx != new_idx:
-    #     #                 raise RuntimeError(
-    #     #                     "Odering of Nonbonded Exception parameters is different between the two topologies."
-    #     #                 )
-    #     #             parms_old.append(old_parm)
-    #     #             parms_new.append(new_parm)
-    #     #             break
-    #     #     else:
-    #     #         raise RuntimeError()
-
-    #     # # interpolate parameters
-    #     # exceptions_interpolated = []
-    #     # for parm_old_i, parm_new_i in zip(parms_old, parms_new):
-    #     #     chargeprod_old, sigma_old, epsilon_old = parm_old_i[-3:]
-    #     #     chargeprod_new, sigma_new, epsilon_new = parm_new_i[-3:]
-    #     #     chargeprod_interpolated = (
-    #     #         1 - lamb
-    #     #     ) * chargeprod_old + lamb * chargeprod_new
-    #     #     sigma_interpolated = (1 - lamb) * sigma_old + lamb * sigma_new
-    #     #     epsilon_interpolated = (1 - lamb) * epsilon_old + lamb * epsilon_new
-
-    #     #     exceptions_interpolated.append(
-    #     #         [chargeprod_interpolated, sigma_interpolated, epsilon_interpolated]
-    #     #     )
-
-    #     # return [parm_interpolated, exceptions_interpolated]
-    #     return parms_interpolated
 
     def _get_CustomNonbondedForce_parameters_at_lambda(  # noqa: N802
         self, lamb: float
@@ -1235,6 +1223,14 @@ class Residue:
                 return idx
         raise RuntimeError(
             f"Atom name '{query_atom_name}' not in atom names of residue '{self.current_name}'."
+        )
+    
+    def get_name_for_atom_idx(self, query_atom_idx: int) -> str:
+        for idx, atom_name in zip(self.atom_idxs, self.atom_names):
+            if query_atom_idx == idx:
+                return atom_name
+        raise RuntimeError(
+            f"Atom name '{query_atom_idx}' not in atom indices of residue '{self.current_name}'."
         )
 
     # not used?
