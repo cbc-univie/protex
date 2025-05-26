@@ -1188,7 +1188,7 @@ OAC_HOAC = {
         "equivalent_atom": "O1",
     },
     "HOAC": {
-        "atom_name": "H",
+        "atom_name": "HO2",
     },
 }
 
