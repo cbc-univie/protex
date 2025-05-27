@@ -844,7 +844,7 @@ def test_updates(caplog, tmp_path):
         print(candidate_pairs)
 
     # test whether the update changed the psf
-    old_psf_file = f"{protex.__path__[0]}/forcefield/hpts_single/hpts_h2oac.psf"
+    old_psf_file = psf_file
     ionic_liquid.write_psf(old_psf_file, f"{tmp_path}/hpts_new.psf", psf_for_parameters)
 
 

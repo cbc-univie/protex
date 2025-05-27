@@ -21,6 +21,8 @@ from protex.system import ProtexSystem
 
 logger = logging.getLogger(__name__)
 
+# FIXME the whole idea of updating H/Ds only doesn't work in carboxylic acids, because we also need to adjust the O parameters (q, LJ, bonds...)
+    # repeat everything for attached heavy atoms? (extracting templates, tracking which heavy atom is attached to which H/D, updating the heavy atom parameters, etc.)
 
 class Update(ABC):
     """ABC for implementing different Update Methods.

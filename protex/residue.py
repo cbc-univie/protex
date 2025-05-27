@@ -353,19 +353,30 @@ class Residue:
     def _set_NonbondedForce_parameters(self, parms) -> None:  # noqa: N802
         parms_nonb = deque(parms[0])
         parms_exceptions = deque(parms[1])
+        # parms_debug = deque(parms[2])  # for debugging, to see if we set the right parameters
         for force in self.system.getForces():
             fgroup = force.getForceGroup()
             if type(force).__name__ == "NonbondedForce":
+                with open("/home/marta/nbexceptions_old.txt", "w") as f:
+                    for i in range(force.getNumExceptions()):
+                        f.write(f"{force.getExceptionParameters(i)}\n")
                 for parms_nonbonded, idx in zip(parms_nonb, self.atom_idxs):
                     charge, sigma, epsilon = parms_nonbonded
                     force.setParticleParameters(idx, charge, sigma, epsilon)
                 try:  # use the fast way
                     lst = self.force_idxs[fgroup]["NonbondedForceExceptions"]
+                    # print(f"{len(lst)=}")
+                    # print(f"{len(parms_exceptions)=}")
                     for exc_idx, idx1, idx2 in lst:
                         chargeprod, sigma, epsilon = parms_exceptions.popleft()
+                        # parm_debug = parms_debug.popleft()
+
                         force.setExceptionParameters(
                             exc_idx, idx1, idx2, chargeprod, sigma, epsilon
                         )
+                        # print(f"element from force_idxs: {exc_idx=}, {idx1=}, {idx2=}")
+                        # print(f"element from parms_debug: {parm_debug=}")
+                        # print(f"set exception parameters: {exc_idx=}, {idx1=}, {idx2=}, {chargeprod=}, {sigma=}, {epsilon=}")
                         # print("fast way used")
                 except KeyError:  # use the old slow way
                     # print("slow way used")
@@ -378,6 +389,9 @@ class Residue:
                             force.setExceptionParameters(
                                 exc_idx, idx1, idx2, chargeprod, sigma, epsilon
                             )
+                with open("/home/marta/nbexceptions_new.txt", "w") as f:
+                    for i in range(force.getNumExceptions()):
+                        f.write(f"{force.getExceptionParameters(i)}\n")
 
     def _set_CustomNonbondedForce_parameters(self, parms) -> None:  # noqa: N802
         #print(f"{parms=}")
@@ -795,7 +809,7 @@ class Residue:
                 [chargeprod_interpolated, sigma_interpolated, epsilon_interpolated]
             )
 
-        return [parm_interpolated, exceptions_interpolated]
+        return [parm_interpolated, exceptions_interpolated]#, parms_new] # for debugging
         # we only give on parameters, not indices, force_idxes need to handle the rest, the only important thing is that the order is correct 
 
 

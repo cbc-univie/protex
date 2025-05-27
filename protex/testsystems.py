@@ -81,7 +81,7 @@ def setup_system(
         print(
             f"Changing atom type {dummy_atom_type} temporarily to not zero for dummy things"
         )
-        # TODO do we need to set q to !0 and then to 0 again as well? chargeprod could also be an issue (we reset it to 0, but we never unset it first)
+        # keeping !=0 parameters does not help new "openmm.OpenMMException: updateParametersInContext: The set of non-excluded exceptions has changed"
         params.atom_types_str[dummy_atom_type].set_lj_params(
             -0.00001,
             params.atom_types_str[dummy_atom_type].rmin,
