@@ -642,8 +642,8 @@ def test_create_IonicLiquidTemplate():
 
 
 def test_create_IonicLiquid():
-    # simulation = generate_small_box(use_plugin=False)
-    simulation = generate_im1h_oac_system(use_plugin=False)
+    simulation = generate_small_box(use_plugin=False)
+    #simulation = generate_im1h_oac_system(use_plugin=False)
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 2.33}
     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": -2.33}

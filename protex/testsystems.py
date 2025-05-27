@@ -1,4 +1,5 @@
 import os
+from itertools import combinations
 
 import protex
 
@@ -7,6 +8,7 @@ try:  # Syntax changed in OpenMM 7.6
     from openmm import (
         Context,
         DrudeNoseHooverIntegrator,
+        MonteCarloBarostat,
         OpenMMException,
         Platform,
         XmlSerializer,
@@ -19,12 +21,13 @@ try:  # Syntax changed in OpenMM 7.6
         HBonds,
         Simulation,
     )
-    from openmm.unit import angstroms, kelvin, picoseconds
+    from openmm.unit import angstroms, atmosphere, kelvin, picoseconds
 except ImportError:
     import simtk.openmm as mm
     from simtk.openmm import (
         Context,
         DrudeNoseHooverIntegrator,
+        MonteCarloBarostat,
         OpenMMException,
         Platform,
         XmlSerializer,
@@ -63,6 +66,7 @@ def setup_system(
     dummy_atom_type: str = "DUMH",
     cutoff: float = 11.0,
     switch: float = 10.0,
+    ensemble = "nVT"
 ):
     if dummy_atom_type is not None:
         # print(params.atom_types_str["DUM"].epsilon)
@@ -77,6 +81,7 @@ def setup_system(
         print(
             f"Changing atom type {dummy_atom_type} temporarily to not zero for dummy things"
         )
+        # keeping !=0 parameters does not help new "openmm.OpenMMException: updateParametersInContext: The set of non-excluded exceptions has changed"
         params.atom_types_str[dummy_atom_type].set_lj_params(
             -0.00001,
             params.atom_types_str[dummy_atom_type].rmin,
@@ -103,6 +108,10 @@ def setup_system(
         print(
             "Only contraints=None or constraints=HBonds (given as string in function call) implemented"
         )
+
+    if ensemble == "npT":
+        barostat = MonteCarloBarostat(1*atmosphere, 300*kelvin)
+        system.addForce(barostat)
 
     for force in system.getForces():
         if type(force).__name__ == "CMMotionRemover":
@@ -147,7 +156,7 @@ def setup_simulation(
             coll_freq / picoseconds,
             1 * kelvin,
             drude_coll_freq / picoseconds,
-            0.0005 * picoseconds,
+            0.0001 * picoseconds,
         )
         print("Using built in DrudeNoseHooverIntegrator")
         print("Some tests might fail")
@@ -374,18 +383,18 @@ def generate_h2o_system(
     psf_file: str = None,
     crd_file: str = None,
     restart_file: str = None,
-    constraints: str = None,
+    constraints: str = "HBonds", # simulate water with SHAKE as standard
     boxl: float = 10.0,
     para_files: list[str] = None,
     coll_freq: int = 10,
     drude_coll_freq: int = 100,
     dummy_atom_type: str = "DUMH",
-    dummies: list[tuple[str, str]] = [("IM1", "H7"), ("OAC", "H")],
+    dummies: list[tuple[str, str]] = [("OH", "H2"), ("OH", "H3"), ("OH", "H4"), ("H2O", "H3"), ("H2O", "H4"), ("H3O", "H4")], # NOTE: simulation created at start of every run, won't work like this
     use_plugin: bool = True,
     platformname="CUDA",
     cuda_precision="single",
 ):
-    """Set up a solvated and parametrized system for IM1H/OAC."""
+    """Set up a solvated and parametrized system for OH/H2O/H3O."""
     base = f"{protex.__path__[0]}/forcefield/"
     if psf_file is None:
         psf_file = f"{base}/h2o/h2o.psf"
@@ -435,6 +444,208 @@ def generate_h2o_system(
 
     return simulation
 
+def generate_toh2_system(
+    psf_file: str = None,
+    crd_file: str = None,
+    restart_file: str = None,
+    constraints: str = "HBonds", # simulate water with SHAKE as standard
+    boxl: float = 32.0,
+    para_files: list[str] = None,
+    coll_freq: int = 10,
+    drude_coll_freq: int = 100,
+    dummy_atom_type: str = "DUMH",
+    dummies: list[tuple[str, str]] = [("OH", "H2"), ("OH", "H3"), ("OH", "H4"), ("TOH2", "H3"), ("TOH2", "H4"), ("TOH3", "H4")],
+    use_plugin: bool = True,
+    platformname="CUDA",
+    cuda_precision="single",
+    ensemble = "nVT"
+):
+    """Set up a solvated and parametrized system for OH/H2O/H3O."""
+    base = f"{protex.__path__[0]}/forcefield"
+    if psf_file is None:
+        psf_file = f"{base}/toh2/h2o.psf"
+    if crd_file is None:
+        crd_file = f"{base}/toh2/h2o.crd"
+    if para_files is None:
+        PARA_FILES = [
+            "toppar_drude_master_protein_2013f_lj025_modhpts_chelpg.str",
+            "h2o_d.str",
+            "h3o_d.str",
+            "oh_d.str",
+            "cl_d.str",
+            "na_d.str",
+        ]
+        para_files = [f"{base}/toh2/toppar/{para_files}" for para_files in PARA_FILES]
+
+    if restart_file is None:
+        restart_file = f"{base}/toh2/h2o_npt_7.rst"
+
+    psf, crd, params = load_charmm_files(
+        psf_file=psf_file,
+        crd_file=crd_file,
+        para_files=para_files,
+        boxl=boxl,
+    )
+    system = setup_system(
+        psf,
+        params,
+        constraints=constraints,
+        dummy_atom_type=dummy_atom_type,
+        # why is this different here? (probably because of the 10A small test box from Flo)
+        # cutoff=3,
+        # switch=2,
+        ensemble = ensemble
+    )
+
+    simulation = setup_simulation(
+        psf,
+        crd,
+        system,
+        restart_file=restart_file,
+        coll_freq=coll_freq,
+        drude_coll_freq=drude_coll_freq,
+        dummies=dummies,
+        use_plugin=use_plugin,
+        platformname=platformname,
+        cuda_precision=cuda_precision,
+    )
+
+    return simulation
+
+
+def generate_m2_toh2_system(
+    psf_file: str = None,
+    crd_file: str = None,
+    restart_file: str = None,
+    constraints: str = None,
+    boxl: float = 40.6,
+    para_files: list[str] = None,
+    coll_freq: int = 10,
+    drude_coll_freq: int = 100,
+    dummy_atom_type: str = "DUMH",
+    dummies: list[tuple[str, str]] = [("HSD", "HE2"), ("TOH2", "H3"), ("TOH2", "H4"), ("TOH3", "H4")], # NOTE: simulation created at start of every run, won't work like this
+    use_plugin: bool = True,
+    platformname="CUDA",
+    cuda_precision="single",
+    ensemble = "nVT"
+):
+    """Set up a solvated and parametrized system for OH/H2O/H3O."""
+    base = f"{protex.__path__[0]}/forcefield"
+    if psf_file is None:
+        psf_file = f"{base}/toh2/test_h2o.psf"
+    if crd_file is None:
+        crd_file = f"{base}/toh2/test_h2o.crd"
+    if para_files is None:
+        PARA_FILES = [
+            "all.str",
+        ]
+        para_files = [f"{base}/toh2/toppar/{para_files}" for para_files in PARA_FILES]
+
+    if restart_file is None:
+        restart_file = f"{base}/toh2/test_h2o_npt_7.rst"
+
+    psf, crd, params = load_charmm_files(
+        psf_file=psf_file,
+        crd_file=crd_file,
+        para_files=para_files,
+        boxl=boxl,
+    )
+    system = setup_system(
+        psf,
+        params,
+        constraints=constraints,
+        dummy_atom_type=dummy_atom_type,
+        #cutoff=3,
+        #switch=2,
+        ensemble=ensemble
+    )
+
+    simulation = setup_simulation(
+        psf,
+        crd,
+        system,
+        restart_file=restart_file,
+        coll_freq=coll_freq,
+        drude_coll_freq=drude_coll_freq,
+        dummies=dummies,
+        use_plugin=use_plugin,
+        platformname=platformname,
+        cuda_precision=cuda_precision,
+    )
+
+    return simulation
+
+def generate_ac_toh2_system(
+    psf_file: str = None,
+    crd_file: str = None,
+    restart_file: str = None,
+    constraints: str = "HBonds", # simulate water with SHAKE as standard
+    boxl: float = 32.0,
+    para_files: list[str] = None,
+    coll_freq: int = 10,
+    drude_coll_freq: int = 100,
+    dummy_atom_type: str = "DUMH",
+    dummies: list[tuple[str, str]] = [("OH", "H2"), ("OH", "H3"), ("OH", "H4"), ("TOH2", "H3"), ("TOH2", "H4"), ("TOH3", "H4"), ("HOAC", "HO1"), ("OAC", "HO1"), ("OAC", "HO2")],
+    use_plugin: bool = True,
+    platformname="CUDA",
+    cuda_precision="single",
+    ensemble = "nVT"
+):
+    """Set up a solvated and parametrized system for OH/H2O/H3O."""
+    base = f"{protex.__path__[0]}/forcefield"
+    if psf_file is None:
+        psf_file = f"{base}/toh2/test.psf"
+    if crd_file is None:
+        crd_file = f"{base}/toh2/test.crd"
+    if para_files is None:
+        PARA_FILES = [
+            "toppar_drude_master_protein_2013f_lj025_modhpts_chelpg.str",
+            "h2o_d.str",
+            "h3o_d.str",
+            "oh_d.str",
+            "cl_d.str",
+            "na_d.str",
+            "toh23.str",
+            "hoac.str",
+            "oac.str"
+        ]
+        para_files = [f"{base}/toh2/toppar/{para_files}" for para_files in PARA_FILES]
+
+    # if restart_file is None:
+    #     restart_file = f"{base}/toh2/h2o_npt_7.rst"
+
+
+    psf, crd, params = load_charmm_files(
+        psf_file=psf_file,
+        crd_file=crd_file,
+        para_files=para_files,
+        boxl=boxl,
+    )
+    system = setup_system(
+        psf,
+        params,
+        constraints=constraints,
+        dummy_atom_type=dummy_atom_type,
+        # why is this different here? (probably because of the 10A small test box from Flo)
+        # cutoff=3,
+        # switch=2,
+        ensemble = ensemble
+    )
+
+    simulation = setup_simulation(
+        psf,
+        crd,
+        system,
+        restart_file=restart_file,
+        coll_freq=coll_freq,
+        drude_coll_freq=drude_coll_freq,
+        dummies=dummies,
+        use_plugin=use_plugin,
+        platformname=platformname,
+        cuda_precision=cuda_precision,
+    )
+
+    return simulation
 
 def generate_tfa_system(
     psf_file: str = None,
@@ -630,6 +841,7 @@ def generate_im1h_oac_dummy_system(
     dummy_atom_type: str = "DUMH",
     dummies: list[tuple[str, str]] = [("IM1", "H7"), ("OAC", "H")],
     use_plugin: bool = True,
+    ensemble = "nVT"
 ):
     """Set up a solvated and parametrized system for IM1H/OAC."""
     base = f"{protex.__path__[0]}/forcefield"
@@ -654,7 +866,7 @@ def generate_im1h_oac_dummy_system(
         boxl=boxl,
     )
     system = setup_system(
-        psf, params, constraints=constraints, dummy_atom_type=dummy_atom_type
+        psf, params, constraints=constraints, dummy_atom_type=dummy_atom_type, ensemble=ensemble
     )
 
     simulation = setup_simulation(
@@ -791,7 +1003,68 @@ def generate_hpts_meoh_system(
     )
 
     return simulation
+def generate_hpts_meoh_h2oac_system(
+    psf_file: str = None,
+    crd_file: str = None,
+    restart_file: str = None,
+    constraints: str = None,
+    boxl: float = 70.0,
+    para_files: list[str] = None,
+    coll_freq: int = 10,
+    drude_coll_freq: int = 100,
+    dummy_atom_type: str = "DUMH",
+    dummies: list[tuple[str, str]] = [
+        ("IM1", "H7"),
+        ("OAC", "HO1"), ("OAC", "HO2"),
+        ("HOAC", "HO1"),
+        ("HPTS", "H7"),
+        ("MEOH", "HO2"),
+    ],
+    use_plugin: bool = True,
+):
+    """Set up a solvated and parametrized system for IM1H/OAC/HPTS/MEOH with H2OAC."""
+    base = f"{protex.__path__[0]}/forcefield/"
+    if psf_file is None:
+        psf_file = f"{base}/hpts.psf"
+    if crd_file is None:
+        crd_file = f"{base}/hpts.crd"
+    if para_files is None:
+        PARA_FILES = [
+            "toppar_drude_master_protein_2013f_lj025_modhpts_chelpg.str",
+            "hoac_d.str",
+            "im1h_d.str",
+            "im1_dummy_d.str",
+            "oac_dummy_d.str",
+            "hpts_dummy_d_chelpg.str",
+            "hptsh_d_chelpg.str",
+            "meoh_dummy.str",
+            "meoh2_unscaled.str",
+            "h2oac.str"
+        ]
+        para_files = [f"{base}/toppar/{para_files}" for para_files in PARA_FILES]
 
+    psf, crd, params = load_charmm_files(
+        psf_file=psf_file,
+        crd_file=crd_file,
+        para_files=para_files,
+        boxl=boxl,
+    )
+    system = setup_system(
+        psf, params, constraints=constraints, dummy_atom_type=dummy_atom_type
+    )
+
+    simulation = setup_simulation(
+        psf,
+        crd,
+        system,
+        restart_file=restart_file,
+        coll_freq=coll_freq,
+        drude_coll_freq=drude_coll_freq,
+        dummies=dummies,
+        use_plugin=use_plugin,
+    )
+
+    return simulation
 
 def generate_hpts_meoh_lj04_system(
     psf_file: str = None,
@@ -923,40 +1196,71 @@ def generate_single_hpts_meoh_system(
 
 IM1H_IM1 = {
     "IM1H": {
-        "atom_name": "H7",
+        "starting_donors": ["H7"], "starting_acceptors": [], "possible_modes": ("donor",)
     },
     "IM1": {
-        "atom_name": "N2",
+        "starting_donors": [], "starting_acceptors": ["H7"], "possible_modes": ("acceptor",)
     },
 }
 
 OAC_HOAC = {
     "OAC": {
-        "atom_name": "O2",
-        "equivalent_atom": "O1",
+        "starting_donors": [], "starting_acceptors": ["HO1", "HO2"], "possible_modes": ("acceptor",)
     },
     "HOAC": {
-        "atom_name": "H",
+        "starting_donors": ["HO1"], "starting_acceptors": [], "possible_modes": ("donor",)
+    },
+}
+
+OAC_HOAC_H2OAC = {
+    "OAC": {
+        "starting_donors": [], "starting_acceptors": ["HO1", "HO2"], "possible_modes": ("acceptor",)
+    },
+    "HOAC": {
+        "starting_donors": ["HO2"], "starting_acceptors": ["HO1"], "possible_modes": ("donor", "acceptor")
+    },
+    "H2OAC": {
+        "starting_donors": ["HO1", "HO2"], "starting_acceptors": [], "possible_modes": ("donor",)
     },
 }
 
 HPTSH_HPTS = {
     "HPTSH": {
-        "atom_name": "H7",
-        "canonical_name": "HPTS",
-    },
+        "starting_donors": ["H7"], "starting_acceptors": [], "possible_modes": ("donor",)
+        },
     "HPTS": {
-        "atom_name": "O7",
-        "canonical_name": "HPTS",
+        "starting_donors": [], "starting_acceptors": ["H7"], "possible_modes": ("acceptor",)
     },
 }
 
 MEOH_MEOH2 = {
     "MEOH": {
-        "atom_name": "O1",
+        "starting_donors": ["HO1"], "starting_acceptors": ["HO2"], "possible_modes": ("acceptor",)
     },
     "MEOH2": {
-        "atom_name": "HO2",
-        "equivalent_atom": "HO1",
+        "starting_donors": ["HO1","HO2"], "starting_acceptors": [], "possible_modes": ("donor",)
     },
 }
+
+# NOTE: take care whether we want to use H2O or SWM4, SPCE etc. for residue name
+
+OH_H2O_H3O =  {
+    "OH":  {"starting_donors" : ["H1"], "starting_acceptors" : ["H2", "H3", "H4"], "possible_modes" : ("acceptor")},
+    "H2O": {"starting_donors" : ["H1", "H2"], "starting_acceptors" : ["H3", "H4"], "possible_modes" : ("acceptor", "donor")},
+    "H3O": {"starting_donors" : ["H1", "H2", "H3"], "starting_acceptors" : ["H4"], "possible_modes" : ("donor")},
+}
+
+H2O_H3O =  {
+    "TOH2": {"starting_donors" : ["H1", "H2"], "starting_acceptors" : ["H3", "H4"], "possible_modes" : ("acceptor")},
+    "TOH3": {"starting_donors" : ["H1", "H2", "H3"], "starting_acceptors" : ["H4"], "possible_modes" : ("donor")},
+}
+
+# HSP_HSD =  {
+#     "HSP": {"starting_donors": ["HE2"], "starting_acceptors" : [], "possible_modes" : ("donor")},
+#     "HSD": {"starting_donors": [], "starting_acceptors" : ["HE2"], "possible_modes" : ("acceptor")},
+# }
+
+# ions should be ignored in general and not set up here
+# CLA = {"CLA": {"starting_donors" : [], "starting_acceptors" : [], "modes" : ()}}
+
+# SOD = {"SOD": {"starting_donors" : [], "starting_acceptors" : [], "modes" : ()}}
