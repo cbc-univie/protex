@@ -92,20 +92,24 @@ class ProtexTemplates:
 
     def __init__(
         self,
-        states: list[dict[str, dict[str, str]]],
+        states: list[dict[str, dict]], # innermost dict is str,str or str,list[str]
         allowed_updates: dict[frozenset[str], dict[str, float]],
     ) -> None:
         self.__states = states
         self.pairs: list[list[str]] = [list(i.keys()) for i in states]
         self.states: dict[str, dict[str, str]] = dict(ChainMap(*states))
         self.names: list[str] = list(itertools.chain(*self.pairs))
+        self.ordered_names: list[
+            tuple[str,...]
+        ] = self._setup_ordered_names()
         self.allowed_updates: dict[frozenset[str], dict[str, float]] = allowed_updates
         self.overall_max_distance: float = max(
             [value["r_max"] for value in self.allowed_updates.values()]
         )
         # store names in variables, in case syntax for states dict changes
         self._atom_name: str = "atom_name"
-        self._equivalent_atom: str = "equivalent_atom"
+        self._equivalent_atom: str = "equivalent_atoms"
+        self._swap_pair: str = "swap_pairs"
 
     def dump(self, fname: str) -> None:
         """Pickle the current ProtexTemplates object.
@@ -118,38 +122,174 @@ class ProtexTemplates:
         with open(fname, "wb") as outp:
             pickle.dump(self, outp, pickle.HIGHEST_PROTOCOL)
 
-    def get_atom_name_for(self, resname: str) -> str:
-        """Get the atom name for a specific residue.
+    def get_states(self):
+        return self.__states
+
+    def get_all_states_for(self, resname: str) -> dict[str,dict[str,list[dict[str,str]]]]:
+        """Get all the state information for a specific resname and all corresponding resnames.
+
+        Parameters
+        ----------
+        resname : str
+            The resname
+
+        Returns
+        -------
+        dict[str,dict[str,list[dict[str,str]]]]
+            A dict with the resname and all information
+
+        Raises
+        ------
+        RuntimeError
+            If the given resname does not exist
+        """
+        # return all info correpsonding to one pair tuple, i.e all for oac,hoac,h2oac
+        current_states = {}
+        for pair in self.pairs:
+            if resname in pair:
+                for name in pair:
+                    current_states[name] = self.states[name]
+                return current_states
+        raise RuntimeError(f"Resname {resname} not found. Typo?")
+
+    def _setup_ordered_names(self) -> list[tuple[str,...]]:
+        # from low H to many H
+        #from most acceptor to most donor
+        #i.e. oac -> -1 (one acceptor)
+        #hoac -> 0 (one acceptor, one donor)
+        #h2oac -> 1 (one donor)
+        ordered_names = []
+        for pair in self.pairs:
+            count_dict = {}
+            for p in pair:
+                count_dict[p] = 0
+                if "donor" in self.states[p]:
+                    count_dict[p] +=1
+                if "acceptor" in self.states[p]:
+                    count_dict[p] -= 1
+            sorted_count_dict = tuple(sorted(count_dict, key=lambda k:(count_dict[k],k)))
+            # logger.debug(sorted_count_dict)
+            ordered_names.append(sorted_count_dict)
+
+        # logger.debug(ordered_names)
+        return ordered_names
+        #returns something like [("IM1", "IM1H"), ("OAC", "HOAC", "H2OAC")]
+
+    def get_ordered_names_for(self, resname: str) -> tuple[str,...]:
+        """Get the tuple of the correct resname sequences for a given resname.
+
+        Parameters
+        ----------
+        resname : str
+            The resname
+
+        Returns
+        -------
+        tuple[str]
+            A tuple with the order of resnames from low H (acceptor) to high H (donor) count
+        """
+        # logger.debug(self.ordered_names)
+        # logger.debug(resname)
+        # logger.debug(any(resname in sublist for sublist in self.ordered_names))
+        if any(resname in sublist for sublist in self.ordered_names):
+            for tup in self.ordered_names:
+                if resname in tup:
+                    return tup
+        else: # not protexable resi
+            return [resname]
+
+    def get_atom_name_for(self, resname: str, mode:str) -> str:
+        """Get the atom name for a specific residue in a specific mode.
 
         Parameters
         ----------
         resname : str
             The residue name
+
+        mode : str
+            donor/acceptor
 
         Returns
         -------
         str
             The atom name
         """
-        return self.states[resname][self._atom_name]
+        return self.states[resname][mode][self._atom_name]
 
-    def has_equivalent_atom(self, resname: str) -> bool:
-        """Check if a given residue has an equivalent atom defined.
+    def has_equivalent_atoms(self, resname: str, mode: str) -> bool:
+        """Check if a given residue has an equivalent atom defined for a specific mode.
 
         Parameters
         ----------
         resname : str
             The residue name
+
+        mode : str
+            donor/acceptor
 
         Returns
         -------
         bool
             True if this residue has an equivalent atom defined, false otherwise
         """
-        return self._equivalent_atom in self.states[resname]
+        return self._equivalent_atom in self.states[resname][mode]
+    
+    def has_swap_pairs(self, resname: str, mode: str) -> bool:
+        """Check if a given residue has additional atoms to swap defined for a specific mode.
 
-    def get_equivalent_atom_for(self, resname: str) -> str:
-        """Get the name of the equivalent atom for a given residue name.
+        Parameters
+        ----------
+        resname : str
+            The residue name
+
+        mode : str
+            donor/acceptor
+
+        Returns
+        -------
+        bool
+            True if this residue has swap pairs defined, false otherwise
+        """
+        return self._swap_pair in self.states[resname][mode]
+
+    def get_equivalent_atoms_for(self, resname: str, mode: str) -> list[str]:
+        """Get the name of the equivalent atoms for a given residue name for a specific mode.
+
+        Parameters
+        ----------
+        resname : str
+            The residue name
+
+        mode : str
+            donor/acceptor
+
+        Returns
+        -------
+        list[str]
+            List of the atom names
+        """
+        return self.states[resname][mode][self._equivalent_atom]
+    
+    def get_swap_pairs_for(self, resname: str, mode: str) -> list[list[str]]:
+        """Get the name of the pairs to swap for a given residue name for a specific mode.
+
+        Parameters
+        ----------
+        resname : str
+            The residue name
+
+        mode : str
+            donor/acceptor
+
+        Returns
+        -------
+        list[list[str]]
+            List of the atom name pairs
+        """
+        return self.states[resname][mode][self._swap_pair]
+    
+    def get_possible_modes_for(self, resname: str) -> tuple:
+        """Get the possible modes for a specific residue.
 
         Parameters
         ----------
@@ -158,10 +298,14 @@ class ProtexTemplates:
 
         Returns
         -------
-        str
-            The atom name
+        dictionary
+            dictionary of tuples of mode(s) for each other_name
         """
-        return self.states[resname][self._equivalent_atom]
+        modes = {}
+        onames = self.get_ordered_names_for(resname)
+        for oname in onames:
+            modes[oname] = [mode for mode in self.states[oname].keys() if mode in ["donor", "acceptor"]]
+        return modes
 
     def get_update_value_for(self, residue_set: frozenset[str], property: str) -> float:
         """Returns the value in the allowed updates dictionary.
@@ -244,56 +388,57 @@ class ProtexTemplates:
     #         if name in state:
     #             return self.states[name]["canonical_name"]
 
-    def get_residue_name_for_coupled_state(self, name: str) -> str:
-        """get_residue_name_of_paired_ion returns the paired residue name given a reisue name.
+    # not used anymore
+    # def get_residue_name_for_coupled_state(self, name: str) -> str:
+    #     """get_residue_name_of_paired_ion returns the paired residue name given a reisue name.
 
-        Parameters
-        ----------
-        name : str
-            residue name
+    #     Parameters
+    #     ----------
+    #     name : str
+    #         residue name
 
-        Returns
-        -------
-        str
+    #     Returns
+    #     -------
+    #     str
 
-        Raises
-        ------
-        RuntimeError
-            is raised if no paired residue name can be found
-        """
-        assert name in self.names
+    #     Raises
+    #     ------
+    #     RuntimeError
+    #         is raised if no paired residue name can be found
+    #     """
+    #     assert name in self.names
 
-        for pair in self.pairs:
-            if name in pair:
-                state_1, state_2 = pair
-                if state_1 == name:
-                    return state_2
-                else:
-                    return state_1
-        raise RuntimeError("something went wrong")
+    #     for pair in self.pairs:
+    #         if name in pair:
+    #             state_1, state_2 = pair
+    #             if state_1 == name:
+    #                 return state_2
+    #             else:
+    #                 return state_1
+    #     raise RuntimeError("something went wrong")
 
     # Not used
-    def get_charge_template_for(self, name: str) -> list:
-        """get_charge_template_for returns the charge template for a residue.
+    # def get_charge_template_for(self, name: str) -> list:
+    #     """get_charge_template_for returns the charge template for a residue.
 
-        Parameters
-        ----------
-        name : str
-            Name of the residue
+    #     Parameters
+    #     ----------
+    #     name : str
+    #         Name of the residue
 
-        Returns
-        -------
-        list
-            charge state of residue
+    #     Returns
+    #     -------
+    #     list
+    #         charge state of residue
 
-        Raises
-        ------
-        RuntimeError
-            [description]
-        """
-        assert name in self.names
+    #     Raises
+    #     ------
+    #     RuntimeError
+    #         [description]
+    #     """
+    #     assert name in self.names
 
-        return self.states[name]["charge"]
+    #     return self.states[name]["charge"]
 
 
 class ProtexSystem:
@@ -453,15 +598,112 @@ class ProtexSystem:
             else:
                 raise ProtexException(f"This force should be covered here: {type(force).__name__}: {force}")
 
-        detected_forces: list = []
-        for force in self.system.getForces():
-            if _is_populated(force):
-                detected_forces.append(type(force).__name__)
+        # NOTE is there a more elegant way of finding out if a force exists in a residue?
+        def _is_populated_in_residue(force, residue):
+            if type(force).__name__ in self.IGNORED_FORCES:
+                return False
+            atom_idxes  = [atom.index for atom in residue.atoms()]
+
+            if isinstance(force, openmm.NonbondedForce):
+                val = False
+                for idx in atom_idxes:
+                    try:
+                        force_entry = force.getParticleParameters(idx)
+                        val = True # force exists if we can get parameters for atoms in resi
+                    except:
+                        continue
+                return val
+
+            elif isinstance(force, openmm.HarmonicBondForce):
+                for bond_id in range(force.getNumBonds()):  # iterate over all bonds
+                    f = force.getBondParameters(bond_id)
+                    for atom_idx in atom_idxes:
+                        if atom_idx in f[0:2]:
+                            return True # force exists if there is an entry involving the atom index
+                return False
+
+            elif isinstance(force, openmm.HarmonicAngleForce):
+                for angle_id in range(force.getNumAngles()):  # iterate over all angles
+                    f = force.getAngleParameters(angle_id)
+                    for atom_idx in atom_idxes:
+                        if atom_idx in f[0:3]:
+                            return True # force exists if there is an entry involving the atom index
+                return False
+
+            elif isinstance(force, openmm.PeriodicTorsionForce):
+                for torsion_id in range(force.getNumTorsions()):  # iterate over all dihedrals
+                    f = force.getTorsionParameters(torsion_id)
+                    for atom_idx in atom_idxes:
+                        if atom_idx in f[0:4]:
+                            return True # force exists if there is an entry involving the atom index
+                return False
+
+            elif isinstance(force, openmm.CustomTorsionForce):
+                for torsion_id in range(force.getNumTorsions()):  # iterate over all dihedrals
+                    f = force.getTorsionParameters(torsion_id)
+                    for atom_idx in atom_idxes:
+                        if atom_idx in f[0:4]:
+                            return True # force exists if there is an entry involving the atom index
+                return False
+
+            elif isinstance(force, openmm.DrudeForce):
+                for drude_id in range(force.getNumParticles()):  # iterate over all drudes TODO still need to handle Thole screening (is workaround in residue.py okay?)
+                    f = force.getParticleParameters(drude_id)
+                    for atom_idx in atom_idxes:
+                        if atom_idx == f[0]:
+                            return True # force exists if there is an entry involving the atom index of the drude
+                return False
+
+            elif isinstance(force, openmm.CustomNonbondedForce):
+                val = False
+                for idx in atom_idxes:
+                    try:
+                        force_entry = force.getParticleParameters(idx)
+                        val = True # force exists if we can get parameters for atoms in resi
+                    except:
+                        logger.debug("no customnbforce found")
+                        continue
+                return val
+
+            elif isinstance(force, openmm.CMAPTorsionForce):
+                for torsion_id in range(force.getNumTorsions()):  # iterate over all dihedrals
+                    f = force.getTorsionParameters(torsion_id)
+                    for atom_idx in atom_idxes:
+                        if atom_idx in f[1:9]:
+                            return True # force exists if there is an entry involving the atom index
+                return False
+
+            else:
+                raise ProtexException(f"This force should be covered here: {type(force).__name__}: {force}")
+
+        # make a dictionary of forces present in each residue
         if self.simulation_for_parameters is not None:
-            for force in self.simulation_for_parameters.system.getForces():
-                if _is_populated(force):
-                    detected_forces.append(type(force).__name__)
-        return set(detected_forces)
+            detected_forces: dict = {}
+            for residue in self.simulation_for_parameters.topology.residues():
+                if residue.name not in detected_forces.keys():
+                    detected_forces[residue.name] = []
+                    for force in self.simulation_for_parameters.system.getForces():
+                        if _is_populated_in_residue(force, residue):
+                            detected_forces[residue.name].append(type(force).__name__)
+                    # detected_forces[residue.name] = set(detected_forces[residue.name])
+                    # TODO do we want to keep or remove duplicates for update?
+                    # there are different forcegroups with same name, but we iterate over all of them at the same time
+                    # we use intersection with update - allowed forces anyway
+
+
+        else:
+            detected_forces: dict = {}
+            for residue in self.topology.residues():
+                if residue.name not in detected_forces.keys():
+                    detected_forces[residue.name] = []
+                    for force in self.system.getForces():
+                        if _is_populated_in_residue(force, residue):
+                            detected_forces[residue.name].append(type(force).__name__)
+                    # detected_forces[residue.name] = set(detected_forces[residue.name]) # remove duplicates
+
+        # logger.debug(detected_forces)
+        # print(f"{detected_forces=}")
+        return detected_forces
 
     def _check_forces(self) -> None:
         """Will fail if a force is not covered."""
@@ -541,6 +783,8 @@ class ProtexSystem:
                             idx2 = f[1]
                             if idx1 in atom_idxs and idx2 in atom_idxs:
                                 forces_dict[forcename + "Exclusions"].append(f)
+
+                    # TODO more CustomNonbondedForces with NBFIX, NBTHOLE, see tetr_marta for a basic idea, but that probably still needs a lot of refining
 
                     elif forcename == "HarmonicBondForce":
                         # logger.debug(residue)
@@ -657,6 +901,9 @@ class ProtexSystem:
         insert_values : tuple[int]
             The values of the force which should be added, probably the index in the force and the atom indices
         """
+        
+        # TODO tetr_marta also does something new here
+        
         for tuple_item in self.per_residue_forces.keys():
             start, end = tuple_item
             if start <= max_value <= end:
@@ -742,22 +989,23 @@ class ProtexSystem:
                     maxi = max(idx1, idx2, idx3, idx4)
                     self._add_force(fgroup, "CustomTorsionForce", maxi, value)
 
-    def _fill_residue_templates(self, name):
-        if name in self.templates.names:
-            name_of_paired_ion = self.templates.get_residue_name_for_coupled_state(name)
-            if (
-                name in self.residue_templates
-                or name_of_paired_ion in self.residue_templates
-            ):
-                return
-            self.residue_templates[name] = self._extract_templates(name)
-            self.residue_templates[name_of_paired_ion] = self._extract_templates(
-                name_of_paired_ion
-            )
-        else:
-            if name in self.residue_templates:  # or name_of_paired_ion in templates:
-                return
-            self.residue_templates[name] = self._extract_templates(name)
+    # not used anymore?
+    # def _fill_residue_templates(self, name):
+    #     if name in self.templates.names:
+    #         name_of_paired_ion = self.templates.get_residue_name_for_coupled_state(name)
+    #         if (
+    #             name in self.residue_templates
+    #             or name_of_paired_ion in self.residue_templates
+    #         ):
+    #             return
+    #         self.residue_templates[name] = self._extract_templates(name)
+    #         self.residue_templates[name_of_paired_ion] = self._extract_templates(
+    #             name_of_paired_ion
+    #         )
+    #     else:
+    #         if name in self.residue_templates:  # or name_of_paired_ion in templates:
+    #             return
+    #         self.residue_templates[name] = self._extract_templates(name)
 
 
     def _set_initial_states(self) -> list:
@@ -767,17 +1015,32 @@ class ProtexSystem:
         is interfered from the provided openMM system object and the protonation site is defined.
         """
         residues = []
+        templates = dict()
         self.residue_templates = dict()
         # this will become a dict of the form:
         # self.per_residue_forces[(min,max tuple of the atom idxs for each residue)][forcegroup][forcename]: list of the idxs of this force for this residue
         self.per_residue_forces = {}
         # for each residue type get forces
         for r in self.topology.residues():
+            name = r.name
+            ordered_names = self.templates.get_ordered_names_for(name)
+
+            # skip if name and all corresponding names are already in the template
+            if name in templates and all(oname in templates for oname in ordered_names):
+                continue
+
+            for oname in ordered_names:
+                templates[oname] = self._extract_templates(oname)
+
+            # logger.debug(H_templates)
+            # logger.debug(D_templates)
+            # print(H_templates)
+            # print(D_templates)
+
+        for r in self.topology.residues():
             atom_idxs = [atom.index for atom in r.atoms()]
             mini, maxi = min(atom_idxs), max(atom_idxs)
             self.per_residue_forces[(mini, maxi)] = {}
-            name = r.name
-            self._fill_residue_templates(name)
 
         if self.fast:
             # this takes some time, but the update calls on the residues are then much faster
@@ -786,54 +1049,61 @@ class ProtexSystem:
         for r in self.topology.residues():
             name = r.name
             if name in self.templates.names:
-                name_of_paired_ion = self.templates.get_residue_name_for_coupled_state(
-                    name
-                )
+                ordered_names = self.templates.get_ordered_names_for(name)
+                assert name in ordered_names
+                parameters = {}
+                for oname in ordered_names:
+                    parameters[oname] = templates[oname]
 
-                parameters_state1 = self.residue_templates[name]
-                parameters_state2 = self.residue_templates[name_of_paired_ion]
                 # check that we have the same number of parameters
-                self._check_nr_of_forces(
-                    parameters_state1, parameters_state2, name, name_of_paired_ion
-                )
+                for name1, name2 in itertools.combinations(parameters, 2):
+                    self._check_nr_of_forces(
+                        parameters[name1], parameters[name2], name1, name2
+                    )
                 atom_idxs = [
                     atom.index for atom in r.atoms()
                 ]  # also give them to initilaizer, not inside residue?
                 minmax = (min(atom_idxs), max(atom_idxs))
+                has_equivalent_atoms = {} # {"HOAC": {"acceptor": False, "donor": False}, "OAC": {"acceptor": True}, ...}
+                has_swap_pairs = {} # same structure as has_equivalent_atoms
+                for name in ordered_names:
+                    has_equivalent_atoms[name] = {} 
+                    has_swap_pairs[name] = {}
+                    for mode in self.templates.get_possible_modes_for(name):
+                        has_equivalent_atoms[name][mode] = self.templates.has_equivalent_atoms(name, mode)
+                        has_swap_pairs[name][mode] = self.templates.has_swap_pairs(name, mode)
                 if self.fast:
                     new_res = Residue(
                         r,
-                        name_of_paired_ion,
+                        ordered_names,
                         self.system,
-                        parameters_state1,
-                        parameters_state2,
-                        (
-                            self.templates.has_equivalent_atom(name),
-                            self.templates.has_equivalent_atom(name_of_paired_ion),
-                        ),
+                        parameters,
+                        self.templates.get_all_states_for(name),
+                        self.templates.get_possible_modes_for(name),
+                        has_equivalent_atoms,
+                        has_swap_pairs,
                         force_idxs=self.per_residue_forces[minmax],
                     )
                 else:
                     new_res = Residue(
                         r,
-                        name_of_paired_ion,
+                        ordered_names,
                         self.system,
-                        parameters_state1,
-                        parameters_state2,
-                        (
-                            self.templates.has_equivalent_atom(name),
-                            self.templates.has_equivalent_atom(name_of_paired_ion),
-                        ),
+                        parameters,
+                        self.templates.get_all_states_for(name),
+                        self.templates.get_possible_modes_for(name),
+                        has_equivalent_atoms,
+                        has_swap_pairs
                     )
                 residues.append(new_res)
-                residues[
-                    -1
-                ].current_name = (
-                    name  # Why, isnt it done in the initializer of Residue?
-                )
+                # residues[
+                #     -1
+                # ].current_name = (
+                #     name  # Why, isnt it done in the initializer of Residue?
+                # )
             else:
-                parameters_state1 = self.residue_templates[name]
-                r = Residue(r, None, self.system, parameters_state1, None, None)
+                parameters = {name: templates[name]}
+                r = Residue(r, None, self.system, parameters, None, None, None, None, None)
                 # the residue is not part of any proton transfers,
                 # we still need it in the residue list for the parmed hack...
                 # there we need the current_name attribute, hence give it to the residue
