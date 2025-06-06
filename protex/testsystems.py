@@ -1096,6 +1096,68 @@ def generate_eimh_oac_system(
 
     return simulation
 
+def generate_hpts_meoh_h2oac_system(
+    psf_file: str = None,
+    crd_file: str = None,
+    restart_file: str = None,
+    constraints: str = None,
+    boxl: float = 50.0,
+    para_files: list[str] = None,
+    coll_freq: int = 10,
+    drude_coll_freq: int = 100,
+    dummy_atom_type: str = "DUMH",
+    dummies: list[tuple[str, str]] = [
+        ("IM1", "H7"),
+        ("OAC", "HO1"), ("OAC", "HO2"),
+        ("HOAC", "HO1"),
+        ("HPTS", "H7"),
+        ("MEOH", "HO2"),
+    ],
+    use_plugin: bool = True,
+):
+    """Set up a solvated and parametrized system for IM1H/OAC/HPTS/MEOH with H2OAC."""
+    base = f"{protex.__path__[0]}/forcefield/h2oac"
+    if psf_file is None:
+        psf_file = f"{base}/hpts.psf"
+    if crd_file is None:
+        crd_file = f"{base}/hpts.crd"
+    if para_files is None:
+        PARA_FILES = [
+            "toppar_drude_master_protein_2013f_lj025_modhpts_chelpg.str",
+            "hoac.str",
+            "im1h.str",
+            "im1.str",
+            "oac.str",
+            "hpts.str",
+            "hptsh.str",
+            "meoh.str",
+            "meoh2.str",
+            "h2oac.str"
+        ]
+        para_files = [f"{base}/toppar/{para_files}" for para_files in PARA_FILES]
+
+    psf, crd, params = load_charmm_files(
+        psf_file=psf_file,
+        crd_file=crd_file,
+        para_files=para_files,
+        boxl=boxl,
+    )
+    system = setup_system(
+        psf, params, constraints=constraints, dummy_atom_type=dummy_atom_type
+    )
+
+    simulation = setup_simulation(
+        psf,
+        crd,
+        system,
+        restart_file=restart_file,
+        coll_freq=coll_freq,
+        drude_coll_freq=drude_coll_freq,
+        dummies=dummies,
+        use_plugin=use_plugin,
+    )
+
+    return simulation
 
 # used for faster tests, not for production!
 def generate_single_hpts_meoh_system(
@@ -1240,5 +1302,43 @@ BUTH_BUTA = {
     "BUTA": {
         "atom_name": "O2",
         "equivalent_atom": "O1",
+    },
+}
+
+# OAC_HOAC_H2OAC = {
+#     "OAC": {
+#         "starting_donors": [], "starting_acceptors": ["HO1", "HO2"], "possible_modes": ["acceptor"]
+#     },
+#     "HOAC": {
+#         "starting_donors": ["HO2"], "starting_acceptors": ["HO1"], "possible_modes": ["donor", "acceptor"]
+#     },
+#     "H2OAC": {
+#         "starting_donors": ["HO1", "HO2"], "starting_acceptors": [], "possible_modes": ["donor"]
+#     },
+# }
+
+OAC_HOAC_H2OAC = {
+    "OAC": {
+        "acceptor": {
+            "atom_name": "O2",
+            "equivalent_atoms": ["O1"],
+            "swap_pairs": [["HO1", "HO2"]], # additional pairs to swap once atom and equivalent atom already have been swapped
+        },
+        
+    },
+    "HOAC": {
+        "acceptor": {
+            "atom_name": "O1",
+        },
+        "donor": {
+            "atom_name": "HO2",
+        },
+    },
+    "H2OAC": {
+        "donor": {
+            "atom_name": "HO2",
+            "equivalent_atoms": ["HO1"],
+            "swap_pairs": [["O1", "O2"]],
+        },
     },
 }
