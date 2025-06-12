@@ -4,6 +4,55 @@ from collections import deque
 import numpy as np
 
 
+def is_allowed_combination(residue1: Residue, atom_name1: str, residue2: Residue, atom_name2: str) -> bool:
+    """Check if the two residues are different residues and if the mode combination is allowed.
+
+    Parameters
+    ----------
+    residue1 : Residue
+        The first residue in the update
+    atom_name1 : str
+        The atom used of residue 1
+    residue2 : Residue
+        the second residue in the update
+    atom_name2 : str
+        The atom used of residue 2
+
+    Returns
+    -------
+    bool
+        True if the combination is allowed, false otherwise
+    """
+    mode1 = residue1.mode_in_last_transfer
+    mode2 = residue2.mode_in_last_transfer
+    idx1 = residue1.residue.index
+    idx2 = residue2.residue.index
+
+    return idx1 != idx2 and is_allowed_mode_combination(mode1, mode2)
+
+def is_allowed_mode_combination(mode1: str, mode2: str) -> bool:
+    """Determine if the two modes are one acceptor and one donor.
+
+    Parameters
+    ----------
+    mode1 : str
+        first mode, either 'donor' or 'acceptor'
+    mode2 : str
+        second mode, either 'donor' or 'acceptor'
+
+    Returns
+    -------
+    bool
+        True if one acceptor one donor, false otherwise
+    """
+    if mode1 == "acceptor" and mode2 == "donor":
+        return True
+    elif mode1 == "donor" and mode2 == "acceptor":
+        return True
+    else:
+        return False
+
+
 class Residue:
     """Residue extends the OpenMM Residue Class by important features needed for the proton transfer.
 
@@ -50,33 +99,33 @@ class Residue:
     def __init__(
         self,
         residue,
-        alternativ_name,
+        ordered_names,
         system,
-        inital_parameters,
-        alternativ_parameters,
+        parameters,
+        states, # do we need this?
+        modes_dict,
         has_equivalent_atoms,
+        has_swap_pairs,
         force_idxs=dict(),
     ) -> None:
         self.residue = residue
         self.original_name = residue.name
         self.current_name = self.original_name
         self.system = system
+        self.ordered_names = ordered_names
         self.atom_idxs = [atom.index for atom in residue.atoms()]
         self.atom_names = [atom.name for atom in residue.atoms()]
-        self.parameters = {
-            self.original_name: inital_parameters,
-            alternativ_name: alternativ_parameters,
-        }
+        self.parameters = parameters
         self.record_charge_state = []
         self.record_charge_state.append(self.endstate_charge)  # Not used anywhere?
+        self.modes_dict = modes_dict
         if has_equivalent_atoms is not None:
-            self.equivalent_atoms: dict[str, bool] = {
-                self.original_name: has_equivalent_atoms[0],
-                self.alternativ_name: has_equivalent_atoms[1],
-            }
-        self.equivalent_atom_pos_in_list: int = None
+            self.equivalent_atoms = has_equivalent_atoms,
+        self.has_swap_pairs = has_swap_pairs
         self.used_equivalent_atom: bool = False
         self.force_idxs = force_idxs
+        self.mode_in_last_transfer = None
+        self.used_atom = None
 
     def __str__(self) -> str:
         return f"Residue {self.current_name}, {self.residue}"
@@ -86,6 +135,92 @@ class Residue:
 
     def __hash__(self):
         return hash(self.residue.index)
+    
+    def _get_shift(self, mode):
+            if mode == "acceptor":
+                return 1
+            if mode == "donor":
+                return -1
+    
+
+    @property
+    def possible_modes(self) -> bool:
+        """Determines which modes the current residue can have.
+
+        It depends on if the residue is currently OAC (acceptor) or HOAC (donor).
+
+        Returns
+        -------
+        tuple
+            the possible modes
+        """
+        if self.modes_dict is not None:
+            return self.modes_dict[self.current_name]
+        else:
+            return None
+
+    @property
+    def alternativ_resname(self) -> str:
+        """Alternative name for the residue, e.g. the corresponding name for the protonated/deprotonated form.
+
+        Returns
+        -------
+        str
+            The alternative name
+        """
+        if self.mode_in_last_transfer is None:
+            logger.critical(f"{self.original_name=}, {self.current_name=}, {self.residue.index=}, {self.residue=}")
+            raise RuntimeError("Residue was not used in any transfers yet.")
+        # check position in ordered names and then decide if go to left (= less H -> donated), or right ->more H
+        current_pos = self.ordered_names.index(self.current_name)
+        mode = self.mode_in_last_transfer
+        # logger.debug(self.current_name)
+        # logger.debug(mode)
+        # logger.debug(self.ordered_names)
+        # logger.debug(self._get_shift(mode))
+        try:
+            new_name = self.ordered_names[current_pos + self._get_shift(mode)]
+        except(IndexError):
+            logger.debug(self.current_name)
+            logger.debug(mode)
+            logger.debug(self.ordered_names)
+            logger.debug(self._get_shift(mode))
+        return new_name
+
+    def get_mode_in_last_transfer_for(self) -> str:
+        # TODO do we need this? (generally, when do we have getters and setters vs direct access vs properties)
+        """Return the mode of the current resname and atom_name.
+
+        Parameters
+        ----------
+        atom_name: str
+            Name of the atom
+
+        Returns
+        -------
+        str
+            The mode
+        """
+        if self.used_atom is None:
+            raise RuntimeError("self.used_atom not set")
+
+        # # original idea from Flo:
+        # atom_name = self.used_atom
+        # for atom in self.states[self.current_name]["atoms"]:
+        #     # also check if it is an equivalent atom, then the transfer is also fine
+        #     possible_atom_names = [atom["name"], atom.get("equivalent_atom", None)]
+        #     if atom_name in possible_atom_names:
+        #         return atom["mode"]
+        # # now trying to make it more universal (mode is property of residue template, atoms are classified as donors or acceptors, but this can change)
+        
+        # logger.debug(self.current_name)
+        # logger.debug(self.possible_modes)
+        # logger.debug(self.used_atom)
+        # logger.debug(self.acceptors)
+        # logger.debug(self.donors)
+        # logger.debug(self.mode_in_last_transfer)
+
+        return self.mode_in_last_transfer
 
     @property
     def has_equivalent_atom(self) -> bool:
@@ -100,18 +235,6 @@ class Residue:
         """
         return self.equivalent_atoms[self.current_name]
 
-    @property
-    def alternativ_name(self) -> str:
-        """Alternative name for the residue, e.g. the corresponding name for the protonated/deprotonated form.
-
-        Returns
-        -------
-        str
-            The alternative name
-        """
-        for name in self.parameters.keys():
-            if name != self.current_name:
-                return name
 
     def update(
         self, force_name: str, lamb: float
