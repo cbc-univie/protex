@@ -122,10 +122,10 @@ class Residue:
         if has_equivalent_atoms is not None:
             self.equivalent_atoms = has_equivalent_atoms,
         self.has_swap_pairs = has_swap_pairs
-        self.equivalent_atoms_pos_in_list: list[int] = None
         self.used_equivalent_atom: bool = False
         self.force_idxs = force_idxs
         self.mode_in_last_transfer = None
+        self.used_atom = None
 
     def __str__(self) -> str:
         return f"Residue {self.current_name}, {self.residue}"
