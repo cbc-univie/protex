@@ -1228,82 +1228,92 @@ def generate_single_hpts_meoh_system(
 
 IM1H_IM1 = {
     "IM1H": {
+        "donor": {
         "atom_name": "H7",
+        }
     },
     "IM1": {
+        "acceptor": {
         "atom_name": "N2",
+        }
     },
 }
 
-EIMH_EIM = {
-    "EIMH": {
-        "atom_name": "H4",
-    },
-    "EIM": {
-        "atom_name": "N2",
-    },
-}
+# EIMH_EIM = {
+#     "EIMH": {
+#         "atom_name": "H4",
+#     },
+#     "EIM": {
+#         "atom_name": "N2",
+#     },
+# }
 
-OAC_HOAC = {
-    "OAC": {
-        "atom_name": "O2",
-        "equivalent_atom": "O1",
-    },
-    "HOAC": {
-        "atom_name": "HO2",
-    },
-}
+# OAC_HOAC = {
+#     "OAC": {
+#         "atom_name": "O2",
+#         "equivalent_atom": "O1",
+#     },
+#     "HOAC": {
+#         "atom_name": "HO2",
+#     },
+# }
 
 HPTSH_HPTS = {
     "HPTSH": {
+        "donor": {
         "atom_name": "H7",
-        "canonical_name": "HPTS",
+        }
     },
     "HPTS": {
+        "acceptor": {
         "atom_name": "O7",
-        "canonical_name": "HPTS",
+        }
     },
 }
 
 MEOH_MEOH2 = {
     "MEOH": {
+        "acceptor": {
         "atom_name": "O1",
+        }
     },
     "MEOH2": {
+        "donor": {
         "atom_name": "HO2",
         "equivalent_atom": "HO1",
+        }
     },
 }
 
-FORH_FORA = {
-    "FORH": {
-        "atom_name": "HO1",
-    },
-    "FORA": {
-        "atom_name": "O1",
-        "equivalent_atom": "O2",
-    },
-}
+# FORH_FORA = {
+#     "FORH": {
+#         "atom_name": "HO1",
+#     },
+#     "FORA": {
+#         "atom_name": "O1",
+#         "equivalent_atom": "O2",
+#     },
+# }
 
-PROH_PROA = {
-    "PROH": {
-        "atom_name": "H6",
-    },
-    "PROA": {
-        "atom_name": "O2",
-        "equivalent_atom": "O1",
-    },
-}
+# PROH_PROA = {
+#     "PROH": {
+#         "atom_name": "H6",
+#     },
+#     "PROA": {
+#         "atom_name": "O2",
+#         "equivalent_atom": "O1",
+#     },
+# }
 
-BUTH_BUTA = {
-    "BUTH": {
-        "atom_name": "H8",
-    },
-    "BUTA": {
-        "atom_name": "O2",
-        "equivalent_atom": "O1",
-    },
-}
+# BUTH_BUTA = {
+#     "BUTH": {
+#         "atom_name": "H8",
+#     },
+#     "BUTA": {
+#         "atom_name": "O2",
+#         "equivalent_atom": "O1",
+#     },
+# }
 
 # OAC_HOAC_H2OAC = {
 #     "OAC": {

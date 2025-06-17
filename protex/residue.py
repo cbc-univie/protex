@@ -1,7 +1,18 @@
+from __future__ import annotations
+
+import copy
 import itertools
+import logging
 from collections import deque
 
+try:
+    import openmm.unit as unit
+except ImportError:
+    import simtk.unit as unit
+
 import numpy as np
+
+logger = logging.getLogger(__name__)
 
 
 def is_allowed_combination(residue1: Residue, atom_name1: str, residue2: Residue, atom_name2: str) -> bool:
@@ -137,10 +148,10 @@ class Residue:
         return hash(self.residue.index)
     
     def _get_shift(self, mode):
-            if mode == "acceptor":
-                return 1
-            if mode == "donor":
-                return -1
+        if mode == "acceptor":
+            return 1
+        if mode == "donor":
+            return -1
     
 
     @property
@@ -160,7 +171,7 @@ class Residue:
             return None
 
     @property
-    def alternativ_resname(self) -> str:
+    def alternativ_name(self) -> str: # NOTE this is called alterativ_resname in tetr_marta
         """Alternative name for the residue, e.g. the corresponding name for the protonated/deprotonated form.
 
         Returns

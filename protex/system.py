@@ -301,6 +301,9 @@ class ProtexTemplates:
         dictionary
             dictionary of tuples of mode(s) for each other_name
         """
+        # NOTE returns dict like # {'IM1H': ['donor'], 'IM1': ['acceptor']}, need to access by name again if we want to use the mode, would be easier to return a list of just the modes or something similar
+        # we have residue.possible_modes that returns modes for this name
+        # does this need to be so complicated?
         modes = {}
         onames = self.get_ordered_names_for(resname)
         for oname in onames:
@@ -1069,7 +1072,7 @@ class ProtexSystem:
                 for name in ordered_names:
                     has_equivalent_atoms[name] = {} 
                     has_swap_pairs[name] = {}
-                    for mode in self.templates.get_possible_modes_for(name):
+                    for mode in self.templates.get_possible_modes_for(name)[name]:
                         has_equivalent_atoms[name][mode] = self.templates.has_equivalent_atoms(name, mode)
                         has_swap_pairs[name][mode] = self.templates.has_swap_pairs(name, mode)
                 if self.fast:
