@@ -1280,7 +1280,7 @@ MEOH_MEOH2 = {
     "MEOH2": {
         "donor": {
         "atom_name": "HO2",
-        "equivalent_atom": "HO1",
+        "equivalent_atoms": ["HO1"],
         }
     },
 }
@@ -1349,6 +1349,22 @@ OAC_HOAC_H2OAC = {
             "atom_name": "HO2",
             "equivalent_atoms": ["HO1"],
             "swap_pairs": [["O1", "O2"]],
+        },
+    },
+}
+
+# for old im/ac system
+OAC_HOAC = {
+    "OAC": {
+        "acceptor": {
+            "atom_name": "O2",
+            "equivalent_atoms": ["O1"],
+        },
+        
+    },
+    "HOAC": {
+        "donor": {
+            "atom_name": "HO2",
         },
     },
 }

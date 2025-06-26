@@ -529,19 +529,20 @@ class ProtexSystem:
             simulation, from_pickle[0], simulation_for_parameters
         )
         residues = from_pickle[1]
-        # update parameters for residues where name in psf doesn't match name in pickled residues
-        # TODO test
-        
-        for resi_pickled, resi_current in zip(residues, protex_system.residues):
-            if resi_current.current_name != resi_pickled.current_name: # resi_current was set up from original psf -> has original (potentially wrong parameters)
-                for force_to_be_updated in ProtexSystem.COVERED_FORCES:
-                    resi_current.update(force_to_be_updated, 1)
-                resi_current.current_name = resi_current.alternativ_name
+        protex_system.residues = residues 
 
+        # OpenMM residue name is the old one from the psf, parameters are determined by that -> update parameters extra, if names don't match
+        # problem: current_name is correct, doesn't match mode_in_last_transfer, update does not work
+        # add an option to give new_name to update, if None, use alternativ_name
+        # TODO test
+        for resi in protex_system.residues:
+            if resi.current_name != resi.residue.name: 
+                # print(f"Updating residue {resi.current_name}, because it is {resi.residue.name} in origial psf")
+                # print(f"{resi.mode_in_last_transfer=}")
+                for force_to_be_updated in ProtexSystem.COVERED_FORCES:
+                    resi.update(force_to_be_updated, 1, resi.current_name)
         for force_to_be_updated in ProtexSystem.COVERED_FORCES:
             protex_system.update_context(force_to_be_updated)
-
-        # protex_system.residues = residues # do we need this if everything is done previously?
 
         return protex_system
 
@@ -758,8 +759,8 @@ class ProtexSystem:
             if query_name == residue.name:
                 atom_idxs = [atom.index for atom in residue.atoms()]
                 atom_names = [atom.name for atom in residue.atoms()]
-                logger.debug(atom_idxs)
-                logger.debug(atom_names)
+                # logger.debug(atom_idxs)
+                # logger.debug(atom_names)
 
                 for force in sim.system.getForces():
                     forcename = type(force).__name__

@@ -196,6 +196,10 @@ class Residue:
             logger.debug(mode)
             logger.debug(self.ordered_names)
             logger.debug(self._get_shift(mode))
+            print(self.current_name)
+            print(mode)
+            print(self.ordered_names)
+            print(self._get_shift(mode))
         return new_name
 
     def get_mode_in_last_transfer_for(self) -> str:
@@ -248,7 +252,7 @@ class Residue:
 
 
     def update(
-        self, force_name: str, lamb: float
+        self, force_name: str, lamb: float, new_name: str = None # name only needed for setting up residues for rst, otherwise get it from alternativ_name
     ) -> (
         None
     ):  # we don't need to call update in context since we are doing this in NaiveMCUpdate
@@ -266,25 +270,25 @@ class Residue:
         None
         """
         if force_name == "NonbondedForce":
-            parms = self._get_NonbondedForce_parameters_at_lambda(lamb)
+            parms = self._get_NonbondedForce_parameters_at_lambda(lamb, new_name)
             self._set_NonbondedForce_parameters(parms)
         elif force_name == "CustomNonbondedForce":
-            parms = self._get_CustomNonbondedForce_parameters_at_lambda(lamb)
+            parms = self._get_CustomNonbondedForce_parameters_at_lambda(lamb, new_name)
             self._set_CustomNonbondedForce_parameters(parms)
         elif force_name == "HarmonicBondForce":
-            parms = self._get_HarmonicBondForce_parameters_at_lambda(lamb)
+            parms = self._get_HarmonicBondForce_parameters_at_lambda(lamb, new_name)
             self._set_HarmonicBondForce_parameters(parms)
         elif force_name == "HarmonicAngleForce":
-            parms = self._get_HarmonicAngleForce_parameters_at_lambda(lamb)
+            parms = self._get_HarmonicAngleForce_parameters_at_lambda(lamb, new_name)
             self._set_HarmonicAngleForce_parameters(parms)
         elif force_name == "PeriodicTorsionForce":
-            parms = self._get_PeriodicTorsionForce_parameters_at_lambda(lamb)
+            parms = self._get_PeriodicTorsionForce_parameters_at_lambda(lamb, new_name)
             self._set_PeriodicTorsionForce_parameters(parms)
         elif force_name == "CustomTorsionForce":
-            parms = self._get_CustomTorsionForce_parameters_at_lambda(lamb)
+            parms = self._get_CustomTorsionForce_parameters_at_lambda(lamb, new_name)
             self._set_CustomTorsionForce_parameters(parms)
         elif force_name == "DrudeForce":
-            parms = self._get_DrudeForce_parameters_at_lambda(lamb)
+            parms = self._get_DrudeForce_parameters_at_lambda(lamb, new_name)
             self._set_DrudeForce_parameters(parms)
         else:
             raise RuntimeWarning(
@@ -524,12 +528,13 @@ class Residue:
                             )
 
     def _get_NonbondedForce_parameters_at_lambda(  # noqa: N802
-        self, lamb: float
+        self, lamb: float, new_name: str = None  
     ) -> list[list[int]]:
         # returns interpolated sorted nonbonded Forces.
         assert lamb >= 0 and lamb <= 1
         current_name = self.current_name
-        new_name = self.alternativ_name
+        if new_name is None:
+            new_name = self.alternativ_name
 
         nonbonded_parm_old = [
             parm for parm in self.parameters[current_name]["NonbondedForce"]
@@ -600,7 +605,7 @@ class Residue:
         return [parm_interpolated, exceptions_interpolated]
 
     def _get_CustomNonbondedForce_parameters_at_lambda(  # noqa: N802
-        self, lamb: float
+        self, lamb: float, new_name: str = None
     ) -> list[list[int]]:
         # we cover the Customnonbonded force wihich depends on atom type, this is not interpolateable, hence it is just switched after lamb > 0.5
         assert lamb >= 0 and lamb <= 1
@@ -617,7 +622,8 @@ class Residue:
             ]
         else: #lamb >= 0.5
             #new
-            new_name = self.alternativ_name
+            if new_name is None:
+                new_name = self.alternativ_name
             cnb_parm = [
                 parm for parm in self.parameters[new_name]["CustomNonbondedForce"]
             ]
@@ -647,12 +653,13 @@ class Residue:
             )
         )
 
-    def _get_HarmonicBondForce_parameters_at_lambda(self, lamb):  # noqa: N802
+    def _get_HarmonicBondForce_parameters_at_lambda(self, lamb, new_name: str = None):  # noqa: N802
         # returns nonbonded Forces ordered.
         assert lamb >= 0 and lamb <= 1
         # get the names of new and current state
         old_name = self.current_name
-        new_name = self.alternativ_name
+        if new_name is None:
+            new_name = self.alternativ_name
         parm_interpolated = []
         force_name = "HarmonicBondForce"
         new_parms_offset = self._get_offset(new_name)
@@ -696,12 +703,13 @@ class Residue:
 
         return parm_interpolated
 
-    def _get_HarmonicAngleForce_parameters_at_lambda(self, lamb):  # noqa: N802
+    def _get_HarmonicAngleForce_parameters_at_lambda(self, lamb, new_name: str = None):  # noqa: N802
         # returns HarmonicAngleForce Forces ordered.
         assert lamb >= 0 and lamb <= 1
         # get the names of new and current state
         old_name = self.current_name
-        new_name = self.alternativ_name
+        if new_name is None:
+            new_name = self.alternativ_name
         parm_interpolated = []
         force_name = "HarmonicAngleForce"
         new_parms_offset = self._get_offset(new_name)
@@ -745,12 +753,13 @@ class Residue:
 
         return parm_interpolated
 
-    def _get_PeriodicTorsionForce_parameters_at_lambda(self, lamb):  # noqa: N802
+    def _get_PeriodicTorsionForce_parameters_at_lambda(self, lamb, new_name: str = None):  # noqa: N802
         # returns PeriodicTorsionForce Forces ordered.
         assert lamb >= 0 and lamb <= 1
         # get the names of new and current state
         old_name = self.current_name
-        new_name = self.alternativ_name
+        if new_name is None:
+            new_name = self.alternativ_name
         parm_interpolated = []
         force_name = "PeriodicTorsionForce"
         new_parms_offset = self._get_offset(new_name, force_name=force_name)
@@ -846,12 +855,13 @@ class Residue:
 
         return parm_interpolated
 
-    def _get_CustomTorsionForce_parameters_at_lambda(self, lamb):  # noqa: N802
+    def _get_CustomTorsionForce_parameters_at_lambda(self, lamb, new_name: str = None):  # noqa: N802
         # returns CustomTorsionForce Forces (=impropers) ordered.
         assert lamb >= 0 and lamb <= 1
         # get the names of new and current state
         old_name = self.current_name
-        new_name = self.alternativ_name
+        if new_name is None:
+            new_name = self.alternativ_name
         parm_interpolated = []
         force_name = "CustomTorsionForce"
         new_parms_offset = self._get_offset(new_name)
@@ -900,14 +910,15 @@ class Residue:
 
         return parm_interpolated
 
-    def _get_DrudeForce_parameters_at_lambda(self, lamb):  # noqa: N802
+    def _get_DrudeForce_parameters_at_lambda(self, lamb, new_name: str = None):  # noqa: N802
         # Split in two parts, one for charge and polarizability one for thole
         # returns a list with the two, different than the other get methods!
         # returns Drude Forces ordered.
         assert lamb >= 0 and lamb <= 1
         # get the names of new and current state
         old_name = self.current_name
-        new_name = self.alternativ_name
+        if new_name is None:
+            new_name = self.alternativ_name
         parm_interpolated = []
         force_name = "DrudeForce"
         new_parms_offset = self._get_offset(new_name)
