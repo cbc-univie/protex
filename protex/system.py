@@ -529,18 +529,17 @@ class ProtexSystem:
             simulation, from_pickle[0], simulation_for_parameters
         )
         residues = from_pickle[1]
-        protex_system.residues = residues 
 
-        # OpenMM residue name is the old one from the psf, parameters are determined by that -> update parameters extra, if names don't match
-        # problem: current_name is correct, doesn't match mode_in_last_transfer, update does not work
-        # add an option to give new_name to update, if None, use alternativ_name
-        # TODO test
-        for resi in protex_system.residues:
-            if resi.current_name != resi.residue.name: 
-                # print(f"Updating residue {resi.current_name}, because it is {resi.residue.name} in origial psf")
-                # print(f"{resi.mode_in_last_transfer=}")
+        # # OpenMM residue name is the old one from the psf, parameters are determined by that -> update parameters extra, if names don't match
+        # # problem: current_name is correct, doesn't match mode_in_last_transfer, update does not work
+        # # added an option to give new_name to update, if None, use alternativ_name
+        # # TODO test (looks fine for now, but keep an eye on it)
+        for resi_pickled, resi_current in zip(residues, protex_system.residues):
+            if resi_current.current_name != resi_pickled.current_name: # resi_current was set up from original psf -> has original (potentially wrong) parameters
                 for force_to_be_updated in ProtexSystem.COVERED_FORCES:
-                    resi.update(force_to_be_updated, 1, resi.current_name)
+                    resi_current.update(force_to_be_updated, 1, resi_pickled.current_name)
+                resi_current.current_name = resi_pickled.current_name
+        
         for force_to_be_updated in ProtexSystem.COVERED_FORCES:
             protex_system.update_context(force_to_be_updated)
 
