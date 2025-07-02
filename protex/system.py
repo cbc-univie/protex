@@ -775,19 +775,42 @@ class ProtexSystem:
                             if idx1 in atom_idxs and idx2 in atom_idxs:
                                 forces_dict[forcename + "Exceptions"].append(f)
 
-                    elif forcename == "CustomNonbondedForce":
+                    elif forcename == "CustomNonbondedForce" and len(force.getParticleParameters(0)) == 1: # tabulated functions for LJ
                         # lookup indices of the tabulated table (?)
                         #index is position, but what about previous ones?
+                        # BUG problem with slow method: need every atom idx for exceptions, now only from 1 residue
+                            # TODO normalize / offset etc for each residue
+                        # if there are NBFIX terms, OpenMM adds CustomNonbondedForce for all particles
+                            # NonbondedForce contains only the charge, 1 and 0 for sigma and epsilon
+                            # CNBF has correct LJ terms
+                        # NOTE OpenMM makes a 2nd CNBF from NBTHOLE terms (belongs to the same forcegroup as previous one)
+                            # need to separate them (and the exclusions somehow)
+                            # do something similar to DrudeForce/Thole to distinguish NBFIX and NBTHOLE CustomNonbondedForces and their exclusions
+                                # idea (not very elegant): length of entry (1: adjusted LJ from NBFIX, 3: NBTHOLE)
+                            # -> fixed for the moment by copying exclusions, as they are the same
+                        # TODO test this with a system with NBFIX and NBTHOLE (protein)
+
+                        # logger.debug(force)
                         forces_dict[forcename] = [force.getParticleParameters(idx) for idx in atom_idxs]
                         # Also add exclusions
                         for exc_id in range(force.getNumExclusions()):
                             f = force.getExclusionParticles(exc_id)
                             idx1 = f[0]
                             idx2 = f[1]
-                            if idx1 in atom_idxs and idx2 in atom_idxs:
+                            if idx1 in atom_idxs or idx2 in atom_idxs:
                                 forces_dict[forcename + "Exclusions"].append(f)
 
-                    # TODO more CustomNonbondedForces with NBFIX, NBTHOLE, see tetr_marta for a basic idea, but that probably still needs a lot of refining
+                    elif forcename == "CustomNonbondedForce" and len(force.getParticleParameters(0)) == 3: # q, alpha, thole
+                        forcename = f"{forcename}Thole"
+                        # logger.debug(force)
+                        forces_dict[forcename] = [force.getParticleParameters(idx) for idx in atom_idxs]
+                        # Also add exclusions
+                        for exc_id in range(force.getNumExclusions()):
+                            f = force.getExclusionParticles(exc_id)
+                            idx1 = f[0]
+                            idx2 = f[1]
+                            if idx1 in atom_idxs or idx2 in atom_idxs:
+                                forces_dict[forcename + "Exclusions"].append(f)
 
                     elif forcename == "HarmonicBondForce":
                         # logger.debug(residue)
