@@ -1,7 +1,67 @@
+from __future__ import annotations
+
+import copy
 import itertools
+import logging
 from collections import deque
 
+try:
+    import openmm.unit as unit
+except ImportError:
+    import simtk.unit as unit
+
 import numpy as np
+
+logger = logging.getLogger(__name__)
+
+
+def is_allowed_combination(residue1: Residue, atom_name1: str, residue2: Residue, atom_name2: str) -> bool:
+    """Check if the two residues are different residues and if the mode combination is allowed.
+
+    Parameters
+    ----------
+    residue1 : Residue
+        The first residue in the update
+    atom_name1 : str
+        The atom used of residue 1
+    residue2 : Residue
+        the second residue in the update
+    atom_name2 : str
+        The atom used of residue 2
+
+    Returns
+    -------
+    bool
+        True if the combination is allowed, false otherwise
+    """
+    mode1 = residue1.mode_in_last_transfer
+    mode2 = residue2.mode_in_last_transfer
+    idx1 = residue1.residue.index
+    idx2 = residue2.residue.index
+
+    return idx1 != idx2 and is_allowed_mode_combination(mode1, mode2)
+
+def is_allowed_mode_combination(mode1: str, mode2: str) -> bool:
+    """Determine if the two modes are one acceptor and one donor.
+
+    Parameters
+    ----------
+    mode1 : str
+        first mode, either 'donor' or 'acceptor'
+    mode2 : str
+        second mode, either 'donor' or 'acceptor'
+
+    Returns
+    -------
+    bool
+        True if one acceptor one donor, false otherwise
+    """
+    if mode1 == "acceptor" and mode2 == "donor":
+        return True
+    elif mode1 == "donor" and mode2 == "acceptor":
+        return True
+    else:
+        return False
 
 
 class Residue:
@@ -50,33 +110,33 @@ class Residue:
     def __init__(
         self,
         residue,
-        alternativ_name,
+        ordered_names,
         system,
-        inital_parameters,
-        alternativ_parameters,
+        parameters,
+        states, # do we need this?
+        modes_dict,
         has_equivalent_atoms,
+        has_swap_pairs,
         force_idxs=dict(),
     ) -> None:
         self.residue = residue
         self.original_name = residue.name
         self.current_name = self.original_name
         self.system = system
+        self.ordered_names = ordered_names
         self.atom_idxs = [atom.index for atom in residue.atoms()]
         self.atom_names = [atom.name for atom in residue.atoms()]
-        self.parameters = {
-            self.original_name: inital_parameters,
-            alternativ_name: alternativ_parameters,
-        }
+        self.parameters = parameters
         self.record_charge_state = []
         self.record_charge_state.append(self.endstate_charge)  # Not used anywhere?
+        self.modes_dict = modes_dict
         if has_equivalent_atoms is not None:
-            self.equivalent_atoms: dict[str, bool] = {
-                self.original_name: has_equivalent_atoms[0],
-                self.alternativ_name: has_equivalent_atoms[1],
-            }
-        self.equivalent_atom_pos_in_list: int = None
+            self.equivalent_atoms = has_equivalent_atoms,
+        self.has_swap_pairs = has_swap_pairs
         self.used_equivalent_atom: bool = False
         self.force_idxs = force_idxs
+        self.mode_in_last_transfer = None
+        self.used_atom = None
 
     def __str__(self) -> str:
         return f"Residue {self.current_name}, {self.residue}"
@@ -86,6 +146,96 @@ class Residue:
 
     def __hash__(self):
         return hash(self.residue.index)
+    
+    def _get_shift(self, mode):
+        if mode == "acceptor":
+            return 1
+        if mode == "donor":
+            return -1
+    
+
+    @property
+    def possible_modes(self) -> bool:
+        """Determines which modes the current residue can have.
+
+        It depends on if the residue is currently OAC (acceptor) or HOAC (donor).
+
+        Returns
+        -------
+        tuple
+            the possible modes
+        """
+        if self.modes_dict is not None:
+            return self.modes_dict[self.current_name]
+        else:
+            return None
+
+    @property
+    def alternativ_name(self) -> str: # NOTE this is called alterativ_resname in tetr_marta
+        """Alternative name for the residue, e.g. the corresponding name for the protonated/deprotonated form.
+
+        Returns
+        -------
+        str
+            The alternative name
+        """
+        if self.mode_in_last_transfer is None:
+            logger.critical(f"{self.original_name=}, {self.current_name=}, {self.residue.index=}, {self.residue=}")
+            raise RuntimeError("Residue was not used in any transfers yet.")
+        # check position in ordered names and then decide if go to left (= less H -> donated), or right ->more H
+        current_pos = self.ordered_names.index(self.current_name)
+        mode = self.mode_in_last_transfer
+        # logger.debug(self.current_name)
+        # logger.debug(mode)
+        # logger.debug(self.ordered_names)
+        # logger.debug(self._get_shift(mode))
+        try:
+            new_name = self.ordered_names[current_pos + self._get_shift(mode)]
+        except(IndexError):
+            logger.debug(self.current_name)
+            logger.debug(mode)
+            logger.debug(self.ordered_names)
+            logger.debug(self._get_shift(mode))
+            print(self.current_name)
+            print(mode)
+            print(self.ordered_names)
+            print(self._get_shift(mode))
+        return new_name
+
+    def get_mode_in_last_transfer_for(self) -> str:
+        # TODO do we need this? (generally, when do we have getters and setters vs direct access vs properties)
+        """Return the mode of the current resname and atom_name.
+
+        Parameters
+        ----------
+        atom_name: str
+            Name of the atom
+
+        Returns
+        -------
+        str
+            The mode
+        """
+        if self.used_atom is None:
+            raise RuntimeError("self.used_atom not set")
+
+        # # original idea from Flo:
+        # atom_name = self.used_atom
+        # for atom in self.states[self.current_name]["atoms"]:
+        #     # also check if it is an equivalent atom, then the transfer is also fine
+        #     possible_atom_names = [atom["name"], atom.get("equivalent_atom", None)]
+        #     if atom_name in possible_atom_names:
+        #         return atom["mode"]
+        # # now trying to make it more universal (mode is property of residue template, atoms are classified as donors or acceptors, but this can change)
+        
+        # logger.debug(self.current_name)
+        # logger.debug(self.possible_modes)
+        # logger.debug(self.used_atom)
+        # logger.debug(self.acceptors)
+        # logger.debug(self.donors)
+        # logger.debug(self.mode_in_last_transfer)
+
+        return self.mode_in_last_transfer
 
     @property
     def has_equivalent_atom(self) -> bool:
@@ -100,21 +250,9 @@ class Residue:
         """
         return self.equivalent_atoms[self.current_name]
 
-    @property
-    def alternativ_name(self) -> str:
-        """Alternative name for the residue, e.g. the corresponding name for the protonated/deprotonated form.
-
-        Returns
-        -------
-        str
-            The alternative name
-        """
-        for name in self.parameters.keys():
-            if name != self.current_name:
-                return name
 
     def update(
-        self, force_name: str, lamb: float
+        self, force_name: str, lamb: float, new_name: str = None # name only needed for setting up residues for rst, otherwise get it from alternativ_name
     ) -> (
         None
     ):  # we don't need to call update in context since we are doing this in NaiveMCUpdate
@@ -132,25 +270,25 @@ class Residue:
         None
         """
         if force_name == "NonbondedForce":
-            parms = self._get_NonbondedForce_parameters_at_lambda(lamb)
+            parms = self._get_NonbondedForce_parameters_at_lambda(lamb, new_name)
             self._set_NonbondedForce_parameters(parms)
         elif force_name == "CustomNonbondedForce":
-            parms = self._get_CustomNonbondedForce_parameters_at_lambda(lamb)
+            parms = self._get_CustomNonbondedForce_parameters_at_lambda(lamb, new_name)
             self._set_CustomNonbondedForce_parameters(parms)
         elif force_name == "HarmonicBondForce":
-            parms = self._get_HarmonicBondForce_parameters_at_lambda(lamb)
+            parms = self._get_HarmonicBondForce_parameters_at_lambda(lamb, new_name)
             self._set_HarmonicBondForce_parameters(parms)
         elif force_name == "HarmonicAngleForce":
-            parms = self._get_HarmonicAngleForce_parameters_at_lambda(lamb)
+            parms = self._get_HarmonicAngleForce_parameters_at_lambda(lamb, new_name)
             self._set_HarmonicAngleForce_parameters(parms)
         elif force_name == "PeriodicTorsionForce":
-            parms = self._get_PeriodicTorsionForce_parameters_at_lambda(lamb)
+            parms = self._get_PeriodicTorsionForce_parameters_at_lambda(lamb, new_name)
             self._set_PeriodicTorsionForce_parameters(parms)
         elif force_name == "CustomTorsionForce":
-            parms = self._get_CustomTorsionForce_parameters_at_lambda(lamb)
+            parms = self._get_CustomTorsionForce_parameters_at_lambda(lamb, new_name)
             self._set_CustomTorsionForce_parameters(parms)
         elif force_name == "DrudeForce":
-            parms = self._get_DrudeForce_parameters_at_lambda(lamb)
+            parms = self._get_DrudeForce_parameters_at_lambda(lamb, new_name)
             self._set_DrudeForce_parameters(parms)
         else:
             raise RuntimeWarning(
@@ -185,30 +323,72 @@ class Residue:
                             )
 
     def _set_CustomNonbondedForce_parameters(self, parms) -> None:  # noqa: N802
+        #print(f"{parms=}")
         parms_nonb = deque(parms[0])
+        #print(f"{parms_nonb=}")
         parms_exclusions = deque(parms[1])
+        parms_nonb_thole = deque(parms[2])
+        parms_exclusions_thole = deque(parms[3])
+        # NOTE take care with order of parameters
+        # now including 2 CustomNonbondedForces (from NBFIX and NBTHOLE)
+        # TODO what happens if there are more? can there be more?
+        print(f"{len(parms_exclusions)=}")
         for force in self.system.getForces():
             fgroup = force.getForceGroup()
-            if type(force).__name__ == "CustomNonbondedForce":
+            if type(force).__name__ == "CustomNonbondedForce" and len(force.getParticleParameters(0)) == 1: # from NBFIX, tabulated
                 for parms_nonbonded, idx in zip(parms_nonb, self.atom_idxs):
                     force.setParticleParameters(idx, parms_nonbonded)
                 try:  # use the fast way
                     lst = self.force_idxs[fgroup]["CustomNonbondedForceExclusions"]
+                    print(f"{len(lst)=}")
                     for exc_idx, idx1, idx2 in lst:
                         excl_idx1, excl_idx2 = parms_exclusions.popleft()
                         force.setExclusionParticles(
                             exc_idx, excl_idx1, excl_idx2
                         )
-                except KeyError:  # use the old slow way
+                except KeyError:  # use the old slow way # NOTE probably doesn't work anymore
+                    #logger.debug(force.getNumExclusions())
+                    #logger.debug(len(parms_exclusions))
                     for exc_idx in range(force.getNumExclusions()):
                         f = force.getExclusionParticles(exc_idx)
+                        #logger.debug(f)
                         idx1 = f[0]
                         idx2 = f[1]
                         if idx1 in self.atom_idxs and idx2 in self.atom_idxs:
+                            idxs = (idx1, idx2)
+                            #logger.debug(idxs)
                             excl1, excl2 = parms_exclusions.popleft()
                             force.setExclusionParticles(
                                 exc_idx, excl1,excl2
                             )
+
+            elif type(force).__name__ == "CustomNonbondedForce" and len(force.getParticleParameters(0)) == 3: # from NBTHOLE
+                for parms_nonbonded, idx in zip(parms_nonb_thole, self.atom_idxs):
+                    force.setParticleParameters(idx, parms_nonbonded)
+                try:  # use the fast way
+                    lst = self.force_idxs[fgroup]["CustomNonbondedForceTholeExclusions"]
+                    print(f"{len(lst)=}")
+                    for exc_idx, idx1, idx2 in lst:
+                        excl_idx1, excl_idx2 = parms_exclusions_thole.popleft()
+                        force.setExclusionParticles(
+                            exc_idx, excl_idx1, excl_idx2
+                        )
+                except KeyError:  # use the old slow way # NOTE probably doesn't work anymore
+                    #logger.debug(force.getNumExclusions())
+                    #logger.debug(len(parms_exclusions))
+                    for exc_idx in range(force.getNumExclusions()):
+                        f = force.getExclusionParticles(exc_idx)
+                        #logger.debug(f)
+                        idx1 = f[0]
+                        idx2 = f[1]
+                        if idx1 in self.atom_idxs and idx2 in self.atom_idxs:
+                            idxs = (idx1, idx2)
+                            #logger.debug(idxs)
+                            excl1, excl2 = parms_exclusions.popleft()
+                            force.setExclusionParticles(
+                                exc_idx, excl1,excl2
+                            )
+
 
     def _set_HarmonicBondForce_parameters(self, parms) -> None:  # noqa: N802
         parms = deque(parms)
@@ -390,12 +570,13 @@ class Residue:
                             )
 
     def _get_NonbondedForce_parameters_at_lambda(  # noqa: N802
-        self, lamb: float
+        self, lamb: float, new_name: str = None  
     ) -> list[list[int]]:
         # returns interpolated sorted nonbonded Forces.
         assert lamb >= 0 and lamb <= 1
         current_name = self.current_name
-        new_name = self.alternativ_name
+        if new_name is None:
+            new_name = self.alternativ_name
 
         nonbonded_parm_old = [
             parm for parm in self.parameters[current_name]["NonbondedForce"]
@@ -466,9 +647,11 @@ class Residue:
         return [parm_interpolated, exceptions_interpolated]
 
     def _get_CustomNonbondedForce_parameters_at_lambda(  # noqa: N802
-        self, lamb: float
+        self, lamb: float, new_name: str = None
     ) -> list[list[int]]:
-        # we cover the Customnonbonded force wihich depends on atom type, this is not interpolateable, hence it is just switched after lamb > 0.5
+        # we cover the Customnonbonded force which depends on atom type, this is not interpolatable, hence it is just switched after lamb > 0.5
+        # TODO CNBF can hold LJ parameters if there are NBFIX present -> should we interpolate them?
+            # there are multiple types of CNBF (e.g. from NBFIX, NBTHOLE)
         assert lamb >= 0 and lamb <= 1
         #what we need to set are the types and exclusions
 
@@ -481,17 +664,29 @@ class Residue:
             cnb_exclusions = [
                 parm for parm in self.parameters[current_name]["CustomNonbondedForceExclusions"]
             ]
+            cnb_parm_thole = [
+                parm for parm in self.parameters[current_name]["CustomNonbondedForceThole"]
+            ]
+            cnb_exclusions_thole = [
+                parm for parm in self.parameters[current_name]["CustomNonbondedForceTholeExclusions"]
+            ]
         else: #lamb >= 0.5
             #new
-            new_name = self.alternativ_name
+            new_name = self.alternativ_resname
             cnb_parm = [
                 parm for parm in self.parameters[new_name]["CustomNonbondedForce"]
             ]
             cnb_exclusions = [
                 parm for parm in self.parameters[new_name]["CustomNonbondedForceExclusions"]
             ]
+            cnb_parm_thole = [
+                parm for parm in self.parameters[new_name]["CustomNonbondedForceThole"]
+            ]
+            cnb_exclusions_thole = [
+                parm for parm in self.parameters[new_name]["CustomNonbondedForceTholeExclusions"]
+            ]
 
-        return [cnb_parm, cnb_exclusions]
+        return [cnb_parm, cnb_exclusions, cnb_parm_thole, cnb_exclusions_thole]
 
     def _get_offset(self, name, force_name=None):
         # get offset for atom idx
@@ -513,12 +708,13 @@ class Residue:
             )
         )
 
-    def _get_HarmonicBondForce_parameters_at_lambda(self, lamb):  # noqa: N802
+    def _get_HarmonicBondForce_parameters_at_lambda(self, lamb, new_name: str = None):  # noqa: N802
         # returns nonbonded Forces ordered.
         assert lamb >= 0 and lamb <= 1
         # get the names of new and current state
         old_name = self.current_name
-        new_name = self.alternativ_name
+        if new_name is None:
+            new_name = self.alternativ_name
         parm_interpolated = []
         force_name = "HarmonicBondForce"
         new_parms_offset = self._get_offset(new_name)
@@ -562,12 +758,13 @@ class Residue:
 
         return parm_interpolated
 
-    def _get_HarmonicAngleForce_parameters_at_lambda(self, lamb):  # noqa: N802
+    def _get_HarmonicAngleForce_parameters_at_lambda(self, lamb, new_name: str = None):  # noqa: N802
         # returns HarmonicAngleForce Forces ordered.
         assert lamb >= 0 and lamb <= 1
         # get the names of new and current state
         old_name = self.current_name
-        new_name = self.alternativ_name
+        if new_name is None:
+            new_name = self.alternativ_name
         parm_interpolated = []
         force_name = "HarmonicAngleForce"
         new_parms_offset = self._get_offset(new_name)
@@ -611,12 +808,13 @@ class Residue:
 
         return parm_interpolated
 
-    def _get_PeriodicTorsionForce_parameters_at_lambda(self, lamb):  # noqa: N802
+    def _get_PeriodicTorsionForce_parameters_at_lambda(self, lamb, new_name: str = None):  # noqa: N802
         # returns PeriodicTorsionForce Forces ordered.
         assert lamb >= 0 and lamb <= 1
         # get the names of new and current state
         old_name = self.current_name
-        new_name = self.alternativ_name
+        if new_name is None:
+            new_name = self.alternativ_name
         parm_interpolated = []
         force_name = "PeriodicTorsionForce"
         new_parms_offset = self._get_offset(new_name, force_name=force_name)
@@ -712,12 +910,13 @@ class Residue:
 
         return parm_interpolated
 
-    def _get_CustomTorsionForce_parameters_at_lambda(self, lamb):  # noqa: N802
+    def _get_CustomTorsionForce_parameters_at_lambda(self, lamb, new_name: str = None):  # noqa: N802
         # returns CustomTorsionForce Forces (=impropers) ordered.
         assert lamb >= 0 and lamb <= 1
         # get the names of new and current state
         old_name = self.current_name
-        new_name = self.alternativ_name
+        if new_name is None:
+            new_name = self.alternativ_name
         parm_interpolated = []
         force_name = "CustomTorsionForce"
         new_parms_offset = self._get_offset(new_name)
@@ -766,14 +965,15 @@ class Residue:
 
         return parm_interpolated
 
-    def _get_DrudeForce_parameters_at_lambda(self, lamb):  # noqa: N802
+    def _get_DrudeForce_parameters_at_lambda(self, lamb, new_name: str = None):  # noqa: N802
         # Split in two parts, one for charge and polarizability one for thole
         # returns a list with the two, different than the other get methods!
         # returns Drude Forces ordered.
         assert lamb >= 0 and lamb <= 1
         # get the names of new and current state
         old_name = self.current_name
-        new_name = self.alternativ_name
+        if new_name is None:
+            new_name = self.alternativ_name
         parm_interpolated = []
         force_name = "DrudeForce"
         new_parms_offset = self._get_offset(new_name)
