@@ -181,7 +181,7 @@ class KeepHUpdate(Update):
         self,
         ionic_liquid: ProtexSystem,
         all_forces: bool = False,
-        to_adapt: list[tuple[str, int, frozenset[str]]] or None = None,
+        to_adapt: list[tuple[str, int, frozenset[str]]] | None = None,
         include_equivalent_atom: bool = False,
         reorient: bool = False,
         K: int = 300
@@ -479,7 +479,7 @@ class NaiveMCUpdate(Update):
         self,
         ionic_liquid: ProtexSystem,
         all_forces: bool = False,
-        to_adapt: list[tuple[str, int, frozenset[str]]] or None = None,
+        to_adapt: list[tuple[str, int, frozenset[str]]] | None = None,
         include_equivalent_atom: bool = False,
         reorient: bool = False,
     ) -> None:
@@ -775,12 +775,28 @@ class StateUpdate:
             if dz > boxl / 2:
                 dz = boxl - dz
             return np.sqrt(dx * dx + dy * dy + dz * dz)
+        
+
 
         def distance_based_probability(r, r_min, r_max, prob):
+
+            def get_tanh_fit(r,r_max,r_min,prob,k=4.05,r_star=0.32,a_0=1,a_1=0.54):
+                '''
+                Calculates distance based probabilities based on a fitted tanh function.
+
+                Based on: Gődény and Schröder, July 2025 ("Parametrizing reaction probabilities for 
+                proton transfers in protic ionic liquids"; manuscript)
+                '''
+                r_norm = (r-r_min)/(r_min-r_max)
+                p = (np.tanh((r_norm+r_star)*k)+a_0)*a_1
+                return np.where(p>prob,prob,p)
+            
             if self.prob_function == "linear":
                 return -(prob/(r_max-r_min))*r+prob*r_max/(r_max-r_min)
             elif self.prob_function == "cosine":
                 return (prob/2)*np.cos(np.pi/(r_max-r_min)*r-np.pi*r_min/(r_max-r_min))+prob/2
+            elif self.prob_function == "tanh":
+                return get_tanh_fit(r=r,r_min=r_min,r_max=r_max,prob=prob)
 
         # calculate distance matrix between the two molecules
         if use_pbc:
