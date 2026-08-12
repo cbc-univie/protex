@@ -46,14 +46,26 @@ def load_charmm_files(
     psf_file: str,
     crd_file: str,
     para_files: list[str],
-    boxl: float = 48.0,
+    boxl: float = None,
 ):
     print("Loading CHARMM files...")
     params = CharmmParameterSet(*para_files)
-    psf = CharmmPsfFile(psf_file)
-    xtl = boxl * angstroms
-    psf.setBox(xtl, xtl, xtl)
     crd = CharmmCrdFile(crd_file)
+    if boxl:
+        xtl = boxl * angstroms
+    else:
+        minim = float('inf')
+        maxim = float('-inf')
+        for i in range(len(crd.positions)):
+            for j in range(3):
+                if crd.positions[i]._value[j] > maxim:
+                    maxim = crd.positions[i]._value[j]
+                if crd.positions[i]._value[j] < minim:
+                    minim = crd.positions[i]._value[j]
+        xtl = (maxim - minim)*angstroms
+    psf = CharmmPsfFile(psf_file)
+    psf.setBox(xtl, xtl, xtl)
+    print(f"Box length set to {xtl}")
     return psf, crd, params
 
 
