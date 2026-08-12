@@ -263,7 +263,7 @@ MASS  164 DF2      0.00000 H   ! F  drude
 MASS  165 DCL2     0.00000 H   ! CL drude 
 MASS  166 DCL3     0.00000 H   ! CL drude 
 MASS  167 DBR2     0.00000 H   ! BR drude 
-MASS  268 DI2      0.00000 H   ! I  drude 
+MASS  168 DI2      0.00000 H   ! I  drude 
 ! own atom types (veronika)
 MASS  169 CD2R6L   15.99940 C  ! aromatic bridge Cs in biphenyl
 MASS  170 CD2R6M   15.99940 C  ! 
@@ -273,6 +273,7 @@ MASS  172 CD33F    12.0110 C ! same as CD33A but for CH3 of IM1H
 MASS  173 CD33G    12.0110 C ! same as CD33A but for CH3 of IM1
 ! own atom types (Marta)
 MASS  174 OD31H    15.99900 O  ! same as OD31A, for MEOH, so that OD31A for HPTSH and HOAC don't have to be changed
+MASS  175 DUMH      1.00800 H  ! dummy H
 
 DECL -CA 
 DECL -C 
@@ -7897,6 +7898,7 @@ DI2      0.0   -0.0000    0.0100 ! I  Drude
 
 !! Rare gas parameters 
 DUM      0.0   -0.0000    0.0100 ! dummy atom
+DUMH     0.0   -0.0000    0.0100 ! dummy atom
 XED      0.0   -0.02127   1.4800 ! HE, helium, experimental pot. energy surface, adm jr., 12/95 
 NED      0.0   -0.0860    1.5300 ! NE, neon, semiempirical pot. energy surface, adm jr., 12/95 
 !Do NOT put atom type with all zero values as the last LJ parameter due to a bug in CHARMM

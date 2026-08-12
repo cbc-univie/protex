@@ -7,7 +7,7 @@ except ImportError:
     import simtk.openmm as openmm
     import simtk.unit as unit
 
-from protex.system import IonicLiquidSystem
+from protex.system import ProtexSystem
 
 
 class ChargeReporter:
@@ -22,7 +22,7 @@ class ChargeReporter:
     state_update.update(2)
     simulation.step(8)
     simulation.step(1)
-    then the reporter is invoked directyl in the update, after the one step with the previous charge, but before any charge changes take effect.
+    then the reporter is invoked directly in the update, after the one step with the previous charge, but before any charge changes take effect.
 
     """
 
@@ -30,7 +30,7 @@ class ChargeReporter:
         self,
         file: str,
         reportInterval: int,
-        ionic_liquid: IonicLiquidSystem,
+        ionic_liquid: ProtexSystem,
         append: bool = False,
         header_data: dict = None,
     ):
@@ -47,10 +47,12 @@ class ChargeReporter:
 
     def describeNextReport(self, simulation):
         """Get information about the next report this object will generate.
+
         Parameters
         ----------
         simulation : Simulation
             The Simulation to generate a report for
+
         Returns
         -------
         tuple
@@ -63,6 +65,15 @@ class ChargeReporter:
         return (steps, False, False, False, False)
 
     def report(self, simulation, state):
+        """Generate a report.
+
+        Parameters
+        ----------
+        simulation : Simulation
+            The Simulation to generate a report for
+        state : State
+            The current state of the simulation
+        """
         if not self._hasInitialized:
             self._hasInitialized = True
             if isinstance(self.header_data, dict):
@@ -87,7 +98,7 @@ class ChargeReporter:
 
 
 class EnergyReporter:
-    """Energy reporter reports the energy contributions to the potential energy"""
+    """Energy reporter reports the energy contributions to the potential energy."""
 
     def __init__(
         self,
@@ -108,10 +119,12 @@ class EnergyReporter:
 
     def describeNextReport(self, simulation):
         """Get information about the next report this object will generate.
+
         Parameters
         ----------
         simulation : Simulation
             The Simulation to generate a report for
+
         Returns
         -------
         tuple
@@ -124,6 +137,15 @@ class EnergyReporter:
         return (steps, False, False, False, True)
 
     def report(self, simulation, state):
+        """Generate a report.
+
+        Parameters
+        ----------
+        simulation : Simulation
+            The Simulation to generate a report for
+        state : State
+            The current state of the simulation
+        """
         tab = "\t"  # becuase: SyntaxError: f-string expression part cannot include a backslash
         names = []
         values = []
@@ -159,9 +181,8 @@ class EnergyReporter:
 
 
 # Reporter from https://github.com/z-gong/openmm-velocityVerlet/tree/master/examples/ommhelper/reporter
-class DrudeTemperatureReporter(object):
-    """
-    DrudeTemperatureReporter reports the temperatures of different DOFs in a Drude simulation system.
+class DrudeTemperatureReporter:
+    """DrudeTemperatureReporter reports the temperatures of different DOFs in a Drude simulation system.
 
     The temperatures for three sets of degrees of freedom are reported
     -- molecular center of mass, internal atomic and Drude temperature.

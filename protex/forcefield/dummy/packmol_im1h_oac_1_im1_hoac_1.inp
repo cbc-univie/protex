@@ -1,0 +1,26 @@
+tolerance 2.0
+seed -1
+
+
+filetype pdb
+output im1h_oac_im1_hoac_1_init.pdb
+
+structure ../pdb/im1h_min.pdb 
+  number 1 
+  inside box -3. -3. -3. 3. 3. 3.
+end structure
+
+structure ../pdb/oac_min.pdb
+  number 1
+  inside box -3. -3. -3. 3. 3. 3.
+end structure
+
+structure ../pdb/im1_min.pdb 
+  number 1 
+  inside box -3. -3. -3. 3. 3. 3.
+end structure
+
+structure ../pdb/hoac_min.pdb
+  number 1
+  inside box -3. -3. -3. 3. 3. 3.
+end structure

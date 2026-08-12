@@ -1,0 +1,15 @@
+REMARK  STRUCTURE OPTIMIZATION                                                        
+REMARK   DATE:     9/29/22     15:15:42      CREATED BY USER: marta                   
+ATOM      1  C1  MEOH2   1      -2.704  -1.586  -0.011  1.00  0.00      MEOH2
+ATOM      2  DC1 MEOH2   1      -2.704  -1.586  -0.011  1.00  0.00      MEOH2
+ATOM      3  O1  MEOH2   1      -1.677  -0.699   0.509  1.00  0.00      MEOH2
+ATOM      4  DO1 MEOH2   1      -1.677  -0.699   0.509  1.00  0.00      MEOH2
+ATOM      5  HO1 MEOH2   1      -0.929  -0.634  -0.119  1.00  0.00      MEOH2
+ATOM      6  HO2 MEOH2   1      -2.079   0.118   0.868  1.00  0.00      MEOH2
+ATOM      7  H1A MEOH2   1      -3.493  -1.786   0.758  1.00  0.00      MEOH2
+ATOM      8  H1B MEOH2   1      -2.275  -2.583  -0.288  1.00  0.00      MEOH2
+ATOM      9  H1C MEOH2   1      -3.209  -1.167  -0.919  1.00  0.00      MEOH2
+ATOM     10 LP1A MEOH2   1      -1.741  -0.369   0.410  1.00  0.00      MEOH2
+ATOM     11 LP1B MEOH2   1      -1.449  -0.880   0.704  1.00  0.00      MEOH2
+TER      12      MEOH2    1
+END

@@ -1,0 +1,44 @@
+tolerance 2.0
+seed -1
+filetype pdb
+output hpts_single_init.pdb
+
+structure ../pdb/im1h_min.pdb
+  number 1
+  inside box -9. -9. -9. 9. 9. 9.
+end structure
+
+structure ../pdb/oac_min.pdb
+  number 1
+  inside box -9. -9. -9. 9. 9. 9.
+end structure
+
+structure ../pdb/im1_min.pdb
+  number 1
+  inside box -9. -9. -9. 9. 9. 9.
+end structure
+
+structure ../pdb/hoac_min.pdb
+  number 1
+  inside box -9. -9. -9. 9. 9. 9.
+end structure
+
+structure ../pdb/hpts_min.pdb
+  number 1
+  inside box -9. -9. -9. 9. 9. 9.
+end structure
+
+structure ../pdb/hptsh_min.pdb
+  number 1
+  inside box -9. -9. -9. 9. 9. 9.
+end structure
+
+structure ../pdb/meoh_min.pdb
+  number 1
+  inside box -9. -9. -9. 9. 9. 9.
+end structure
+
+structure ../pdb/meoh2_min.pdb
+  number 1
+  inside box -9. -9. -9. 9. 9. 9.
+end structure
