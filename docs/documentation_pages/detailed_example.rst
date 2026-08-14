@@ -81,7 +81,7 @@ Nevertheless, here is one possible way to do it, if you are not that familiar wi
 Now we have the simulation object ready. In principle we did, what was done with ``generate_im1h_oac_system()``.
 For advanced usage of this function see the :ref:`Advanced setup` section.
 
-Next, we construct the ``IonicLiquidTemplates`` class, which will be needed beside the simulation object to build the ``IonicLiquidSystem``.
+Next, we construct the ``ProtexTemplates`` class, which will be needed beside the simulation object to build the ``ProtexSystem``.
 Two parts are needed. On the one hand a dictionary, with the settings for the possible transfers. 
 The key is always a frozenset of the transfer reaction, while the value is another dictionary with the keywords "r_max" and "prob"
 corresponding values for the maximum distance (in Angstrom) and the probability for this transfer.
@@ -93,7 +93,7 @@ So in our example from above, we want the hydrogen H7 from IM1H to be transfered
 This information belongs together, so it is grouped in one dictionary, as can be seen in the next code snippet.
 "canonical_name" is deprecated.
 
-The ``IonicLiquidTemplates`` class accepts now a list, of all dictionaries with the specified atoms, as well as the allowed_updates dictionary.
+The ``ProtexTemplates`` class accepts now a list, of all dictionaries with the specified atoms, as well as the allowed_updates dictionary.
 
 .. code-block:: python
 
@@ -120,8 +120,8 @@ Now we have everything to build the ``ProtexSystem``:
     ionic_liquid = ProtexSystem(simulation, templates)
 
 
-Next define the update method. Currently there is one available update method called ``NaiveMCUpdate``.
-It uses the information passes before, to determine the distance criterion for the specific update paris and the probability.
+Next define the update method. Currently there are two update methods available. ``NaiveMCUpdate`` is the simpler one.
+It uses the information passed before to determine the distance criterion for the specific update pairs and the probability.
 NaiveMCUpdate accepts to more keywords:
 
 .. object:: NaiveMCUpdate

@@ -1,7 +1,7 @@
 Getting Started
 ===============
 
-**Protex** is an lightweight object-oriented python
+**Protex** is a lightweight, object-oriented python
 extension to easily enable bond breaking and formation in molecular
 dynamics simulations. 
 
@@ -68,7 +68,7 @@ First create a conda environment and install the dependencies. You can clone the
 
 .. code-block:: bash
 
-   git clone https://github.com/florianjoerg/protex.git
+   git clone https://github.com/cbc-univie/protex.git
    cd protex/devtools/conda_envs
    conda env create --file protex.yml
    conda activate protex
