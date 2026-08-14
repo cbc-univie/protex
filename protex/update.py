@@ -329,7 +329,7 @@ class KeepHUpdate(Update):
         positions[idx_accepted_H] = pos_accepted_H
 
         print(
-            f"donated H: {pos_donated_H}, acceptor atom: {pos_acceptor_atom}, H set to: {pos_accepted_H}"
+            f"donated H: {pos_donated_H}, acceptor atom: {pos_acceptor_atom}, H set to: {pos_accepted_H}, H-DUMH: {np.linalg.norm(pos_accepted_H - pos_donated_H)}"
         )
 
         return positions
