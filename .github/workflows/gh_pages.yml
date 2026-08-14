@@ -74,7 +74,7 @@ jobs:
         run: |  
           sphinx-build docs docs/_build/html/
       # Create an artifact of the html output.
-      - uses: actions/upload-artifact@v1
+      - uses: actions/upload-artifact@v3
         with:
           name: DocumentationHTML
           path: docs/_build/html/
