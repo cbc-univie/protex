@@ -1,8 +1,32 @@
 name = "Config for IM1H OAC System"
+# you can comment out lines that say 'can be None'
 
-[dummies] 
-"IM1" = "H7"
-"OAC" = "HO2"
+[setup]
+psf_file = "final.psf"
+crd_file = "final.crd"
+restart_file = "final_npt_7.rst" # can be None, then positions from crd will be used
+constraints = "HBonds" # can be None, then restraints=None will be set
+boxl = 50.0 # can be None, then it will be calculated from crd
+para_files = [
+                "toppar_drude_master_protein_2013f_lj04_im_ac.str",
+                "hoac.str",
+                "im1h_d.str",
+                "im1_dummy_d.str",
+                "oac.str",
+            ]
+coll_freq = 10
+drude_coll_freq = 100
+dummy_atom_type = "DUMH" 
+use_plugin = false
+ensemble = "nVT"
+
+[[dummies]]
+resname = "IM1"
+dummy_name = "H7"
+
+[[dummies]]
+resname = "OAC"
+dummy_name = "HO2"
 
 [[states]] # array of tables
 donor = "IM1H"
@@ -25,7 +49,7 @@ prob = 0.994
 
 [[updates]]
 reaction = ["IM1", "HOAC"]
-r_min = 0.140
+r_min = 0.140 # nm
 r_max = 0.154
 prob = 0.098
 

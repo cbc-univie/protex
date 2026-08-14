@@ -11,10 +11,10 @@ from collections import ChainMap, defaultdict
 # use pickled system, don't write any more psfs
 import yaml
 
-try:
-    import tomllib
-except ModuleNotFoundError:
-    import toml as tomllib
+# try:
+#     import tomllib
+# except ModuleNotFoundError:
+import toml as tomllib
 
 try:
     import openmm
