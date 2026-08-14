@@ -12,9 +12,9 @@ on:
   workflow_dispatch:
 
 env:
+  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true
   # Increase this value to reset cache if etc/example-environment.yml has not changed
   CACHE_NUMBER: 1
-  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true
 
 jobs:
   build:
@@ -83,7 +83,7 @@ jobs:
       # ===============================
       - name: Commit documentation changes
         run: |
-          git clone https://github.com/florianj77/protex.git --branch gh-pages --single-branch gh-pages
+          git clone https://github.com/cbc-univie/protex.git --branch gh-pages --single-branch gh-pages
           cp -r docs/_build/html/* gh-pages/
           cd gh-pages
           touch .nojekyll
