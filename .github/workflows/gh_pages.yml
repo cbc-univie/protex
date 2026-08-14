@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
 
 env:
-  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true
+  #ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true
   # Increase this value to reset cache if etc/example-environment.yml has not changed
   CACHE_NUMBER: 1
 
