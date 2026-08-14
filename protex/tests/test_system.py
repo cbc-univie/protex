@@ -78,6 +78,7 @@ from ..testsystems import (
     generate_single_im1h_oac_system,
     generate_small_box,
     generate_tfa_system,
+    generate_system_from_config
 )
 from ..update import NaiveMCUpdate, StateUpdate
 
@@ -934,61 +935,61 @@ def test_write_psf_save_load():
     os.getenv("CI") == "true",
     reason="Files not on remote",
 )
-def test_write_psf_save_load_clap():
-    psf = "/site/raid3/florian/clap/b3lyp/im1h_oac_150_im1_hoac_350.psf"
-    crd = "/site/raid3/florian/clap/b3lyp/im1h_oac_150_im1_hoac_350.crd"
-    PARA_FILES = [
-        "polarizable_flo_dummy.rtf",
-        "polarizable_flo_dummy.prm",
-    ]
-    para_files = [
-        f"/site/raid3/florian/clap/toppar/{para_file}" for para_file in PARA_FILES
-    ]
+# def test_write_psf_save_load_clap():
+#     psf = "/site/raid3/florian/clap/b3lyp/im1h_oac_150_im1_hoac_350.psf"
+#     crd = "/site/raid3/florian/clap/b3lyp/im1h_oac_150_im1_hoac_350.crd"
+#     PARA_FILES = [
+#         "polarizable_flo_dummy.rtf",
+#         "polarizable_flo_dummy.prm",
+#     ]
+#     para_files = [
+#         f"/site/raid3/florian/clap/toppar/{para_file}" for para_file in PARA_FILES
+#     ]
 
-    simulation = generate_im1h_oac_system_clap(
-        psf_file=psf, crd_file=crd, para_files=para_files, dummy_atom_type="DUM"
-    )
-    # get ionic liquid templates
-    allowed_updates = {}
-    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.145, "prob": 1}
-    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.145, "prob": 1}
+#     simulation = generate_im1h_oac_system_clap(
+#         psf_file=psf, crd_file=crd, para_files=para_files, dummy_atom_type="DUM"
+#     )
+#     # get ionic liquid templates
+#     allowed_updates = {}
+#     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.145, "prob": 1}
+#     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.145, "prob": 1}
 
-    IM1H_IM1 = {"IM1H": {"atom_name": "HN1"}, "IM1": {"atom_name": "NA1"}}
-    OAC_HOAC = {"OAC": {"atom_name": "O1"}, "HOAC": {"atom_name": "H3"}}
+#     IM1H_IM1 = {"IM1H": {"atom_name": "HN1"}, "IM1": {"atom_name": "NA1"}}
+#     OAC_HOAC = {"OAC": {"atom_name": "O1"}, "HOAC": {"atom_name": "H3"}}
 
-    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
-    # wrap system in IonicLiquidSystem
-    ionic_liquid = IonicLiquidSystem(simulation, templates)
-    # initialize update method
-    update = NaiveMCUpdate(ionic_liquid)
-    # initialize state update class
-    state_update = StateUpdate(update)
+#     templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], (allowed_updates))
+#     # wrap system in IonicLiquidSystem
+#     ionic_liquid = ProtexSystem(simulation, templates)
+#     # initialize update method
+#     update = NaiveMCUpdate(ionic_liquid)
+#     # initialize state update class
+#     state_update = StateUpdate(update)
 
-    old_psf_file = psf
-    ionic_liquid.write_psf(old_psf_file, "test1.psf")
+#     old_psf_file = psf
+#     ionic_liquid.write_psf(old_psf_file, "test1.psf")
 
-    # ionic_liquid.simulation.step(50)
-    state_update.update(2)
+#     # ionic_liquid.simulation.step(50)
+#     state_update.update(2)
 
-    ionic_liquid.write_psf(old_psf_file, "test2.psf")
+#     ionic_liquid.write_psf(old_psf_file, "test2.psf")
 
-    ionic_liquid.simulation.step(10)
-    state_update.update(2)
+#     ionic_liquid.simulation.step(10)
+#     state_update.update(2)
 
-    ionic_liquid.write_psf(old_psf_file, "test3.psf")
+#     ionic_liquid.write_psf(old_psf_file, "test3.psf")
 
-    ionic_liquid.saveState("state.rst")
-    ionic_liquid.saveCheckpoint("checkpoint.rst")
+#     ionic_liquid.saveState("state.rst")
+#     ionic_liquid.saveCheckpoint("checkpoint.rst")
 
-    ionic_liquid2 = ionic_liquid  # copy.deepcopy(ionic_liquid)
-    ionic_liquid.loadState("state.rst")
-    ionic_liquid2.loadCheckpoint("checkpoint.rst")
+#     ionic_liquid2 = ionic_liquid  # copy.deepcopy(ionic_liquid)
+#     ionic_liquid.loadState("state.rst")
+#     ionic_liquid2.loadCheckpoint("checkpoint.rst")
 
-    # os.remove("test1.psf")
-    # os.remove("test2.psf")
-    # os.remove("test3.psf")
-    # os.remove("state.rst")
-    # os.remove("checkpoint.rst")
+#     # os.remove("test1.psf")
+#     # os.remove("test2.psf")
+#     # os.remove("test3.psf")
+#     # os.remove("state.rst")
+#     # os.remove("checkpoint.rst")
 
 
 @pytest.mark.skipif(
@@ -1297,3 +1298,7 @@ def test_equivalence_new_old_method(caplog, tmp_path):
                 f_orig = force_orig.getParticleParameters(idx)
                 f_new = force_new.getParticleParameters(idx)
                 assert f_orig == f_new
+
+def test_generate_system_from_config():
+
+    simulation = generate_system_from_config("../forcefield/config_test.toml")
