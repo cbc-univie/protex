@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # Configuration file for the Sphinx documentation builder.
 #
@@ -18,13 +17,12 @@ import sys
 
 sys.path.insert(0, os.path.abspath(".."))
 
-import protex
 
 # -- Project information -----------------------------------------------------
 
 project = "protex"
 copyright = (
-    "2022, Florian Joerg & Marcus Wieder. Project structure based on the "
+    "2023, Florian Joerg & Marcus Wieder. Project structure based on the "
     "Computational Molecular Science Python Cookiecutter version 1.5"
 )
 author = "Florian Joerg & Marcus Wieder"

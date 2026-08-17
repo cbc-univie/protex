@@ -7,10 +7,10 @@ Here is how to easily set up your system and start with protex!
 
 .. important::  
     If not already done, use the :ref:`installation instructions <installation-instructions>` to get protex.
-    For purposes of this tutorial it is important to have the :ref:`VVIntegrator plugin <install using conda env>` installed!
+    For purposes of this tutorial, it is important to have the :ref:`VVIntegrator plugin <install using conda env>` installed!
 
-``protex`` works together with `OpenMM <https://openmm.org>`_ to allow bond breaking and formation (i.e. for a proton transfer) during MD Simulations.
-First, obtain an OpenMM ``simulation`` object. For purposes of this tutorial we will use a helper function.
+``protex`` works together with `OpenMM <https://openmm.org>`_ to allow bond breaking and formation (i.e., for a proton transfer) during MD Simulations.
+First, obtain an OpenMM ``simulation`` object. For purposes of this tutorial, we will use a helper function.
 
 .. code-block:: python
 
@@ -18,12 +18,12 @@ First, obtain an OpenMM ``simulation`` object. For purposes of this tutorial we 
 
     simulation = generate_im1h_oac_system()
     
-Afterwards the main pathway is to specifiy the allowed transfers and which atoms are subject to the transfer using ``IonicLiquidTemplates``. 
-Then wrap the simulation and templates into an ``IonicLiquidSystem``.
+Afterwards, the main pathway is to specify the allowed transfers and which atoms are subject to the transfer using ``ProtexTemplates``. 
+Then wrap the simulation and templates into a ``ProtexSystem``.
 
 .. code-block:: python
 
-    from protex.system import IonicLiquidSystem, IonicLiquidTemplates
+    from protex.system import ProtexSystem, ProtexTemplates
 
     allowed_updates = {}
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 0.994}
@@ -35,11 +35,11 @@ Then wrap the simulation and templates into an ``IonicLiquidSystem``.
     OAC_HOAC = {"OAC" : {"atom_name": "O2", "canonical_name": "OAC"},
                 "HOAC": {"atom_name": "H", "canonical_name": "OAC"}}
 
-    templates = IonicLiquidTemplates([OAC_HOAC, IM1H_IM1], allowed_updates)
-    ionic_liquid = IonicLiquidSystem(simulation, templates)
+    templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], allowed_updates)
+    ionic_liquid = ProtexSystem(simulation, templates)
 
 
-Next define the update method. 
+Next, define the update method. 
 
 .. code-block:: python
 
@@ -48,7 +48,7 @@ Next define the update method.
     update = NaiveMCUpdate(ionic_liquid)
     state_update = StateUpdate(update)
 
-Optionally you can define reporters for the simulation. Protex has a built in ``ChargeReporter`` to report the current charges of all molecules which can just be added to the simulation like all other OpenMM reporters.
+Optionally, you can define reporters for the simulation. Protex has a built-in ``ChargeReporter`` to report the current charges of all molecules, which can just be added to the simulation like all other OpenMM reporters.
 
 .. code-block:: python
 

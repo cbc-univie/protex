@@ -17,8 +17,8 @@ dependencies:
   - pytest-cov
   - codecov
 
-    # Pip-only installs
-  - pip:
-  #  - codecov
-    - git+https://github.com/ParmEd/ParmEd.git
+  # Pip-only installs
+  # - pip:
+    # - codecov
+    # - git+https://github.com/ParmEd/ParmEd.git
 

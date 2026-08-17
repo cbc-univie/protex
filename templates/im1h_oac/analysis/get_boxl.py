@@ -1,24 +1,23 @@
-import math
 import pathlib
 
 
-def read_outfile(file):  
-    with open(file, "r") as f:
-        lines = f.readlines()  
-    return lines  
-                                                                                                                                                                                                       
-     
-   
-def get_volume(lines):  
-    volume = []  
+def read_outfile(file):
+    with open(file) as f:
+        lines = f.readlines()
+    return lines
+
+
+
+def get_volume(lines):
+    volume = []
     boxl = []
     found_volume = False
-    for line in lines:  
-        if "#" in line:  
+    for line in lines:
+        if "#" in line:
             n_entries = len(line.split(","))
             found_volume = True
             continue
-        if found_volume:  
+        if found_volume:
             try:
                 volume_value = float(line.split(",")[n_entries-1].strip())
             except:
@@ -26,7 +25,7 @@ def get_volume(lines):
             volume.append(volume_value)
             boxl_value = volume_value**(1/float(3))
             boxl.append(boxl_value)
-    return volume, boxl 
+    return volume, boxl
 
 ######## MAIN #######
 
