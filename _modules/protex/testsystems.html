@@ -127,6 +127,22 @@
     <span class="n">para_files</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
     <span class="n">boxl</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    psf_file : str</span>
+<span class="sd">        Path to the psf file.</span>
+<span class="sd">    crd_file : str</span>
+<span class="sd">        Path to the crd file.</span>
+<span class="sd">    para_files : list[str]</span>
+<span class="sd">        Paths to the toppar files.</span>
+<span class="sd">    boxl : float = None</span>
+<span class="sd">        The box length in Angstrom. If None, it gets calculated from the crd.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    psf, crd, params in OpenMM format.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Loading CHARMM files...&quot;</span><span class="p">)</span>
     <span class="n">params</span> <span class="o">=</span> <span class="n">CharmmParameterSet</span><span class="p">(</span><span class="o">*</span><span class="n">para_files</span><span class="p">)</span>
     <span class="n">crd</span> <span class="o">=</span> <span class="n">CharmmCrdFile</span><span class="p">(</span><span class="n">crd_file</span><span class="p">)</span>
@@ -160,6 +176,28 @@
     <span class="n">switch</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">10.0</span><span class="p">,</span>
     <span class="n">ensemble</span> <span class="o">=</span> <span class="s2">&quot;nVT&quot;</span>
 <span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    psf: CharmmPsfFile</span>
+<span class="sd">        The psf object.</span>
+<span class="sd">    params : CharmmParameterSet</span>
+<span class="sd">        The force field parameters.</span>
+<span class="sd">    constraints = None</span>
+<span class="sd">        Which constraints should be applied. Currently, None and &quot;Hbonds&quot; are supported.</span>
+<span class="sd">    dummy_atom_type: str = &quot;DUMH&quot;</span>
+<span class="sd">        Atom type of the dummy atoms.</span>
+<span class="sd">    cutoff: float = 11.0</span>
+<span class="sd">        Cutoff distance for the nonbonded interactions (Angstrom).</span>
+<span class="sd">    switch: float = 10.0</span>
+<span class="sd">        Start distance for switching for the nonbonded interactions (Angstrom).</span>
+<span class="sd">    ensemble = &quot;nVT&quot;</span>
+<span class="sd">        Ensemble to simulate in. Currently, &quot;nVT&quot; and &quot;npT&quot; are supported.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    The OpenMM system object.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">dummy_atom_type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="c1"># print(params.atom_types_str[&quot;DUM&quot;].epsilon)</span>
         <span class="c1"># print(params.atom_types_str[&quot;DUM&quot;].rmin)</span>
@@ -229,6 +267,34 @@
     <span class="n">platformname</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;CUDA&quot;</span><span class="p">,</span>
     <span class="n">cuda_precision</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;single&quot;</span><span class="p">,</span>
 <span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        psf: CharmmPsfFile</span>
+<span class="sd">            The psf object.</span>
+<span class="sd">        crd: CharmmCrdFile</span>
+<span class="sd">            The crd object.</span>
+<span class="sd">        system: mm.System</span>
+<span class="sd">            The OpenMM system object.</span>
+<span class="sd">        restart_file: str = None</span>
+<span class="sd">            Path to the restart file. If None, the positions from the crd will be used.</span>
+<span class="sd">        coll_freq: int = 10</span>
+<span class="sd">            The frequency of the system&#39;s interaction with the heat bath (inverse picoseconds).</span>
+<span class="sd">        drude_coll_freq: int = 100</span>
+<span class="sd">            The frequency of the Drude particles&#39; interaction with the heat bath (inverse picoseconds).</span>
+<span class="sd">        dummies: list[tuple[str, str]] = [(&quot;IM1&quot;, &quot;H7&quot;), (&quot;OAC&quot;, &quot;H&quot;)]</span>
+<span class="sd">            Atom names of the dummy atoms for each residue with dummy atoms.</span>
+<span class="sd">        use_plugin: bool = True</span>
+<span class="sd">            Whether the VVIntegrator plugin should be used. If False, the DrudeNoseHoover integrator will be used.</span>
+<span class="sd">        platformname: str = &quot;CUDA&quot;</span>
+<span class="sd">            Which platform to use. The VVI plugin only works on CUDA.</span>
+<span class="sd">        cuda_precision: str = &quot;single&quot;</span>
+<span class="sd">            Numeric precision to use for calculations on the CUDA platform. The allowed values are “single”, “mixed”, and “double”.</span>
+<span class="sd">        </span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        The OpenMM simulation object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">use_plugin</span> <span class="ow">and</span> <span class="n">platformname</span> <span class="o">!=</span> <span class="s2">&quot;CUDA&quot;</span><span class="p">:</span>
         <span class="k">assert</span> <span class="s2">&quot;Plugin only available with CUDA&quot;</span>
     <span class="k">if</span> <span class="n">use_plugin</span><span class="p">:</span>
@@ -330,7 +396,7 @@
 
 <div class="viewcode-block" id="generate_complete_system">
 <a class="viewcode-back" href="../../documentation_pages/autosummary/protex.testsystems.generate_complete_system.html#protex.testsystems.generate_complete_system">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">generate_complete_system</span><span class="p">(</span>  <span class="c1"># currently not in use</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">generate_complete_system</span><span class="p">(</span>  
     <span class="n">psf_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">crd_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">restart_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>  <span class="c1"># | None,</span>
@@ -344,6 +410,10 @@
     <span class="n">use_plugin</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
     <span class="n">ensemble</span> <span class="o">=</span> <span class="s2">&quot;nVT&quot;</span>
 <span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate a protex system without predefined files and parameters. The user has to </span>
+<span class="sd">    include their own files and parameters.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">psf</span><span class="p">,</span> <span class="n">crd</span><span class="p">,</span> <span class="n">params</span> <span class="o">=</span> <span class="n">load_charmm_files</span><span class="p">(</span>
         <span class="n">psf_file</span><span class="o">=</span><span class="n">psf_file</span><span class="p">,</span>
         <span class="n">crd_file</span><span class="o">=</span><span class="n">crd_file</span><span class="p">,</span>

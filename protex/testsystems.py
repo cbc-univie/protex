@@ -48,6 +48,22 @@ def load_charmm_files(
     para_files: list[str],
     boxl: float = None,
 ):
+    """
+    Parameters
+    ----------
+    psf_file : str
+        Path to the psf file.
+    crd_file : str
+        Path to the crd file.
+    para_files : list[str]
+        Paths to the toppar files.
+    boxl : float = None
+        The box length in Angstrom. If None, it gets calculated from the crd.
+    
+    Returns
+    -------
+    psf, crd, params in OpenMM format.
+    """
     print("Loading CHARMM files...")
     params = CharmmParameterSet(*para_files)
     crd = CharmmCrdFile(crd_file)
@@ -78,6 +94,28 @@ def setup_system(
     switch: float = 10.0,
     ensemble = "nVT"
 ):
+    """
+    Parameters
+    ----------
+    psf: CharmmPsfFile
+        The psf object.
+    params : CharmmParameterSet
+        The force field parameters.
+    constraints = None
+        Which constraints should be applied. Currently, None and "Hbonds" are supported.
+    dummy_atom_type: str = "DUMH"
+        Atom type of the dummy atoms.
+    cutoff: float = 11.0
+        Cutoff distance for the nonbonded interactions (Angstrom).
+    switch: float = 10.0
+        Start distance for switching for the nonbonded interactions (Angstrom).
+    ensemble = "nVT"
+        Ensemble to simulate in. Currently, "nVT" and "npT" are supported.
+    
+    Returns
+    -------
+    The OpenMM system object.
+    """
     if dummy_atom_type is not None:
         # print(params.atom_types_str["DUM"].epsilon)
         # print(params.atom_types_str["DUM"].rmin)
@@ -144,6 +182,34 @@ def setup_simulation(
     platformname: str = "CUDA",
     cuda_precision: str = "single",
 ):
+    """
+        Parameters
+        ----------
+        psf: CharmmPsfFile
+            The psf object.
+        crd: CharmmCrdFile
+            The crd object.
+        system: mm.System
+            The OpenMM system object.
+        restart_file: str = None
+            Path to the restart file. If None, the positions from the crd will be used.
+        coll_freq: int = 10
+            The frequency of the system's interaction with the heat bath (inverse picoseconds).
+        drude_coll_freq: int = 100
+            The frequency of the Drude particles' interaction with the heat bath (inverse picoseconds).
+        dummies: list[tuple[str, str]] = [("IM1", "H7"), ("OAC", "H")]
+            Atom names of the dummy atoms for each residue with dummy atoms.
+        use_plugin: bool = True
+            Whether the VVIntegrator plugin should be used. If False, the DrudeNoseHoover integrator will be used.
+        platformname: str = "CUDA"
+            Which platform to use. The VVI plugin only works on CUDA.
+        cuda_precision: str = "single"
+            Numeric precision to use for calculations on the CUDA platform. The allowed values are “single”, “mixed”, and “double”.
+        
+        Returns
+        -------
+        The OpenMM simulation object.
+        """
     if use_plugin and platformname != "CUDA":
         assert "Plugin only available with CUDA"
     if use_plugin:
@@ -242,7 +308,7 @@ def setup_simulation(
     return simulation
 
 
-def generate_complete_system(  # currently not in use
+def generate_complete_system(  
     psf_file: str,
     crd_file: str,
     restart_file: str,  # | None,
@@ -256,6 +322,10 @@ def generate_complete_system(  # currently not in use
     use_plugin: bool,
     ensemble = "nVT"
 ):
+    """
+    Generate a protex system without predefined files and parameters. The user has to 
+    include their own files and parameters.
+    """
     psf, crd, params = load_charmm_files(
         psf_file=psf_file,
         crd_file=crd_file,
