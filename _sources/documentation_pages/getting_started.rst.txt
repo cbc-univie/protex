@@ -11,29 +11,19 @@ Getting involved
 Please report **bugs** or **enhancement requests** through the `Issue
 Tracker`_.
 
-.. _Issue Tracker: https://github.com/florianjoerg/protex/issues
+.. _Issue Tracker: https://github.com/cbc-univie/protex/issues
 
 
 User Guide
 ----------
 
 The Protex :ref:`Quick-Start-Guide` provides information on how to
-get startet with setting up a system for Protex.
+get started with setting up a system for Protex.
 
 .. _installation-instructions:
 
 Installing Protex
 -----------------
-
-conda-forge
-^^^^^^^^^^^
-
-.. tip:: 
-   The easiest and preferred way to install protex is, to just get it from conda-forge.
-
-.. code-block:: bash
-
-   conda install protex -c conda-forge
 
 Source Code
 ^^^^^^^^^^^
@@ -41,12 +31,12 @@ Source Code
 It is recommended to use a (conda) environment for the installation. Go to `install using conda env`_.
 
 **Source code** is available from
-https://github.com/florianjoerg/protex/ under the MIT License.
+https://github.com/cbc-univie/protex/ under the MIT License.
 Obtain the sources with `git`_.
 
 .. code-block:: bash
 
-   git clone https://github.com/florianjoerg/protex.git
+   git clone https://github.com/cbc-univie/protex.git
    cd protex
    pip install .
 
@@ -105,7 +95,7 @@ First create a conda environment and install the dependencies. You can clone the
 
 **Usage with the VVIntegrator Plugin for OpenMM**
 
-To use the better Drude Integrator install the plugin from `velocity-verlet <https://github.com/z-gong/openmm-velocityVerlet>`_.
+To use the better Drude Integrator, install the plugin from `velocity-verlet <https://github.com/z-gong/openmm-velocityVerlet>`_.
 Here a quick install guide is given. Use the documentation provided there for further details.
 
 .. code-block:: bash
@@ -131,6 +121,19 @@ Here a quick install guide is given. Use the documentation provided there for fu
    :class: successstyle
 
    Now you are ready to go! Try protex using the :ref:`quick-start-guide`.
+
+conda-forge
+^^^^^^^^^^^
+
+protex can be installed from conda-forge.
+
+.. code-block:: bash
+
+   conda install protex -c conda-forge
+
+.. warning:: 
+
+   The version on conda-forge might be outdated.
 
 Citation
 --------

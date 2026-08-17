@@ -85,7 +85,7 @@
 <p>If not already done, use the <a class="reference internal" href="getting_started.html#installation-instructions"><span class="std std-ref">installation instructions</span></a> to get protex.
 For purposes of this tutorial, it is important to have the <a class="reference internal" href="getting_started.html#install-using-conda-env"><span class="std std-ref">VVIntegrator plugin</span></a> installed!</p>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">protex</span></code> works together with <a class="reference external" href="https://openmm.org">OpenMM</a> to allow bond breaking and formation (i.e., for a proton transfer) during MD Simulations.
+<p><code class="docutils literal notranslate"><span class="pre">protex</span></code> works together with <a class="reference external" href="https://openmm.org">OpenMM</a> to allow bond breaking and formation (i.e., for a proton transfer) during MD simulations.
 First, obtain an OpenMM <code class="docutils literal notranslate"><span class="pre">simulation</span></code> object. For purposes of this tutorial, we will use a helper function.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">protex.testsystems</span><span class="w"> </span><span class="kn">import</span> <span class="n">generate_im1h_oac_system</span>
 
@@ -100,15 +100,19 @@ Then wrap the simulation and templates into a <code class="docutils literal notr
 <span class="n">allowed_updates</span><span class="p">[</span><span class="nb">frozenset</span><span class="p">([</span><span class="s2">&quot;IM1H&quot;</span><span class="p">,</span> <span class="s2">&quot;OAC&quot;</span><span class="p">])]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;r_max&quot;</span><span class="p">:</span> <span class="mf">0.16</span><span class="p">,</span> <span class="s2">&quot;prob&quot;</span><span class="p">:</span> <span class="mf">0.994</span><span class="p">}</span>
 <span class="n">allowed_updates</span><span class="p">[</span><span class="nb">frozenset</span><span class="p">([</span><span class="s2">&quot;IM1&quot;</span><span class="p">,</span> <span class="s2">&quot;HOAC&quot;</span><span class="p">])]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;r_max&quot;</span><span class="p">:</span> <span class="mf">0.16</span><span class="p">,</span> <span class="s2">&quot;prob&quot;</span><span class="p">:</span> <span class="mf">0.098</span><span class="p">}</span>
 
-<span class="n">IM1H_IM1</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;IM1H&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;atom_name&quot;</span><span class="p">:</span> <span class="s2">&quot;H7&quot;</span><span class="p">,</span> <span class="s2">&quot;canonical_name&quot;</span><span class="p">:</span> <span class="s2">&quot;IM1&quot;</span><span class="p">},</span>
-             <span class="s2">&quot;IM1&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;atom_name&quot;</span><span class="p">:</span> <span class="s2">&quot;N2&quot;</span><span class="p">,</span> <span class="s2">&quot;canonical_name&quot;</span><span class="p">:</span> <span class="s2">&quot;IM1&quot;</span><span class="p">}}</span>
+<span class="n">IM1H_IM1</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;IM1H&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;atom_name&quot;</span><span class="p">:</span> <span class="s2">&quot;H7&quot;</span><span class="p">},</span>
+             <span class="s2">&quot;IM1&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;atom_name&quot;</span><span class="p">:</span> <span class="s2">&quot;N2&quot;</span><span class="p">}}</span>
 
-<span class="n">OAC_HOAC</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;OAC&quot;</span> <span class="p">:</span> <span class="p">{</span><span class="s2">&quot;atom_name&quot;</span><span class="p">:</span> <span class="s2">&quot;O2&quot;</span><span class="p">,</span> <span class="s2">&quot;canonical_name&quot;</span><span class="p">:</span> <span class="s2">&quot;OAC&quot;</span><span class="p">},</span>
-            <span class="s2">&quot;HOAC&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;atom_name&quot;</span><span class="p">:</span> <span class="s2">&quot;H&quot;</span><span class="p">,</span> <span class="s2">&quot;canonical_name&quot;</span><span class="p">:</span> <span class="s2">&quot;OAC&quot;</span><span class="p">}}</span>
+<span class="n">OAC_HOAC</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;OAC&quot;</span> <span class="p">:</span> <span class="p">{</span><span class="s2">&quot;atom_name&quot;</span><span class="p">:</span> <span class="s2">&quot;O2&quot;</span><span class="p">},</span>
+            <span class="s2">&quot;HOAC&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;atom_name&quot;</span><span class="p">:</span> <span class="s2">&quot;HO2&quot;</span><span class="p">}}</span>
 
 <span class="n">templates</span> <span class="o">=</span> <span class="n">ProtexTemplates</span><span class="p">([</span><span class="n">OAC_HOAC</span><span class="p">,</span> <span class="n">IM1H_IM1</span><span class="p">],</span> <span class="n">allowed_updates</span><span class="p">)</span>
 <span class="n">ionic_liquid</span> <span class="o">=</span> <span class="n">ProtexSystem</span><span class="p">(</span><span class="n">simulation</span><span class="p">,</span> <span class="n">templates</span><span class="p">)</span>
 </pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In order to keep this tutorial simple, we are not using equivalent atoms here. See the detailed example or the API guide for how to include multiple (de-)protonable sites per residue.</p>
 </div>
 <p>Next, define the update method.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">protex.update</span><span class="w"> </span><span class="kn">import</span> <span class="n">NaiveMCUpdate</span><span class="p">,</span> <span class="n">StateUpdate</span>

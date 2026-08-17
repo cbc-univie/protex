@@ -90,11 +90,11 @@ Keep going! 😄</p>
 </div>
 <section id="setup">
 <h2>Setup<a class="headerlink" href="#setup" title="Link to this heading"></a></h2>
-<p>Now we will dive a little bit deeper in all of the functions and methods protex offers.
-First and foremost we need to make sure to have valid input files!
+<p>Now, we will dive a little bit deeper in all the functions and methods protex offers.
+First and foremost, we need to make sure to have valid input files.
 The usual way is to provide a psf and crd file alongside the toppar files.
 The topology and parameter files (toppar) contain all the residues needed for the system setup.
-It is really important, that the corresponding residues prone to (de-)protonation have the same number of atoms in the same order.
+It is really important that the corresponding residues prone to (de-)protonation have the same number of atoms in the same order.
 So, i.e if we have methylimidazolium (im1h) and methylimidazole (im1) the missing hydrogen for im1 needs to be a dummy atom. The same is true for acetate/acetic acid.
 Additionally, make sure that also atoms in the coordinate files match the residue description.</p>
 <div class="admonition attention">
@@ -102,7 +102,7 @@ Additionally, make sure that also atoms in the coordinate files match the residu
 <p>It is VERY important that the atom order of the protonated and deprotonated residues match exactly between the coordinate as well as topology/psf files!</p>
 </div>
 <p>Examplary snippet of the RESI section of a CHARMM input structure. Please note the same atom ordering between the residues.
-Additionally the coordinate files need to have the same ordering as well.</p>
+Additionally, the coordinate files need to have the same ordering as well.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>RESI<span class="w">  </span>IM1<span class="w">    </span><span class="m">0</span>.0000<span class="w">     </span><span class="o">||</span><span class="w">      </span>RESI<span class="w">  </span>IM1H<span class="w">  </span><span class="m">1</span>.0000
 GROUP<span class="w">                   </span><span class="o">||</span><span class="w">      </span>GROUP
 ATOM<span class="w">  </span>C1<span class="w">     </span>CD33G<span class="w">      </span><span class="o">||</span><span class="w">      </span>ATOM<span class="w">  </span>C1<span class="w">     </span>CD33F
@@ -121,11 +121,11 @@ ATOM<span class="w">  </span>H7<span class="w">     </span>DUMMY<span class="w">
 ATOM<span class="w">  </span>LPN21<span class="w">  </span>LPD<span class="w">        </span><span class="o">||</span><span class="w">      </span>ATOM<span class="w">  </span>LPN21<span class="w">  </span>LPD
 </pre></div>
 </div>
-<p>Now, lets start building our system. The first part, getting the OpenMM simulation object is nothing protex specific and we won’t need any protex functions for it.
+<p>Now, let’s start building our system. The first part, getting the OpenMM simulation object is nothing protex specific and we won’t need any protex functions for it.
 Nevertheless, here is one possible way to do it, if you are not that familiar with OpenMM.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>All the files we need can be found in the protex directory.</p>
+<p>All the files we need for this exemplary system can be found in the templates or forcefield directory.</p>
 </div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">openmm</span><span class="w"> </span><span class="kn">import</span> <span class="n">Platform</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">openmm.app</span><span class="w"> </span><span class="kn">import</span> <span class="n">PME</span><span class="p">,</span> <span class="n">CharmmCrdFile</span><span class="p">,</span> <span class="n">CharmmParameterSet</span><span class="p">,</span> <span class="n">CharmmCrdFile</span><span class="p">,</span> <span class="n">Simulation</span>
@@ -153,18 +153,25 @@ Nevertheless, here is one possible way to do it, if you are not that familiar wi
 <span class="n">simulation</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">setPositions</span><span class="p">(</span><span class="n">crd</span><span class="o">.</span><span class="n">positions</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Now we have the simulation object ready. In principle we did, what was done with <code class="docutils literal notranslate"><span class="pre">generate_im1h_oac_system()</span></code>.
+<p>Now we have the simulation object ready. In principle, we did what was done with <code class="docutils literal notranslate"><span class="pre">generate_im1h_oac_system()</span></code>.
 For advanced usage of this function see the <a class="reference internal" href="#advanced-setup"><span class="std std-ref">Advanced Setup</span></a> section.</p>
 <p>Next, we construct the <code class="docutils literal notranslate"><span class="pre">ProtexTemplates</span></code> class, which will be needed beside the simulation object to build the <code class="docutils literal notranslate"><span class="pre">ProtexSystem</span></code>.
 Two parts are needed. On the one hand a dictionary, with the settings for the possible transfers.
-The key is always a frozenset of the transfer reaction, while the value is another dictionary with the keywords “r_max” and “prob”
-corresponding values for the maximum distance (in Angstrom) and the probability for this transfer.
-0 means the reaction should never happen, 1 every time “r_max” is fullfilled.
+The key is always a frozenset of the transfer reaction, while the value is another dictionary with the keywords “r_min”, “r_max” and “prob”.
+“prob” is the probability for this reaction, “r_max” is the maximum distance (in Angstrom), and “r_min” is the distance where the distance-based
+scaling of the probability starts, if it is used.
 Note that it is equivalent to write <code class="docutils literal notranslate"><span class="pre">frozenset([&quot;IM1H&quot;,</span> <span class="pre">&quot;OAC&quot;])</span></code> or <code class="docutils literal notranslate"><span class="pre">frozenset([&quot;OAC&quot;,</span> <span class="pre">&quot;IM1H&quot;])</span></code>.</p>
 <p>The second ingredient is another dictionary specifiying the acceptor/donor atom name.
 So in our example from above, we want the hydrogen H7 from IM1H to be transfered to the nitrogen N2 of IM1.
-This information belongs together, so it is grouped in one dictionary, as can be seen in the next code snippet.
-“canonical_name” is deprecated.</p>
+This information belongs together, so it is grouped in one dictionary, as can be seen in the next code snippet.</p>
+<p>A second (de-)protonable site can be specified for each residue with the “equivalent_atom” keyword.
+You will have to use the <code class="docutils literal notranslate"><span class="pre">KeepHUpdate</span></code> update methode (see later).</p>
+<div class="admonition attention">
+<p class="admonition-title">Attention</p>
+<p>As of now, only small molecules, such as alcohols and carboxylic acids will work with equivalent atoms, due to how we reorient the molecule
+during proton transfer. More complex molecules, or protonation sites far away from each other are currently not possible. We are working on
+amphoteric molecules, i.e., molecules that can be proton donors, as well as acceptors.</p>
+</div>
 <p>The <code class="docutils literal notranslate"><span class="pre">ProtexTemplates</span></code> class accepts now a list, of all dictionaries with the specified atoms, as well as the allowed_updates dictionary.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">protex.system</span><span class="w"> </span><span class="kn">import</span> <span class="n">ProtexTemplates</span>
 
@@ -172,11 +179,11 @@ This information belongs together, so it is grouped in one dictionary, as can be
 <span class="n">allowed_updates</span><span class="p">[</span><span class="nb">frozenset</span><span class="p">([</span><span class="s2">&quot;IM1H&quot;</span><span class="p">,</span> <span class="s2">&quot;OAC&quot;</span><span class="p">])]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;r_max&quot;</span><span class="p">:</span> <span class="mf">0.16</span><span class="p">,</span> <span class="s2">&quot;prob&quot;</span><span class="p">:</span> <span class="mf">0.994</span><span class="p">}</span>
 <span class="n">allowed_updates</span><span class="p">[</span><span class="nb">frozenset</span><span class="p">([</span><span class="s2">&quot;IM1&quot;</span><span class="p">,</span> <span class="s2">&quot;HOAC&quot;</span><span class="p">])]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;r_max&quot;</span><span class="p">:</span> <span class="mf">0.16</span><span class="p">,</span> <span class="s2">&quot;prob&quot;</span><span class="p">:</span> <span class="mf">0.098</span><span class="p">}</span>
 
-<span class="n">IM1H_IM1</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;IM1H&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;atom_name&quot;</span><span class="p">:</span> <span class="s2">&quot;H7&quot;</span><span class="p">,</span> <span class="s2">&quot;canonical_name&quot;</span><span class="p">:</span> <span class="s2">&quot;IM1&quot;</span><span class="p">},</span>
-             <span class="s2">&quot;IM1&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;atom_name&quot;</span><span class="p">:</span> <span class="s2">&quot;N2&quot;</span><span class="p">,</span> <span class="s2">&quot;canonical_name&quot;</span><span class="p">:</span> <span class="s2">&quot;IM1&quot;</span><span class="p">}}</span>
+<span class="n">IM1H_IM1</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;IM1H&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;atom_name&quot;</span><span class="p">:</span> <span class="s2">&quot;H7&quot;</span><span class="p">},</span>
+             <span class="s2">&quot;IM1&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;atom_name&quot;</span><span class="p">:</span> <span class="s2">&quot;N2&quot;</span><span class="p">}}</span>
 
-<span class="n">OAC_HOAC</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;OAC&quot;</span> <span class="p">:</span> <span class="p">{</span><span class="s2">&quot;atom_name&quot;</span><span class="p">:</span> <span class="s2">&quot;O2&quot;</span><span class="p">,</span> <span class="s2">&quot;canonical_name&quot;</span><span class="p">:</span> <span class="s2">&quot;OAC&quot;</span><span class="p">},</span>
-            <span class="s2">&quot;HOAC&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;atom_name&quot;</span><span class="p">:</span> <span class="s2">&quot;H&quot;</span><span class="p">,</span> <span class="s2">&quot;canonical_name&quot;</span><span class="p">:</span> <span class="s2">&quot;OAC&quot;</span><span class="p">}}</span>
+<span class="n">OAC_HOAC</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;OAC&quot;</span> <span class="p">:</span> <span class="p">{</span><span class="s2">&quot;atom_name&quot;</span><span class="p">:</span> <span class="s2">&quot;O2&quot;</span><span class="p">,</span> <span class="s2">&quot;equivalent_atom&quot;</span><span class="p">:</span> <span class="s2">&quot;O1&quot;</span><span class="p">},</span>
+            <span class="s2">&quot;HOAC&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;atom_name&quot;</span><span class="p">:</span> <span class="s2">&quot;H&quot;</span><span class="p">}}</span>
 
 <span class="n">templates</span> <span class="o">=</span> <span class="n">ProtexTemplates</span><span class="p">([</span><span class="n">OAC_HOAC</span><span class="p">,</span> <span class="n">IM1H_IM1</span><span class="p">],</span> <span class="n">allowed_updates</span><span class="p">)</span>
 </pre></div>
@@ -187,9 +194,16 @@ This information belongs together, so it is grouped in one dictionary, as can be
 <span class="n">ionic_liquid</span> <span class="o">=</span> <span class="n">ProtexSystem</span><span class="p">(</span><span class="n">simulation</span><span class="p">,</span> <span class="n">templates</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Next define the update method. Currently there are two update methods available. <code class="docutils literal notranslate"><span class="pre">NaiveMCUpdate</span></code> is the simpler one.
+<p>If your simulation box doesn’t contain all species that can be formed during the simulation (e.g., if you start with
+only neutral molecules of IM1 and HOAc, and let the ions develop in the course of the simulation), you need another simulation object
+for protex to get the templates for the missing residues. It is enough to pack a box with one molecule each of every possible residue.
+Then, you have to include this simulation in your <code class="docutils literal notranslate"><span class="pre">ProtexSystem</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">ionic_liquid</span> <span class="o">=</span> <span class="n">ProtexSystem</span><span class="p">(</span><span class="n">simulation</span><span class="p">,</span> <span class="n">templates</span><span class="p">,</span> <span class="n">simulation_for_parameters</span><span class="o">=</span><span class="n">simulation_for_parameters</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Next, define the update method. Currently there are two update methods available. <code class="docutils literal notranslate"><span class="pre">NaiveMCUpdate</span></code> is the simpler one.
 It uses the information passed before to determine the distance criterion for the specific update pairs and the probability.
-NaiveMCUpdate accepts to more keywords:</p>
+NaiveMCUpdate accepts two more keywords:</p>
 <dl class="object">
 <dt class="sig sig-object">
 <span class="sig-name descname"><span class="pre">NaiveMCUpdate</span></span></dt>
@@ -205,7 +219,7 @@ NaiveMCUpdate accepts to more keywords:</p>
 <dl class="std option">
 <dt class="sig sig-object std" id="cmdoption-arg-all_forces">
 <span class="sig-name descname"><span class="pre">all_forces:</span></span><span class="sig-prename descclassname"> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True</span></span><a class="headerlink" href="#cmdoption-arg-all_forces" title="Link to this definition"></a></dt>
-<dd><p>Wether to change all forces during an update (default), or just the non bonded force (all_force=False)</p>
+<dd><p>Wether to change all forces during an update (default), or just the non bonded force (all_forces=False)</p>
 </dd></dl>
 
 <dl class="std option">
@@ -227,8 +241,24 @@ The tuple consists of the name of the residue, the amount of molecules, and the 
 <span class="n">state_update</span> <span class="o">=</span> <span class="n">StateUpdate</span><span class="p">(</span><span class="n">update</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Optionally you can define reporters for the simulation.
+<p>The <code class="docutils literal notranslate"><span class="pre">NaiveMCUpdate</span></code> doesn’t work well with equivalent atoms, as it only considers the atom names given in the templates when checking for candidates. If you have equivalent atoms,
+we recommend using the <code class="docutils literal notranslate"><span class="pre">KeepHUpdate</span></code>, which also considers the equivalent atoms when checking distances. Here, you have the additional keywords <code class="docutils literal notranslate"><span class="pre">include_equivalent_atom</span></code> and <code class="docutils literal notranslate"><span class="pre">reorient</span></code>,
+to specify whether you want to consider the equivalent atoms at all, and whether to simply switch the dummy atoms on and off, or if you want to reorient the molecule so that the final configuration
+after the transfer looks more like what you would expect chemically.</p>
+<figure class="align-default" id="id3">
+<img alt="../_images/reorient.png" src="../_images/reorient.png" />
+<figcaption>
+<p><span class="caption-text">Exchanging the positions of the equivalent Os of OAc. Dummy Hs are marked with a green circle. As the O
+without the dummy H (O1) is closer to the donated proton than O2, their positions are swapped. After the transfer,
+the position of the H of HOAc is also updated. The unnaturally long O-H bond in the middle step does not lead to
+problems, as there are no simulation steps during the reorientation. Without reorientation, OAc would be updated as it is,
+causing the proton to jump an unphysically long distance.</span><a class="headerlink" href="#id3" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+<p>Optionally, you can define reporters for the simulation.
 Protex has a built in <code class="docutils literal notranslate"><span class="pre">ChargeReporter</span></code> to report the current charges of all molecules which can just be added to the simulation like all other OpenMM reporters.
+This is helpful for keeping track of the current state of each residue when analysing the trajectories later. Note that you cannot easily select residues by name only,
+as you might be used to, as e.g. MDAnalysis only reads the residue names from your starting topology and doesn’t know which molecules were involved in proton transfers during the simulation.
 You can define an additional header line with arbitrary informtion, e.g. on system settings.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">protex.reporter</span><span class="w"> </span><span class="kn">import</span> <span class="n">ChargeReporter</span>
 

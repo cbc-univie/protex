@@ -12,11 +12,11 @@ Detailed Example
 Setup
 -----
 
-Now we will dive a little bit deeper in all of the functions and methods protex offers. 
-First and foremost we need to make sure to have valid input files!
+Now, we will dive a little bit deeper in all the functions and methods protex offers. 
+First and foremost, we need to make sure to have valid input files.
 The usual way is to provide a psf and crd file alongside the toppar files. 
 The topology and parameter files (toppar) contain all the residues needed for the system setup.
-It is really important, that the corresponding residues prone to (de-)protonation have the same number of atoms in the same order.
+It is really important that the corresponding residues prone to (de-)protonation have the same number of atoms in the same order.
 So, i.e if we have methylimidazolium (im1h) and methylimidazole (im1) the missing hydrogen for im1 needs to be a dummy atom. The same is true for acetate/acetic acid.
 Additionally, make sure that also atoms in the coordinate files match the residue description. 
 
@@ -24,7 +24,7 @@ Additionally, make sure that also atoms in the coordinate files match the residu
     It is VERY important that the atom order of the protonated and deprotonated residues match exactly between the coordinate as well as topology/psf files!
 
 Examplary snippet of the RESI section of a CHARMM input structure. Please note the same atom ordering between the residues. 
-Additionally the coordinate files need to have the same ordering as well.
+Additionally, the coordinate files need to have the same ordering as well.
 
 .. code-block:: bash
 
@@ -45,11 +45,11 @@ Additionally the coordinate files need to have the same ordering as well.
     ATOM  H7     DUMMY H    ||      ATOM  H7     HDP1A
     ATOM  LPN21  LPD        ||      ATOM  LPN21  LPD  
 
-Now, lets start building our system. The first part, getting the OpenMM simulation object is nothing protex specific and we won't need any protex functions for it. 
+Now, let's start building our system. The first part, getting the OpenMM simulation object is nothing protex specific and we won't need any protex functions for it. 
 Nevertheless, here is one possible way to do it, if you are not that familiar with OpenMM.
 
 .. note:: 
-    All the files we need can be found in the protex directory. 
+    All the files we need for this exemplary system can be found in the templates or forcefield directory. 
 
 .. code-block:: python
 
@@ -78,20 +78,27 @@ Nevertheless, here is one possible way to do it, if you are not that familiar wi
     simulation = Simulation(psf.topology, system, integrator, platform=platform, platformProperties=prop)
     simulation.context.setPositions(crd.positions)
 
-Now we have the simulation object ready. In principle we did, what was done with ``generate_im1h_oac_system()``.
+Now we have the simulation object ready. In principle, we did what was done with ``generate_im1h_oac_system()``.
 For advanced usage of this function see the :ref:`Advanced setup` section.
 
 Next, we construct the ``ProtexTemplates`` class, which will be needed beside the simulation object to build the ``ProtexSystem``.
 Two parts are needed. On the one hand a dictionary, with the settings for the possible transfers. 
-The key is always a frozenset of the transfer reaction, while the value is another dictionary with the keywords "r_max" and "prob"
-corresponding values for the maximum distance (in Angstrom) and the probability for this transfer.
-0 means the reaction should never happen, 1 every time "r_max" is fullfilled.
+The key is always a frozenset of the transfer reaction, while the value is another dictionary with the keywords "r_min", "r_max" and "prob".
+"prob" is the probability for this reaction, "r_max" is the maximum distance (in Angstrom), and "r_min" is the distance where the distance-based
+scaling of the probability starts, if it is used.
 Note that it is equivalent to write ``frozenset(["IM1H", "OAC"])`` or ``frozenset(["OAC", "IM1H"])``.
 
 The second ingredient is another dictionary specifiying the acceptor/donor atom name. 
 So in our example from above, we want the hydrogen H7 from IM1H to be transfered to the nitrogen N2 of IM1.
 This information belongs together, so it is grouped in one dictionary, as can be seen in the next code snippet.
-"canonical_name" is deprecated.
+
+A second (de-)protonable site can be specified for each residue with the "equivalent_atom" keyword.
+You will have to use the ``KeepHUpdate`` update methode (see later).
+
+.. attention::
+    As of now, only small molecules, such as alcohols and carboxylic acids will work with equivalent atoms, due to how we reorient the molecule
+    during proton transfer. More complex molecules, or protonation sites far away from each other are currently not possible. We are working on
+    amphoteric molecules, i.e., molecules that can be proton donors, as well as acceptors.
 
 The ``ProtexTemplates`` class accepts now a list, of all dictionaries with the specified atoms, as well as the allowed_updates dictionary.
 
@@ -103,11 +110,11 @@ The ``ProtexTemplates`` class accepts now a list, of all dictionaries with the s
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 0.994}
     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 0.098}
 
-    IM1H_IM1 = {"IM1H": {"atom_name": "H7", "canonical_name": "IM1"},
-                 "IM1": {"atom_name": "N2", "canonical_name": "IM1"}}
+    IM1H_IM1 = {"IM1H": {"atom_name": "H7"},
+                 "IM1": {"atom_name": "N2"}}
 
-    OAC_HOAC = {"OAC" : {"atom_name": "O2", "canonical_name": "OAC"},
-                "HOAC": {"atom_name": "H", "canonical_name": "OAC"}}
+    OAC_HOAC = {"OAC" : {"atom_name": "O2", "equivalent_atom": "O1"},
+                "HOAC": {"atom_name": "H"}}
 
     templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], allowed_updates)
 
@@ -119,10 +126,19 @@ Now we have everything to build the ``ProtexSystem``:
 
     ionic_liquid = ProtexSystem(simulation, templates)
 
+If your simulation box doesn't contain all species that can be formed during the simulation (e.g., if you start with 
+only neutral molecules of IM1 and HOAc, and let the ions develop in the course of the simulation), you need another simulation object
+for protex to get the templates for the missing residues. It is enough to pack a box with one molecule each of every possible residue.
+Then, you have to include this simulation in your ``ProtexSystem``:
 
-Next define the update method. Currently there are two update methods available. ``NaiveMCUpdate`` is the simpler one.
+.. code-block:: python
+
+    ionic_liquid = ProtexSystem(simulation, templates, simulation_for_parameters=simulation_for_parameters)
+
+
+Next, define the update method. Currently there are two update methods available. ``NaiveMCUpdate`` is the simpler one.
 It uses the information passed before to determine the distance criterion for the specific update pairs and the probability.
-NaiveMCUpdate accepts to more keywords:
+NaiveMCUpdate accepts two more keywords:
 
 .. object:: NaiveMCUpdate
  
@@ -134,7 +150,7 @@ NaiveMCUpdate accepts to more keywords:
  
        .. option:: all_forces: bool = True
  
-           Wether to change all forces during an update (default), or just the non bonded force (all_force=False)
+           Wether to change all forces during an update (default), or just the non bonded force (all_forces=False)
  
        .. option:: to_adapt: list[tuple[str, int, frozenset[str]]] = None
 
@@ -152,8 +168,24 @@ NaiveMCUpdate accepts to more keywords:
     update = NaiveMCUpdate(ionic_liquid, all_forces=True, to_adapt=to_adapt)
     state_update = StateUpdate(update)
 
-Optionally you can define reporters for the simulation. 
+The ``NaiveMCUpdate`` doesn't work well with equivalent atoms, as it only considers the atom names given in the templates when checking for candidates. If you have equivalent atoms,
+we recommend using the ``KeepHUpdate``, which also considers the equivalent atoms when checking distances. Here, you have the additional keywords ``include_equivalent_atom`` and ``reorient``,
+to specify whether you want to consider the equivalent atoms at all, and whether to simply switch the dummy atoms on and off, or if you want to reorient the molecule so that the final configuration
+after the transfer looks more like what you would expect chemically. 
+
+.. figure:: ../_images/reorient.png
+
+    Exchanging the positions of the equivalent Os of OAc. Dummy Hs are marked with a green circle. As the O
+    without the dummy H (O1) is closer to the donated proton than O2, their positions are swapped. After the transfer,
+    the position of the H of HOAc is also updated. The unnaturally long O-H bond in the middle step does not lead to
+    problems, as there are no simulation steps during the reorientation. Without reorientation, OAc would be updated as it is,
+    causing the proton to jump an unphysically long distance.
+
+
+Optionally, you can define reporters for the simulation. 
 Protex has a built in ``ChargeReporter`` to report the current charges of all molecules which can just be added to the simulation like all other OpenMM reporters.
+This is helpful for keeping track of the current state of each residue when analysing the trajectories later. Note that you cannot easily select residues by name only, 
+as you might be used to, as e.g. MDAnalysis only reads the residue names from your starting topology and doesn't know which molecules were involved in proton transfers during the simulation.
 You can define an additional header line with arbitrary informtion, e.g. on system settings.
 
 .. code-block:: python

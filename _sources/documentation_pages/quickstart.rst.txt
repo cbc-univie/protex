@@ -9,7 +9,7 @@ Here is how to easily set up your system and start with protex!
     If not already done, use the :ref:`installation instructions <installation-instructions>` to get protex.
     For purposes of this tutorial, it is important to have the :ref:`VVIntegrator plugin <install using conda env>` installed!
 
-``protex`` works together with `OpenMM <https://openmm.org>`_ to allow bond breaking and formation (i.e., for a proton transfer) during MD Simulations.
+``protex`` works together with `OpenMM <https://openmm.org>`_ to allow bond breaking and formation (i.e., for a proton transfer) during MD simulations.
 First, obtain an OpenMM ``simulation`` object. For purposes of this tutorial, we will use a helper function.
 
 .. code-block:: python
@@ -29,15 +29,17 @@ Then wrap the simulation and templates into a ``ProtexSystem``.
     allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 0.994}
     allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 0.098}
 
-    IM1H_IM1 = {"IM1H": {"atom_name": "H7", "canonical_name": "IM1"},
-                 "IM1": {"atom_name": "N2", "canonical_name": "IM1"}}
+    IM1H_IM1 = {"IM1H": {"atom_name": "H7"},
+                 "IM1": {"atom_name": "N2"}}
 
-    OAC_HOAC = {"OAC" : {"atom_name": "O2", "canonical_name": "OAC"},
-                "HOAC": {"atom_name": "H", "canonical_name": "OAC"}}
+    OAC_HOAC = {"OAC" : {"atom_name": "O2"},
+                "HOAC": {"atom_name": "HO2"}}
 
     templates = ProtexTemplates([OAC_HOAC, IM1H_IM1], allowed_updates)
     ionic_liquid = ProtexSystem(simulation, templates)
 
+.. note::
+    In order to keep this tutorial simple, we are not using equivalent atoms here. See the detailed example or the API guide for how to include multiple (de-)protonable sites per residue.
 
 Next, define the update method. 
 
