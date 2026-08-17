@@ -1,0 +1,336 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>protex.system.ProtexSystem &mdash; protex  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/custom.css?v=cb26fa4a" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="protex.system.ProtexTemplates" href="protex.system.ProtexTemplates.html" />
+    <link rel="prev" title="protex.system" href="protex.system.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #c1e1c1" >
+
+          
+          
+          <a href="../../index.html">
+            
+              <img src="../../_static/protex_logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../detailed_example.html">Detailed Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../use_cases.html">Use Cases</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">API Documentation</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="protex.system.html">protex.system</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">protex.system.ProtexSystem</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#protex.system.ProtexSystem"><code class="docutils literal notranslate"><span class="pre">ProtexSystem</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="protex.system.ProtexTemplates.html">protex.system.ProtexTemplates</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="protex.update.html">protex.update</a></li>
+<li class="toctree-l2"><a class="reference internal" href="protex.testsystems.html">protex.testsystems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="protex.reporter.html">protex.reporter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="protex.residue.html">protex.residue</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #c1e1c1" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">protex</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../api.html">API Documentation</a></li>
+          <li class="breadcrumb-item"><a href="protex.system.html">protex.system</a></li>
+      <li class="breadcrumb-item active">protex.system.ProtexSystem</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/documentation_pages/autosummary/protex.system.ProtexSystem.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="protex-system-protexsystem">
+<h1>protex.system.ProtexSystem<a class="headerlink" href="#protex-system-protexsystem" title="Link to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="protex.system.ProtexSystem">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">protex.system.</span></span><span class="sig-name descname"><span class="pre">ProtexSystem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">simulation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Simulation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">templates</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="protex.system.ProtexTemplates.html#protex.system.ProtexTemplates" title="protex.system.ProtexTemplates"><span class="pre">ProtexTemplates</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">simulation_for_parameters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Simulation</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fast</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/protex/system.html#ProtexSystem"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#protex.system.ProtexSystem" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Defines the full system, performs the MD steps and offers an interface for protonation state updates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>simulation</strong> – the OpenMM simulation object</p></li>
+<li><p><strong>templates</strong> – An instance of the IonicLiquidTemplates class</p></li>
+<li><p><strong>simulation_for_parameters</strong> – another OpenMM simulation object, set up with a psf that contains all possible forms (protonated and deprotonated) of all species,
+needed for finding the parameters of the other form during an update</p></li>
+<li><p><strong>fast</strong> – If True indices list for all forces for each residue will be made once at initilaizaiton of ProtexSystem, and then used for finding the indices during an update.
+If False, the whole forces.getNumExceptions and similar calls will be used for each update and each residue, which is way slower</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#protex.system.ProtexSystem.dump" title="protex.system.ProtexSystem.dump"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dump</span></code></a></p></td>
+<td><p>Pickle the current ProtexSystem object.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#protex.system.ProtexSystem.force_is_valid" title="protex.system.ProtexSystem.force_is_valid"><code class="xref py py-obj docutils literal notranslate"><span class="pre">force_is_valid</span></code></a></p></td>
+<td><p>Check if the given force name is covered.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#protex.system.ProtexSystem.get_current_number_of_each_residue_type" title="protex.system.ProtexSystem.get_current_number_of_each_residue_type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_current_number_of_each_residue_type</span></code></a></p></td>
+<td><p>Get a dictionary with the resname and the current number of residues belonging to that name.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#protex.system.ProtexSystem.load" title="protex.system.ProtexSystem.load"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load</span></code></a></p></td>
+<td><p>Load pickled protex system.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#protex.system.ProtexSystem.loadCheckpoint" title="protex.system.ProtexSystem.loadCheckpoint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">loadCheckpoint</span></code></a></p></td>
+<td><p>Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#protex.system.ProtexSystem.loadState" title="protex.system.ProtexSystem.loadState"><code class="xref py py-obj docutils literal notranslate"><span class="pre">loadState</span></code></a></p></td>
+<td><p>Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#protex.system.ProtexSystem.load_updates" title="protex.system.ProtexSystem.load_updates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_updates</span></code></a></p></td>
+<td><p>Load the current update values from a yaml file, which was generated using &quot;save_updates&quot;.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#protex.system.ProtexSystem.saveCheckpoint" title="protex.system.ProtexSystem.saveCheckpoint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">saveCheckpoint</span></code></a></p></td>
+<td><p>Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#protex.system.ProtexSystem.saveState" title="protex.system.ProtexSystem.saveState"><code class="xref py py-obj docutils literal notranslate"><span class="pre">saveState</span></code></a></p></td>
+<td><p>Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#protex.system.ProtexSystem.save_updates" title="protex.system.ProtexSystem.save_updates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_updates</span></code></a></p></td>
+<td><p>Save the current update values into a yaml file.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#protex.system.ProtexSystem.update_context" title="protex.system.ProtexSystem.update_context"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_context</span></code></a></p></td>
+<td><p>Update the context for the given force.</p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Attributes</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">COVERED_FORCES</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">IGNORED_FORCES</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">UNCOVERED_FORCES</span></code></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="protex.system.ProtexSystem.dump">
+<span class="sig-name descname"><span class="pre">dump</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/protex/system.html#ProtexSystem.dump"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#protex.system.ProtexSystem.dump" title="Link to this definition"></a></dt>
+<dd><p>Pickle the current ProtexSystem object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>fname</strong> (<em>str</em>) – The file name to store the object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="protex.system.ProtexSystem.force_is_valid">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">force_is_valid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../../_modules/protex/system.html#ProtexSystem.force_is_valid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#protex.system.ProtexSystem.force_is_valid" title="Link to this definition"></a></dt>
+<dd><p>Check if the given force name is covered.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="protex.system.ProtexSystem.get_current_number_of_each_residue_type">
+<span class="sig-name descname"><span class="pre">get_current_number_of_each_residue_type</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../_modules/protex/system.html#ProtexSystem.get_current_number_of_each_residue_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#protex.system.ProtexSystem.get_current_number_of_each_residue_type" title="Link to this definition"></a></dt>
+<dd><p>Get a dictionary with the resname and the current number of residues belonging to that name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>resname: number of residues</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict[str, int]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="protex.system.ProtexSystem.load">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">simulation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Simulation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">simulation_for_parameters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Simulation</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#protex.system.ProtexSystem" title="protex.system.ProtexSystem"><span class="pre">ProtexSystem</span></a></span></span><a class="reference internal" href="../../_modules/protex/system.html#ProtexSystem.load"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#protex.system.ProtexSystem.load" title="Link to this definition"></a></dt>
+<dd><p>Load pickled protex system.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fname</strong> (<em>str</em>) – The file name to load</p></li>
+<li><p><strong>simulation</strong> (<em>openmm.app.simulation.Simulation</em>) – An already generated OpenMM simulation object, needed to initialize the ProtesSystem instance</p></li>
+<li><p><strong>simulation_for_parameters</strong> (<em>openmm.app.simulation.Simulation, optional</em>) – An OpenMM simulation object, which contains all possible residues
+needed if the simulation object does not contain all possible residues, by default None</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A new instance of the ProtexSystem</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#protex.system.ProtexSystem" title="protex.system.ProtexSystem">ProtexSystem</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="protex.system.ProtexSystem.loadCheckpoint">
+<span class="sig-name descname"><span class="pre">loadCheckpoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/protex/system.html#ProtexSystem.loadCheckpoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#protex.system.ProtexSystem.loadCheckpoint" title="Link to this definition"></a></dt>
+<dd><p>Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>file</strong> (<em>string or file</em>) – a File-like object to load the checkpoint from, or alternatively a
+filename</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="protex.system.ProtexSystem.loadState">
+<span class="sig-name descname"><span class="pre">loadState</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/protex/system.html#ProtexSystem.loadState"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#protex.system.ProtexSystem.loadState" title="Link to this definition"></a></dt>
+<dd><p>Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>file</strong> (<em>string or file</em>) – a File-like object to load the state from, or alternatively a
+filename</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="protex.system.ProtexSystem.load_updates">
+<span class="sig-name descname"><span class="pre">load_updates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/protex/system.html#ProtexSystem.load_updates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#protex.system.ProtexSystem.load_updates" title="Link to this definition"></a></dt>
+<dd><p>Load the current update values from a yaml file, which was generated using “save_updates”.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>file</strong> (<em>string or file</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="protex.system.ProtexSystem.saveCheckpoint">
+<span class="sig-name descname"><span class="pre">saveCheckpoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/protex/system.html#ProtexSystem.saveCheckpoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#protex.system.ProtexSystem.saveCheckpoint" title="Link to this definition"></a></dt>
+<dd><p>Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>file</strong> (<em>string or file</em>) – a File-like object to write the checkpoint to, or alternatively a
+filename</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="protex.system.ProtexSystem.saveState">
+<span class="sig-name descname"><span class="pre">saveState</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/protex/system.html#ProtexSystem.saveState"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#protex.system.ProtexSystem.saveState" title="Link to this definition"></a></dt>
+<dd><p>Wrapper method which just calls the underlying same function on the simulation object of the ionic liquid object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>file</strong> (<em>string or file</em>) – a File-like object to write the state to, or alternatively a
+filename</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="protex.system.ProtexSystem.save_updates">
+<span class="sig-name descname"><span class="pre">save_updates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/protex/system.html#ProtexSystem.save_updates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#protex.system.ProtexSystem.save_updates" title="Link to this definition"></a></dt>
+<dd><p>Save the current update values into a yaml file. Used to have the current probability values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>file</strong> (<em>string or file</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="protex.system.ProtexSystem.update_context">
+<span class="sig-name descname"><span class="pre">update_context</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/protex/system.html#ProtexSystem.update_context"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#protex.system.ProtexSystem.update_context" title="Link to this definition"></a></dt>
+<dd><p>Update the context for the given force.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>name</strong> (<em>str</em>) – The name of the force to update</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="protex.system.html" class="btn btn-neutral float-left" title="protex.system" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="protex.system.ProtexTemplates.html" class="btn btn-neutral float-right" title="protex.system.ProtexTemplates" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Florian Joerg &amp; Marcus Wieder. Project structure based on the Computational Molecular Science Python Cookiecutter version 1.5.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,329 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Detailed Example &mdash; protex  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=cb26fa4a" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Use Cases" href="use_cases.html" />
+    <link rel="prev" title="Quick Start Guide" href="quickstart.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #c1e1c1" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/protex_logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start Guide</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Detailed Example</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#setup">Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#advanced-setup">Advanced Setup</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="use_cases.html">Use Cases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #c1e1c1" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">protex</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Detailed Example</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/documentation_pages/detailed_example.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="detailed-example">
+<span id="id1"></span><h1>Detailed Example<a class="headerlink" href="#detailed-example" title="Link to this heading"></a></h1>
+<div class="successstyle admonition">
+<p class="admonition-title">🎊 Congratulations! 🎊</p>
+<p>It seems you really want to learn how to use protex!
+Keep going! 😄</p>
+</div>
+<section id="setup">
+<h2>Setup<a class="headerlink" href="#setup" title="Link to this heading"></a></h2>
+<p>Now we will dive a little bit deeper in all of the functions and methods protex offers.
+First and foremost we need to make sure to have valid input files!
+The usual way is to provide a psf and crd file alongside the toppar files.
+The topology and parameter files (toppar) contain all the residues needed for the system setup.
+It is really important, that the corresponding residues prone to (de-)protonation have the same number of atoms in the same order.
+So, i.e if we have methylimidazolium (im1h) and methylimidazole (im1) the missing hydrogen for im1 needs to be a dummy atom. The same is true for acetate/acetic acid.
+Additionally, make sure that also atoms in the coordinate files match the residue description.</p>
+<div class="admonition attention">
+<p class="admonition-title">Attention</p>
+<p>It is VERY important that the atom order of the protonated and deprotonated residues match exactly between the coordinate as well as topology/psf files!</p>
+</div>
+<p>Examplary snippet of the RESI section of a CHARMM input structure. Please note the same atom ordering between the residues.
+Additionally the coordinate files need to have the same ordering as well.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>RESI<span class="w">  </span>IM1<span class="w">    </span><span class="m">0</span>.0000<span class="w">     </span><span class="o">||</span><span class="w">      </span>RESI<span class="w">  </span>IM1H<span class="w">  </span><span class="m">1</span>.0000
+GROUP<span class="w">                   </span><span class="o">||</span><span class="w">      </span>GROUP
+ATOM<span class="w">  </span>C1<span class="w">     </span>CD33G<span class="w">      </span><span class="o">||</span><span class="w">      </span>ATOM<span class="w">  </span>C1<span class="w">     </span>CD33F
+ATOM<span class="w">  </span>H1<span class="w">     </span>HDA3A<span class="w">      </span><span class="o">||</span><span class="w">      </span>ATOM<span class="w">  </span>H1<span class="w">     </span>HDA3A
+ATOM<span class="w">  </span>H2<span class="w">     </span>HDA3A<span class="w">      </span><span class="o">||</span><span class="w">      </span>ATOM<span class="w">  </span>H2<span class="w">     </span>HDA3A
+ATOM<span class="w">  </span>H3<span class="w">     </span>HDA3A<span class="w">      </span><span class="o">||</span><span class="w">      </span>ATOM<span class="w">  </span>H3<span class="w">     </span>HDA3A
+ATOM<span class="w">  </span>N1<span class="w">     </span>ND2R5A<span class="w">     </span><span class="o">||</span><span class="w">      </span>ATOM<span class="w">  </span>N1<span class="w">     </span>ND2R5C
+ATOM<span class="w">  </span>C2<span class="w">     </span>CD2R5A<span class="w">     </span><span class="o">||</span><span class="w">      </span>ATOM<span class="w">  </span>C2<span class="w">     </span>CD2R5D
+ATOM<span class="w">  </span>H4<span class="w">     </span>HDR5A<span class="w">      </span><span class="o">||</span><span class="w">      </span>ATOM<span class="w">  </span>H4<span class="w">     </span>HDR5D
+ATOM<span class="w">  </span>C3<span class="w">     </span>CD2R5A<span class="w">     </span><span class="o">||</span><span class="w">      </span>ATOM<span class="w">  </span>C3<span class="w">     </span>CD2R5D
+ATOM<span class="w">  </span>H5<span class="w">     </span>HDR5A<span class="w">      </span><span class="o">||</span><span class="w">      </span>ATOM<span class="w">  </span>H5<span class="w">     </span>HDR5D
+ATOM<span class="w">  </span>C4<span class="w">     </span>CD2R5B<span class="w">     </span><span class="o">||</span><span class="w">      </span>ATOM<span class="w">  </span>C4<span class="w">     </span>CD2R5E
+ATOM<span class="w">  </span>H6<span class="w">     </span>HDR5B<span class="w">      </span><span class="o">||</span><span class="w">      </span>ATOM<span class="w">  </span>H6<span class="w">     </span>HDR5E
+ATOM<span class="w">  </span>N2<span class="w">     </span>ND2R5B<span class="w">     </span><span class="o">||</span><span class="w">      </span>ATOM<span class="w">  </span>N2<span class="w">     </span>ND2R5C
+ATOM<span class="w">  </span>H7<span class="w">     </span>DUMMY<span class="w"> </span>H<span class="w">    </span><span class="o">||</span><span class="w">      </span>ATOM<span class="w">  </span>H7<span class="w">     </span>HDP1A
+ATOM<span class="w">  </span>LPN21<span class="w">  </span>LPD<span class="w">        </span><span class="o">||</span><span class="w">      </span>ATOM<span class="w">  </span>LPN21<span class="w">  </span>LPD
+</pre></div>
+</div>
+<p>Now, lets start building our system. The first part, getting the OpenMM simulation object is nothing protex specific and we won’t need any protex functions for it.
+Nevertheless, here is one possible way to do it, if you are not that familiar with OpenMM.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>All the files we need can be found in the protex directory.</p>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">openmm</span><span class="w"> </span><span class="kn">import</span> <span class="n">Platform</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">openmm.app</span><span class="w"> </span><span class="kn">import</span> <span class="n">PME</span><span class="p">,</span> <span class="n">CharmmCrdFile</span><span class="p">,</span> <span class="n">CharmmParameterSet</span><span class="p">,</span> <span class="n">CharmmCrdFile</span><span class="p">,</span> <span class="n">Simulation</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">openmm.unit</span><span class="w"> </span><span class="kn">import</span> <span class="n">angstroms</span><span class="p">,</span> <span class="n">kelvin</span><span class="p">,</span> <span class="n">picoseconds</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">velocityverletplugin</span><span class="w"> </span><span class="kn">import</span> <span class="n">VVIntegrator</span>
+
+<span class="n">protex_dir</span> <span class="o">=</span> <span class="s2">&quot;/path/to/your/protex/directory&quot;</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Loading CHARMM files...&quot;</span><span class="p">)</span>
+<span class="n">PARA_FILES</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;toppar_drude_master_protein_2013f_lj025.str&quot;</span><span class="p">,</span> <span class="s2">&quot;hoac_d.str&quot;</span><span class="p">,</span> <span class="s2">&quot;im1h_d.str&quot;</span><span class="p">,</span> <span class="s2">&quot;im1_d.str&quot;</span><span class="p">,</span> <span class="s2">&quot;oac_d.str&quot;</span><span class="p">]</span>
+<span class="n">params</span> <span class="o">=</span> <span class="n">CharmmParameterSet</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">protex_dir</span><span class="si">}</span><span class="s2">/forcefield/toppar/</span><span class="si">{</span><span class="n">para_files</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">para_files</span> <span class="ow">in</span> <span class="n">PARA_FILES</span><span class="p">])</span>
+<span class="n">psf</span> <span class="o">=</span> <span class="n">CharmmPsfFile</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">protex_dir</span><span class="si">}</span><span class="s2">/forcefield/im1h_oac_150_im1_hoac_350.psf&quot;</span><span class="p">)</span>
+<span class="n">psf</span><span class="o">.</span><span class="n">setBox</span><span class="p">(</span><span class="mi">48</span><span class="o">*</span><span class="n">angstroms</span><span class="p">,</span> <span class="mi">48</span><span class="o">*</span><span class="n">angstroms</span><span class="p">,</span> <span class="mi">48</span><span class="o">*</span><span class="n">angstroms</span><span class="p">)</span>
+<span class="n">crd</span> <span class="o">=</span> <span class="n">CharmmCrdFile</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">protex_dir</span><span class="si">}</span><span class="s2">/forcefield/im1h_oac_150_im1_hoac_350.crd&quot;</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Create system&quot;</span><span class="p">)</span>
+<span class="n">system</span> <span class="o">=</span> <span class="n">psf</span><span class="o">.</span><span class="n">createSystem</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">nonbondedMethod</span><span class="o">=</span><span class="n">PME</span><span class="p">,</span> <span class="n">nonbondedCutoff</span><span class="o">=</span><span class="mf">11.0</span> <span class="o">*</span> <span class="n">angstroms</span><span class="p">,</span> <span class="n">switchDistance</span><span class="o">=</span><span class="mi">10</span> <span class="o">*</span> <span class="n">angstroms</span><span class="p">,</span> <span class="n">constraints</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Setup simulation&quot;</span><span class="p">)</span>
+<span class="n">integrator</span> <span class="o">=</span> <span class="n">VVIntegrator</span><span class="p">(</span><span class="mi">300</span> <span class="o">*</span> <span class="n">kelvin</span><span class="p">,</span> <span class="mi">10</span> <span class="o">/</span> <span class="n">picoseconds</span><span class="p">,</span> <span class="mi">1</span> <span class="o">*</span> <span class="n">kelvin</span><span class="p">,</span> <span class="mi">100</span> <span class="o">/</span> <span class="n">picoseconds</span><span class="p">,</span> <span class="mf">0.0005</span> <span class="o">*</span> <span class="n">picoseconds</span><span class="p">)</span>
+<span class="n">integrator</span><span class="o">.</span><span class="n">setMaxDrudeDistance</span><span class="p">(</span><span class="mf">0.25</span> <span class="o">*</span> <span class="n">angstroms</span><span class="p">)</span>
+<span class="n">platform</span> <span class="o">=</span> <span class="n">Platform</span><span class="o">.</span><span class="n">getPlatformByName</span><span class="p">(</span><span class="s2">&quot;CUDA&quot;</span><span class="p">)</span>
+<span class="n">prop</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">CudaPrecision</span><span class="o">=</span><span class="s2">&quot;single&quot;</span><span class="p">)</span>
+<span class="n">simulation</span> <span class="o">=</span> <span class="n">Simulation</span><span class="p">(</span><span class="n">psf</span><span class="o">.</span><span class="n">topology</span><span class="p">,</span> <span class="n">system</span><span class="p">,</span> <span class="n">integrator</span><span class="p">,</span> <span class="n">platform</span><span class="o">=</span><span class="n">platform</span><span class="p">,</span> <span class="n">platformProperties</span><span class="o">=</span><span class="n">prop</span><span class="p">)</span>
+<span class="n">simulation</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">setPositions</span><span class="p">(</span><span class="n">crd</span><span class="o">.</span><span class="n">positions</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now we have the simulation object ready. In principle we did, what was done with <code class="docutils literal notranslate"><span class="pre">generate_im1h_oac_system()</span></code>.
+For advanced usage of this function see the <a class="reference internal" href="#advanced-setup"><span class="std std-ref">Advanced Setup</span></a> section.</p>
+<p>Next, we construct the <code class="docutils literal notranslate"><span class="pre">ProtexTemplates</span></code> class, which will be needed beside the simulation object to build the <code class="docutils literal notranslate"><span class="pre">ProtexSystem</span></code>.
+Two parts are needed. On the one hand a dictionary, with the settings for the possible transfers.
+The key is always a frozenset of the transfer reaction, while the value is another dictionary with the keywords “r_max” and “prob”
+corresponding values for the maximum distance (in Angstrom) and the probability for this transfer.
+0 means the reaction should never happen, 1 every time “r_max” is fullfilled.
+Note that it is equivalent to write <code class="docutils literal notranslate"><span class="pre">frozenset([&quot;IM1H&quot;,</span> <span class="pre">&quot;OAC&quot;])</span></code> or <code class="docutils literal notranslate"><span class="pre">frozenset([&quot;OAC&quot;,</span> <span class="pre">&quot;IM1H&quot;])</span></code>.</p>
+<p>The second ingredient is another dictionary specifiying the acceptor/donor atom name.
+So in our example from above, we want the hydrogen H7 from IM1H to be transfered to the nitrogen N2 of IM1.
+This information belongs together, so it is grouped in one dictionary, as can be seen in the next code snippet.
+“canonical_name” is deprecated.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">ProtexTemplates</span></code> class accepts now a list, of all dictionaries with the specified atoms, as well as the allowed_updates dictionary.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">protex.system</span><span class="w"> </span><span class="kn">import</span> <span class="n">ProtexTemplates</span>
+
+<span class="n">allowed_updates</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">allowed_updates</span><span class="p">[</span><span class="nb">frozenset</span><span class="p">([</span><span class="s2">&quot;IM1H&quot;</span><span class="p">,</span> <span class="s2">&quot;OAC&quot;</span><span class="p">])]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;r_max&quot;</span><span class="p">:</span> <span class="mf">0.16</span><span class="p">,</span> <span class="s2">&quot;prob&quot;</span><span class="p">:</span> <span class="mf">0.994</span><span class="p">}</span>
+<span class="n">allowed_updates</span><span class="p">[</span><span class="nb">frozenset</span><span class="p">([</span><span class="s2">&quot;IM1&quot;</span><span class="p">,</span> <span class="s2">&quot;HOAC&quot;</span><span class="p">])]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;r_max&quot;</span><span class="p">:</span> <span class="mf">0.16</span><span class="p">,</span> <span class="s2">&quot;prob&quot;</span><span class="p">:</span> <span class="mf">0.098</span><span class="p">}</span>
+
+<span class="n">IM1H_IM1</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;IM1H&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;atom_name&quot;</span><span class="p">:</span> <span class="s2">&quot;H7&quot;</span><span class="p">,</span> <span class="s2">&quot;canonical_name&quot;</span><span class="p">:</span> <span class="s2">&quot;IM1&quot;</span><span class="p">},</span>
+             <span class="s2">&quot;IM1&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;atom_name&quot;</span><span class="p">:</span> <span class="s2">&quot;N2&quot;</span><span class="p">,</span> <span class="s2">&quot;canonical_name&quot;</span><span class="p">:</span> <span class="s2">&quot;IM1&quot;</span><span class="p">}}</span>
+
+<span class="n">OAC_HOAC</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;OAC&quot;</span> <span class="p">:</span> <span class="p">{</span><span class="s2">&quot;atom_name&quot;</span><span class="p">:</span> <span class="s2">&quot;O2&quot;</span><span class="p">,</span> <span class="s2">&quot;canonical_name&quot;</span><span class="p">:</span> <span class="s2">&quot;OAC&quot;</span><span class="p">},</span>
+            <span class="s2">&quot;HOAC&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;atom_name&quot;</span><span class="p">:</span> <span class="s2">&quot;H&quot;</span><span class="p">,</span> <span class="s2">&quot;canonical_name&quot;</span><span class="p">:</span> <span class="s2">&quot;OAC&quot;</span><span class="p">}}</span>
+
+<span class="n">templates</span> <span class="o">=</span> <span class="n">ProtexTemplates</span><span class="p">([</span><span class="n">OAC_HOAC</span><span class="p">,</span> <span class="n">IM1H_IM1</span><span class="p">],</span> <span class="n">allowed_updates</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now we have everything to build the <code class="docutils literal notranslate"><span class="pre">ProtexSystem</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">protex.system</span><span class="w"> </span><span class="kn">import</span> <span class="n">ProtexSystem</span>
+
+<span class="n">ionic_liquid</span> <span class="o">=</span> <span class="n">ProtexSystem</span><span class="p">(</span><span class="n">simulation</span><span class="p">,</span> <span class="n">templates</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Next define the update method. Currently there are two update methods available. <code class="docutils literal notranslate"><span class="pre">NaiveMCUpdate</span></code> is the simpler one.
+It uses the information passed before to determine the distance criterion for the specific update pairs and the probability.
+NaiveMCUpdate accepts to more keywords:</p>
+<dl class="object">
+<dt class="sig sig-object">
+<span class="sig-name descname"><span class="pre">NaiveMCUpdate</span></span></dt>
+<dd><dl class="object">
+<dt class="sig sig-object">
+<span class="sig-name descname"><span class="pre">parameters</span></span></dt>
+<dd><dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-arg-ionic_liquid">
+<span class="sig-name descname"><span class="pre">ionic_liquid:</span></span><span class="sig-prename descclassname"> <span class="pre">ProtexSystem</span></span><a class="headerlink" href="#cmdoption-arg-ionic_liquid" title="Link to this definition"></a></dt>
+<dd><p>The Protex system</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-arg-all_forces">
+<span class="sig-name descname"><span class="pre">all_forces:</span></span><span class="sig-prename descclassname"> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True</span></span><a class="headerlink" href="#cmdoption-arg-all_forces" title="Link to this definition"></a></dt>
+<dd><p>Wether to change all forces during an update (default), or just the non bonded force (all_force=False)</p>
+</dd></dl>
+
+<dl class="std option">
+<dt class="sig sig-object std" id="cmdoption-arg-to_adapt">
+<span id="cmdoption-arg-int"></span><span id="cmdoption-arg-frozenset-str"></span><span class="sig-name descname"><span class="pre">to_adapt:</span></span><span class="sig-prename descclassname"> <span class="pre">list[tuple[str</span></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">int</span></span><span class="sig-prename descclassname"></span><span class="sig-prename descclassname"><span class="pre">,</span> </span><span class="sig-name descname"><span class="pre">frozenset[str]]]</span></span><span class="sig-prename descclassname"> <span class="pre">=</span> <span class="pre">None</span></span><a class="headerlink" href="#cmdoption-arg-to_adapt" title="Link to this definition"></a></dt>
+<dd><p>This option is used to keep certain residues around an equilibrium value.
+The tuple consists of the name of the residue, the amount of molecules, and the update set, for which the probability will be accordingly altered.</p>
+<p><strong>Important:</strong> If using this option in consecutive runs, consider using the save_updates and load_updates methods of ionic liquid to get the current probability values.</p>
+</dd></dl>
+
+</dd></dl>
+
+</dd></dl>
+
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">protex.update</span><span class="w"> </span><span class="kn">import</span> <span class="n">NaiveMCUpdate</span><span class="p">,</span> <span class="n">StateUpdate</span>
+
+<span class="n">to_adapt</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">&quot;IM1H&quot;</span><span class="p">,</span> <span class="mi">150</span><span class="p">,</span> <span class="nb">frozenset</span><span class="p">([</span><span class="s2">&quot;IM1H&quot;</span><span class="p">,</span> <span class="s2">&quot;OAC&quot;</span><span class="p">])),</span> <span class="p">(</span><span class="s2">&quot;IM1&quot;</span><span class="p">,</span> <span class="mi">350</span><span class="p">,</span> <span class="nb">frozenset</span><span class="p">([</span><span class="s2">&quot;IM1&quot;</span><span class="p">,</span> <span class="s2">&quot;HOAC&quot;</span><span class="p">]))]</span>
+<span class="n">update</span> <span class="o">=</span> <span class="n">NaiveMCUpdate</span><span class="p">(</span><span class="n">ionic_liquid</span><span class="p">,</span> <span class="n">all_forces</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">to_adapt</span><span class="o">=</span><span class="n">to_adapt</span><span class="p">)</span>
+<span class="n">state_update</span> <span class="o">=</span> <span class="n">StateUpdate</span><span class="p">(</span><span class="n">update</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Optionally you can define reporters for the simulation.
+Protex has a built in <code class="docutils literal notranslate"><span class="pre">ChargeReporter</span></code> to report the current charges of all molecules which can just be added to the simulation like all other OpenMM reporters.
+You can define an additional header line with arbitrary informtion, e.g. on system settings.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">protex.reporter</span><span class="w"> </span><span class="kn">import</span> <span class="n">ChargeReporter</span>
+
+<span class="n">save_freq</span> <span class="o">=</span> <span class="mi">200</span>
+<span class="n">infos</span><span class="o">=</span><span class="p">{</span><span class="sa">f</span><span class="s2">&quot;Put whatever additional infos you would like the charge reporter to store here, e.g. save_freq: </span><span class="si">{</span><span class="n">save_freq</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">}</span>
+<span class="n">charge_reporter</span> <span class="o">=</span> <span class="n">ChargeReporter</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;path/to/outfile&quot;</span><span class="p">,</span> <span class="n">save_freq</span><span class="p">,</span> <span class="n">ionic_liquid</span><span class="p">,</span> <span class="n">header_data</span><span class="o">=</span><span class="n">infos</span><span class="p">)</span>
+<span class="n">ionic_liquid</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">reporters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">charge_reporter</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You can add additional OpenMM reporters:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">openmm.app</span><span class="w"> </span><span class="kn">import</span> <span class="n">StateDataReporter</span><span class="p">,</span> <span class="n">DCDReporter</span>
+
+<span class="n">report_frequency</span> <span class="o">=</span> <span class="mi">200</span>
+<span class="n">ionic_liquid</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">reporters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">DCDReporter</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;traj.dcd&quot;</span><span class="p">,</span> <span class="n">report_frequency</span><span class="p">))</span>
+<span class="n">state_data_reporter</span><span class="o">=</span> <span class="n">StateDataReporter</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">,</span>
+    <span class="n">report_frequency</span><span class="p">,</span>
+    <span class="n">step</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">time</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">potentialEnergy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">kineticEnergy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">totalEnergy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">temperature</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">volume</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">density</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">ionic_liquid</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">reporters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">state_data_reporter</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now you are ready to run the simulation and just call the update method whenever you like.
+The <code class="docutils literal notranslate"><span class="pre">state_update.update()</span></code> method an integer as argument specifying the intermediate lambda-states for an update.
+2 means no intermediate steps, just one before and one after the update. Consequently every number n, means n-2 actual intermediate steps.</p>
+<p>You can also save a psf file at any point during the simulation or store the current update values for the probability.
+Due to current limitations on the conversion of Drude OpenMM toplogoies to ParmEd structures, the user has to supply a reference psf file.
+This can just be the initial psf file used for the system creation.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">ionic_liquid</span><span class="o">.</span><span class="n">simulation</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span>
+<span class="n">state_update</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">ionic_liquid</span><span class="o">.</span><span class="n">save_updates</span><span class="p">(</span><span class="s2">&quot;updates.txt&quot;</span><span class="p">)</span>
+<span class="n">ionic_liquid</span><span class="o">.</span><span class="n">write_psf</span><span class="p">(</span><span class="s2">&quot;im1h_oac_150_im1_hoac_350.psf&quot;</span><span class="p">,</span> <span class="s2">&quot;new.psf&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="advanced-setup">
+<span id="id2"></span><h2>Advanced Setup<a class="headerlink" href="#advanced-setup" title="Link to this heading"></a></h2>
+<p>One usual way might be to do multiple runs, which means restarting the simulation after some time. There are some options in protex which should help.
+Use the <cite>psf_file</cite> argument to load the current psf and the <cite>restart_file</cite> argument to load the current restart file. Alternatively new coordinates can also be specified via <cite>load_checkpoint()</cite></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">protex.testsystems</span><span class="w"> </span><span class="kn">import</span> <span class="n">generate_im1h_oac_system</span>
+
+<span class="n">psf_file</span> <span class="o">=</span> <span class="s2">&quot;psf_file_from_previous_run.psf&quot;</span>
+<span class="n">restart_file</span> <span class="o">=</span> <span class="s2">&quot;restart_file.rst&quot;</span>
+<span class="n">simulation</span> <span class="o">=</span> <span class="n">generate_im1h_oac_system</span><span class="p">(</span><span class="n">psf_file</span><span class="o">=</span><span class="n">psf_file</span><span class="p">,</span><span class="n">restart_file</span><span class="o">=</span><span class="n">restart_file</span><span class="p">)</span>
+
+<span class="o">...</span>
+
+<span class="n">ionic_liquid</span><span class="o">.</span><span class="n">load_updates</span><span class="p">(</span><span class="s2">&quot;updates.txt&quot;</span><span class="p">)</span>
+<span class="n">ionic_liquid</span><span class="o">.</span><span class="n">loadCheckpoint</span><span class="p">(</span><span class="s2">&quot;nvt_checkpoint.rst&quot;</span><span class="p">)</span>
+
+<span class="o">...</span>
+
+<span class="n">ionic_liquid</span><span class="o">.</span><span class="n">save_updates</span><span class="p">(</span><span class="s2">&quot;updates.txt&quot;</span><span class="p">)</span>
+<span class="n">ionic_liquid</span><span class="o">.</span><span class="n">write_psf</span><span class="p">(</span><span class="s2">&quot;im1h_oac_150_im1_hoac_350.psf&quot;</span><span class="p">,</span> <span class="s2">&quot;nvt.psf&quot;</span><span class="p">)</span>
+<span class="n">ionic_liquid</span><span class="o">.</span><span class="n">saveCheckpoint</span><span class="p">(</span><span class="s2">&quot;nvt_checkpoint.rst&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="quickstart.html" class="btn btn-neutral float-left" title="Quick Start Guide" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="use_cases.html" class="btn btn-neutral float-right" title="Use Cases" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Florian Joerg &amp; Marcus Wieder. Project structure based on the Computational Molecular Science Python Cookiecutter version 1.5.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

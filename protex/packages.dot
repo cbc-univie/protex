@@ -1,0 +1,11 @@
+digraph "packages" {
+rankdir=BT
+charset="utf-8"
+"protex.residue" [color="black", label=<protex.residue>, shape="box", style="solid"];
+"protex.system" [color="black", label=<protex.system>, shape="box", style="solid"];
+"protex.testsystems" [color="black", label=<protex.testsystems>, shape="box", style="solid"];
+"protex.update" [color="black", label=<protex.update>, shape="box", style="solid"];
+"protex.system" -> "protex.residue" [arrowhead="open", arrowtail="none"];
+"protex.update" -> "protex.residue" [arrowhead="open", arrowtail="none"];
+"protex.update" -> "protex.system" [arrowhead="open", arrowtail="none"];
+}
