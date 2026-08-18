@@ -117,25 +117,25 @@
 
 <span class="sd">        .. code-block:: python</span>
 
-<span class="sd">            IM1H_IM1 = { &quot;IM1H&quot;: {&quot;atom_name&quot;: &quot;H7&quot;, &quot;canonical_name&quot;: &quot;IM1&quot;},</span>
-<span class="sd">                        &quot;IM1&quot;: {&quot;atom_name&quot;: &quot;N2&quot;, &quot;canonical_name&quot;: &quot;IM1&quot;} }</span>
-<span class="sd">            OAC_HOAC = { &quot;OAC&quot;: {&quot;atom_name&quot;: &quot;O2&quot;, &quot;canonical_name&quot;: &quot;OAC&quot;},</span>
-<span class="sd">                        &quot;HOAC&quot;: {&quot;atom_name&quot;: &quot;H&quot;, &quot;canonical_name&quot;: &quot;OAC&quot;} }</span>
+<span class="sd">            IM1H_IM1 = { &quot;IM1H&quot;: {&quot;atom_name&quot;: &quot;H7&quot;},</span>
+<span class="sd">                        &quot;IM1&quot;: {&quot;atom_name&quot;: &quot;N2&quot;} }</span>
+<span class="sd">            OAC_HOAC = { &quot;OAC&quot;: {&quot;atom_name&quot;: &quot;O2&quot;, &quot;equivalent_atom&quot;: &quot;O1&quot;},</span>
+<span class="sd">                        &quot;HOAC&quot;: {&quot;atom_name&quot;: &quot;H&quot;} }</span>
 <span class="sd">            states = [IM1H_IM1, OAC_HOAC]</span>
 
 <span class="sd">    allowed_updates:</span>
 <span class="sd">        A dictionary specifiying which updates are possile.</span>
-<span class="sd">        Key is a frozenset with the two residue names for the update.</span>
-<span class="sd">        The values is a dictionary which specifies the maximum distance (&quot;r_max&quot;) and the probability for this update (&quot;prob&quot;)</span>
-<span class="sd">        r_max is in nanometer and the prob between 0 and 1</span>
+<span class="sd">        Key is a frozenset with the two residue names for the update. </span>
+<span class="sd">        The value is a dictionary which specifies the maximum distance (&quot;r_max&quot;), the distance where the scaling of the probability should start (&quot;r_min&quot;), and the probability for this update (&quot;prob&quot;). </span>
+<span class="sd">        r_min and r_max are in nanometer and the prob is between 0 and 1</span>
 
 <span class="sd">        .. code-block:: python</span>
 
 <span class="sd">            allowed_updates = {}</span>
-<span class="sd">            allowed_updates[frozenset([&quot;IM1H&quot;, &quot;OAC&quot;])] = {&quot;r_max&quot;: 0.155, &quot;prob&quot;: 1}</span>
-<span class="sd">            allowed_updates[frozenset([&quot;IM1&quot;, &quot;HOAC&quot;])] = {&quot;r_max&quot;: 0.155, &quot;prob&quot;: 1}</span>
-<span class="sd">            allowed_updates[frozenset([&quot;IM1H&quot;, &quot;IM1&quot;])] = {&quot;r_max&quot;: 0.155, &quot;prob&quot;: 0.201}</span>
-<span class="sd">            allowed_updates[frozenset([&quot;HOAC&quot;, &quot;OAC&quot;])] = {&quot;r_max&quot;: 0.155, &quot;prob&quot;: 0.684}</span>
+<span class="sd">            allowed_updates[frozenset([&quot;IM1H&quot;, &quot;OAC&quot;])] = {&quot;r_min&quot;: 0.140, &quot;r_max&quot;: 0.155, &quot;prob&quot;: 1}</span>
+<span class="sd">            allowed_updates[frozenset([&quot;IM1&quot;, &quot;HOAC&quot;])] = {&quot;r_min&quot;: 0.140, &quot;r_max&quot;: 0.155, &quot;prob&quot;: 1}</span>
+<span class="sd">            allowed_updates[frozenset([&quot;IM1H&quot;, &quot;IM1&quot;])] = {&quot;r_min&quot;: 0.140, &quot;r_max&quot;: 0.155, &quot;prob&quot;: 0.201}</span>
+<span class="sd">            allowed_updates[frozenset([&quot;HOAC&quot;, &quot;OAC&quot;])] = {&quot;r_min&quot;: 0.140, &quot;r_max&quot;: 0.155, &quot;prob&quot;: 0.684}</span>
 
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
