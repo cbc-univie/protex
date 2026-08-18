@@ -1,7 +1,7 @@
 # Compiling protex's Documentation
 
 ## General
-The documentation is currently (17.08.2026) built via GitHub Pages from the `/root` folder of the `docs` branch and needs to be added manually. Make sure to pull/merge regularly to include new functions etc. in the autosummaries. Also, the autosummary only works if we keep the code up to date with nice docstrings.
+The documentation is currently (17.08.2026) built via GitHub Pages from the `/root` folder of the `main` branch. It has to be compiled locally and pushed to GitHub. The autosummary only works if we keep the code up to date with nice docstrings.
 
 Flo had a bot to update the autosummaries etc. automatically, but it fails now because GitHub deprecated some stuff. If anyone gets it running again, so much the better, but I gave up.
 
@@ -15,7 +15,7 @@ conda install sphinx sphinx_rtd_theme
 ```
 
 
-Once installed, you can use the `Makefile` in this directory to compile static HTML pages by
+Once installed, you can use the `Makefile` in the `docs` directory to compile static HTML pages by
 ```bash
 cd docs
 make html
@@ -24,15 +24,14 @@ make html
 The compiled docs will be in the `_build` directory and can be viewed by opening `index.html` (which may itself 
 be inside a directory called `html/` depending on what version of Sphinx is installed).
 
-The way I can make it work now is to copy the contents of `_build/htmml` to `/root`, commit, and push, since I can't choose `docs/_build/html` on GitHub. There is possibly a way to change the directories in the index so that it finds the rest of the files. There has to be a `.nojekyll` file as well; otherwise GitHub gets confused with the styles. 
+The way I can make it work now is to copy the contents of `_build/htmml` to `/root`, commit, and push, since I can't choose `docs/_build/html` on GitHub. There is possibly a way to change the directories in the index so that it finds the rest of the files. There has to be a `.nojekyll` file as well; otherwise GitHub gets confused with the styles, but it can be empty file. 
 
 ```bash
 cd ..
-touch .nojekyll
 cp -r /docs/_build/html* .
 git add .
 git commit -m "update documentation"
-git push origin docs
+git push origin main
 ```
 
 ## Hosting
