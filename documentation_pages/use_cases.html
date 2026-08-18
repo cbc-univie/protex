@@ -1,0 +1,188 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Use Cases &mdash; protex  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/custom.css?v=cb26fa4a" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=b3ba4146"></script>
+      <script src="../_static/doctools.js?v=888ff710"></script>
+      <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="API Documentation" href="api.html" />
+    <link rel="prev" title="Detailed Example" href="detailed_example.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #c1e1c1" >
+
+          
+          
+          <a href="../index.html">
+            
+              <img src="../_static/protex_logo.png" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="detailed_example.html">Detailed Example</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Use Cases</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#hpts">HPTS</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Documentation</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #c1e1c1" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">protex</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Use Cases</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/documentation_pages/use_cases.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="use-cases">
+<span id="id1"></span><h1>Use Cases<a class="headerlink" href="#use-cases" title="Link to this heading"></a></h1>
+<p>A collection of some useful situations for PROTEX.</p>
+<section id="hpts">
+<h2>HPTS<a class="headerlink" href="#hpts" title="Link to this heading"></a></h2>
+<p>The photoacid 8-Hydroxypyrene-1,3,6-trisulfonic acid (HPTSH) can be used to introduce an excess proton into the system. It may be insightful to investigate the transfers this proton undergoes during the simulation. In order to compare the results with experimental data, the system needs to be set up in methanol.</p>
+<p>The protonated (HPTSH) and deprotonated (HPTS) forms of the molecule needed to be set up with <a class="reference external" href="https://www.charmm-gui.org/">CHARMM-GUI</a> and Drude parametrized with <a class="reference external" href="http://ffparam.umaryland.edu/">FFParam</a>, using dummy atoms and dummy lone pairs where necessary. The protonated methanol (“MEOH2”) was also set up in this manner. These files can now be found in the protex/forcefield directory.</p>
+<p><code class="docutils literal notranslate"><span class="pre">protex</span></code> can be set up as described in the <a class="reference internal" href="quickstart.html#quick-start-guide"><span class="std std-ref">Quick Start Guide</span></a>, with the exception that the new species need to be added to the templates.
+It is still under discussion, whether the deprotonated acid should accept any protons, so take care whether you want to include reactions involving the deprotonated form in the allowed updates. In either case, we want to ensure that the acid is deprotonated as soon as possible, so the probability of the reactions of HPTSH with any partner have to be set to 1.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">HPTSH_HPTS</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;HPTSH&quot;</span> <span class="p">:</span> <span class="p">{</span><span class="s2">&quot;atom_name&quot;</span><span class="p">:</span> <span class="s2">&quot;H7&quot;</span><span class="p">,</span> <span class="s2">&quot;canonical_name&quot;</span><span class="p">:</span> <span class="s2">&quot;HPTS&quot;</span><span class="p">},</span>
+        <span class="s2">&quot;HPTS&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;atom_name&quot;</span><span class="p">:</span> <span class="s2">&quot;O7&quot;</span><span class="p">,</span> <span class="s2">&quot;canonical_name&quot;</span><span class="p">:</span> <span class="s2">&quot;HPTS&quot;</span><span class="p">}}</span>
+
+<span class="n">MEOH_MEOH2</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;MEOH&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;atom_name&quot;</span><span class="p">:</span> <span class="s2">&quot;O1&quot;</span><span class="p">,</span><span class="s2">&quot;canonical_name&quot;</span><span class="p">:</span> <span class="s2">&quot;MEOH&quot;</span><span class="p">},</span>
+        <span class="s2">&quot;MEOH2&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;atom_name&quot;</span><span class="p">:</span> <span class="s2">&quot;HO2&quot;</span><span class="p">,</span><span class="s2">&quot;canonical_name&quot;</span><span class="p">:</span> <span class="s2">&quot;MEOH&quot;</span><span class="p">}}</span>
+
+<span class="n">allowed_updates</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">allowed_updates</span><span class="p">[</span><span class="nb">frozenset</span><span class="p">([</span><span class="s2">&quot;IM1H&quot;</span><span class="p">,</span> <span class="s2">&quot;OAC&quot;</span><span class="p">])]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;r_max&quot;</span><span class="p">:</span> <span class="mf">0.155</span><span class="p">,</span> <span class="s2">&quot;prob&quot;</span><span class="p">:</span> <span class="mf">0.994</span><span class="p">}</span>
+<span class="n">allowed_updates</span><span class="p">[</span><span class="nb">frozenset</span><span class="p">([</span><span class="s2">&quot;IM1&quot;</span><span class="p">,</span> <span class="s2">&quot;HOAC&quot;</span><span class="p">])]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;r_max&quot;</span><span class="p">:</span> <span class="mf">0.155</span><span class="p">,</span> <span class="s2">&quot;prob&quot;</span><span class="p">:</span> <span class="mf">0.098</span><span class="p">}</span>
+<span class="n">allowed_updates</span><span class="p">[</span><span class="nb">frozenset</span><span class="p">([</span><span class="s2">&quot;IM1H&quot;</span><span class="p">,</span> <span class="s2">&quot;IM1&quot;</span><span class="p">])]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;r_max&quot;</span><span class="p">:</span> <span class="mf">0.155</span><span class="p">,</span> <span class="s2">&quot;prob&quot;</span><span class="p">:</span> <span class="mf">0.201</span><span class="p">}</span>
+<span class="n">allowed_updates</span><span class="p">[</span><span class="nb">frozenset</span><span class="p">([</span><span class="s2">&quot;HOAC&quot;</span><span class="p">,</span> <span class="s2">&quot;OAC&quot;</span><span class="p">])]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;r_max&quot;</span><span class="p">:</span> <span class="mf">0.155</span><span class="p">,</span> <span class="s2">&quot;prob&quot;</span><span class="p">:</span> <span class="mf">0.684</span><span class="p">}</span>
+<span class="n">allowed_updates</span><span class="p">[</span><span class="nb">frozenset</span><span class="p">([</span><span class="s2">&quot;HPTSH&quot;</span><span class="p">,</span> <span class="s2">&quot;OAC&quot;</span><span class="p">])]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;r_max&quot;</span><span class="p">:</span> <span class="mf">0.155</span><span class="p">,</span> <span class="s2">&quot;prob&quot;</span><span class="p">:</span> <span class="mf">1.000</span><span class="p">}</span>
+<span class="n">allowed_updates</span><span class="p">[</span><span class="nb">frozenset</span><span class="p">([</span><span class="s2">&quot;HPTSH&quot;</span><span class="p">,</span> <span class="s2">&quot;IM1&quot;</span><span class="p">])]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;r_max&quot;</span><span class="p">:</span> <span class="mf">0.155</span><span class="p">,</span> <span class="s2">&quot;prob&quot;</span><span class="p">:</span> <span class="mf">1.000</span><span class="p">}</span>
+<span class="c1">#allowed_updates[frozenset([&quot;HPTSH&quot;, &quot;HPTS&quot;])] = {&quot;r_max&quot;: 0.155, &quot;prob&quot;: 1.000}</span>
+<span class="c1">#allowed_updates[frozenset([&quot;HOAC&quot;, &quot;HPTS&quot;])] = {&quot;r_max&quot;: 0.155, &quot;prob&quot;: 1.000}</span>
+<span class="c1">#allowed_updates[frozenset([&quot;IM1H&quot;, &quot;HPTS&quot;])] = {&quot;r_max&quot;: 0.155, &quot;prob&quot;: 1.000}</span>
+<span class="n">allowed_updates</span><span class="p">[</span><span class="nb">frozenset</span><span class="p">([</span><span class="s2">&quot;HPTSH&quot;</span><span class="p">,</span> <span class="s2">&quot;MEOH&quot;</span><span class="p">])]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;r_max&quot;</span><span class="p">:</span> <span class="mf">0.155</span><span class="p">,</span> <span class="s2">&quot;prob&quot;</span><span class="p">:</span> <span class="mf">1.000</span><span class="p">}</span>
+<span class="n">allowed_updates</span><span class="p">[</span><span class="nb">frozenset</span><span class="p">([</span><span class="s2">&quot;MEOH2&quot;</span><span class="p">,</span> <span class="s2">&quot;MEOH&quot;</span><span class="p">])]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;r_max&quot;</span><span class="p">:</span> <span class="mf">0.155</span><span class="p">,</span> <span class="s2">&quot;prob&quot;</span><span class="p">:</span> <span class="mf">1.000</span><span class="p">}</span>
+<span class="n">allowed_updates</span><span class="p">[</span><span class="nb">frozenset</span><span class="p">([</span><span class="s2">&quot;MEOH2&quot;</span><span class="p">,</span> <span class="s2">&quot;IM1&quot;</span><span class="p">])]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;r_max&quot;</span><span class="p">:</span> <span class="mf">0.155</span><span class="p">,</span> <span class="s2">&quot;prob&quot;</span><span class="p">:</span> <span class="mf">1.000</span><span class="p">}</span>
+<span class="n">allowed_updates</span><span class="p">[</span><span class="nb">frozenset</span><span class="p">([</span><span class="s2">&quot;MEOH2&quot;</span><span class="p">,</span> <span class="s2">&quot;OAC&quot;</span><span class="p">])]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;r_max&quot;</span><span class="p">:</span> <span class="mf">0.155</span><span class="p">,</span> <span class="s2">&quot;prob&quot;</span><span class="p">:</span> <span class="mf">1.000</span><span class="p">}</span>
+
+
+<span class="n">templates</span> <span class="o">=</span> <span class="n">ProtexTemplates</span><span class="p">([</span><span class="n">OAC_HOAC</span><span class="p">,</span> <span class="n">IM1H_IM1</span><span class="p">,</span> <span class="n">HPTSH_HPTS</span><span class="p">,</span> <span class="n">MEOH_MEOH2</span><span class="p">],</span> <span class="n">allowed_updates</span><span class="p">)</span>
+<span class="n">ionic_liquid</span> <span class="o">=</span> <span class="n">ProtexSystem</span><span class="p">(</span><span class="n">simulation</span><span class="p">,</span> <span class="n">templates</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>To carry out tests, the new template needs to be  added to the test system explicitly, with the residue names and the atoms that are involved in the proton transfer:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">HPTSH_HPTS</span> <span class="o">=</span> <span class="p">{</span>
+   <span class="s2">&quot;HPTSH&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;atom_name&quot;</span><span class="p">:</span> <span class="s2">&quot;H7&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;canonical_name&quot;</span><span class="p">:</span> <span class="s2">&quot;HPTS&quot;</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;HPTS&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;atom_name&quot;</span><span class="p">:</span> <span class="s2">&quot;O7&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;canonical_name&quot;</span><span class="p">:</span> <span class="s2">&quot;HPTS&quot;</span><span class="p">,</span>
+    <span class="p">},</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Carry out simulations as described before.</p>
+<p>To analyse the diffusion of the extra protons, iterate through the updates and check whether the molecules carrying the protons underwent a proton transfer. In the end you should have a list of the residue index of the molecule carrying the proton for each time step and each proton that originally came from an HPTSH.
+You can use this list to index a selection of H atoms with <a class="reference external" href="https://www.mdanalysis.org/">MDAnalysis</a> and find the position of the protons while looping through the trajectories.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">u</span> <span class="o">=</span> <span class="n">MDAnalysis</span><span class="o">.</span><span class="n">Universe</span><span class="p">(</span><span class="n">psf</span><span class="p">,</span> <span class="n">dcd</span><span class="p">)</span>
+<span class="n">sel_h</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">select_atoms</span><span class="p">(</span><span class="s2">&quot;(resname IM1H and name H7) or (resname IM1 and name H7) or (resname OAC and name H) or (resname HOAC and name H) or (resname HPTS and name H7) or (resname HPTSH and name H7) or (resname MEOH and name HO2) or (resname MEOH2 and name HO2)&quot;</span><span class="p">)</span>
+<span class="n">sel_acid</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">select_atoms</span><span class="p">(</span><span class="s2">&quot;(resname HPTSH)&quot;</span><span class="p">)</span>
+<span class="n">n_acid</span> <span class="o">=</span><span class="n">s</span> <span class="n">el_acid</span><span class="o">.</span><span class="n">n_residues</span>
+<span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="n">ctr</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="k">for</span> <span class="n">ts</span><span class="p">,</span> <span class="n">step</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">trajectory</span><span class="p">[::</span><span class="n">skip</span><span class="p">],</span> <span class="nb">list</span><span class="p">(</span><span class="n">charge_steps</span><span class="p">)[::</span><span class="n">skip</span><span class="p">]):</span>
+
+    <span class="n">indices</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_acid</span><span class="p">):</span>
+        <span class="n">indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">h_idx</span><span class="p">[</span><span class="n">ctr</span><span class="p">][</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="n">sel_h_ts</span> <span class="o">=</span> <span class="n">sel_h</span><span class="p">[</span><span class="n">indices</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">n_acid</span><span class="p">):</span>
+        <span class="n">sel_h_ts</span> <span class="o">=</span> <span class="n">sel_h_ts</span> <span class="o">+</span> <span class="n">sel_h</span><span class="p">[</span><span class="n">indices</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>
+
+    <span class="n">pos_h</span><span class="p">[</span><span class="n">ctr</span><span class="p">]</span> <span class="o">=</span> <span class="n">sel_h_ts</span><span class="o">.</span><span class="n">positions</span>
+</pre></div>
+</div>
+<p>Then calculate the MSD using these coordinates.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="detailed_example.html" class="btn btn-neutral float-left" title="Detailed Example" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="api.html" class="btn btn-neutral float-right" title="API Documentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Florian Joerg &amp; Marcus Wieder. Project structure based on the Computational Molecular Science Python Cookiecutter version 1.5.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

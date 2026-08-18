@@ -339,7 +339,26 @@ class ProtexSystem:
 
     @classmethod
     def force_is_valid(cls, name: str) -> bool:
-        """Check if the given force name is covered."""
+        """
+        Check if the given force name is covered (or ignored by design) by protex.
+       
+        Parameters
+        ----------
+        name : str
+            The name of the force.
+
+        Returns
+        -------
+        bool
+            True if force is in COVERED_FORCES, IGNORED_FORCES or UNCOVERED_FORCES.
+
+        Raises
+        ------
+        warning
+            If force is in UNCOVERED_FORCES.
+        ProtexException
+            If force is neither in COVERED_FORCES, IGNORED_FORCES nor UNCOVERED_FORCES.
+        """
         if name in cls.COVERED_FORCES or name in cls.IGNORED_FORCES:
             return True
         elif name in cls.UNCOVERED_FORCES:

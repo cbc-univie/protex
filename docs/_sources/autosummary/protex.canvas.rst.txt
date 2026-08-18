@@ -1,0 +1,6 @@
+protex.canvas
+=============
+
+.. currentmodule:: protex
+
+.. autofunction:: canvas

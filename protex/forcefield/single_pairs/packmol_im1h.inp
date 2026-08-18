@@ -1,0 +1,12 @@
+tolerance 2.0
+seed -1
+
+
+filetype pdb
+output only_im1h_init.pdb
+
+structure ../pdb/im1h_min.pdb 
+  number 10 
+  inside box -3. -3. -3. 3. 3. 3.
+end structure
+

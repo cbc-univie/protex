@@ -1,0 +1,10 @@
+%nprocShared=4
+%mem=1000MB
+#p MP2/6-31G* NOSYMM OPT POP=(MK,DIPOLE) DENSITY=CURRENT
+
+ Created by FFParam 
+
+-1 1
+O1         0.4850000000         0.0000000000         0.0000000000 
+H1        -0.4850000000         0.0000000000         0.0000000000 
+

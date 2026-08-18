@@ -1,0 +1,34 @@
+protex.system.ProtexTemplates
+=============================
+
+.. currentmodule:: protex.system
+
+.. autoclass:: ProtexTemplates
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~ProtexTemplates.dump
+      ~ProtexTemplates.get_atom_name_for
+      ~ProtexTemplates.get_charge_template_for
+      ~ProtexTemplates.get_equivalent_atom_for
+      ~ProtexTemplates.get_residue_name_for_coupled_state
+      ~ProtexTemplates.get_update_value_for
+      ~ProtexTemplates.has_equivalent_atom
+      ~ProtexTemplates.load
+      ~ProtexTemplates.set_allowed_updates
+      ~ProtexTemplates.set_update_value_for
+   
+   
+
+   
+   
+   

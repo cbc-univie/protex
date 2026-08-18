@@ -1,0 +1,8 @@
+str /site/raid1/marta/max_09/toppar_dummy/oh_d_ffparam.str
+wd /site/raid1/marta/max_09/toppar_dummy
+ff drude
+resn OH
+charmm /home/marta/bin/charmm
+gauss
+lsfit
+cgenff /raid/kaushik/nsf/cgenff/2.2.0/lp/cgenff -r /raid/kaushik/nsf/cgenff/2.2.0/lp/cgenff.rules

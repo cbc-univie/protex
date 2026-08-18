@@ -1,0 +1,51 @@
+tolerance 2.0
+seed -1
+
+
+filetype pdb
+output all_init.pdb
+
+structure ../pdb/im1h_min.pdb 
+  number 1 
+  inside box -4. -4. -4. 4. 4. 4.
+end structure
+
+structure ../pdb/oac_min.pdb
+  number 1
+  inside box -4. -4. -4. 4. 4. 4.
+end structure
+
+structure ../pdb/im1_min.pdb 
+  number 1 
+  inside box -4. -4. -4. 4. 4. 4.
+end structure
+
+structure ../pdb/hoac_min.pdb
+  number 1
+  inside box -4. -4. -4. 4. 4. 4.
+end structure
+
+structure ../toh2/pdb/h2o.pdb 
+  number 1 
+  inside box -4. -4. -4. 4. 4. 4.
+end structure
+
+structure ../toh2/pdb/h3o.pdb
+  number 1
+  inside box -4. -4. -4. 4. 4. 4.
+end structure
+
+structure ../toh2/pdb/oh.pdb 
+  number 1 
+  inside box -4. -4. -4. 4. 4. 4.
+end structure
+
+structure ../toh2/pdb/cl.pdb
+  number 1
+  inside box -4. -4. -4. 4. 4. 4.
+end structure
+
+structure ../toh2/pdb/na.pdb
+  number 1
+  inside box -4. -4. -4. 4. 4. 4.
+end structure

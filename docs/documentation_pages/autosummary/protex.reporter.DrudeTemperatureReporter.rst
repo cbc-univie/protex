@@ -1,0 +1,26 @@
+protex.reporter.DrudeTemperatureReporter
+========================================
+
+.. currentmodule:: protex.reporter
+
+.. autoclass:: DrudeTemperatureReporter
+   :members:
+   :show-inheritance:
+   :inherited-members:
+   :special-members: __call__, __add__, __mul__
+
+   
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :nosignatures:
+   
+      ~DrudeTemperatureReporter.describeNextReport
+      ~DrudeTemperatureReporter.report
+   
+   
+
+   
+   
+   
