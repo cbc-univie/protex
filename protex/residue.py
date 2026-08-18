@@ -91,12 +91,12 @@ class Residue:
     def has_equivalent_atom(self) -> bool:
         """Determines if the current residue has an equivalent atom defined.
 
-        It depends i.e if the residue is currently OAC (-> two equivalent O's) or HOAC (no equivlent O's).
+        It depends i.e if the residue is currently OAC (-> two equivalent Os) or HOAC (no equivlent Os).
 
         Returns
         -------
         bool
-            True if this residue currently has an equivalent atom, else otherwise
+            True if this residue currently has an equivalent atom, False otherwise
         """
         return self.equivalent_atoms[self.current_name]
 
@@ -130,6 +130,11 @@ class Residue:
         Returns
         -------
         None
+
+        Raises
+        ------
+        RunTimeWorning
+            If a force name is given that is not covered
         """
         if force_name == "NonbondedForce":
             parms = self._get_NonbondedForce_parameters_at_lambda(lamb)

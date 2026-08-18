@@ -49,6 +49,8 @@ def load_charmm_files(
     boxl: float = None,
 ):
     """
+    Read data from CHARMM files into OpenMM objects.
+
     Parameters
     ----------
     psf_file : str
@@ -95,6 +97,8 @@ def setup_system(
     ensemble = "nVT"
 ):
     """
+    Set up the OpenMM system.
+
     Parameters
     ----------
     psf: CharmmPsfFile
@@ -183,6 +187,8 @@ def setup_simulation(
     cuda_precision: str = "single",
 ):
     """
+        Set up the OpenMM simulation object.
+
         Parameters
         ----------
         psf: CharmmPsfFile

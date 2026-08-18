@@ -101,23 +101,35 @@
 <dt class="sig sig-object py" id="protex.update.KeepHUpdate">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">protex.update.</span></span><span class="sig-name descname"><span class="pre">KeepHUpdate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ionic_liquid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="protex.system.ProtexSystem.html#protex.system.ProtexSystem" title="protex.system.ProtexSystem"><span class="pre">ProtexSystem</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_forces</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">to_adapt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">frozenset</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_equivalent_atom</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reorient</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">K</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">300</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/protex/update.html#KeepHUpdate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#protex.update.KeepHUpdate" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="protex.update.Update.html#protex.update.Update" title="protex.update.Update"><code class="xref py py-class docutils literal notranslate"><span class="pre">Update</span></code></a></p>
-<p>KeepHUpdate performs updates but uses the original H position
-keep the position of the original H when switching from dummy to real H.</p>
+<p>KeepHUpdate performs updates but uses the original H position.
+Keep the position of the original H when switching from dummy to real H.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ionic_liquid</strong> (<em>ProtexSystem</em>) – An instance of ProtexSystem</p></li>
+<li><p><strong>all_forces</strong> (<em>bool = False</em>) – Whether to update all forces or just the nonbonded forces.</p></li>
+<li><p><strong>to_adapt</strong> (<em>list[tuple[str, int, frozenset[str]]] | None = None</em>) – The number of the given species will be kept close to the given value by changing the probability of the given reaction. prob_new = prob_orig + K*( x(t) / x(eq) - 1)^3</p></li>
+<li><p><strong>include_equivalent_atom</strong> (<em>bool = False</em>) – Whether to consider equivalent atoms for the distance check.</p></li>
+<li><p><strong>reorient</strong> (<em>bool = False</em>) – Whether to reorient the molecule if the equivalent atom was used, or just switch the dummy atoms on/off.</p></li>
+<li><p><strong>K</strong> (<em>int = 300</em>) – The factor for adapting the probabilities based on the concentration of certain species.</p></li>
+</ul>
+</dd>
+</dl>
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#protex.update.KeepHUpdate.dump" title="protex.update.KeepHUpdate.dump"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dump</span></code></a></p></td>
-<td><p>Pickle an Update instance.</p></td>
+<td><p>Pickle a KeepHUpdate instance.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#protex.update.KeepHUpdate.load" title="protex.update.KeepHUpdate.load"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load</span></code></a></p></td>
-<td><p>Load a picklesUpdate instance.</p></td>
+<td><p>Load a pickled KeepHUpdate instance.</p></td>
 </tr>
 </tbody>
 </table>
 <dl class="py method">
 <dt class="sig sig-object py" id="protex.update.KeepHUpdate.dump">
 <span class="sig-name descname"><span class="pre">dump</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../../_modules/protex/update.html#KeepHUpdate.dump"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#protex.update.KeepHUpdate.dump" title="Link to this definition"></a></dt>
-<dd><p>Pickle an Update instance.</p>
+<dd><p>Pickle a KeepHUpdate instance.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>fname</strong> (<em>str</em>) – The file name</p>
@@ -128,7 +140,7 @@ keep the position of the original H when switching from dummy to real H.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="protex.update.KeepHUpdate.load">
 <span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">protex_system</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="protex.system.ProtexSystem.html#protex.system.ProtexSystem" title="protex.system.ProtexSystem"><span class="pre">ProtexSystem</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#protex.update.KeepHUpdate" title="protex.update.KeepHUpdate"><span class="pre">KeepHUpdate</span></a></span></span><a class="reference internal" href="../../_modules/protex/update.html#KeepHUpdate.load"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#protex.update.KeepHUpdate.load" title="Link to this definition"></a></dt>
-<dd><p>Load a picklesUpdate instance.</p>
+<dd><p>Load a pickled KeepHUpdate instance.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -140,7 +152,7 @@ keep the position of the original H when switching from dummy to real H.</p>
 <dd class="field-even"><p>An update instance</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="protex.update.Update.html#protex.update.Update" title="protex.update.Update">Update</a></p>
+<dd class="field-odd"><p><a class="reference internal" href="#protex.update.KeepHUpdate" title="protex.update.KeepHUpdate">KeepHUpdate</a></p>
 </dd>
 </dl>
 </dd></dl>

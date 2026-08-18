@@ -32,7 +32,7 @@ class Update(ABC):
     @staticmethod
     @abstractmethod
     def load(fname: str, protex_system: ProtexSystem) -> Update:
-        """Load a picklesUpdate instance.
+        """Load a pickled Update instance.
 
         Parameters
         ----------
@@ -107,7 +107,7 @@ class Update(ABC):
         self, to_adapt=list[tuple[str, int, frozenset[str]]]
     ) -> None:
         """Adapt the probability for certain events depending on the current equilibrium, in order to stay close to a given reference
-        i.e. prob_neu = prob_orig + K*( x(t) - x(eq) )^3 where x(t) is the current percentage in the system of one species.
+        i.e. prob_new = prob_orig + K*( x(t) / x(eq) - 1)^3 where x(t) is the current percentage in the system of one species.
 
         Parameters
         ----------
@@ -166,12 +166,41 @@ class Update(ABC):
 
 
 class KeepHUpdate(Update):
-    """KeepHUpdate performs updates but uses the original H position
-    keep the position of the original H when switching from dummy to real H.
+    """KeepHUpdate performs updates but uses the original H position. 
+    Keep the position of the original H when switching from dummy to real H.
+
+    Parameters
+    ----------
+    ionic_liquid: ProtexSystem
+        An instance of ProtexSystem
+    all_forces: bool = False
+        Whether to update all forces or just the nonbonded forces.
+    to_adapt: list[tuple[str, int, frozenset[str]]] | None = None
+        The number of the given species will be kept close to the given value by changing the probability of the given reaction. prob_new = prob_orig + K*( x(t) / x(eq) - 1)^3
+    include_equivalent_atom: bool = False
+        Whether to consider equivalent atoms for the distance check.
+    reorient: bool = False
+        Whether to reorient the molecule if the equivalent atom was used, or just switch the dummy atoms on/off.
+    K: int = 300
+        The factor for adapting the probabilities based on the concentration of certain species.
     """
 
     @staticmethod
     def load(fname, protex_system: ProtexSystem) -> KeepHUpdate:
+        """Load a pickled KeepHUpdate instance.
+        
+        Parameters
+        ----------
+        fname : str
+            The file name
+        protex_system : ProtexSystem
+            An instance of ProtexSystem, used to create the Update instance
+
+        Returns
+        -------
+        KeepHUpdate
+            An update instance
+        """
         with open(fname, "rb") as inp:
             from_pickle = pickle.load(inp)  # ensure correct order of arguments
         update = KeepHUpdate(protex_system, *from_pickle)
@@ -191,6 +220,13 @@ class KeepHUpdate(Update):
         )
 
     def dump(self, fname: str) -> None:
+        """Pickle a KeepHUpdate instance.
+    
+        Parameters
+        ----------
+        fname : str
+            The file name
+        """
         to_pickle = [
             self.all_forces,
             self.to_adapt,
@@ -202,9 +238,12 @@ class KeepHUpdate(Update):
             pickle.dump(to_pickle, outp, pickle.HIGHEST_PROTOCOL)
 
     def _reorient_atoms(self, candidate, positions, positions_copy):
-        # Function to reorient atoms if the equivalent atom was used for shortest distance
-        # exchange positions of atom and equivalent atom
-        # and set the position of the "new" H
+        """
+        Function to reorient atoms if the equivalent atom was used for shortest distance. 
+        Exchange positions of atom and equivalent atom and set the position of the "new" H.
+        
+        """
+        
         candidate1_residue, candidate2_residue = candidate
 
         # exchange positions of equivalent atoms
@@ -624,7 +663,7 @@ class StateUpdate:
             pickle.dump(to_pickle, outp, pickle.HIGHEST_PROTOCOL)
 
     def write_charges(self, filename: str) -> None:  # deprecated?
-        """Write current charges to a file.
+        """Write current charges to a file. Deprecated with ChargeReporter.
 
         Parameters
         ----------
@@ -639,9 +678,9 @@ class StateUpdate:
                     f"{atom.residue.name:>4}:{int(atom.id): 4}:{int(atom.residue.id): 4}:{atom.name:>4}:{charge}\n"
                 )
 
-    # instead of these to functions use the ChargeReporter probably
+    # instead of these two functions use the ChargeReporter probably
     def get_charges(self) -> list:  # deprecated?
-        """_summary_.
+        """ Get charges of all atoms in the system. Deprecated with ChargeReporter.
 
         Returns
         -------

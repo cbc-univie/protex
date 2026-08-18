@@ -184,10 +184,10 @@ Records the charge state of that residue</p></li>
 <dt class="sig sig-object py" id="protex.residue.Residue.has_equivalent_atom">
 <span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">has_equivalent_atom</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><a class="headerlink" href="#protex.residue.Residue.has_equivalent_atom" title="Link to this definition"></a></dt>
 <dd><p>Determines if the current residue has an equivalent atom defined.</p>
-<p>It depends i.e if the residue is currently OAC (-&gt; two equivalent O’s) or HOAC (no equivlent O’s).</p>
+<p>It depends i.e if the residue is currently OAC (-&gt; two equivalent Os) or HOAC (no equivlent Os).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>True if this residue currently has an equivalent atom, else otherwise</p>
+<dd class="field-odd"><p>True if this residue currently has an equivalent atom, False otherwise</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>bool</p>
@@ -208,6 +208,9 @@ Records the charge state of that residue</p></li>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>None</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>RunTimeWorning</strong> – If a force name is given that is not covered</p>
 </dd>
 </dl>
 </dd></dl>
