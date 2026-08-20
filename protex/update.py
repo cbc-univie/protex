@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import copy
 import logging
+import warnings
 import pickle
 import random
 from abc import ABC, abstractmethod
@@ -613,7 +614,17 @@ class NaiveMCUpdate(Update):
 
 
 class StateUpdate:
-    """Controls the update scheme and proposes the residues that need an update."""
+    """Controls the update scheme and proposes the residues that need an update.
+    
+    Parameters
+    ----------
+    updateMethod: Update
+        The update method to be used. At the moment NaiveMCUpdate or KeepHUpdate.
+    prob_function: str = None
+        The function to be used for scaling down the transfer probabilities for distances between r_min and r_max. 
+        Currently implemented: None (strict cutoff at r_max, ignores r_min), "linear", "cosine", and "tanh".
+
+    """
 
     @staticmethod
     def load(fname: str, updateMethod: Update) -> StateUpdate:
@@ -644,7 +655,11 @@ class StateUpdate:
         self.ionic_liquid: ProtexSystem = self.updateMethod.ionic_liquid
         self.history: deque = deque(maxlen=10)
         self.update_trial: int = 0
-        self.prob_function = prob_function
+        if prob_function in [None, "linear", "cosine", "tanh"]:
+            self.prob_function = prob_function
+        else:
+            warnings.warn(f"Probability scaling function {prob_function} not recognised. Typo? Not implemented? We will not use distance-based probability scaling.")
+            self.prob_function = None
 
     def dump(self, fname: str) -> None:
         """Pickle the StateUpdate instance.

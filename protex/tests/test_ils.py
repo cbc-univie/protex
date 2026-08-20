@@ -1246,6 +1246,67 @@ def test_count_forces():
                                 print(new_idx, "new force", f)
                 raise RuntimeError()
 
+def test_force_types():
+    # psf_for_parameters = f"{protex.__path__[0]}/forcefield/psf_for_parameters.psf"
+    # crd_for_parameters = f"{protex.__path__[0]}/forcefield/crd_for_parameters.crd"
+    # psf_file = f"{protex.__path__[0]}/forcefield/hpts.psf"
+
+    # simulation = generate_hpts_meoh_system(psf_file=psf_file)
+    # simulation_for_parameters = generate_hpts_meoh_system(
+    #    crd_file=crd_for_parameters, psf_file=psf_for_parameters
+    # )
+    simulation = generate_single_hpts_meoh_system(use_plugin=False)
+    simulation_for_parameters = generate_single_hpts_meoh_system(use_plugin=False)
+
+    allowed_updates = {}
+    allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.16, "prob": 1}
+    allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.16, "prob": 0.201}  # 1+2
+    allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.15, "prob": 0.684}  # 3+4
+    allowed_updates[frozenset(["HPTSH", "OAC"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["HPTSH", "IM1"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
+    allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.15, "prob": 1.000}
+    # allowed_updates[frozenset(["HPTSH", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
+    # allowed_updates[frozenset(["HOAC", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
+    # allowed_updates[frozenset(["IM1H", "HPTS"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["HPTSH", "MEOH"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "MEOH"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "IM1"])] = {"r_max": 0.155, "prob": 1.000}
+    allowed_updates[frozenset(["MEOH2", "OAC"])] = {"r_max": 0.155, "prob": 1.000}
+
+    templates = ProtexTemplates(
+        [OAC_HOAC, IM1H_IM1, HPTSH_HPTS, MEOH_MEOH2], (allowed_updates)
+    )
+    ionic_liquid = ProtexSystem(simulation_for_parameters, templates)
+
+    im1h = ionic_liquid.residues[0]
+    oac = ionic_liquid.residues[1]
+    im1 = ionic_liquid.residues[2]
+    hoac = ionic_liquid.residues[3]
+    hpts = ionic_liquid.residues[4]
+    hptsh = ionic_liquid.residues[5]
+    meoh = ionic_liquid.residues[6]
+    meoh2 = ionic_liquid.residues[7]
+
+    ### change res and pair (alternative of res) to test different molecules
+    res = meoh
+    pair = meoh2
+
+    offset = res._get_offset(res.current_name)
+    offset_pair = pair._get_offset(pair.current_name)
+
+    for i in range(0, len(ionic_liquid.residues)):
+        print(ionic_liquid.residues[i].current_name)
+   
+        for old_idx, old_parm in enumerate(
+            res.parameters[res.current_name]
+        ):
+            print(old_idx, old_parm)
+
+    raise AssertionError("let's stop here")
+
 
 @pytest.mark.skipif(
     os.getenv("CI") == "true",
