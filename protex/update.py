@@ -12,9 +12,9 @@ import numpy as np
 from scipy.spatial import distance_matrix
 
 try:
-    from openmm.unit import nanometers
+    from openmm.unit import nanometers, kilojoules_per_mole
 except ImportError:
-    from simtk.unit import nanometers
+    from simtk.unit import nanometers, kilojoules_per_mole
 
 from protex.residue import Residue
 from protex.system import ProtexSystem
@@ -84,7 +84,7 @@ class Update(ABC):
         self.allowed_forces = list(set(allowed_forces).intersection(self.ionic_liquid.detected_forces))
         discarded = set(allowed_forces).difference(self.ionic_liquid.detected_forces)
         if discarded:
-            print(f"Discarded the following forces, becuase they are not in the system: {', '.join(discarded)}")
+            print(f"Discarded the following forces, because they are not in the system: {', '.join(discarded)}")
         available = set(self.ionic_liquid.detected_forces).difference(set(allowed_forces))
         if available:
             print(f"The following forces are available but not updated: {', '.join(available)}")
@@ -380,6 +380,15 @@ class KeepHUpdate(Update):
         # get current state
         state = self.ionic_liquid.simulation.context.getState(getEnergy=True)
         # get initial energy
+        old_names = []
+        old_values = []
+        for f in self.ionic_liquid.simulation.system.getForces():
+            group = f.getForceGroup()
+            group_state = self.ionic_liquid.simulation.context.getState(getEnergy=True, groups={group})
+            old_names.append(f"{f.getName()} (kJ/mol)")
+            old_values.append(
+                group_state.getPotentialEnergy().value_in_unit(kilojoules_per_mole)
+            )
         initial_e = state.getPotentialEnergy()
         if np.isnan(initial_e._value):
             raise RuntimeError(f"Energy is {initial_e}")
@@ -482,7 +491,20 @@ class KeepHUpdate(Update):
         # get new energy
         state = self.ionic_liquid.simulation.context.getState(getEnergy=True)
         new_e = state.getPotentialEnergy()
-        logger.info(f"Energy before/after state change:{initial_e}/{new_e}")
+        new_names = []
+        new_values = []
+        for f in self.ionic_liquid.simulation.system.getForces():
+            group = f.getForceGroup()
+            group_state = self.ionic_liquid.simulation.context.getState(getEnergy=True, groups={group})
+            new_names.append(f"{f.getName()} (kJ/mol)")
+            new_values.append(
+                group_state.getPotentialEnergy().value_in_unit(kilojoules_per_mole)
+            )
+        assert(old_names == new_names)
+        logger.info("Energies before / after state change")
+        logger.info(f"Potential energy: {initial_e} / {new_e}")
+        for i in range(0,len(old_names)):
+            logger.info(f"{old_names[i]}: {old_values[i]} / {new_values[i]}")
 
 
 class NaiveMCUpdate(Update):

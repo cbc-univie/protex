@@ -290,7 +290,7 @@ def setup_simulation(
         simulation.context.setVelocitiesToTemperature(300 * kelvin)
     if dummies is not None:
         # set nonbonded parameters including dummy zero again.
-        # had to be  zero durin creating becuase of:
+        # had to be  zero during creating because of:
         # openmm.OpenMMException: updateParametersInContext: The set of non-excluded exceptions has changed
         nonbonded_force = [
             f for f in simulation.system.getForces() if isinstance(f, mm.NonbondedForce)
