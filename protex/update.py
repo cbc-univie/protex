@@ -328,6 +328,17 @@ class KeepHUpdate(Update):
                 )
             )
 
+            # also swap drudes, maybe this will stop DrudeForce from spiking at transfer with equivalent atoms
+            idx_drude = acceptor.get_idx_for_atom_name(
+                self.ionic_liquid.templates.get_atom_name_for(acceptor.current_name)
+            ) + 1 # drude is next in psf after parent atom
+            idx_equivalent_drude = idx_acceptor_atom + 1 # if used_equivalent_atom == True, acceptor_atom is the equivalent_atom
+            pos_drude = positions_copy[idx_drude]
+            pos_equivalent_drude = positions_copy[idx_equivalent_drude]
+            
+            positions[idx_drude] = pos_equivalent_drude
+            positions[idx_equivalent_drude] = pos_drude
+
         else:
             idx_acceptor_atom = acceptor.get_idx_for_atom_name(
                 self.ionic_liquid.templates.get_atom_name_for(acceptor.current_name)

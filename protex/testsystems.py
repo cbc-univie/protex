@@ -7,6 +7,7 @@ try:  # Syntax changed in OpenMM 7.6
     from openmm import (
         Context,
         DrudeNoseHooverIntegrator,
+        DrudeLangevinIntegrator,
         MonteCarloBarostat,
         OpenMMException,
         Platform,
@@ -184,7 +185,7 @@ def setup_simulation(
     dummies: list[tuple[str, str]] = [("IM1", "H7"), ("OAC", "H")],
     use_plugin: bool = True,
     platformname: str = "CUDA",
-    cuda_precision: str = "single",
+    cuda_precision: str = "mixed" #"single",
 ):
     """
         Set up the OpenMM simulation object.
@@ -242,6 +243,16 @@ def setup_simulation(
         )
         print("Using built in DrudeNoseHooverIntegrator")
         print("Some tests might fail")
+
+        # integrator = DrudeLangevinIntegrator(
+        #     300 * kelvin,
+        #     coll_freq / picoseconds,
+        #     1 * kelvin,
+        #     drude_coll_freq / picoseconds,
+        #     0.0005 * picoseconds,
+        # )
+        # print("Using built in DrudeLangevinIntegrator")
+        # print("Some tests might fail")
 
     # print(
     #    f"{coll_freq=}, {drude_coll_freq=}"
