@@ -185,7 +185,7 @@ def setup_simulation(
     dummies: list[tuple[str, str]] = [("IM1", "H7"), ("OAC", "H")],
     use_plugin: bool = True,
     platformname: str = "CUDA",
-    cuda_precision: str = "mixed" #"single",
+    cuda_precision: str = "single",
 ):
     """
         Set up the OpenMM simulation object.
