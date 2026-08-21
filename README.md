@@ -1,4 +1,4 @@
-[//]: # (Badges)
+<!-- [//]: # (Badges)
 [![CI](https://github.com/cbc-univie/protex/actions/workflows/CI.yaml/badge.svg)](https://github.com/cbc-univie/protex/actions/workflows/CI.yaml)
 [![codecov](https://codecov.io/gh/florianjoerg/protex/branch/main/graph/badge.svg?token=ddqu0BzewU)](https://codecov.io/gh/florianjoerg/protex)
 [![Github release](https://badgen.net/github/release/cbc-univie/protex)](https://github.com/cbc-univie/protex/releases/)
@@ -12,7 +12,7 @@
 [//]: <[![Github tag](https://badgen.net/github/tag/florianj77/protex)](https://github.com/florianj77/protex/tags/)>
 [//]: <[![GitHub issues](https://img.shields.io/github/issues/florianj77/protex?style=flat)](https://github.com/florianj77/protex/issues)>
 [//]: <[![GitHub stars](https://img.shields.io/github/stars/florianj77/protex)](https://github.com/florianj77/protex/stargazers)>
-[//]: <[![codecov](https://codecov.io/gh/florianj77/protex/branch/main/graph/badge.svg?token=ddqu0BzewU)](https://codecov.io/gh/florianj77/protex)>
+[//]: <[![codecov](https://codecov.io/gh/florianj77/protex/branch/main/graph/badge.svg?token=ddqu0BzewU)](https://codecov.io/gh/florianj77/protex)> -->
 
 <p align="center">
  <a href="https://florianjoerg.github.io/protex" target="_blank" rel="noopener noreferrer">
@@ -20,15 +20,11 @@
  </a>
 </p>
 
-Protex enables proton exchange in solvent molecules using openMM. The simulations are augmented by possible (de-)protonation events using a single topology approach with two different λ-states.[^1]
+Protex enables proton exchange in solvent molecules using OpenMM. The simulations are augmented by possible (de-)protonation events using a single topology approach with two different λ-states.[^1]
 
 ## Installation
 
-protex can be easily installed from conda-forge:
-```
-conda install protex -c conda-forge
-```
-Alternatively clone this repo and install from source:
+Clone this repo and install from source:
 ```
 git clone https://github.com/cbc-univie/protex.git
 cd protex
@@ -40,8 +36,8 @@ Please see the [documentation](https://cbc-univie.github.io/protex/) for usage e
 
 ## Maintainers
 
-- Florian Jörg <florian.joerg@univie.ac.at> (University of Vienna)
-- Márta Gödeny (University of Vienna)
+- Márta Gődény <marta.goedeny@univie.ac.at> (University of Vienna)
+- Jonathan Netsch <jonathan.netsch@univie.ac.at> (University of Vienna)
 
 ### Copyright
 
