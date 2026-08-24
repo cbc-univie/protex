@@ -183,9 +183,9 @@ def setup_simulation(
     coll_freq: int = 10,
     drude_coll_freq: int = 100,
     dummies: list[tuple[str, str]] = [("IM1", "H7"), ("OAC", "H")],
-    use_plugin: bool = True,
+    integrator_name: str = "DNH", # VVI: VelocityVerlet plugin, DNH: DrudeNoseHoover, DL: Drudelangevin
     platformname: str = "CUDA",
-    cuda_precision: str = "single",
+    cuda_precision: str = "mixed" #"single",
 ):
     """
         Set up the OpenMM simulation object.
@@ -206,8 +206,8 @@ def setup_simulation(
             The frequency of the Drude particles' interaction with the heat bath (inverse picoseconds).
         dummies: list[tuple[str, str]] = [("IM1", "H7"), ("OAC", "H")]
             Atom names of the dummy atoms for each residue with dummy atoms.
-        use_plugin: bool = True
-            Whether the VVIntegrator plugin should be used. If False, the DrudeNoseHoover integrator will be used.
+        integrator_name: str = "DNH"
+            Which integrator to use. Currently implemented: "VVI": VelocityVerlet plugin, "DNH": DrudeNoseHoover, "DL": DrudeLangevin
         platformname: str = "CUDA"
             Which platform to use. The VVI plugin only works on CUDA.
         cuda_precision: str = "single"
@@ -217,11 +217,10 @@ def setup_simulation(
         -------
         The OpenMM simulation object.
         """
-    if use_plugin and platformname != "CUDA":
-        assert "Plugin only available with CUDA"
-    if use_plugin:
-        # plugin
-        # https://github.com/z-gong/openmm-velocityVerlet
+    if integrator_name == "VVI":
+        if platformname != "CUDA":
+            assert "VVI Plugin only available with CUDA"
+        
         from velocityverletplugin import VVIntegrator
 
         # temperature grouped nose hoover thermostat
@@ -233,7 +232,20 @@ def setup_simulation(
             0.0005 * picoseconds,
         )
         print("Using VVIntegrator Plugin")
-    else:
+
+    elif integrator_name == "DL":
+
+        integrator = DrudeLangevinIntegrator(
+            300 * kelvin,
+            coll_freq / picoseconds,
+            1 * kelvin,
+            drude_coll_freq / picoseconds,
+            0.0005 * picoseconds,
+        )
+        print("Using built in DrudeLangevinIntegrator")
+        print("Some tests might fail")
+
+    elif integrator_name == "DNH":
         integrator = DrudeNoseHooverIntegrator(
             300 * kelvin,
             coll_freq / picoseconds,
@@ -244,15 +256,16 @@ def setup_simulation(
         print("Using built in DrudeNoseHooverIntegrator")
         print("Some tests might fail")
 
-        # integrator = DrudeLangevinIntegrator(
-        #     300 * kelvin,
-        #     coll_freq / picoseconds,
-        #     1 * kelvin,
-        #     drude_coll_freq / picoseconds,
-        #     0.0005 * picoseconds,
-        # )
-        # print("Using built in DrudeLangevinIntegrator")
-        # print("Some tests might fail")
+    else:
+        integrator = DrudeNoseHooverIntegrator(
+            300 * kelvin,
+            coll_freq / picoseconds,
+            1 * kelvin,
+            drude_coll_freq / picoseconds,
+            0.0005 * picoseconds,
+        )
+        print(f"Integrator name {integrator_name} not recognised. Currently available: DNH (DrudeNoseHoover), DL (DrudeLangevin), VVI (velocityVerlet plugin). Using built in DrudeNoseHooverIntegrator")
+        print("Some tests might fail")
 
     # print(
     #    f"{coll_freq=}, {drude_coll_freq=}"
@@ -336,7 +349,7 @@ def generate_complete_system(
     drude_coll_freq: int,
     dummy_atom_type: str,
     dummies: list[tuple[str, str]],
-    use_plugin: bool,
+    integrator_name: str = "DNH",
     ensemble = "nVT"
 ):
     """
@@ -361,7 +374,7 @@ def generate_complete_system(
         coll_freq=coll_freq,
         drude_coll_freq=drude_coll_freq,
         dummies=dummies,
-        use_plugin=use_plugin,
+        integrator_name=integrator_name,
     )
 
     return simulation
@@ -378,7 +391,7 @@ def generate_complete_system(
 #     drude_coll_freq: int=100,
 #     dummy_atom_type: str="DUMH",
 #     dummies: list[tuple[str,str]]=[("IM1", "H7"), ("OAC", "H")],
-#     use_plugin: bool =True
+#     integrator_name: bool =True
 # ):
 #     """Set up a solvated and parametrized system for IM1H/OAC."""
 #     base = f"{protex.__path__[0]}/forcefield/dummy"
@@ -411,7 +424,7 @@ def generate_complete_system(
 #         drude_coll_freq=drude_coll_freq,
 #         dummy_atom_type=dummy_atom_type,
 #         dummies=dummies,
-#         use_plugin =use_plugin
+#         integrator_name =integrator_name
 #     )
 
 #     return simulation
@@ -428,7 +441,7 @@ def generate_im1h_oac_system(
     drude_coll_freq: int = 100,
     dummy_atom_type: str = "DUMH",
     dummies: list[tuple[str, str]] = [("IM1", "H7"), ("OAC", "HO1")],
-    use_plugin: bool = True,
+    integrator_name: str = "DNH",
     platformname="CUDA",
     cuda_precision="single",
     ensemble = "nVT"
@@ -470,7 +483,7 @@ def generate_im1h_oac_system(
         coll_freq=coll_freq,
         drude_coll_freq=drude_coll_freq,
         dummies=dummies,
-        use_plugin=use_plugin,
+        integrator_name=integrator_name,
         platformname=platformname,
         cuda_precision=cuda_precision,
     )
@@ -489,7 +502,7 @@ def generate_h2o_system(
     drude_coll_freq: int = 100,
     dummy_atom_type: str = "DUMH",
     dummies: list[tuple[str, str]] = [("IM1", "H7"), ("OAC", "H")],
-    use_plugin: bool = True,
+    integrator_name: str = "DNH",
     platformname="CUDA",
     cuda_precision="single",
     ensemble = "nVT"
@@ -538,7 +551,7 @@ def generate_h2o_system(
         coll_freq=coll_freq,
         drude_coll_freq=drude_coll_freq,
         dummies=dummies,
-        use_plugin=use_plugin,
+        integrator_name=integrator_name,
         platformname=platformname,
         cuda_precision=cuda_precision,
     )
@@ -557,7 +570,7 @@ def generate_tfa_system(
     drude_coll_freq: int = 100,
     dummy_atom_type: str = "DUMH",
     dummies: list[tuple[str, str]] = [("IM1", "H7"), ("OAC", "H")],
-    use_plugin: bool = True,
+    integrator_name: str = "DNH",
     tfa_percent: int = 10,
     ensemble = "nVT"
 ):
@@ -599,7 +612,7 @@ def generate_tfa_system(
         coll_freq=coll_freq,
         drude_coll_freq=drude_coll_freq,
         dummies=dummies,
-        use_plugin=use_plugin,
+        integrator_name=integrator_name,
     )
 
     return simulation
@@ -617,7 +630,7 @@ def generate_small_box(
     drude_coll_freq: int = 100,
     dummy_atom_type: str = "DUMH",
     dummies: list[tuple[str, str]] = [("IM1", "H7"), ("OAC", "H")],
-    use_plugin: bool = True,
+    integrator_name: str = "DNH",
     platformname="CUDA",
     cuda_precision="single",
     ensemble = "nVT"
@@ -659,7 +672,7 @@ def generate_small_box(
         coll_freq=coll_freq,
         drude_coll_freq=drude_coll_freq,
         dummies=dummies,
-        use_plugin=use_plugin,
+        integrator_name=integrator_name,
         platformname=platformname,
         cuda_precision=cuda_precision,
     )
@@ -678,7 +691,7 @@ def generate_single_im1h_oac_system(  # does not have dummies
     drude_coll_freq: int = 100,
     dummy_atom_type: str = None,  # "DUMH",
     dummies: list[tuple[str, str]] = None,  # [("IM1", "H7"), ("OAC", "H")]
-    use_plugin: bool = True,
+    integrator_name: str = "DNH",
     platformname="CUDA",
     cuda_precision="single",
     ensemble = "nVT"
@@ -723,7 +736,7 @@ def generate_single_im1h_oac_system(  # does not have dummies
         coll_freq=coll_freq,
         drude_coll_freq=drude_coll_freq,
         dummies=dummies,
-        use_plugin=use_plugin,
+        integrator_name=integrator_name,
         platformname=platformname,
         cuda_precision=cuda_precision,
     )
@@ -742,7 +755,7 @@ def generate_im1h_oac_dummy_system(
     drude_coll_freq=100,
     dummy_atom_type: str = "DUMH",
     dummies: list[tuple[str, str]] = [("IM1", "H7"), ("OAC", "H")], # NOTE: take care if it is H or HO1 
-    use_plugin: bool = True,
+    integrator_name: str = "DNH",
     ensemble = "nVT"
 ):
     """Set up a solvated and parametrized system for IM1H/OAC."""
@@ -779,7 +792,7 @@ def generate_im1h_oac_dummy_system(
         coll_freq=coll_freq,
         drude_coll_freq=drude_coll_freq,
         dummies=dummies,
-        use_plugin=use_plugin,
+        integrator_name=integrator_name,
     )
 
     return simulation
@@ -797,7 +810,7 @@ def generate_hpts_system(  # not in use? -> delete?
     drude_coll_freq: int = 100,
     dummy_atom_type: str = "DUMH",
     dummies: list[tuple[str, str]] = [("IM1", "H7"), ("OAC", "H"), ("HPTS", "H7")],
-    use_plugin: bool = True,
+    integrator_name: str = "DNH",
     ensemble = "nVT"
 ):
     """Set up a solvated and parametrized system for IM1H/OAC/HPTS."""
@@ -840,7 +853,7 @@ def generate_hpts_system(  # not in use? -> delete?
         coll_freq=coll_freq,
         drude_coll_freq=drude_coll_freq,
         dummies=dummies,
-        use_plugin=use_plugin,
+        integrator_name=integrator_name,
     )
 
     return simulation
@@ -862,7 +875,7 @@ def generate_hpts_meoh_system(
         ("HPTS", "H7"),
         ("MEOH", "HO2"),
     ],
-    use_plugin: bool = True,
+    integrator_name: str = "DNH",
     ensemble = "nVT"
 ):
     """Set up a solvated and parametrized system for IM1H/OAC/HPTS/MEOH."""
@@ -903,7 +916,7 @@ def generate_hpts_meoh_system(
         coll_freq=coll_freq,
         drude_coll_freq=drude_coll_freq,
         dummies=dummies,
-        use_plugin=use_plugin,
+        integrator_name=integrator_name,
     )
 
     return simulation
@@ -925,7 +938,7 @@ def generate_hpts_meoh_lj04_system(
         ("HPTS", "H7"),
         ("MEOH", "HO2"),
     ],
-    use_plugin: bool = True,
+    integrator_name: str = "DNH",
     ensemble = "nVT"
 ):
     """Set up a solvated and parametrized system for IM1H/OAC/HPTS/MEOH."""
@@ -966,7 +979,7 @@ def generate_hpts_meoh_lj04_system(
         coll_freq=coll_freq,
         drude_coll_freq=drude_coll_freq,
         dummies=dummies,
-        use_plugin=use_plugin,
+        integrator_name=integrator_name,
     )
 
     return simulation
@@ -985,7 +998,7 @@ def generate_im1h_fora_system(
         ("IM1", "H7"),
         ("FORA", "HO1"),
     ],
-    use_plugin: bool = True,
+    integrator_name: str = "DNH",
     ensemble = "nVT"
 ):
     """Set up a solvated and parametrized system for IM1H/FORA."""
@@ -1022,7 +1035,7 @@ def generate_im1h_fora_system(
         coll_freq=coll_freq,
         drude_coll_freq=drude_coll_freq,
         dummies=dummies,
-        use_plugin=use_plugin,
+        integrator_name=integrator_name,
     )
 
     return simulation
@@ -1041,7 +1054,7 @@ def generate_im1h_proa_system(
         ("IM1", "H7"),
         ("PROA", "H6", "H7"),
     ],
-    use_plugin: bool = True,
+    integrator_name: str = "DNH",
     ensemble = "nVT"
 ):
     """Set up a solvated and parametrized system for IM1H/PROA."""
@@ -1078,7 +1091,7 @@ def generate_im1h_proa_system(
         coll_freq=coll_freq,
         drude_coll_freq=drude_coll_freq,
         dummies=dummies,
-        use_plugin=use_plugin,
+        integrator_name=integrator_name,
     )
 
     return simulation
@@ -1097,7 +1110,7 @@ def generate_im1h_buta_system(
         ("IM1", "H7"),
         ("PROA", "H8", "H9"),
     ],
-    use_plugin: bool = True,
+    integrator_name: str = "DNH",
     ensemble = "nVT"
 ):
     """Set up a solvated and parametrized system for IM1H/BUTA."""
@@ -1134,7 +1147,7 @@ def generate_im1h_buta_system(
         coll_freq=coll_freq,
         drude_coll_freq=drude_coll_freq,
         dummies=dummies,
-        use_plugin=use_plugin,
+        integrator_name=integrator_name,
     )
 
     return simulation
@@ -1153,7 +1166,7 @@ def generate_eimh_oac_system(
         ("EIM", "H4"),
         ("OAC", "HO2"),
     ],
-    use_plugin: bool = True,
+    integrator_name: str = "DNH",
     ensemble = "nVT"
 ):
     """Set up a solvated and parametrized system for EIMH/OAC."""
@@ -1190,7 +1203,7 @@ def generate_eimh_oac_system(
         coll_freq=coll_freq,
         drude_coll_freq=drude_coll_freq,
         dummies=dummies,
-        use_plugin=use_plugin,
+        integrator_name=integrator_name,
     )
 
     return simulation
@@ -1213,7 +1226,7 @@ def generate_single_hpts_meoh_system(
         ("HPTS", "H7"),
         ("MEOH", "HO2"),
     ],
-    use_plugin=True,
+    integrator_name=True,
     ensemble = "nVT"
 ):
     """Set up a solvated and parametrized system for IM1H/OAC."""
@@ -1257,7 +1270,7 @@ def generate_single_hpts_meoh_system(
         coll_freq=coll_freq,
         drude_coll_freq=drude_coll_freq,
         dummies=dummies,
-        use_plugin=use_plugin,
+        integrator_name=integrator_name,
     )
 
     return simulation
