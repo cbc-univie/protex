@@ -84,6 +84,7 @@
     <span class="kn">from</span><span class="w"> </span><span class="nn">openmm</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
         <span class="n">Context</span><span class="p">,</span>
         <span class="n">DrudeNoseHooverIntegrator</span><span class="p">,</span>
+        <span class="n">DrudeLangevinIntegrator</span><span class="p">,</span>
         <span class="n">MonteCarloBarostat</span><span class="p">,</span>
         <span class="n">OpenMMException</span><span class="p">,</span>
         <span class="n">Platform</span><span class="p">,</span>
@@ -267,9 +268,9 @@
     <span class="n">coll_freq</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
     <span class="n">drude_coll_freq</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
     <span class="n">dummies</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">&quot;IM1&quot;</span><span class="p">,</span> <span class="s2">&quot;H7&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;OAC&quot;</span><span class="p">,</span> <span class="s2">&quot;H&quot;</span><span class="p">)],</span>
-    <span class="n">use_plugin</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">integrator_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;DNH&quot;</span><span class="p">,</span> <span class="c1"># VVI: VelocityVerlet plugin, DNH: DrudeNoseHoover, DL: Drudelangevin</span>
     <span class="n">platformname</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;CUDA&quot;</span><span class="p">,</span>
-    <span class="n">cuda_precision</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;single&quot;</span><span class="p">,</span>
+    <span class="n">cuda_precision</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;mixed&quot;</span> <span class="c1">#&quot;single&quot;,</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Set up the OpenMM simulation object.</span>
@@ -290,8 +291,8 @@
 <span class="sd">            The frequency of the Drude particles&#39; interaction with the heat bath (inverse picoseconds).</span>
 <span class="sd">        dummies: list[tuple[str, str]] = [(&quot;IM1&quot;, &quot;H7&quot;), (&quot;OAC&quot;, &quot;H&quot;)]</span>
 <span class="sd">            Atom names of the dummy atoms for each residue with dummy atoms.</span>
-<span class="sd">        use_plugin: bool = True</span>
-<span class="sd">            Whether the VVIntegrator plugin should be used. If False, the DrudeNoseHoover integrator will be used.</span>
+<span class="sd">        integrator_name: str = &quot;DNH&quot;</span>
+<span class="sd">            Which integrator to use. Currently implemented: &quot;VVI&quot;: VelocityVerlet plugin, &quot;DNH&quot;: DrudeNoseHoover, &quot;DL&quot;: DrudeLangevin</span>
 <span class="sd">        platformname: str = &quot;CUDA&quot;</span>
 <span class="sd">            Which platform to use. The VVI plugin only works on CUDA.</span>
 <span class="sd">        cuda_precision: str = &quot;single&quot;</span>
@@ -301,11 +302,10 @@
 <span class="sd">        -------</span>
 <span class="sd">        The OpenMM simulation object.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">use_plugin</span> <span class="ow">and</span> <span class="n">platformname</span> <span class="o">!=</span> <span class="s2">&quot;CUDA&quot;</span><span class="p">:</span>
-        <span class="k">assert</span> <span class="s2">&quot;Plugin only available with CUDA&quot;</span>
-    <span class="k">if</span> <span class="n">use_plugin</span><span class="p">:</span>
-        <span class="c1"># plugin</span>
-        <span class="c1"># https://github.com/z-gong/openmm-velocityVerlet</span>
+    <span class="k">if</span> <span class="n">integrator_name</span> <span class="o">==</span> <span class="s2">&quot;VVI&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">platformname</span> <span class="o">!=</span> <span class="s2">&quot;CUDA&quot;</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="s2">&quot;VVI Plugin only available with CUDA&quot;</span>
+        
         <span class="kn">from</span><span class="w"> </span><span class="nn">velocityverletplugin</span><span class="w"> </span><span class="kn">import</span> <span class="n">VVIntegrator</span>
 
         <span class="c1"># temperature grouped nose hoover thermostat</span>
@@ -317,7 +317,20 @@
             <span class="mf">0.0005</span> <span class="o">*</span> <span class="n">picoseconds</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Using VVIntegrator Plugin&quot;</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
+
+    <span class="k">elif</span> <span class="n">integrator_name</span> <span class="o">==</span> <span class="s2">&quot;DL&quot;</span><span class="p">:</span>
+
+        <span class="n">integrator</span> <span class="o">=</span> <span class="n">DrudeLangevinIntegrator</span><span class="p">(</span>
+            <span class="mi">300</span> <span class="o">*</span> <span class="n">kelvin</span><span class="p">,</span>
+            <span class="n">coll_freq</span> <span class="o">/</span> <span class="n">picoseconds</span><span class="p">,</span>
+            <span class="mi">1</span> <span class="o">*</span> <span class="n">kelvin</span><span class="p">,</span>
+            <span class="n">drude_coll_freq</span> <span class="o">/</span> <span class="n">picoseconds</span><span class="p">,</span>
+            <span class="mf">0.0005</span> <span class="o">*</span> <span class="n">picoseconds</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Using built in DrudeLangevinIntegrator&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Some tests might fail&quot;</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">integrator_name</span> <span class="o">==</span> <span class="s2">&quot;DNH&quot;</span><span class="p">:</span>
         <span class="n">integrator</span> <span class="o">=</span> <span class="n">DrudeNoseHooverIntegrator</span><span class="p">(</span>
             <span class="mi">300</span> <span class="o">*</span> <span class="n">kelvin</span><span class="p">,</span>
             <span class="n">coll_freq</span> <span class="o">/</span> <span class="n">picoseconds</span><span class="p">,</span>
@@ -326,6 +339,17 @@
             <span class="mf">0.0005</span> <span class="o">*</span> <span class="n">picoseconds</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Using built in DrudeNoseHooverIntegrator&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Some tests might fail&quot;</span><span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">integrator</span> <span class="o">=</span> <span class="n">DrudeNoseHooverIntegrator</span><span class="p">(</span>
+            <span class="mi">300</span> <span class="o">*</span> <span class="n">kelvin</span><span class="p">,</span>
+            <span class="n">coll_freq</span> <span class="o">/</span> <span class="n">picoseconds</span><span class="p">,</span>
+            <span class="mi">1</span> <span class="o">*</span> <span class="n">kelvin</span><span class="p">,</span>
+            <span class="n">drude_coll_freq</span> <span class="o">/</span> <span class="n">picoseconds</span><span class="p">,</span>
+            <span class="mf">0.0005</span> <span class="o">*</span> <span class="n">picoseconds</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Integrator name </span><span class="si">{</span><span class="n">integrator_name</span><span class="si">}</span><span class="s2"> not recognised. Currently available: DNH (DrudeNoseHoover), DL (DrudeLangevin), VVI (velocityVerlet plugin). Using built in DrudeNoseHooverIntegrator&quot;</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Some tests might fail&quot;</span><span class="p">)</span>
 
     <span class="c1"># print(</span>
@@ -375,7 +399,7 @@
         <span class="n">simulation</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">setVelocitiesToTemperature</span><span class="p">(</span><span class="mi">300</span> <span class="o">*</span> <span class="n">kelvin</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">dummies</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="c1"># set nonbonded parameters including dummy zero again.</span>
-        <span class="c1"># had to be  zero durin creating becuase of:</span>
+        <span class="c1"># had to be  zero during creating because of:</span>
         <span class="c1"># openmm.OpenMMException: updateParametersInContext: The set of non-excluded exceptions has changed</span>
         <span class="n">nonbonded_force</span> <span class="o">=</span> <span class="p">[</span>
             <span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">simulation</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">getForces</span><span class="p">()</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">mm</span><span class="o">.</span><span class="n">NonbondedForce</span><span class="p">)</span>
@@ -413,7 +437,7 @@
     <span class="n">drude_coll_freq</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="n">dummy_atom_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">dummies</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]],</span>
-    <span class="n">use_plugin</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+    <span class="n">integrator_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;DNH&quot;</span><span class="p">,</span>
     <span class="n">ensemble</span> <span class="o">=</span> <span class="s2">&quot;nVT&quot;</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -438,7 +462,7 @@
         <span class="n">coll_freq</span><span class="o">=</span><span class="n">coll_freq</span><span class="p">,</span>
         <span class="n">drude_coll_freq</span><span class="o">=</span><span class="n">drude_coll_freq</span><span class="p">,</span>
         <span class="n">dummies</span><span class="o">=</span><span class="n">dummies</span><span class="p">,</span>
-        <span class="n">use_plugin</span><span class="o">=</span><span class="n">use_plugin</span><span class="p">,</span>
+        <span class="n">integrator_name</span><span class="o">=</span><span class="n">integrator_name</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">simulation</span></div>
@@ -456,7 +480,7 @@
 <span class="c1">#     drude_coll_freq: int=100,</span>
 <span class="c1">#     dummy_atom_type: str=&quot;DUMH&quot;,</span>
 <span class="c1">#     dummies: list[tuple[str,str]]=[(&quot;IM1&quot;, &quot;H7&quot;), (&quot;OAC&quot;, &quot;H&quot;)],</span>
-<span class="c1">#     use_plugin: bool =True</span>
+<span class="c1">#     integrator_name: bool =True</span>
 <span class="c1"># ):</span>
 <span class="c1">#     &quot;&quot;&quot;Set up a solvated and parametrized system for IM1H/OAC.&quot;&quot;&quot;</span>
 <span class="c1">#     base = f&quot;{protex.__path__[0]}/forcefield/dummy&quot;</span>
@@ -489,7 +513,7 @@
 <span class="c1">#         drude_coll_freq=drude_coll_freq,</span>
 <span class="c1">#         dummy_atom_type=dummy_atom_type,</span>
 <span class="c1">#         dummies=dummies,</span>
-<span class="c1">#         use_plugin =use_plugin</span>
+<span class="c1">#         integrator_name =integrator_name</span>
 <span class="c1">#     )</span>
 
 <span class="c1">#     return simulation</span>
@@ -508,7 +532,7 @@
     <span class="n">drude_coll_freq</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
     <span class="n">dummy_atom_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;DUMH&quot;</span><span class="p">,</span>
     <span class="n">dummies</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">&quot;IM1&quot;</span><span class="p">,</span> <span class="s2">&quot;H7&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;OAC&quot;</span><span class="p">,</span> <span class="s2">&quot;HO1&quot;</span><span class="p">)],</span>
-    <span class="n">use_plugin</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">integrator_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;DNH&quot;</span><span class="p">,</span>
     <span class="n">platformname</span><span class="o">=</span><span class="s2">&quot;CUDA&quot;</span><span class="p">,</span>
     <span class="n">cuda_precision</span><span class="o">=</span><span class="s2">&quot;single&quot;</span><span class="p">,</span>
     <span class="n">ensemble</span> <span class="o">=</span> <span class="s2">&quot;nVT&quot;</span>
@@ -550,7 +574,7 @@
         <span class="n">coll_freq</span><span class="o">=</span><span class="n">coll_freq</span><span class="p">,</span>
         <span class="n">drude_coll_freq</span><span class="o">=</span><span class="n">drude_coll_freq</span><span class="p">,</span>
         <span class="n">dummies</span><span class="o">=</span><span class="n">dummies</span><span class="p">,</span>
-        <span class="n">use_plugin</span><span class="o">=</span><span class="n">use_plugin</span><span class="p">,</span>
+        <span class="n">integrator_name</span><span class="o">=</span><span class="n">integrator_name</span><span class="p">,</span>
         <span class="n">platformname</span><span class="o">=</span><span class="n">platformname</span><span class="p">,</span>
         <span class="n">cuda_precision</span><span class="o">=</span><span class="n">cuda_precision</span><span class="p">,</span>
     <span class="p">)</span>
@@ -572,7 +596,7 @@
     <span class="n">drude_coll_freq</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
     <span class="n">dummy_atom_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;DUMH&quot;</span><span class="p">,</span>
     <span class="n">dummies</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">&quot;IM1&quot;</span><span class="p">,</span> <span class="s2">&quot;H7&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;OAC&quot;</span><span class="p">,</span> <span class="s2">&quot;H&quot;</span><span class="p">)],</span>
-    <span class="n">use_plugin</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">integrator_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;DNH&quot;</span><span class="p">,</span>
     <span class="n">platformname</span><span class="o">=</span><span class="s2">&quot;CUDA&quot;</span><span class="p">,</span>
     <span class="n">cuda_precision</span><span class="o">=</span><span class="s2">&quot;single&quot;</span><span class="p">,</span>
     <span class="n">ensemble</span> <span class="o">=</span> <span class="s2">&quot;nVT&quot;</span>
@@ -621,7 +645,7 @@
         <span class="n">coll_freq</span><span class="o">=</span><span class="n">coll_freq</span><span class="p">,</span>
         <span class="n">drude_coll_freq</span><span class="o">=</span><span class="n">drude_coll_freq</span><span class="p">,</span>
         <span class="n">dummies</span><span class="o">=</span><span class="n">dummies</span><span class="p">,</span>
-        <span class="n">use_plugin</span><span class="o">=</span><span class="n">use_plugin</span><span class="p">,</span>
+        <span class="n">integrator_name</span><span class="o">=</span><span class="n">integrator_name</span><span class="p">,</span>
         <span class="n">platformname</span><span class="o">=</span><span class="n">platformname</span><span class="p">,</span>
         <span class="n">cuda_precision</span><span class="o">=</span><span class="n">cuda_precision</span><span class="p">,</span>
     <span class="p">)</span>
@@ -643,7 +667,7 @@
     <span class="n">drude_coll_freq</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
     <span class="n">dummy_atom_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;DUMH&quot;</span><span class="p">,</span>
     <span class="n">dummies</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">&quot;IM1&quot;</span><span class="p">,</span> <span class="s2">&quot;H7&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;OAC&quot;</span><span class="p">,</span> <span class="s2">&quot;H&quot;</span><span class="p">)],</span>
-    <span class="n">use_plugin</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">integrator_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;DNH&quot;</span><span class="p">,</span>
     <span class="n">tfa_percent</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
     <span class="n">ensemble</span> <span class="o">=</span> <span class="s2">&quot;nVT&quot;</span>
 <span class="p">):</span>
@@ -685,7 +709,7 @@
         <span class="n">coll_freq</span><span class="o">=</span><span class="n">coll_freq</span><span class="p">,</span>
         <span class="n">drude_coll_freq</span><span class="o">=</span><span class="n">drude_coll_freq</span><span class="p">,</span>
         <span class="n">dummies</span><span class="o">=</span><span class="n">dummies</span><span class="p">,</span>
-        <span class="n">use_plugin</span><span class="o">=</span><span class="n">use_plugin</span><span class="p">,</span>
+        <span class="n">integrator_name</span><span class="o">=</span><span class="n">integrator_name</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">simulation</span></div>
@@ -706,7 +730,7 @@
     <span class="n">drude_coll_freq</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
     <span class="n">dummy_atom_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;DUMH&quot;</span><span class="p">,</span>
     <span class="n">dummies</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">&quot;IM1&quot;</span><span class="p">,</span> <span class="s2">&quot;H7&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;OAC&quot;</span><span class="p">,</span> <span class="s2">&quot;H&quot;</span><span class="p">)],</span>
-    <span class="n">use_plugin</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">integrator_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;DNH&quot;</span><span class="p">,</span>
     <span class="n">platformname</span><span class="o">=</span><span class="s2">&quot;CUDA&quot;</span><span class="p">,</span>
     <span class="n">cuda_precision</span><span class="o">=</span><span class="s2">&quot;single&quot;</span><span class="p">,</span>
     <span class="n">ensemble</span> <span class="o">=</span> <span class="s2">&quot;nVT&quot;</span>
@@ -748,7 +772,7 @@
         <span class="n">coll_freq</span><span class="o">=</span><span class="n">coll_freq</span><span class="p">,</span>
         <span class="n">drude_coll_freq</span><span class="o">=</span><span class="n">drude_coll_freq</span><span class="p">,</span>
         <span class="n">dummies</span><span class="o">=</span><span class="n">dummies</span><span class="p">,</span>
-        <span class="n">use_plugin</span><span class="o">=</span><span class="n">use_plugin</span><span class="p">,</span>
+        <span class="n">integrator_name</span><span class="o">=</span><span class="n">integrator_name</span><span class="p">,</span>
         <span class="n">platformname</span><span class="o">=</span><span class="n">platformname</span><span class="p">,</span>
         <span class="n">cuda_precision</span><span class="o">=</span><span class="n">cuda_precision</span><span class="p">,</span>
     <span class="p">)</span>
@@ -770,7 +794,7 @@
     <span class="n">drude_coll_freq</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
     <span class="n">dummy_atom_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># &quot;DUMH&quot;,</span>
     <span class="n">dummies</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># [(&quot;IM1&quot;, &quot;H7&quot;), (&quot;OAC&quot;, &quot;H&quot;)]</span>
-    <span class="n">use_plugin</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">integrator_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;DNH&quot;</span><span class="p">,</span>
     <span class="n">platformname</span><span class="o">=</span><span class="s2">&quot;CUDA&quot;</span><span class="p">,</span>
     <span class="n">cuda_precision</span><span class="o">=</span><span class="s2">&quot;single&quot;</span><span class="p">,</span>
     <span class="n">ensemble</span> <span class="o">=</span> <span class="s2">&quot;nVT&quot;</span>
@@ -815,7 +839,7 @@
         <span class="n">coll_freq</span><span class="o">=</span><span class="n">coll_freq</span><span class="p">,</span>
         <span class="n">drude_coll_freq</span><span class="o">=</span><span class="n">drude_coll_freq</span><span class="p">,</span>
         <span class="n">dummies</span><span class="o">=</span><span class="n">dummies</span><span class="p">,</span>
-        <span class="n">use_plugin</span><span class="o">=</span><span class="n">use_plugin</span><span class="p">,</span>
+        <span class="n">integrator_name</span><span class="o">=</span><span class="n">integrator_name</span><span class="p">,</span>
         <span class="n">platformname</span><span class="o">=</span><span class="n">platformname</span><span class="p">,</span>
         <span class="n">cuda_precision</span><span class="o">=</span><span class="n">cuda_precision</span><span class="p">,</span>
     <span class="p">)</span>
@@ -837,7 +861,7 @@
     <span class="n">drude_coll_freq</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
     <span class="n">dummy_atom_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;DUMH&quot;</span><span class="p">,</span>
     <span class="n">dummies</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">&quot;IM1&quot;</span><span class="p">,</span> <span class="s2">&quot;H7&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;OAC&quot;</span><span class="p">,</span> <span class="s2">&quot;H&quot;</span><span class="p">)],</span> <span class="c1"># NOTE: take care if it is H or HO1 </span>
-    <span class="n">use_plugin</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">integrator_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;DNH&quot;</span><span class="p">,</span>
     <span class="n">ensemble</span> <span class="o">=</span> <span class="s2">&quot;nVT&quot;</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Set up a solvated and parametrized system for IM1H/OAC.&quot;&quot;&quot;</span>
@@ -874,7 +898,7 @@
         <span class="n">coll_freq</span><span class="o">=</span><span class="n">coll_freq</span><span class="p">,</span>
         <span class="n">drude_coll_freq</span><span class="o">=</span><span class="n">drude_coll_freq</span><span class="p">,</span>
         <span class="n">dummies</span><span class="o">=</span><span class="n">dummies</span><span class="p">,</span>
-        <span class="n">use_plugin</span><span class="o">=</span><span class="n">use_plugin</span><span class="p">,</span>
+        <span class="n">integrator_name</span><span class="o">=</span><span class="n">integrator_name</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">simulation</span></div>
@@ -895,7 +919,7 @@
     <span class="n">drude_coll_freq</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
     <span class="n">dummy_atom_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;DUMH&quot;</span><span class="p">,</span>
     <span class="n">dummies</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">&quot;IM1&quot;</span><span class="p">,</span> <span class="s2">&quot;H7&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;OAC&quot;</span><span class="p">,</span> <span class="s2">&quot;H&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;HPTS&quot;</span><span class="p">,</span> <span class="s2">&quot;H7&quot;</span><span class="p">)],</span>
-    <span class="n">use_plugin</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">integrator_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;DNH&quot;</span><span class="p">,</span>
     <span class="n">ensemble</span> <span class="o">=</span> <span class="s2">&quot;nVT&quot;</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Set up a solvated and parametrized system for IM1H/OAC/HPTS.&quot;&quot;&quot;</span>
@@ -938,7 +962,7 @@
         <span class="n">coll_freq</span><span class="o">=</span><span class="n">coll_freq</span><span class="p">,</span>
         <span class="n">drude_coll_freq</span><span class="o">=</span><span class="n">drude_coll_freq</span><span class="p">,</span>
         <span class="n">dummies</span><span class="o">=</span><span class="n">dummies</span><span class="p">,</span>
-        <span class="n">use_plugin</span><span class="o">=</span><span class="n">use_plugin</span><span class="p">,</span>
+        <span class="n">integrator_name</span><span class="o">=</span><span class="n">integrator_name</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">simulation</span></div>
@@ -963,7 +987,7 @@
         <span class="p">(</span><span class="s2">&quot;HPTS&quot;</span><span class="p">,</span> <span class="s2">&quot;H7&quot;</span><span class="p">),</span>
         <span class="p">(</span><span class="s2">&quot;MEOH&quot;</span><span class="p">,</span> <span class="s2">&quot;HO2&quot;</span><span class="p">),</span>
     <span class="p">],</span>
-    <span class="n">use_plugin</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">integrator_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;DNH&quot;</span><span class="p">,</span>
     <span class="n">ensemble</span> <span class="o">=</span> <span class="s2">&quot;nVT&quot;</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Set up a solvated and parametrized system for IM1H/OAC/HPTS/MEOH.&quot;&quot;&quot;</span>
@@ -1004,7 +1028,7 @@
         <span class="n">coll_freq</span><span class="o">=</span><span class="n">coll_freq</span><span class="p">,</span>
         <span class="n">drude_coll_freq</span><span class="o">=</span><span class="n">drude_coll_freq</span><span class="p">,</span>
         <span class="n">dummies</span><span class="o">=</span><span class="n">dummies</span><span class="p">,</span>
-        <span class="n">use_plugin</span><span class="o">=</span><span class="n">use_plugin</span><span class="p">,</span>
+        <span class="n">integrator_name</span><span class="o">=</span><span class="n">integrator_name</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">simulation</span></div>
@@ -1029,7 +1053,7 @@
         <span class="p">(</span><span class="s2">&quot;HPTS&quot;</span><span class="p">,</span> <span class="s2">&quot;H7&quot;</span><span class="p">),</span>
         <span class="p">(</span><span class="s2">&quot;MEOH&quot;</span><span class="p">,</span> <span class="s2">&quot;HO2&quot;</span><span class="p">),</span>
     <span class="p">],</span>
-    <span class="n">use_plugin</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">integrator_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;DNH&quot;</span><span class="p">,</span>
     <span class="n">ensemble</span> <span class="o">=</span> <span class="s2">&quot;nVT&quot;</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Set up a solvated and parametrized system for IM1H/OAC/HPTS/MEOH.&quot;&quot;&quot;</span>
@@ -1070,7 +1094,7 @@
         <span class="n">coll_freq</span><span class="o">=</span><span class="n">coll_freq</span><span class="p">,</span>
         <span class="n">drude_coll_freq</span><span class="o">=</span><span class="n">drude_coll_freq</span><span class="p">,</span>
         <span class="n">dummies</span><span class="o">=</span><span class="n">dummies</span><span class="p">,</span>
-        <span class="n">use_plugin</span><span class="o">=</span><span class="n">use_plugin</span><span class="p">,</span>
+        <span class="n">integrator_name</span><span class="o">=</span><span class="n">integrator_name</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">simulation</span></div>
@@ -1092,7 +1116,7 @@
         <span class="p">(</span><span class="s2">&quot;IM1&quot;</span><span class="p">,</span> <span class="s2">&quot;H7&quot;</span><span class="p">),</span>
         <span class="p">(</span><span class="s2">&quot;FORA&quot;</span><span class="p">,</span> <span class="s2">&quot;HO1&quot;</span><span class="p">),</span>
     <span class="p">],</span>
-    <span class="n">use_plugin</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">integrator_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;DNH&quot;</span><span class="p">,</span>
     <span class="n">ensemble</span> <span class="o">=</span> <span class="s2">&quot;nVT&quot;</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Set up a solvated and parametrized system for IM1H/FORA.&quot;&quot;&quot;</span>
@@ -1129,7 +1153,7 @@
         <span class="n">coll_freq</span><span class="o">=</span><span class="n">coll_freq</span><span class="p">,</span>
         <span class="n">drude_coll_freq</span><span class="o">=</span><span class="n">drude_coll_freq</span><span class="p">,</span>
         <span class="n">dummies</span><span class="o">=</span><span class="n">dummies</span><span class="p">,</span>
-        <span class="n">use_plugin</span><span class="o">=</span><span class="n">use_plugin</span><span class="p">,</span>
+        <span class="n">integrator_name</span><span class="o">=</span><span class="n">integrator_name</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">simulation</span></div>
@@ -1151,7 +1175,7 @@
         <span class="p">(</span><span class="s2">&quot;IM1&quot;</span><span class="p">,</span> <span class="s2">&quot;H7&quot;</span><span class="p">),</span>
         <span class="p">(</span><span class="s2">&quot;PROA&quot;</span><span class="p">,</span> <span class="s2">&quot;H6&quot;</span><span class="p">,</span> <span class="s2">&quot;H7&quot;</span><span class="p">),</span>
     <span class="p">],</span>
-    <span class="n">use_plugin</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">integrator_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;DNH&quot;</span><span class="p">,</span>
     <span class="n">ensemble</span> <span class="o">=</span> <span class="s2">&quot;nVT&quot;</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Set up a solvated and parametrized system for IM1H/PROA.&quot;&quot;&quot;</span>
@@ -1188,7 +1212,7 @@
         <span class="n">coll_freq</span><span class="o">=</span><span class="n">coll_freq</span><span class="p">,</span>
         <span class="n">drude_coll_freq</span><span class="o">=</span><span class="n">drude_coll_freq</span><span class="p">,</span>
         <span class="n">dummies</span><span class="o">=</span><span class="n">dummies</span><span class="p">,</span>
-        <span class="n">use_plugin</span><span class="o">=</span><span class="n">use_plugin</span><span class="p">,</span>
+        <span class="n">integrator_name</span><span class="o">=</span><span class="n">integrator_name</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">simulation</span></div>
@@ -1210,7 +1234,7 @@
         <span class="p">(</span><span class="s2">&quot;IM1&quot;</span><span class="p">,</span> <span class="s2">&quot;H7&quot;</span><span class="p">),</span>
         <span class="p">(</span><span class="s2">&quot;PROA&quot;</span><span class="p">,</span> <span class="s2">&quot;H8&quot;</span><span class="p">,</span> <span class="s2">&quot;H9&quot;</span><span class="p">),</span>
     <span class="p">],</span>
-    <span class="n">use_plugin</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">integrator_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;DNH&quot;</span><span class="p">,</span>
     <span class="n">ensemble</span> <span class="o">=</span> <span class="s2">&quot;nVT&quot;</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Set up a solvated and parametrized system for IM1H/BUTA.&quot;&quot;&quot;</span>
@@ -1247,7 +1271,7 @@
         <span class="n">coll_freq</span><span class="o">=</span><span class="n">coll_freq</span><span class="p">,</span>
         <span class="n">drude_coll_freq</span><span class="o">=</span><span class="n">drude_coll_freq</span><span class="p">,</span>
         <span class="n">dummies</span><span class="o">=</span><span class="n">dummies</span><span class="p">,</span>
-        <span class="n">use_plugin</span><span class="o">=</span><span class="n">use_plugin</span><span class="p">,</span>
+        <span class="n">integrator_name</span><span class="o">=</span><span class="n">integrator_name</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">simulation</span></div>
@@ -1269,7 +1293,7 @@
         <span class="p">(</span><span class="s2">&quot;EIM&quot;</span><span class="p">,</span> <span class="s2">&quot;H4&quot;</span><span class="p">),</span>
         <span class="p">(</span><span class="s2">&quot;OAC&quot;</span><span class="p">,</span> <span class="s2">&quot;HO2&quot;</span><span class="p">),</span>
     <span class="p">],</span>
-    <span class="n">use_plugin</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">integrator_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;DNH&quot;</span><span class="p">,</span>
     <span class="n">ensemble</span> <span class="o">=</span> <span class="s2">&quot;nVT&quot;</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Set up a solvated and parametrized system for EIMH/OAC.&quot;&quot;&quot;</span>
@@ -1306,7 +1330,7 @@
         <span class="n">coll_freq</span><span class="o">=</span><span class="n">coll_freq</span><span class="p">,</span>
         <span class="n">drude_coll_freq</span><span class="o">=</span><span class="n">drude_coll_freq</span><span class="p">,</span>
         <span class="n">dummies</span><span class="o">=</span><span class="n">dummies</span><span class="p">,</span>
-        <span class="n">use_plugin</span><span class="o">=</span><span class="n">use_plugin</span><span class="p">,</span>
+        <span class="n">integrator_name</span><span class="o">=</span><span class="n">integrator_name</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">simulation</span></div>
@@ -1332,7 +1356,7 @@
         <span class="p">(</span><span class="s2">&quot;HPTS&quot;</span><span class="p">,</span> <span class="s2">&quot;H7&quot;</span><span class="p">),</span>
         <span class="p">(</span><span class="s2">&quot;MEOH&quot;</span><span class="p">,</span> <span class="s2">&quot;HO2&quot;</span><span class="p">),</span>
     <span class="p">],</span>
-    <span class="n">use_plugin</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">integrator_name</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="n">ensemble</span> <span class="o">=</span> <span class="s2">&quot;nVT&quot;</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Set up a solvated and parametrized system for IM1H/OAC.&quot;&quot;&quot;</span>
@@ -1376,7 +1400,7 @@
         <span class="n">coll_freq</span><span class="o">=</span><span class="n">coll_freq</span><span class="p">,</span>
         <span class="n">drude_coll_freq</span><span class="o">=</span><span class="n">drude_coll_freq</span><span class="p">,</span>
         <span class="n">dummies</span><span class="o">=</span><span class="n">dummies</span><span class="p">,</span>
-        <span class="n">use_plugin</span><span class="o">=</span><span class="n">use_plugin</span><span class="p">,</span>
+        <span class="n">integrator_name</span><span class="o">=</span><span class="n">integrator_name</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">simulation</span></div>
