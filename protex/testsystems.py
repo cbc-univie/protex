@@ -756,6 +756,7 @@ def generate_im1h_oac_dummy_system(
     dummy_atom_type: str = "DUMH",
     dummies: list[tuple[str, str]] = [("IM1", "H7"), ("OAC", "H")], # NOTE: take care if it is H or HO1 
     integrator_name: str = "DNH",
+    cuda_precision="single",
     ensemble = "nVT"
 ):
     """Set up a solvated and parametrized system for IM1H/OAC."""
@@ -793,6 +794,7 @@ def generate_im1h_oac_dummy_system(
         drude_coll_freq=drude_coll_freq,
         dummies=dummies,
         integrator_name=integrator_name,
+        cuda_precision=cuda_precision
     )
 
     return simulation
