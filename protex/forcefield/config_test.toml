@@ -1,0 +1,66 @@
+name = "Config for IM1H OAC System"
+# you can comment out lines that say 'can be None'
+
+[setup]
+psf_file = "../final.psf"
+crd_file = "../final.crd"
+restart_file = "../traj_omm85/npt_7.rst" # can be None, then positions from crd will be used
+constraints = "HBonds" # can be None, then restraints=None will be set
+# boxl = 50.0 # can be None, then it will be calculated from crd
+para_files = [
+                "../../toppar/toppar_drude_master_protein_2013f_lj04_im_ac.str",
+                "../../toppar/hoac.str",
+                "../../toppar/im1h_d.str",
+                "../../toppar/im1_dummy_d.str",
+                "../../toppar/oac.str",
+            ]
+coll_freq = 10
+drude_coll_freq = 100
+dummy_atom_type = "DUMH" 
+integrator_name = "DL" # "VVI", "DL" or "DNH"
+ensemble = "nVT"
+
+[[dummies]]
+resname = "IM1"
+dummy_name = "H7"
+
+[[dummies]]
+resname = "OAC"
+dummy_name = "HO2"
+
+[[states]] # array of tables
+donor = "IM1H"
+donor_atom_name = "H7"
+acceptor = "IM1"
+acceptor_atom_name = "N2"
+
+[[states]]
+donor = "HOAC"
+donor_atom_name = "HO2"
+acceptor = "OAC"
+acceptor_atom_name = "O2"
+acceptor_equivalent_atom = "O1"
+
+[[updates]]
+reaction = ["IM1H", "OAC"]
+r_min = 0.140
+r_max = 0.161
+prob = 0.994
+
+[[updates]]
+reaction = ["IM1", "HOAC"]
+r_min = 0.140 # nm
+r_max = 0.154
+prob = 0.098
+
+[[updates]]
+reaction = ["IM1H", "IM1"]
+r_min = 0.140
+r_max = 0.155
+prob = 0.201
+
+[[updates]]
+reaction = ["HOAC", "OAC"]
+r_min = 0.140
+r_max = 0.62
+prob = 0.684

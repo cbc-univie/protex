@@ -85,6 +85,7 @@ def load_charmm_files(
     psf = CharmmPsfFile(psf_file)
     psf.setBox(xtl, xtl, xtl)
     print(f"Box length set to {xtl}")
+
     return psf, crd, params
 
 
@@ -375,6 +376,122 @@ def generate_complete_system(
         drude_coll_freq=drude_coll_freq,
         dummies=dummies,
         integrator_name=integrator_name,
+    )
+
+    return simulation
+
+def generate_system_from_config(  
+    file: str
+):
+    import toml as tomllib
+
+    config = tomllib.load(file)
+
+    psf_file = config["setup"]["psf_file"]
+    crd_file = config["setup"]["crd_file"]
+    para_files = config["setup"]["para_files"]
+    try:
+        boxl = config["setup"]["boxl"]
+    except:
+        boxl = None
+    
+    psf, crd, params = load_charmm_files(
+        psf_file=psf_file,
+        crd_file=crd_file,
+        para_files=para_files,
+        boxl=boxl,
+    )
+
+    try:
+        constraints = config["setup"]["constraints"]
+    except:
+        constraints = None
+    dummy_atom_type = config["setup"]["dummy_atom_type"]
+    ensemble = config["setup"]["ensemble"]
+
+    system = setup_system(
+        psf, params, constraints=constraints, dummy_atom_type=dummy_atom_type, ensemble=ensemble
+    )
+
+    try:
+        restart_file = config["setup"]["restart_file"]
+    except:
+        restart_file = None
+    coll_freq = config["setup"]["coll_freq"]
+    drude_coll_freq = config["setup"]["drude_coll_freq"]
+    integrator_name = config["setup"]["integrator_name"]
+
+    dummies = []
+    for entry in config["dummies"]:
+        dummies.append((entry["resname"], entry["dummy_name"])) # TODO multiple dummies per resi
+
+    simulation = setup_simulation(
+        psf,
+        crd,
+        system,
+        restart_file=restart_file,
+        coll_freq=coll_freq,
+        drude_coll_freq=drude_coll_freq,
+        dummies=dummies,
+        integrator_name=integrator_name,
+    )
+
+    return simulation
+
+def generate_system_from_config(  
+    file: str
+):
+    import toml as tomllib
+
+    config = tomllib.load(file)
+
+    psf_file = config["setup"]["psf_file"]
+    crd_file = config["setup"]["crd_file"]
+    para_files = config["setup"]["para_files"]
+    try:
+        boxl = config["setup"]["boxl"]
+    except:
+        boxl = None
+    
+    psf, crd, params = load_charmm_files(
+        psf_file=psf_file,
+        crd_file=crd_file,
+        para_files=para_files,
+        boxl=boxl,
+    )
+
+    try:
+        constraints = config["setup"]["constraints"]
+    except:
+        constraints = None
+    dummy_atom_type = config["setup"]["dummy_atom_type"]
+    ensemble = config["setup"]["ensemble"]
+
+    system = setup_system(
+        psf, params, constraints=constraints, dummy_atom_type=dummy_atom_type, ensemble=ensemble
+    )
+
+    try:
+        restart_file = config["setup"]["restart_file"]
+    except:
+        restart_file = None
+    coll_freq = config["setup"]["coll_freq"]
+    drude_coll_freq = config["setup"]["drude_coll_freq"]
+    use_plugin = config["setup"]["use_plugin"]
+
+    dummies = []
+    for entry in config["dummies"]:
+        dummies.append((entry["resname"], entry["dummy_name"])) # TODO multiple dummies per resi
+
+    simulation = setup_simulation(
+        psf,
+        crd,
+        system,
+        restart_file=restart_file,
+        coll_freq=coll_freq,
+        drude_coll_freq=drude_coll_freq,
+        dummies=dummies,
+        use_plugin=use_plugin,
     )
 
     return simulation

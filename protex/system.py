@@ -11,6 +11,11 @@ from collections import ChainMap, defaultdict
 # use pickled system, don't write any more psfs
 import yaml
 
+# try:
+#     import tomllib
+# except ModuleNotFoundError:
+import toml as tomllib
+
 try:
     import openmm
 except ImportError:
@@ -162,6 +167,42 @@ class ProtexTemplates:
             The atom name
         """
         return self.states[resname][self._equivalent_atom]
+
+    @classmethod
+    def from_config(cls, file: str):
+        config = tomllib.load(file)
+        try:
+            config["states"]
+            config["updates"]
+        except KeyError as e:
+            e.args = (
+                *e.args,
+                "the config file must contain arrays named 'states' and 'updates'",
+            )
+            raise
+
+        state_list = []
+        for state in config["states"]:
+            s = {}
+            try:
+                s[state["donor"]] = {"atom_name": state["donor_atom_name"], "equivalent_atom": state["donor_equivalent_atom"]}
+            except:
+                s[state["donor"]] = {"atom_name": state["donor_atom_name"]}
+            try:
+                s[state["acceptor"]] = {"atom_name": state["acceptor_atom_name"], "equivalent_atom": state["acceptor_equivalent_atom"]}
+            except:
+                s[state["acceptor"]] = {"atom_name": state["acceptor_atom_name"]}
+            state_list.append(s)
+
+        allowed_updates = {}
+        for update in config["updates"]:
+            allowed_updates[frozenset(update["reaction"])] = {
+                "r_min": update["r_min"],
+                "r_max": update["r_max"],
+                "prob": update["prob"],
+            }
+
+        return cls(state_list, allowed_updates)
 
     def get_update_value_for(self, residue_set: frozenset[str], property: str) -> float:
         """Returns the value in the allowed updates dictionary.
