@@ -146,7 +146,7 @@ class EnergyReporter:
         state : State
             The current state of the simulation
         """
-        tab = "\t"  # becuase: SyntaxError: f-string expression part cannot include a backslash
+        tab = "\t"  # because: SyntaxError: f-string expression part cannot include a backslash
         names = []
         values = []
         for f in simulation.system.getForces():

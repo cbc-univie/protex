@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import copy
 import logging
+import warnings
 import pickle
 import random
 from abc import ABC, abstractmethod
@@ -11,9 +12,9 @@ import numpy as np
 from scipy.spatial import distance_matrix
 
 try:
-    from openmm.unit import nanometers
+    from openmm.unit import nanometers, kilojoules_per_mole
 except ImportError:
-    from simtk.unit import nanometers
+    from simtk.unit import nanometers, kilojoules_per_mole
 
 from protex.residue import Residue
 from protex.system import ProtexSystem
@@ -32,7 +33,7 @@ class Update(ABC):
     @staticmethod
     @abstractmethod
     def load(fname: str, protex_system: ProtexSystem) -> Update:
-        """Load a picklesUpdate instance.
+        """Load a pickled Update instance.
 
         Parameters
         ----------
@@ -83,7 +84,7 @@ class Update(ABC):
         self.allowed_forces = list(set(allowed_forces).intersection(self.ionic_liquid.detected_forces))
         discarded = set(allowed_forces).difference(self.ionic_liquid.detected_forces)
         if discarded:
-            print(f"Discarded the following forces, becuase they are not in the system: {', '.join(discarded)}")
+            print(f"Discarded the following forces, because they are not in the system: {', '.join(discarded)}")
         available = set(self.ionic_liquid.detected_forces).difference(set(allowed_forces))
         if available:
             print(f"The following forces are available but not updated: {', '.join(available)}")
@@ -107,7 +108,7 @@ class Update(ABC):
         self, to_adapt=list[tuple[str, int, frozenset[str]]]
     ) -> None:
         """Adapt the probability for certain events depending on the current equilibrium, in order to stay close to a given reference
-        i.e. prob_neu = prob_orig + K*( x(t) - x(eq) )^3 where x(t) is the current percentage in the system of one species.
+        i.e. prob_new = prob_orig + K*( x(t) / x(eq) - 1)^3 where x(t) is the current percentage in the system of one species.
 
         Parameters
         ----------
@@ -166,12 +167,41 @@ class Update(ABC):
 
 
 class KeepHUpdate(Update):
-    """KeepHUpdate performs updates but uses the original H position
-    keep the position of the original H when switching from dummy to real H.
+    """KeepHUpdate performs updates but uses the original H position. 
+    Keep the position of the original H when switching from dummy to real H.
+
+    Parameters
+    ----------
+    ionic_liquid: ProtexSystem
+        An instance of ProtexSystem
+    all_forces: bool = False
+        Whether to update all forces or just the nonbonded forces.
+    to_adapt: list[tuple[str, int, frozenset[str]]] | None = None
+        The number of the given species will be kept close to the given value by changing the probability of the given reaction. prob_new = prob_orig + K*( x(t) / x(eq) - 1)^3
+    include_equivalent_atom: bool = False
+        Whether to consider equivalent atoms for the distance check.
+    reorient: bool = False
+        Whether to reorient the molecule if the equivalent atom was used, or just switch the dummy atoms on/off.
+    K: int = 300
+        The factor for adapting the probabilities based on the concentration of certain species.
     """
 
     @staticmethod
     def load(fname, protex_system: ProtexSystem) -> KeepHUpdate:
+        """Load a pickled KeepHUpdate instance.
+        
+        Parameters
+        ----------
+        fname : str
+            The file name
+        protex_system : ProtexSystem
+            An instance of ProtexSystem, used to create the Update instance
+
+        Returns
+        -------
+        KeepHUpdate
+            An update instance
+        """
         with open(fname, "rb") as inp:
             from_pickle = pickle.load(inp)  # ensure correct order of arguments
         update = KeepHUpdate(protex_system, *from_pickle)
@@ -191,6 +221,13 @@ class KeepHUpdate(Update):
         )
 
     def dump(self, fname: str) -> None:
+        """Pickle a KeepHUpdate instance.
+    
+        Parameters
+        ----------
+        fname : str
+            The file name
+        """
         to_pickle = [
             self.all_forces,
             self.to_adapt,
@@ -202,9 +239,12 @@ class KeepHUpdate(Update):
             pickle.dump(to_pickle, outp, pickle.HIGHEST_PROTOCOL)
 
     def _reorient_atoms(self, candidate, positions, positions_copy):
-        # Function to reorient atoms if the equivalent atom was used for shortest distance
-        # exchange positions of atom and equivalent atom
-        # and set the position of the "new" H
+        """
+        Function to reorient atoms if the equivalent atom was used for shortest distance. 
+        Exchange positions of atom and equivalent atom and set the position of the "new" H.
+        
+        """
+        
         candidate1_residue, candidate2_residue = candidate
 
         # exchange positions of equivalent atoms
@@ -288,6 +328,17 @@ class KeepHUpdate(Update):
                 )
             )
 
+            # also swap drudes, maybe this will stop DrudeForce from spiking at transfer with equivalent atoms
+            idx_drude = acceptor.get_idx_for_atom_name(
+                self.ionic_liquid.templates.get_atom_name_for(acceptor.current_name)
+            ) + 1 # drude is next in psf after parent atom
+            idx_equivalent_drude = idx_acceptor_atom + 1 # if used_equivalent_atom == True, acceptor_atom is the equivalent_atom
+            pos_drude = positions_copy[idx_drude]
+            pos_equivalent_drude = positions_copy[idx_equivalent_drude]
+            
+            positions[idx_drude] = pos_equivalent_drude
+            positions[idx_equivalent_drude] = pos_drude
+
         else:
             idx_acceptor_atom = acceptor.get_idx_for_atom_name(
                 self.ionic_liquid.templates.get_atom_name_for(acceptor.current_name)
@@ -329,7 +380,7 @@ class KeepHUpdate(Update):
         positions[idx_accepted_H] = pos_accepted_H
 
         print(
-            f"donated H: {pos_donated_H}, acceptor atom: {pos_acceptor_atom}, H set to: {pos_accepted_H}"
+            f"donated H: {pos_donated_H}, acceptor atom: {pos_acceptor_atom}, H set to: {pos_accepted_H}, H-DUMH: {np.linalg.norm(pos_accepted_H - pos_donated_H)}"
         )
 
         return positions
@@ -340,6 +391,15 @@ class KeepHUpdate(Update):
         # get current state
         state = self.ionic_liquid.simulation.context.getState(getEnergy=True)
         # get initial energy
+        old_names = []
+        old_values = []
+        for f in self.ionic_liquid.simulation.system.getForces():
+            group = f.getForceGroup()
+            group_state = self.ionic_liquid.simulation.context.getState(getEnergy=True, groups={group})
+            old_names.append(f"{f.getName()} (kJ/mol)")
+            old_values.append(
+                group_state.getPotentialEnergy().value_in_unit(kilojoules_per_mole)
+            )
         initial_e = state.getPotentialEnergy()
         if np.isnan(initial_e._value):
             raise RuntimeError(f"Energy is {initial_e}")
@@ -442,7 +502,20 @@ class KeepHUpdate(Update):
         # get new energy
         state = self.ionic_liquid.simulation.context.getState(getEnergy=True)
         new_e = state.getPotentialEnergy()
-        logger.info(f"Energy before/after state change:{initial_e}/{new_e}")
+        new_names = []
+        new_values = []
+        for f in self.ionic_liquid.simulation.system.getForces():
+            group = f.getForceGroup()
+            group_state = self.ionic_liquid.simulation.context.getState(getEnergy=True, groups={group})
+            new_names.append(f"{f.getName()} (kJ/mol)")
+            new_values.append(
+                group_state.getPotentialEnergy().value_in_unit(kilojoules_per_mole)
+            )
+        assert(old_names == new_names)
+        logger.info("Energies before / after state change")
+        logger.info(f"Potential energy: {initial_e} / {new_e}")
+        for i in range(0,len(old_names)):
+            logger.info(f"{old_names[i]}: {old_values[i]} / {new_values[i]}")
 
 
 class NaiveMCUpdate(Update):
@@ -574,7 +647,17 @@ class NaiveMCUpdate(Update):
 
 
 class StateUpdate:
-    """Controls the update scheme and proposes the residues that need an update."""
+    """Controls the update scheme and proposes the residues that need an update.
+    
+    Parameters
+    ----------
+    updateMethod: Update
+        The update method to be used. At the moment NaiveMCUpdate or KeepHUpdate.
+    prob_function: str = None
+        The function to be used for scaling down the transfer probabilities for distances between r_min and r_max. 
+        Currently implemented: None (strict cutoff at r_max, ignores r_min), "linear", "cosine", and "tanh".
+
+    """
 
     @staticmethod
     def load(fname: str, updateMethod: Update) -> StateUpdate:
@@ -605,7 +688,11 @@ class StateUpdate:
         self.ionic_liquid: ProtexSystem = self.updateMethod.ionic_liquid
         self.history: deque = deque(maxlen=10)
         self.update_trial: int = 0
-        self.prob_function = prob_function
+        if prob_function in [None, "linear", "cosine", "tanh"]:
+            self.prob_function = prob_function
+        else:
+            warnings.warn(f"Probability scaling function {prob_function} not recognised. Typo? Not implemented? We will not use distance-based probability scaling.")
+            self.prob_function = None
 
     def dump(self, fname: str) -> None:
         """Pickle the StateUpdate instance.
@@ -624,7 +711,7 @@ class StateUpdate:
             pickle.dump(to_pickle, outp, pickle.HIGHEST_PROTOCOL)
 
     def write_charges(self, filename: str) -> None:  # deprecated?
-        """Write current charges to a file.
+        """Write current charges to a file. Deprecated with ChargeReporter.
 
         Parameters
         ----------
@@ -639,9 +726,9 @@ class StateUpdate:
                     f"{atom.residue.name:>4}:{int(atom.id): 4}:{int(atom.residue.id): 4}:{atom.name:>4}:{charge}\n"
                 )
 
-    # instead of these to functions use the ChargeReporter probably
+    # instead of these two functions use the ChargeReporter probably
     def get_charges(self) -> list:  # deprecated?
-        """_summary_.
+        """ Get charges of all atoms in the system. Deprecated with ChargeReporter.
 
         Returns
         -------

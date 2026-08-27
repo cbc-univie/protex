@@ -1,0 +1,815 @@
+* Structure Optimization
+* 
+
+ioformat extended
+
+!#########################################################
+!This charmm input script is designed to work with FFPARAM program.
+!If one wants to use command line then these arguments may be required.
+!charmm -i ffparam.inp -o ffparam.out workdir=cwd str=resn.str cgenff: resi=resn resicrd=file.crd orient: mini: 
+!charmm -i ffparam.inp -o ffparam_watint.out workdir=cwd str=resn.str cgenff: resi=resn resicrd=file.crd mini: dipo: 
+!charmm -i ffparam.inp -o ffparam_watint.out workdir=cwd str=resn.str cgenff: resi=resn resicrd=file.crd mini: inte: chk=resn_watint.str 
+!charmm -i ffparam.inp -o ffparam_quick.out workdir=cwd str=resn.str cgenff: resi=resn resicrd=file.crd mini: quic: chk=resn_quick_qm_mm.str 
+!charmm -i ffparam.inp -o ffparam_dihe.out workdir=cwd str=resn.str cgenff: resi=resn resicrd=file.crd mini: dihe: chk=file.txt at1=A1 at2=A2 at3=A3 at4=A4
+!#########################################################
+
+!###################
+!SECTION 0
+!###################
+if @?workdir eq 1 then
+   set workdir @workdir
+else
+   set workdir .
+endif
+
+
+if @cgenff eq true then
+   set toppar @workdir/toppar
+   stream @workdir/toppar.str
+else 
+  set toppar @workdir/toppar_drude   
+  stream @workdir/toppar_drude.str
+endif
+
+if @?str eq 1 then 
+   stream @str
+endif
+
+!xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 
+! This step is required for water interaction within drude force field
+bomlev -1
+
+if @?inte .eq. 1 then
+if @cgenff .eq. false then  
+
+bomlev 0
+read sequence card 1
+* residue
+*
+1
+SWM4
+   
+generate SWM4 first none last none setup warn noangle nodihedral drude dmass 0.4
+
+ic seed swm4 1 h1 swm4 1 oh2 swm4 1 h2
+ic build
+coor sdrude
+coor shake
+
+cons harm force 100000.0 sele .not. type D* show end
+cons harm force 100000.0 sele type dum show end
+MINI SD nstep 200 tolgrd 0.00001
+MINI ABNR nstep 500 tolgrd 0.00001
+cons harm force 0.0 sele all end
+coor print
+
+energy
+
+set wele ?elec
+set wvdw ?vdw
+set wener ?ener
+write coor pdb name @workdir/swm4.pdb
+
+delete atom select all end
+
+endif
+endif
+
+!xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+if @?resi .eq. 0 stop
+
+set residue @resi
+
+read sequence @resi 1
+if @cgenff eq true then
+   generate @resi first none last none setup warn
+else
+   generate @resi first none last none setup warn drude dmass 0.4
+   auto angle dihedral
+endif
+
+!ic param
+!ic seed 1 A 1 B 1 C
+!ic build
+!!if no ic table, create molecule from scratch
+! ic edit
+!  bond 1 A 1 B xx.xx
+!  angle 1 A 1 B 1 C xx.xx
+!  dihedral 1 A 1 B 1 C 1 D xx.xx
+! end
+!open unit 30 write form name @resi_init.crd
+!write coor card unit 30
+!close unit 30
+
+if @?resicrd eq 1 then
+   read coor card name @resicrd
+endif
+if @?resipdb eq 1 then
+   read coor pdb name @resipdb
+endif
+
+!save initial geometry
+coor shake  ! gives coordinates to lone pairs
+if @cgenff eq false then
+   coor sdrude  ! Gives coordinates to drudes
+   coor shake  ! gives coordinates to lone pairs
+endif
+coor print  ! Prints the coordinates
+if @?buildh eq 1 then
+   hbuild sele .not. init end
+endif
+coor copy comp
+if @?orient eq 1 then 
+   coor orient 
+   write coor pdb name @workdir/@resi_oriented.pdb
+   coor copy comp
+endif
+
+!###################
+!SECTION 1
+!###################
+update cutnb 999.0 ctofnb 998.0 ctonnb 997.0 switch vswitch inbfrq 100
+!minimize drudes 
+if @cgenff eq false then
+cons harm force 1000000.0 sele .not. type D* show end
+cons harm force 1000000.0 sele type dum show end
+MINI SD nstep 200 tolgrd 0.00001
+MINI ABNR nstep 500 tolgrd 0.00001
+cons harm force 0.0 sele all end
+endif
+
+if @?mini eq 1 then
+MINI CONJ nstep 1000 nprint 20 inbfrq 1000 cutnb 999.
+MINI ABNR nstep 500 tolgrd 0.00001
+endif
+
+coor print
+!save minimized geometry
+if @?mini eq 1 then
+write coor card name @workdir/@resi_min.crd
+write coor pdb name @workdir/@resi_min.pdb
+endif
+
+if @?dipo eq 1 then
+system "mkdir -p @WORKDIR/dipolar"
+if @?mcsa eq 0 then
+open unit 11 write form name @workdir/dipolar/mm_dipol_@resi.txt
+else
+open unit 11 write form name @workdir/mm_dipol_@resi.txt
+endif
+echu 11
+
+coor orient rms sele all .and. .not. (type D* .or. type LP* .or. type dum) end
+coor dipole oxyz select segid @resi end
+
+set dipx ?xdip
+set dipy ?ydip
+set dipz ?zdip
+set dipr ?rdip
+if @cgenff eq true then
+   echo #####  D_X     D_Y     D_Z    D_Tot MM Value of @resi ##### 
+   echo       @dipx   @dipy   @dipz   @dipr
+endif
+
+if @cgenff eq false then
+   stream @workdir/polar_efield.str
+   bomlev -1
+   echo #####  D_X     D_Y     D_Z    D_Tot      P_XX      P_YY         P_ZZ       P_Tot MM Value of @resi ##### 
+   echo       @dipx   @dipy   @dipz   @dipr    @alphaxx   @alphayy    @alphazz    @malpha
+endif
+endif
+
+
+bomlev -1
+
+if @?quic eq 0 then
+if @?inte eq 0 then
+if @?dihe eq 0 then
+if @?angl eq 0 then
+if @?bond eq 0 then
+if @?lsfi eq 0 then
+   stop
+endif
+endif
+endif
+endif
+endif
+endif
+
+!###################
+!SECTION 2
+!###################
+if @?quic .eq. 1 then
+if @?chk .eq. 1 then 
+system "mkdir -p @WORKDIR/intcoor"
+bomlev 0
+   open unit 12 write form name @workdir/intcoor/mm_intcoor_@resi.txt
+   echu 12
+   stream @chk    
+endif
+stop
+endif
+!   vibran
+!   diag
+!stream molvib_resi.str
+
+!###################
+!SECTION 3
+!###################
+if @?inte .eq. 1 then
+system "mkdir -p @WORKDIR/charges"
+system "mkdir -p @WORKDIR/charges/mmwatintgeo"
+!water interactions
+if @?mcsa .eq. 0 then
+open unit 14 write form name @workdir/charges/mm_watint_@resi.txt
+else
+open unit 14 write form name @workdir/mm_watint_@resi.txt
+endif
+echu 14
+if @?mini .eq. 0 then
+   echo ##### @resi MM WATER INTERACTION USING MP2 GEOMETRY #####
+endif
+if @?mini .eq. 1 then
+   echo ##### @resi MM WATER INTERACTION USING MM_OPT GEOMETRY #####
+endif
+
+!compute the energy for the molecule only
+
+if @cgenff .eq. false then
+energy
+set mele ?elec
+set mvdw ?vdw
+set mener ?ener
+endif
+
+ic delete sele all end
+
+if @?chk eq 1 then
+set count 1
+stream @chk  
+endif
+
+stop
+endif
+
+!xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+!###################
+!SECTION 4
+!###################
+if @?dihe eq 1 then !============================
+system "mkdir -p @WORKDIR/pesscan"
+delet atom sele all end
+set scan 1 @at1 1 @at2 1 @at3 1 @at4 
+
+bomlev -1
+set eun 15
+open unit 15 write form name @workdir/pesscan/mm_scan_enedih_@resi_@at1@at2@at3@at4.txt
+!set dun 31
+!open unit 31 write form name @workdir/pesscan/mm_scan_dih_@resi_@at1@at2@at3@at4.txt
+
+bomlev 0
+!bomlev -1
+
+! list contains names and location of crd files obtained from qm, which will be used as starting geometry for mm scan
+open unit 25 read form name @chk    
+
+set j 1
+label next
+get crdnam unit 25
+if "@CRDNAM" .eq. "" then
+    close unit 25
+    stop 
+endif
+if "@CRDNAM" .eq. "END-OF-FILE" then
+    close unit 25
+    stop 
+endif
+read sequence @resi 1
+if @cgenff eq true then
+   generate @resi first none last none setup warn
+else
+   generate @resi first none last none setup warn drude dmass 0.4
+   auto angle dihedral
+endif
+read coor card name @crdnam
+coor shake  ! gives coordinates to lone pairs
+if @cgenff eq false then
+   coor sdrude  ! Gives coordinates to drudes
+   coor shake  ! gives coordinates to lone pairs
+endif
+
+quick @scan
+set initdih ?PHI
+
+cons dihe @scan FORCE 9999.0 MAIN PERIOD 0   ! Fix the concerned dihedral
+if @cgenff eq false then
+cons harm force 1000000.0 sele .not. type D* show end
+cons harm force 1000000.0 sele type dum show end
+MINI SD nstep 200 tolgrd 0.00001
+MINI ABNR nstep 500 tolgrd 0.00001
+cons harm force 0.0 sele all end
+endif
+if @?mini .eq. 1 then
+MINI CONJ nstep 100 nprint 20 inbfrq 1000 cutnb 999.
+MINI ABNR nstep 100 tolgrd 0.00001
+endif
+
+!write coor pdb name @workdir/dihepdbs/crdnam_@j.pdb
+!incr j by 1
+quick @scan
+set finaldih ?PHI
+
+echu @eun
+energy
+echo ?ener    @finaldih
+!echu @dun
+!echo @finaldih
+delete atom sele all end
+
+if "@CRDNAM" ne "" then
+goto next 
+else
+close unit 15
+stop
+endif
+
+endif    !======================================
+
+!###################
+!SECTION 5
+!###################
+if @?angl eq 1 then !============================
+system "mkdir -p @WORKDIR/pesscan"
+delet atom sele all end
+set scan 1 @at1 1 @at2 1 @at3 
+set sscan sele ATOM @resi 1 @at1 end sele ATOM @resi 1 @at2 end sele ATOM @resi 1 @at3 end
+
+bomlev -1
+set eun 32
+open unit 32 write form name @workdir/pesscan/mm_scan_eneang_@resi_@at1@at2@at3.txt
+!set dun 33
+!open unit 33 write form name @workdir/pesscan/mm_scan_ang_@resi_@at1@at2@at3.txt
+
+!bomlev 0
+bomlev -1
+
+! list contains names and location of crd files obtained from qm, which will be used as starting geometry for mm scan
+open unit 34 read form name @chk    
+
+set j 1
+label nextang
+get crdnam unit 34
+if "@CRDNAM" .eq. "" then
+    close unit 34
+    stop 
+endif
+if "@CRDNAM" .eq. "END-OF-FILE" then
+    close unit 34
+    stop 
+endif
+read sequence @resi 1
+if @cgenff eq true then
+   generate @resi first none last none setup warn
+else
+   generate @resi first none last none setup warn drude dmass 0.4
+   auto angle dihedral
+endif
+read coor card name @crdnam
+coor shake  ! gives coordinates to lone pairs
+if @cgenff eq false then
+   coor sdrude  ! Gives coordinates to drudes
+   coor shake  ! gives coordinates to lone pairs
+endif
+
+mmfp
+geo reset
+end
+
+quick @scan
+set initang ?THET
+mmfp
+! need to change @cona1 which is different selection type
+! refer to original script
+geo maxgeo 9 sphere RCM angle harmonic symmetric force 9999. tref ?thet dtoff 0.0 @sscan
+end
+
+if @cgenff eq false then
+cons harm force 1000000.0 sele .not. type D* show end
+cons harm force 1000000.0 sele type dum show end
+MINI SD nstep 200 tolgrd 0.00001
+MINI ABNR nstep 500 tolgrd 0.00001
+cons harm force 0.0 sele all end
+endif
+if @?mini .eq. 1 then
+MINI CONJ nstep 500 nprint 20 inbfrq 1000 cutnb 999.
+MINI ABNR nstep 500 tolgrd 0.00001
+endif
+
+!write coor pdb name @workdir/crdnam_@j.pdb
+!incr j by 1
+quick @scan
+set finalang ?THET
+
+echu @eun
+energy
+echo ?ener    @finalang
+!echu @dun
+!echo @finalang
+mmfp
+geo reset
+end
+delete atom sele all end
+
+if "@CRDNAM" ne "" then
+goto nextang
+else
+close unit 32
+close unit 33
+stop
+endif
+
+endif    !======================================
+
+!###################
+!SECTION 6
+!###################
+if @?bond eq 1 then !============================
+system "mkdir -p @WORKDIR/pesscan"
+delet atom sele all end
+set scan 1 @at1 1 @at2 
+
+bomlev -1
+set eun 34
+open unit 34 write form name @workdir/pesscan/mm_scan_enebnd_@resi_@at1@at2.txt
+!set dun 35
+!open unit 35 write form name @workdir/pesscan/mm_scan_bnd_@resi_@at1@at2.txt
+
+!bomlev 0
+!bomlev -1
+
+! list contains names and location of crd files obtained from qm, which will be used as starting geometry for mm scan
+open unit 36 read form name @chk    
+
+set j 1
+label nextbnd
+get crdnam unit 36
+if "@CRDNAM" .eq. "" then
+    close unit 36
+    stop 
+endif
+if "@CRDNAM" .eq. "END-OF-FILE" then
+    close unit 36
+    stop 
+endif
+read sequence @resi 1
+if @cgenff eq true then
+   generate @resi first none last none setup warn
+else
+   generate @resi first none last none setup warn drude dmass 0.4
+   auto angle dihedral
+endif
+read coor card name @crdnam
+coor shake  ! gives coordinates to lone pairs
+if @cgenff eq false then
+   coor sdrude  ! Gives coordinates to drudes
+   coor shake  ! gives coordinates to lone pairs
+endif
+
+quick @scan
+set initdist ?DIST
+
+noe
+ASSIgn @pesb@@i KMIN 99999. RMIN ?dist KMAX 99999. RMAX ?dist FMAX 99999.
+end
+
+if @cgenff eq false then
+cons harm force 1000000.0 sele .not. type D* show end
+cons harm force 1000000.0 sele type dum show end
+MINI SD nstep 200 tolgrd 0.00001
+MINI ABNR nstep 500 tolgrd 0.00001
+cons harm force 0.0 sele all end
+endif
+if @?mini .eq. 1 then
+MINI CONJ nstep 200 nprint 20 inbfrq 1000 cutnb 999.
+MINI ABNR nstep 100 tolgrd 0.00001
+endif
+
+!write coor pdb name @workdir/crdnam_@j.pdb
+!incr j by 1
+quick @scan
+set finaldist ?DIST
+
+echu @eun
+energy
+echo ?ener    @finaldist
+!echu @dun
+!echo @finaldist
+noe
+reset
+end
+delete atom sele all end
+
+if "@CRDNAM" ne "" then
+goto nextbnd 
+else
+close unit 34
+close unit 35
+stop
+endif
+
+endif    !======================================
+
+!XXXXXXXXXXXXXXXXXXXXXXXXXX
+!SECTION 7  
+!XXXXXXXXXXXXXXXXXXXXXXXXXX
+!xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+! assigning internal coordinates for constraint and measurement 
+!xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+
+if @?lsfi eq 1 then !============================
+open unit 99 write form name @workdir/pesscan/mm_scan_allene_@resi_lsfit.txt
+system "mkdir -p @WORKDIR/pesscan"
+set basnam scan_@resi
+
+!xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+!Creating all measurement files which will contain bond angle dihedral values.
+!Dihedral followed by angle followed by bond
+
+open unit 425 read form name @chk    
+set nmds 0
+set nmas 0
+set nmbs 0
+set offset 100
+set i 0
+label loopmd
+incr i by 1
+incr offset by 1
+if @?md@@iat1 .eq. 0 then 
+   goto exitmd
+endif
+
+if @?md@@iat1 .eq. 1 then
+   set mead@@i 1 @md@@Iat1 1 @md@@Iat2 1 @md@@Iat3 1 @md@@Iat4
+   set medf@@i @workdir/pesscan/@basnam.@md@@Iat1_@md@@Iat2_@md@@Iat3_@md@@Iat4
+   open unit @offset write form name @medf@@i
+
+!====  No brainer ==============================
+   define getatm sele atom @resi 1 @md@@Iat1 end
+   set atmtyp1 ?SELCHEM
+   define getatm sele atom @resi 1 @md@@Iat2 end
+   set atmtyp2 ?SELCHEM
+   define getatm sele atom @resi 1 @md@@Iat3 end
+   set atmtyp3 ?SELCHEM
+   define getatm sele atom @resi 1 @md@@Iat4 end
+   set atmtyp4 ?SELCHEM
+   echu @offset 
+   echo @atmtyp1 @atmtyp2 @atmtyp3 @atmtyp4
+!===========================================
+   calc nmds = @i
+endif
+goto loopmd
+label exitmd
+
+set offset 200
+set i 0
+label loopma
+incr i by 1
+incr offset by 1
+if @?ma@@iat1 .eq. 0 then 
+   goto exitma 
+endif
+if @?ma@@iat1 .eq. 1 then
+   set meaa@@i 1 @ma@@Iat1 1 @ma@@Iat2 1 @ma@@Iat3 
+   set meaf@@i @workdir/pesscan/@basnam.@ma@@Iat1_@ma@@Iat2_@ma@@Iat3
+   open unit @offset write form name @meaf@@i
+!====  No brainer ==============================
+   define getatm sele atom @resi 1 @ma@@Iat1 end
+   set atmtyp1 ?SELCHEM
+   define getatm sele atom @resi 1 @ma@@Iat2 end
+   set atmtyp2 ?SELCHEM
+   define getatm sele atom @resi 1 @ma@@Iat3 end
+   set atmtyp3 ?SELCHEM
+   echu @offset 
+   echo @atmtyp1 @atmtyp2 @atmtyp3
+!===========================================
+   calc nmas = @i
+   calc mgeo = @nmas * 3
+endif
+goto loopma
+label exitma
+
+set offset 300
+set i 0
+label loopmb
+incr i by 1
+incr offset by 1
+if @?mb@@iat1 .eq. 0 then
+   goto exitmb 
+endif
+
+if @?mb@@iat1 .eq. 1 then
+   set meab@@i 1 @mb@@Iat1 1 @mb@@Iat2 
+   set mebf@@i @workdir/pesscan/@basnam.@mb@@Iat1_@mb@@Iat2
+   open unit @offset write form name @mebf@@i
+!====  No brainer ==============================
+   define getatm sele atom @resi 1 @mb@@Iat1 end
+   set atmtyp1 ?SELCHEM
+   define getatm sele atom @resi 1 @mb@@Iat2 end
+   set atmtyp2 ?SELCHEM
+   echu @offset 
+   echo @atmtyp1 @atmtyp2 
+!===========================================
+   calc nmbs = @i
+endif
+goto loopmb
+label exitmb
+
+!======================================
+! First read dihedral crdlist files in order, followed by angle files and bond files.
+! 
+
+bomlev 0
+
+label beginloopcf
+get crdnam unit 425
+if "@CRDNAM" .eq. "" then
+    close unit 425
+    goto stopcalc 
+endif
+if "@CRDNAM" .eq. "END-OF-FILE" then
+    close unit 425
+    goto stopcalc 
+endif
+!xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+delet atom sele all end
+
+read sequence @resi 1
+if @cgenff eq true then
+   generate @resi first none last none setup warn
+else
+   generate @resi first none last none setup warn drude dmass 0.4
+   auto angle dihedral
+endif
+
+read coor card name @crdnam
+
+coor shake  ! gives coordinates to lone pairs
+if @cgenff eq false then
+   coor sdrude  ! Gives coordinates to drudes
+   coor shake  ! gives coordinates to lone pairs
+endif
+!============================================================
+! Constrain all dihedral, angles and bonds asked for every loop of calculation
+
+set ncds 0
+set ncas 0
+set ncbs 0
+set i 0
+label loopcd
+incr i by 1
+if @?pd@@iat1 .eq. 0 then 
+   goto exitcd 
+endif
+if @?pd@@iat1 .eq. 1 then
+   set pesd@@i 1 @pd@@Iat1 1 @pd@@Iat2 1 @pd@@Iat3 1 @pd@@Iat4 
+   cons dihe @pesd@@i FORCE 9999. MAIN PERIOD 0
+   calc ncds = @i
+endif
+goto loopcd
+label exitcd
+
+set i 0
+label loopca
+incr i by 1
+if @?pa@@iat1 .eq. 0 then 
+   goto exitca 
+endif
+if @?pa@@iat1 .eq. 1 then
+   set pesa@@i 1 @pa@@Iat1 1 @pa@@Iat2 1 @pa@@Iat3 
+   set pnesa@@i sele ATOM @resi 1 @pa@@Iat1 end sele ATOM @resi 1 @pa@@Iat2 end sele ATOM @resi 1 @pa@@Iat3 end 
+   calc ncas = @i
+   if i .eq. 1 then
+      quick @pesa@@i
+      mmfp
+      geo maxgeo @mgeo sphere RCM angle harmonic symmetric force 9999.0 tref ?thet dtoff 0.0 @pnesa@@i
+      end
+   else
+      quick @pesa@@i
+      mmfp
+      geo maxgeo @mgeo sphere RCM angle harmonic symmetric force 9999.0 tref ?thet dtoff 0.0 @pnesa@@i
+      end
+    endif
+endif
+goto loopca
+label exitca
+
+set i 0
+label loopcb
+incr i by 1
+if @?pb@@iat1 .eq. 0 then
+   goto exitcb 
+endif
+if @?pb@@iat1 .eq. 1 then
+   set pesb@@i 1 @pb@@Iat1 1 @pb@@Iat2 
+   calc ncbs = @i
+   quick @pesb@@i
+   noe
+   ASSIgn @pesb@@i KMIN 99999. RMIN ?dist KMAX 99999. RMAX ?dist FMAX 99999.
+   end
+endif
+goto loopcb
+label exitcb
+
+
+write coor pdb name @workdir/pesscan/lsfit_ini_geom.pdb 
+
+if @cgenff eq false then
+cons harm force 1000000.0 sele .not. type D* show end
+cons harm force 1000000.0 sele type dum show end
+MINI SD nstep 200 tolgrd 0.00001
+MINI ABNR nstep 500 tolgrd 0.00001
+cons harm force 0.0 sele all end
+endif
+if @?mini .eq. 1 then
+MINI CONJ nstep 200 nprint 20 inbfrq 1000 cutnb 999.
+MINI ABNR nstep 100 tolgrd 0.00001
+endif
+!MINI SD nstep 100 nprint 50 inbfrq 1000 cutnb 999. bycu tolgrd 0.2
+!MINI CONJ nstep 300 nprint 20 tolgrd 0.0001
+!! When restraining angles, we need to choose NSTEp and TOLGrd wisely if we want NRAP
+!! to converge, but when also restraining bonds, NRAP simply becomes pathological.
+!! Regardless of the algorithm, bond restraints proved too rough for TOLGrd 0.00001 .
+!if ?grms gt 0.0001 MINI NRAP nstep 100 tolgrd 0.0001
+!if ?grms gt 0.0001 then
+!  echu
+!  echo FATAL ERROR: MINIMIZATION NOT CONVERGED
+!  stop
+!endif
+
+write coor pdb name @workdir/pesscan/lsfit_fin_geom.pdb
+
+! Remove all constrains
+bomlev -1
+cons cldh
+mmfp
+geo reset
+end
+noe
+reset
+end
+bomlev 0
+! Write energy
+echu 99
+energy
+echo ?ener
+
+! Print the values
+set i 1
+set offset 101
+if @nmds ne 0 then
+   label loopwmd
+   echu @offset
+   quick @mead@@i
+   echo ?phi
+   if @i lt @nmds then
+     incr i by 1
+     incr offset by 1
+     goto loopwmd
+   endif
+endif
+set i 1
+set offset 201
+if @nmas ne 0 then
+   label loopwma
+   echu @offset
+   quick @meaa@@i
+   echo ?thet
+   if @i lt @nmas then 
+     incr i by 1
+     incr offset by 1
+     goto loopwma
+   endif
+endif
+set i 1
+set offset 301
+if @nmbs ne 0 then
+   label loopwmb
+   echu @offset
+   quick @meab@@i
+   echo ?dist
+   if @i lt @nmbs then 
+      incr i by 1
+      incr offset by 1
+      goto loopwmb
+   endif
+endif
+
+delete atom sele all end
+
+goto beginloopcf 
+ 
+endif    ! for lsfi flag
+
+label stopcalc

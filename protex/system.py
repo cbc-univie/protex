@@ -43,25 +43,25 @@ class ProtexTemplates:
 
         .. code-block:: python
 
-            IM1H_IM1 = { "IM1H": {"atom_name": "H7", "canonical_name": "IM1"},
-                        "IM1": {"atom_name": "N2", "canonical_name": "IM1"} }
-            OAC_HOAC = { "OAC": {"atom_name": "O2", "canonical_name": "OAC"},
-                        "HOAC": {"atom_name": "H", "canonical_name": "OAC"} }
+            IM1H_IM1 = { "IM1H": {"atom_name": "H7"},
+                        "IM1": {"atom_name": "N2"} }
+            OAC_HOAC = { "OAC": {"atom_name": "O2", "equivalent_atom": "O1"},
+                        "HOAC": {"atom_name": "H"} }
             states = [IM1H_IM1, OAC_HOAC]
 
     allowed_updates:
         A dictionary specifiying which updates are possile.
-        Key is a frozenset with the two residue names for the update.
-        The values is a dictionary which specifies the maximum distance ("r_max") and the probability for this update ("prob")
-        r_max is in nanometer and the prob between 0 and 1
+        Key is a frozenset with the two residue names for the update. 
+        The value is a dictionary which specifies the maximum distance ("r_max"), the distance where the scaling of the probability should start ("r_min"), and the probability for this update ("prob"). 
+        r_min and r_max are in nanometer and the prob is between 0 and 1
 
         .. code-block:: python
 
             allowed_updates = {}
-            allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_max": 0.155, "prob": 1}
-            allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_max": 0.155, "prob": 1}
-            allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_max": 0.155, "prob": 0.201}
-            allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_max": 0.155, "prob": 0.684}
+            allowed_updates[frozenset(["IM1H", "OAC"])] = {"r_min": 0.140, "r_max": 0.155, "prob": 1}
+            allowed_updates[frozenset(["IM1", "HOAC"])] = {"r_min": 0.140, "r_max": 0.155, "prob": 1}
+            allowed_updates[frozenset(["IM1H", "IM1"])] = {"r_min": 0.140, "r_max": 0.155, "prob": 0.201}
+            allowed_updates[frozenset(["HOAC", "OAC"])] = {"r_min": 0.140, "r_max": 0.155, "prob": 0.684}
 
     Attributes
     ----------
@@ -380,7 +380,26 @@ class ProtexSystem:
 
     @classmethod
     def force_is_valid(cls, name: str) -> bool:
-        """Check if the given force name is covered."""
+        """
+        Check if the given force name is covered (or ignored by design) by protex.
+       
+        Parameters
+        ----------
+        name : str
+            The name of the force.
+
+        Returns
+        -------
+        bool
+            True if force is in COVERED_FORCES, IGNORED_FORCES or UNCOVERED_FORCES.
+
+        Raises
+        ------
+        warning
+            If force is in UNCOVERED_FORCES.
+        ProtexException
+            If force is neither in COVERED_FORCES, IGNORED_FORCES nor UNCOVERED_FORCES.
+        """
         if name in cls.COVERED_FORCES or name in cls.IGNORED_FORCES:
             return True
         elif name in cls.UNCOVERED_FORCES:

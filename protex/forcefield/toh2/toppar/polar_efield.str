@@ -1,0 +1,117 @@
+! start compute the polarizibility 
+
+! DEFINE ENERGY FUNCTION
+energy switch -
+   ctofnb 999.9 cutnb 999.9 wmin 1.0 noewald
+
+set approxfield 1E10   ! units of V/m
+
+!   Minimize positions
+    cons fix select .not. type D* end
+    mini sd nstep 2000 tolgrd 0.001 nprint 200
+    mini abnr nstep 2000 tolgrd 0.0001 nprint 200
+    cons fix select none end
+!coor print
+
+coor dipole select segid @resi end
+set xdip0 ?xdip
+set ydip0 ?ydip
+set zdip0 ?zdip
+
+pull efield @approxfield xdir 1.0 ydir 0.0 zdir 0.0
+!   Minimize positions
+    cons fix select .not. type D* end
+    mini sd nstep 2000 tolgrd 0.001 nprint 200
+    mini abnr nstep 2000 tolgrd 0.0001 nprint 200
+    cons fix select none end
+!coor print
+
+coor dipole select segid @resi end
+set xdip ?xdip
+set ychk ?ydip
+set zchk ?zdip
+
+calc xxdiff = @xdip - @xdip0
+calc xydiff = @ychk - @ydip0
+calc xzdiff = @zchk - @zdip0
+
+pull off
+
+
+
+!   reset
+    cons fix select .not. type D* end
+    mini sd nstep 200 tolgrd 0.001 nprint 100
+    mini abnr nstep 200 tolgrd 0.0001 nprint 100
+    cons fix select none end
+
+
+pull efield @approxfield xdir 0.0 ydir 1.0 zdir 0.0
+!   Minimize positions
+    cons fix select .not. type D* end
+    mini sd nstep 2000 tolgrd 0.001 nprint 200
+    mini abnr nstep 2000 tolgrd 0.0001 nprint 200
+    cons fix select none end
+!coor print
+
+coor dipole select segid @resi end
+
+set ydip ?ydip
+set xchk ?xdip
+set zchk ?zdip
+
+calc yydiff = @ydip - @ydip0
+calc yxdiff = @xchk - @xdip0
+calc yzdiff = @zchk - @zdip0
+
+pull off
+
+
+!   reset
+    cons fix select .not. type D* end
+    mini sd nstep 200 tolgrd 0.001 nprint 100
+    mini abnr nstep 200 tolgrd 0.0001 nprint 100
+    cons fix select none end
+
+
+pull efield @approxfield xdir 0.0 ydir 0.0 zdir 1.0
+!   Minimize positions
+    cons fix select .not. type D* end
+    mini sd nstep 2000 tolgrd 0.001 nprint 200
+    mini abnr nstep 2000 tolgrd 0.0001 nprint 200
+    cons fix select none end
+!coor print
+
+
+coor dipole select segid @resi end
+
+set zdip ?zdip
+set ychk ?ydip
+set xchk ?xdip
+
+calc zzdiff = @zdip - @zdip0
+calc zxdiff = @xchk - @xdip0
+calc zydiff = @ychk - @ydip0
+
+pull off
+
+set convalpha 29979245800.0
+!calc xdip0 = @xdip0
+!calc ydip0 = @ydip0
+!calc zdip0 = @zdip0
+calc alphaxx = @convalpha*@xxdiff/@approxfield
+calc alphayy = @convalpha*@yydiff/@approxfield
+calc alphazz = @convalpha*@zzdiff/@approxfield
+calc alphaxy = @convalpha*@xydiff/@approxfield
+calc alphaxz = @convalpha*@xzdiff/@approxfield
+calc alphayx = @convalpha*@yxdiff/@approxfield
+calc alphayz = @convalpha*@yzdiff/@approxfield
+calc alphazx = @convalpha*@zxdiff/@approxfield
+calc alphazy = @convalpha*@zydiff/@approxfield
+calc malpha = (@alphaxx + @alphayy + @alphazz)/3
+calc ratioalpha = @malpha/@alphayy
+
+
+return
+
+
