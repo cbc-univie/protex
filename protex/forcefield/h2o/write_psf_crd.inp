@@ -1,0 +1,106 @@
+*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*~ Minimization of PACKMOL structure
+*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*
+ioformat extended
+
+set FILENAME h2o
+
+!=======================================================================
+! Force field
+!=======================================================================
+set TOPPAR . !./toppar_dummy
+stream @TOPPAR/toppar_drude_master_protein_2013f_lj025_modhpts_chelpg.str
+stream @TOPPAR/h2o_d.str
+stream @TOPPAR/h3o_d.str
+stream @TOPPAR/oh_d.str
+!stream @TOPPAR/cl_d.str
+!stream @TOPPAR/na_d.str
+
+read sequence TOH2 1
+generate TOH2 setup warn drude dmass 0.4 !noang nodihe
+
+read sequence TOH3 1
+generate TOH3 setup warn drude dmass 0.4
+
+read sequence TOH1 1
+generate TOH1 setup warn drude dmass 0.4
+
+!read sequence CLA 0
+!generate OH setup warn drude dmass 0.4
+
+!read sequence SOD 0
+!generate SOD setup warn drude dmass 0.4
+
+!=======================================================================
+! Coordinates
+!=======================================================================
+open  unit 10 read form name ./@FILENAME_init.crd
+read  unit 10 coor card 
+close unit 10
+
+coor sdrude !gives cordinates to drudes
+coor shake !gives cordinates to lonepairs
+
+set XTL = 6.0
+calc XTL2 = @xtl/2
+set GRID = 6
+
+crystal define cubic @XTL @XTL @XTL 90.0 90.0 90.0
+crystal build  cutoff @XTL2 noperations 0
+image byresidue select ALL end
+
+energy  bycb atom vatom cdiel ewal pmew vswitch -
+        ctonnb           10  -
+        ctofnb           11  -
+        cutnb            12  -
+        cutim            12  -
+        kappa           0.41 -
+        fftx          @GRID  -
+        ffty          @GRID  -
+        fftz          @GRID  -
+        spli order        6  -
+        qcor              0  -
+        wmin            1.5  -
+        inbfrq           -1  -
+        imgfrq           -1
+
+shake bonh param tol 1.0e-9 nofast -
+      select ( .not. type D* ) end -
+      select ( .not. type D* ) end
+ 
+!=======================================================================
+! Minimization
+!=======================================================================
+mini sd nstep 500
+mini abnr nstep 300
+
+coor stat
+calc xr = -1*?XMIN
+calc yr = -1*?YMIN
+calc zr = -1*?ZMIN
+
+coor tran xdir @XR ydir @YR zdir @ZR
+
+!open writ unit 16 form name "./translate/translate.cor"
+!writ unit 16 coor card
+!clos unit 16
+
+coor stat
+echo ?XMIN
+echo ?YMIN
+echo ?ZMIN
+echo ?XMAX
+echo ?YMAX
+echo ?ZMAX
+
+open  unit 10 write form name ./@FILENAME.crd
+write unit 10 coor card 
+close unit 10
+
+open unit 10 write form name ./@FILENAME.psf
+write unit 10 psf xplor card
+close unit 10
+
+stop
+
