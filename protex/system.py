@@ -170,6 +170,11 @@ class ProtexTemplates:
 
     @classmethod
     def from_config(cls, file: str):
+        """
+        Setup templates with parameters specified in a toml file.
+         'states' (donor and acceptor names with involved atoms for each residue) and 'updates' (possible reactions with corresponding cutoffs and probability) must be specified.
+         If other parameters are not given, default values will be used.
+        """
         config = tomllib.load(file)
         try:
             config["states"]

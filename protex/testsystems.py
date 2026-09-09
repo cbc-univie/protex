@@ -384,6 +384,10 @@ def generate_complete_system(
 def generate_system_from_config(  
     file: str
 ):
+    """
+    Generate the complete system with parameters specified in a toml file. Psf, crd and parameters 
+    must be given, the rest can be omitted for default values.
+    """
     import toml as tomllib
 
     config = tomllib.load(file)
@@ -409,22 +413,8 @@ def generate_system_from_config(
             charmm_args[option] = config["setup"][option]
         except:
             pass
-    
-    # psf, crd, params = load_charmm_files(
-    #     psf_file=psf_file,
-    #     crd_file=crd_file,
-    #     para_files=para_files,
-    #     boxl=boxl,
-    # )
 
     psf, crd, params = load_charmm_files(**charmm_args)
-
-    # try:
-    #     constraints = config["setup"]["constraints"]
-    # except:
-    #     constraints = None
-    # dummy_atom_type = config["setup"]["dummy_atom_type"]
-    # ensemble = config["setup"]["ensemble"]
 
     system_options = ["constraints", "dummy_atom_type", "ensemble"]
     system_args = {}
@@ -434,19 +424,7 @@ def generate_system_from_config(
         except:
             pass
 
-    # system = setup_system(
-    #     psf, params, constraints=constraints, dummy_atom_type=dummy_atom_type, ensemble=ensemble
-    # )
-
     system = setup_system(psf, params, **system_args)
-
-    # try:
-    #     restart_file = config["setup"]["restart_file"]
-    # except:
-    #     restart_file = None
-    # coll_freq = config["setup"]["coll_freq"]
-    # drude_coll_freq = config["setup"]["drude_coll_freq"]
-    # integrator_name = config["setup"]["integrator_name"]
 
     simulation_options = ["restart_file", "temperature", "coll_freq", "drude_coll_freq", "dummies", "integrator_name", "platform_name", "cuda_precision"]
     simulation_args = {}
@@ -463,17 +441,6 @@ def generate_system_from_config(
         simulation_args["dummies"] = dummies
     except:
         pass
-
-    # simulation = setup_simulation(
-    #     psf,
-    #     crd,
-    #     system,
-    #     restart_file=restart_file,
-    #     coll_freq=coll_freq,
-    #     drude_coll_freq=drude_coll_freq,
-    #     dummies=dummies,
-    #     integrator_name=integrator_name,
-    # )
 
     simulation = setup_simulation(psf, crd, system, **simulation_args)
 

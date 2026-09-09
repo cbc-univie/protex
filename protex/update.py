@@ -92,6 +92,9 @@ class Update(ABC):
 
     @classmethod
     def from_config(cls, ionic_liquid: ProtexSystem, file:str):
+        """
+        Setup update with parameters specified in a toml file. If parameters are not given, default values will be used.
+        """
         config = tomllib.load(file)
         options = ["all_forces", "include_equivalent_atom", "reorient", "K"]
         args = {}
@@ -242,6 +245,9 @@ class KeepHUpdate(Update):
 
     @classmethod
     def from_config(cls, ionic_liquid: ProtexSystem, file: str):
+        """
+        Setup update with parameters specified in a toml file. If parameters are not given, default values will be used.
+        """
         return super().from_config(ionic_liquid, file)
 
     def dump(self, fname: str) -> None:
@@ -590,6 +596,9 @@ class NaiveMCUpdate(Update):
 
     @classmethod
     def from_config(cls, ionic_liquid: ProtexSystem, file: str):
+        """
+        Setup update with parameters specified in a toml file. If parameters are not given, default values will be used.
+        """
         return super().from_config(ionic_liquid, file)
 
     def dump(self, fname: str) -> None:
