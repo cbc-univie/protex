@@ -875,7 +875,7 @@ class StateUpdate:
                 proton transfers in protic ionic liquids"; manuscript)
                 '''
                 r_norm = (r-r_min)/(r_min-r_max)
-                p = (np.tanh((r_norm+r_star)*k)+a_0)*a_1
+                p = (np.tanh((r_norm+r_star)*k)+a_0)*a_1*prob
                 return np.where(p>prob,prob,p)
             
             if self.prob_function == "linear":
