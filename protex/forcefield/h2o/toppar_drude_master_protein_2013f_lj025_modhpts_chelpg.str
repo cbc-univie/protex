@@ -274,6 +274,15 @@ MASS  173 CD33G    12.0110 C ! same as CD33A but for CH3 of IM1
 ! own atom types (Marta)
 MASS  174 OD31H    15.99900 O  ! same as OD31A, for MEOH, so that OD31A for HPTSH and HOAC don't have to be changed
 MASS  175 DUMH      1.00800 H  ! dummy H
+MASS  176 ODPC     15.99900 O  ! OPC3 water
+MASS  177 HDPC      1.00800 H  ! OPC3 water
+MASS  178 DOPC      0.00000 H  ! drude for OPC3 Marta 
+!own atom types (max)
+MASS  179 HPOL      1.00800 H  ! IPOL13 and IPOL16 water H
+MASS  180 OPOL13   15.99940 O  ! IPOL13 water oxygen ! TETRA-WATER by Max
+MASS  181 OPOL16   15.99940 O  ! IPOL16 water oxygen ! TETRA-WATER by Max
+MASS  182 DPPOL     0.00000 H  ! IPOL water oxygen drude particle ! TETRA-WATER by Max
+
 
 DECL -CA 
 DECL -C 
@@ -3343,9 +3352,21 @@ OD31C    CD2R6A   334.30      1.411 ! PHEN, phenol
 OD31C    HDP1A    545.00      0.960 ! PHEN, phenol
 OD31D    HDP1A    536.50      0.970 ! methylphosphate hydroxyl O
 OD31G    HDP1A    536.50      0.970 ! nucleic acid 3TER, jal 
-ODW      HDW      450.00      0.9572 ! SWM4, SWM4-NDP water, Guillaume 2005 
-ODW      DOH2     500.00      0.0000 ! SWM4, SWM4-NDP water, Guillaume 2005
-ODW      DUMH     450.00      0.9572 ! Dummy H
+!ODW      HDW      450.00      0.9572 ! SWM4, SWM4-NDP water, Guillaume 2005
+ODW      HDW      450.00      0.9619! QM Optimierung Amanda 
+ODW      DUMH     450.00      0.9619 ! 
+OPOL13   HPOL     450.00      0.9619 ! IPOL13 water ! TETRA-WATER by Max
+OPOL16   HPOL     450.00      0.9619 ! IPOL16 water ! TETRA-WATER by Max
+OPOL13   DUMH     450.00      0.9619 ! TETRA water ! TETRA-WATER by Max
+OPOL16   DUMH     450.00      0.9619 ! TETRA water ! TETRA-WATER by Max
+!OPOL13   HPOL     450.00      1.000 ! IPOL13 water 
+!OPOL16   HPOL     450.00      1.000 ! IPOL16 water
+!OPOL13   DUMH     450.00      1.000 ! TETRA water
+!OPOL16   DUMH     450.00      1.000 ! TETRA water
+ODW      DOH2     500.00      0.000 ! SWM4, SWM4-NDP water, Guillaume 2005 
+ODPC     HDPC     450.00      1.211 ! OPC3
+ODPC     DUMH     450.00      1.211 ! OPC3
+ODPC     DOH2     250.00      0.0000 ! OPC3
 HDW      HDW        0.00      1.5139 ! SWM4 and SWM6 water models
 ODW6     HDW      450.00      0.9572 ! SWM6-NDP water
 ODW6     DOH2     500.00      0.0000 ! SWM6-NDP water
@@ -3494,6 +3515,12 @@ CD32F    LPD        0.00      0.000 !
 CD31G    LPD        0.00      0.000 ! glycerol, xhe
 !carbonyls end
 X        DRUD    1000.00      0.000 ! DO NOT COMMENT. Essential for use of Drudes in c41b1. Bug...
+!X        DOPC     250.00      0.000 ! DRUDE for OPC3-pol, Marta
+ODPC     DOPC     250.00      0.000 ! DRUDE for OPC3-pol, Marta
+!X        DPPOL   1000.00      0.000 ! DRUDE particle for IPOL ! TETRA-WATER by Max 
+OPOL13   DPPOL   1000.00      0.000 ! DRUDE particle for IPOL ! TETRA-WATER by Max
+OPOL16   DPPOL   1000.00      0.000 ! DRUDE particle for IPOL ! TETRA-WATER by Max
+
 !
 ODW      LPDW       0.00      0.24034492 ! SWM4, SWM4-NDP water, Guillaume 2005 
 DOH2     LPDW     500.00      0.000 ! SWM4 and SWM6 water models
@@ -3664,10 +3691,20 @@ CD32A    OD31A    HDP1A     49.00    106.00 ! ETOH, ethanol
 CD33B    OD31A    HDP1A     58.20    106.00 ! MEOH, methanol 
 CD32A    OD31B    HDP1A     49.00    106.00 ! PRO1, 1-propanol 
 CD2R6A   OD31C    HDP1A     65.00    108.00 ! PHEN, Phenol 
-HDW      ODW      HDW       55.000   104.52 ! SWM4-NDP water Guillaume 2005 
-DUMH     ODW      HDW       55.000   104.52 ! Dummy H
-DUMH     ODW      DUMH      55.000   104.52 ! Dummy H
+!HDW      ODW      HDW      55.000   104.52 ! SWM4-NDP water Guillaume 2005
+HDW      ODW      HDW       55.000   104.61 ! QM Optimierung Amanda
+HDW      ODW      DUMH      55.000   104.52 !
+DUMH      ODW     DUMH      55.000   104.52 ! 
+!HDW      ODW      DUMH     10.000   109.47 !
+!DUMH     ODW      DUMH     55.000   114.42 !
 HDW      ODW6     HDW       55.000   104.52 ! SWM6-NDP water model
+HDPC     ODPC     HDPC      55.000   109.47 ! OPC3
+HPOL     OPOL13   HPOL      50.000   109.47 ! IPOL13 water ! TETRA-WATER by Max
+HPOL     OPOL16   HPOL      50.000   109.47 ! IPOL16 water ! TETRA-WATER by Max
+HPOL     OPOL13   DUMH      50.000   109.47 ! TETRA-WATER by Max
+HPOL     OPOL16   DUMH      50.000   109.47 ! TETRA-WATER by Max
+DUMH     OPOL13   DUMH      50.000   109.47 ! TETRA-WATER by Max
+DUMH     OPOL16   DUMH      50.000   109.47 ! TETRA-WATER by Max
 CD32A    SD30A    CD33A     21.00     97.10 ! EMS 
 CD33A    SD30A    CD33A     21.00     97.10 ! DMS 
 SD30B    SD30B    CD32A     60.00    104.25 ! DMDS, Disulfide patch 
@@ -7725,8 +7762,11 @@ HDR6C    0.0   -0.0700     0.8000 ! PYRM, pyrimidine (on carbon between 2 Ns)
 HDW      0.0   -0.0000     0.0000 ! SWM4-NDP water, GL, 2005, also for SWM6-NDP
 HD2C1A   0.00  -0.0340     1.2099 ! alkenes, Hui-v9
 !HD2A1A   0.00   -0.0240    1.3400 ! alkenes, Hui-2015, terminal C=CH2, rename
- 
-!! Carbons 
+HDPC    0.00   -0.000      0.0000  ! OPC3
+HPOL    0.00   -0.000      0.0000  ! IPOL13 and IPOL16 ! TETRA-WATER by Max 
+DUMH    0.00   -0.000      0.0000  ! IPOL13 and IPOL16 ! TETRA-WATER by Max
+                                                        
+!! Carbons                                              
 CD2O1A   0.0   -0.0500     1.7750 ! carbonyl C, amides
 CD2O1C   0.0   -0.1150     1.6800 ! carbonyl C, aldehydes
 CD2O1D   0.0   -0.1350     1.7500 ! carbonyl C, ketones
@@ -7840,6 +7880,10 @@ OD31F  0.0  -0.1009  1.7100  !  protonated  hydroxyl  in  an  acid  (ACEH),  PEM
 OD31G    0.0   -0.1500     1.7650 ! jal, DNA/RNA 3TER !rename
 ODW      0.0   -0.21094325 1.78692899 ! SWM4, SWM4-NDP water, GL, 2005 
 ODW6     0.0   -0.1620     1.7950 ! SWM6-NDP water
+ODPC     0.0   -0.2085     1.78247 ! OPC3i
+OPOL13  0.00   -0.130      1.82875 ! IPOL13 ! TETRA-WATER by Max
+OPOL16  0.00   -0.160      1.80818 ! IPOL16 ! TETRA-WATER by Max
+
 ! Sulfurs 
 SD31A    0.0   -0.4300     2.0500 ! MESH 
 SD31B    0.0   -0.4200     2.0200 ! ETSH, PRSH 
@@ -7899,13 +7943,16 @@ DCL2     0.0   -0.0000    0.0100 ! CL Drude for benzenes
 DCL3     0.0   -0.0000    0.0100 ! CL Drude for ethane
 DBR2     0.0   -0.0000    0.0100 ! BR Drude
 DI2      0.0   -0.0000    0.0100 ! I  Drude
+DOPC     0.0   -0.0000    0.0100 ! OPC3-pol  Drude
+DPPOL    0.0   -0.0000    0.0100 ! IPOL
 
-!! Rare gas parameters 
-DUM      0.0   -0.0000    0.0100 ! dummy atom
-DUMH  0.0  -0.0  0.0100  !  dummy  atom
-XED      0.0   -0.02127   1.4800 ! HE, helium, experimental pot. energy surface, adm jr., 12/95 
-NED      0.0   -0.0860    1.5300 ! NE, neon, semiempirical pot. energy surface, adm jr., 12/95 
-!Do NOT put atom type with all zero values as the last LJ parameter due to a bug in CHARMM
+
+!!! Rare gas parameters 
+!DUM      0.0   -0.0000    0.0100 ! dummy atom
+!DUMH  0.0  -0.0  0.0100  !  dummy  atom
+!XED      0.0   -0.02127   1.4800 ! HE, helium, experimental pot. energy surface, adm jr., 12/95 
+!NED      0.0   -0.0860    1.5300 ! NE, neon, semiempirical pot. energy surface, adm jr., 12/95 
+!!Do NOT put atom type with all zero values as the last LJ parameter due to a bug in CHARMM
  
 NBFIX 
 ! In column 1 place the water or ion (positive before negative) atom type
