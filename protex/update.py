@@ -10,6 +10,7 @@ from collections import Counter, deque
 
 import numpy as np
 from scipy.spatial import distance_matrix
+import toml as tomllib
 
 try:
     from openmm.unit import nanometers, kilojoules_per_mole
@@ -52,14 +53,14 @@ class Update(ABC):
     def __init__(
         self,
         ionic_liquid: ProtexSystem,
-        to_adapt: list[tuple[str, int, frozenset[str]]],
-        all_forces: bool,
-        include_equivalent_atom: bool,
-        reorient: bool,
+        to_adapt: list[tuple[str, int, frozenset[str]]] | None = None,
+        all_forces: bool = False,
+        include_equivalent_atom: bool = False,
+        reorient: bool = False,
         K:int = 300,
     ) -> None:
         self.ionic_liquid: ProtexSystem = ionic_liquid
-        self.to_adapt: list[tuple[str, int, frozenset[str]]] = to_adapt
+        self.to_adapt: list[tuple[str, int, frozenset[str]]] | None = to_adapt
         self.include_equivalent_atom: bool = include_equivalent_atom
         self.reorient: bool = reorient
         self.all_forces: bool = all_forces
@@ -89,6 +90,28 @@ class Update(ABC):
         if available:
             print(f"The following forces are available but not updated: {', '.join(available)}")
 
+    @classmethod
+    def from_config(cls, ionic_liquid: ProtexSystem, file:str):
+        """
+        Setup update with parameters specified in a toml file. If parameters are not given, default values will be used.
+        """
+        config = tomllib.load(file)
+        options = ["all_forces", "include_equivalent_atom", "reorient", "K"]
+        args = {}
+        for option in options:
+            try:
+                args[option] = config["update_parameters"][option]
+            except:
+                pass
+
+        if config["to_adapt"]:
+            to_adapt = []
+            for residue in config["to_adapt"]:
+                to_adapt.append((residue["residue"], residue["number"], frozenset(residue["reaction"])))
+            args["to_adapt"] = to_adapt
+
+        return cls(ionic_liquid, **args)
+    
     @abstractmethod
     def dump(self, fname: str) -> None:
         """Pickle an Update instance.
@@ -219,6 +242,13 @@ class KeepHUpdate(Update):
         super().__init__(
             ionic_liquid, to_adapt, all_forces, include_equivalent_atom, reorient, K
         )
+
+    @classmethod
+    def from_config(cls, ionic_liquid: ProtexSystem, file: str):
+        """
+        Setup update with parameters specified in a toml file. If parameters are not given, default values will be used.
+        """
+        return super().from_config(ionic_liquid, file)
 
     def dump(self, fname: str) -> None:
         """Pickle a KeepHUpdate instance.
@@ -563,6 +593,13 @@ class NaiveMCUpdate(Update):
             raise NotImplementedError(
                 "Currently reorienting atoms if equivalent atoms are used is not implemented. Set reorient=False."
             )
+
+    @classmethod
+    def from_config(cls, ionic_liquid: ProtexSystem, file: str):
+        """
+        Setup update with parameters specified in a toml file. If parameters are not given, default values will be used.
+        """
+        return super().from_config(ionic_liquid, file)
 
     def dump(self, fname: str) -> None:
         """Pickle the NaiveMCUpdate instance.

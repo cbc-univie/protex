@@ -47,7 +47,7 @@ def load_charmm_files(
     psf_file: str,
     crd_file: str,
     para_files: list[str],
-    boxl: float = None,
+    boxl: float | None = None,
 ):
     """
     Read data from CHARMM files into OpenMM objects.
@@ -85,6 +85,7 @@ def load_charmm_files(
     psf = CharmmPsfFile(psf_file)
     psf.setBox(xtl, xtl, xtl)
     print(f"Box length set to {xtl}")
+
     return psf, crd, params
 
 
@@ -179,12 +180,13 @@ def setup_simulation(
     psf: CharmmPsfFile,
     crd: CharmmCrdFile,
     system: mm.System,
-    restart_file: str = None,
+    restart_file: str | None = None,
+    temperature: int = 300,
     coll_freq: int = 10,
     drude_coll_freq: int = 100,
     dummies: list[tuple[str, str]] = [("IM1", "H7"), ("OAC", "H")],
     integrator_name: str = "DNH", # VVI: VelocityVerlet plugin, DNH: DrudeNoseHoover, DL: Drudelangevin
-    platformname: str = "CUDA",
+    platform_name: str = "CUDA",
     cuda_precision: str = "mixed" #"single",
 ):
     """
@@ -218,14 +220,14 @@ def setup_simulation(
         The OpenMM simulation object.
         """
     if integrator_name == "VVI":
-        if platformname != "CUDA":
+        if platform_name != "CUDA":
             assert "VVI Plugin only available with CUDA"
         
         from velocityverletplugin import VVIntegrator
 
         # temperature grouped nose hoover thermostat
         integrator = VVIntegrator(
-            300 * kelvin,
+            temperature * kelvin,
             coll_freq / picoseconds,
             1 * kelvin,
             drude_coll_freq / picoseconds,
@@ -236,7 +238,7 @@ def setup_simulation(
     elif integrator_name == "DL":
 
         integrator = DrudeLangevinIntegrator(
-            300 * kelvin,
+            temperature * kelvin,
             coll_freq / picoseconds,
             1 * kelvin,
             drude_coll_freq / picoseconds,
@@ -247,7 +249,7 @@ def setup_simulation(
 
     elif integrator_name == "DNH":
         integrator = DrudeNoseHooverIntegrator(
-            300 * kelvin,
+            temperature * kelvin,
             coll_freq / picoseconds,
             1 * kelvin,
             drude_coll_freq / picoseconds,
@@ -258,7 +260,7 @@ def setup_simulation(
 
     else:
         integrator = DrudeNoseHooverIntegrator(
-            300 * kelvin,
+            temperature * kelvin,
             coll_freq / picoseconds,
             1 * kelvin,
             drude_coll_freq / picoseconds,
@@ -272,8 +274,8 @@ def setup_simulation(
     # )  # tested with 20, 40, 80, 100, 120, 140, 160: 20,40 bad; 80 - 120 good; 140, 160 crashed
     integrator.setMaxDrudeDistance(0.25 * angstroms)
     try:
-        platform = Platform.getPlatformByName(platformname)
-        if platformname == "CUDA":
+        platform = Platform.getPlatformByName(platform_name)
+        if platform_name == "CUDA":
             prop = dict(CudaPrecision=cuda_precision)  # default is single
             print(f"Using precision {cuda_precision}")
         else:
@@ -376,6 +378,71 @@ def generate_complete_system(
         dummies=dummies,
         integrator_name=integrator_name,
     )
+
+    return simulation
+
+def generate_system_from_config(  
+    file: str
+):
+    """
+    Generate the complete system with parameters specified in a toml file. Psf, crd and parameters 
+    must be given, the rest can be omitted for default values.
+    """
+    import toml as tomllib
+
+    config = tomllib.load(file)
+
+    # psf_file = config["setup"]["psf_file"]
+    # crd_file = config["setup"]["crd_file"]
+    # para_files = config["setup"]["para_files"]
+    # try:
+    #     boxl = config["setup"]["boxl"]
+    # except:
+    #     boxl = None
+
+   
+    # this way, we don't have to try/except for none
+    # TODO think of a smart way for how to catch missing parameters
+    #   set up dictionary first empty/None/default values ? (like charmmgui omm readinputs)
+    # TODO these option lists are clunky and error prone
+
+    charmm_options = ["psf_file", "crd_file", "para_files", "boxl"]
+    charmm_args = {}
+    for option in charmm_options:
+        try:
+            charmm_args[option] = config["setup"][option]
+        except:
+            pass
+
+    psf, crd, params = load_charmm_files(**charmm_args)
+
+    system_options = ["constraints", "dummy_atom_type", "ensemble"]
+    system_args = {}
+    for option in system_options:
+        try:
+            system_args[option] = config["setup"][option]
+        except:
+            pass
+
+    system = setup_system(psf, params, **system_args)
+
+    simulation_options = ["restart_file", "temperature", "coll_freq", "drude_coll_freq", "dummies", "integrator_name", "platform_name", "cuda_precision"]
+    simulation_args = {}
+    for option in simulation_options:
+        try:
+            simulation_args[option] = config["setup"][option]
+        except:
+            pass
+
+    try:
+        dummies = []
+        for entry in config["dummies"]:
+            dummies.append((entry["resname"], entry["dummy_name"])) # TODO multiple dummies per resi
+        simulation_args["dummies"] = dummies
+    except:
+        pass
+
+    simulation = setup_simulation(psf, crd, system, **simulation_args)
 
     return simulation
 

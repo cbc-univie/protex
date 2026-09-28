@@ -55,7 +55,8 @@ from ..testsystems import (  # generate_single_hpts_system,
     BUTH_BUTA,
     generate_hpts_meoh_system,
     generate_single_hpts_meoh_system,
-    generate_im1h_buta_system
+    generate_im1h_buta_system,
+    generate_system_from_config
 )
 from ..update import KeepHUpdate, NaiveMCUpdate, StateUpdate
 
@@ -1662,3 +1663,29 @@ def test_manipulating_coordinates():
     ionic_liquid.simulation.context.setPositions(positions)
 
     print(f"{positions[0]=}, {positions[10]=}")
+
+@pytest.mark.skipif(
+    os.getenv("CI") == "true",
+    reason="Will fail sporadicaly.",
+)
+def test_update_config(caplog, tmp_path):
+    caplog.set_level(logging.WARNING)
+
+    simulation = generate_system_from_config(f"{protex.__path__[0]}/forcefield/config/config_test.toml")
+    simulation_for_parameters = generate_system_from_config(f"{protex.__path__[0]}/forcefield/config/config_test.toml")
+
+    # get ionic liquid templates
+    templates = ProtexTemplates.from_config(f"{protex.__path__[0]}/forcefield/config/config_test.toml")
+
+    # wrap system in IonicLiquidSystem
+    ionic_liquid = ProtexSystem(simulation, templates, simulation_for_parameters)
+
+    to_adapt = [("OAC", 150, frozenset(["IM1H", "OAC"])), ("HOAC", 350, frozenset(["IM1", "HOAC"]))]
+    update = KeepHUpdate(ionic_liquid, all_forces=True, to_adapt = to_adapt, include_equivalent_atom=True, reorient = True)
+    # initialize state update class
+    prob_function = "linear"
+    state_update = StateUpdate(update, prob_function = prob_function)
+    # ionic_liquid.simulation.minimizeEnergy(maxIterations=200)
+    ionic_liquid.simulation.step(50)
+    state_update.update(int(2))
+    ionic_liquid.simulation.step(50)
